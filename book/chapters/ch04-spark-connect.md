@@ -125,6 +125,13 @@ failed,    operation 18c06456-8661-4f65-af18-7d147dcd75c6
   `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch04-connect.webp">
+    <source src="../../media/clips/ch04-connect.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>connect.py</code> against a local Connect server: a query that works, then a column that doesn't exist, caught only when the plan reaches the server.</figcaption>
+</figure>
+
 Zones 237, 161 and 236 are the Upper East Side South, Midtown Center and Upper East Side North, the same top three as [Chapter 3](ch03-quick-start.md) with slightly higher counts, since this query doesn't drop the bad fares and distances.
 
 The failure is the behavioural difference you'll actually notice. In Classic, `trips.select("revenue")` raises the `AnalysisException` on the line that calls `select`, because a classic DataFrame is analyzed the moment it's created (I checked: same error, raised at `select`). Over Connect, `june.select("revenue")` succeeds, because nothing has been analyzed; the error only appears when an action sends the plan to the server, which can be many lines or several function calls later. Two habits help: call `df.schema` or `df.columns` after a risky step when you're developing, which forces a round trip to the server's analyzer without running anything, and read the error's suggestions, which come from the server and are usually right.
@@ -165,6 +172,13 @@ mine = next(o for o in ops if o["operationId"] == failed)
   "detail": "INTERNAL: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `revenue` cannot be resolved. ...\n'Project ['revenue]\n+- Filter ((tpep_pickup_datetime#99 >= cast(2026-06-01 as timestamp_ntz)) ...\n   +- Relation [VendorID#98, ...] parquet\n"
 }
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch04-rest.webp">
+    <source src="../../media/clips/ch04-rest.mp4" type="video/mp4">
+  </video>
+  <figcaption>The failed operation looked up in the 4.3 REST API by the ID the client printed. This take ran against a freshly started server, so the analysis took longer than in the listing above.</figcaption>
+</figure>
 
 The record has the session and user it belonged to, how long it took (7 ms, all of it analysis), the SQL execution it created (which links to the SQL tab of the UI and its own REST endpoint), no job IDs (it failed before scheduling anything), and the full error with the server's view of the unresolved plan. The `jobTag` is the same tag the server puts on every Spark job the operation runs, which is how a listener, the history server or the Spark UI's job list can be filtered down to one client operation. Because these events go to the event log, the same endpoints work in the history server after the server has stopped.
 

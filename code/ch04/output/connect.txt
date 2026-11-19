@@ -100,30 +100,36 @@ root {
 }
 
 busiest pickup zones: [(237, 177610), (161, 161198), (236, 157113)]
-succeeded, operation 56ddc4ab-f162-4ea5-8bdf-92f3f071c6f2
+succeeded, operation 7bfd8c29-9d12-4b81-958c-b7064b683f23
 built a DataFrame over a column that doesn't exist; no error yet
-failed,    operation 18c06456-8661-4f65-af18-7d147dcd75c6
-  AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `revenue` cannot be resolved. Did you mean one of the following? [`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;
+failed,    operation 1a1581bc-9318-42c1-b009-4393bbefaf56
+  AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function
+  parameter with name `revenue` cannot be resolved. Did you mean one of the following?
+  [`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;
 
-spark.sparkContext -> PySparkAttributeError: [JVM_ATTRIBUTE_NOT_SUPPORTED] Attribute `sparkContext` is not supported in Spark Connect as it depends on the 
+spark.sparkContext -> PySparkAttributeError: [JVM_ATTRIBUTE_NOT_SUPPORTED] Attribute
+  `sparkContext` is not supported in Spark Connect as it depends on the JVM. If you need
+  to use this attribute, do not use Spark Connect when creating your session. Visit
+  https://spark.apache.org/docs/latest/sql-getting-started.html#starting-point-
+  sparksession for creating regular Spark Session in detail.
 
 The server's record of the failed operation:
 
 {
-  "jobTag": "SparkConnect_OperationTag_User_lnc_Session_84463696-f3b0-4e74-9db0-f8a7d76c35d6_Operation_18c06456-8661-4f65-af18-7d147dcd75c6",
-  "operationId": "18c06456-8661-4f65-af18-7d147dcd75c6",
-  "sessionId": "84463696-f3b0-4e74-9db0-f8a7d76c35d6",
+  "jobTag": "SparkConnect_OperationTag_User_lnc_Session_44553310-d75d-4871-8a82-1f72299e7963_Operation_1a1581bc-9318-42c1-b009-4393bbefaf56",
+  "operationId": "1a1581bc-9318-42c1-b009-4393bbefaf56",
+  "sessionId": "44553310-d75d-4871-8a82-1f72299e7963",
   "userId": "lnc",
   "state": "CLOSED",
-  "startTimestamp": 1795069605335,
-  "finishTimestamp": 1795069605342,
-  "closeTimestamp": 1795069605344,
-  "duration": 9,
-  "executionTime": 7,
+  "startTimestamp": 1795069997254,
+  "finishTimestamp": 1795069997260,
+  "closeTimestamp": 1795069997261,
+  "duration": 7,
+  "executionTime": 6,
   "sparkSessionTags": [],
   "jobIds": [],
   "sqlExecIds": [
-    "8"
+    "12"
   ],
-  "detail": "INTERNAL: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `revenue` cannot be resolved. Did you mean one of the following? [`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;\n'Project ['revenue]\n+- Filter ((tpep_pickup_datetime#99 >= cast(2026-06-01 as timestamp_ntz)) AND (tpep_pickup_datetime#99 < cast(2026-07-01 as timestamp_ntz)))\n   +- Relation [VendorID#98,tpep_pickup_datetime#99,tpep_dropoff_datetime#100,passenger_count#101L,trip_distance#102,RatecodeID#103L,store_and_fwd_flag#104,PULocationID#105,DOLocationID#106,payment_type#107L,fare_amount#108,extra#109,mta_tax#110,tip_amount#111,tolls_amount#112,improvement_surcharge#113,total_amount#114,congestion_surcharge#115,Airport_fee#116,cbd_congestion_fee#117,request_source#118] parquet\n"
+  "detail": "INTERNAL: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `revenue` cannot be resolved. Did you mean one of the following? [`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;\n'Project ['revenue]\n+- Filter ((tpep_pickup_datetime#155 >= cast(2026-06-01 as timestamp_ntz)) AND (tpep_pickup_datetime#155 < cast(2026-07-01 as timestamp_ntz)))\n   +- Relation [VendorID#154,tpep_pickup_datetime#155,tpep_dropoff_datetime#156,passenger_count#157L,trip_distance#158,RatecodeID#159L,store_and_fwd_flag#160,PULocationID#161,DOLocationID#162,payment_type#163L,fare_amount#164,extra#165,mta_tax#166,tip_amount#167,tolls_amount#168,improvement_surcharge#169,total_amount#170,congestion_surcharge#171,Airport_fee#172,cbd_congestion_fee#173,request_source#174] parquet\n"
 }

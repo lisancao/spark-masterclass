@@ -13,37 +13,39 @@ AdaptiveSparkPlan isFinalPlan=false
 
 
 
-24 rows back, e.g. {'hour': 8, 'trips': 149208, 'avg_total': 29.12}  {'hour': 18, 'trips': 264040, 'avg_total': 30.04}
+24 rows back, e.g.
+  {'hour': 8, 'trips': 149208, 'avg_total': 29.12}
+  {'hour': 18, 'trips': 264040, 'avg_total': 30.04}
 
 What that one collect() became, from the Spark UI's REST API:
 
 job 1: SUCCEEDED, stages [1]
-  stage  1  tasks  16  input rows 3,837,248  shuffle write     96  shuffle read      0  collect at /home/lnc/spark-masterclass/c
+  stage  1  tasks  16  input rows 3,837,248  shuffle write     96  shuffle read      0
 job 2: SUCCEEDED, stages [2, 3]
-  stage  3  tasks   1  input rows         0  shuffle write      0  shuffle read     96  collect at /home/lnc/spark-masterclass/c
+  stage  3  tasks   1  input rows         0  shuffle write      0  shuffle read     96
 job 3: SUCCEEDED, stages [4, 5]
-  stage  5  tasks   1  input rows         0  shuffle write     24  shuffle read     96  collect at /home/lnc/spark-masterclass/c
+  stage  5  tasks   1  input rows         0  shuffle write     24  shuffle read     96
 job 4: SUCCEEDED, stages [6, 7, 8]
-  stage  8  tasks   1  input rows         0  shuffle write      0  shuffle read     24  collect at /home/lnc/spark-masterclass/c
+  stage  8  tasks   1  input rows         0  shuffle write      0  shuffle read     24
 
 Inside the scan stage, task by task:
 
-  task  0  rows         0   215 ms
-  task  1  rows         0   214 ms
-  task  2  rows 1,048,576   434 ms
-  task  3  rows         0   211 ms
-  task  4  rows         0   211 ms
-  task  5  rows         0   212 ms
-  task  6  rows 1,048,576   436 ms
-  task  7  rows         0   211 ms
-  task  8  rows         0   209 ms
-  task  9  rows         0   210 ms
-  task 10  rows 1,048,576   430 ms
-  task 11  rows         0   209 ms
-  task 12  rows         0   209 ms
-  task 13  rows   691,520   428 ms
-  task 14  rows         0   210 ms
-  task 15  rows         0   211 ms
+  task  0  rows         0   223 ms
+  task  1  rows         0   222 ms
+  task  2  rows 1,048,576   435 ms
+  task  3  rows         0   220 ms
+  task  4  rows         0   220 ms
+  task  5  rows         0   220 ms
+  task  6  rows 1,048,576   434 ms
+  task  7  rows         0   221 ms
+  task  8  rows         0   221 ms
+  task  9  rows         0   220 ms
+  task 10  rows 1,048,576   435 ms
+  task 11  rows         0   220 ms
+  task 12  rows         0   220 ms
+  task 13  rows   691,520   427 ms
+  task 14  rows         0   218 ms
+  task 15  rows         0   217 ms
 
 4 of 16 tasks read any rows.
 yellow_tripdata_2026-06.parquet: 65,465,637 bytes, 4 row groups, 3,837,248 rows

@@ -82,7 +82,9 @@ jobs = [j for j in ui_api("jobs") if j.get("description") == "busiest hours"]
 ```
 
 ```text
-24 rows back, e.g. {'hour': 8, 'trips': 149208, 'avg_total': 29.12}  {'hour': 18, 'trips': 264040, 'avg_total': 30.04}
+24 rows back, e.g.
+  {'hour': 8, 'trips': 149208, 'avg_total': 29.12}
+  {'hour': 18, 'trips': 264040, 'avg_total': 30.04}
 
 job 1: SUCCEEDED, stages [1]
   stage  1  tasks  16  input rows 3,837,248  shuffle write     96  shuffle read      0
@@ -93,6 +95,13 @@ job 3: SUCCEEDED, stages [4, 5]
 job 4: SUCCEEDED, stages [6, 7, 8]
   stage  8  tasks   1  input rows         0  shuffle write      0  shuffle read     24
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch01-jobs.webp">
+    <source src="../../media/clips/ch01-jobs.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>anatomy.py</code> running against Spark 4.3.0: one <code>collect()</code> and the jobs and stages it became, read from the Spark UI's REST API.</figcaption>
+</figure>
 
 The answer itself is what you'd guess about New York (8 a.m. had 149,208 trips, 6 p.m. had 264,040, and evening trips cost slightly more), but the interesting part is underneath it. One `collect()` became four **jobs**, and those jobs list eight **stages** between them, of which only four actually ran; the rest show up as skipped. The vocabulary:
 
@@ -152,6 +161,13 @@ Asking the REST API for the scan stage's task list shows exactly which:
 yellow_tripdata_2026-06.parquet: 65,465,637 bytes, 4 row groups, 3,837,248 rows
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch01-tasks.webp">
+    <source src="../../media/clips/ch01-tasks.mp4" type="video/mp4">
+  </video>
+  <figcaption>The scan stage task by task: sixteen tasks, four of which read a row group.</figcaption>
+</figure>
+
 Spark plans file scans by size, before reading any data. It computes a target split size of `min(spark.sql.files.maxPartitionBytes, max(spark.sql.files.openCostInBytes, totalBytes / cores))`, which with the 128 MB default, 65 MB of input and 16 cores comes to about 4 MB, and slices the file into 16 byte ranges of that size, one task each. A Parquet file, though, can only be decoded a **row group** at a time (a row group is a horizontal chunk of rows with all its columns stored together, and this file was written with 1,048,576 rows per group), so each row group is read by whichever task's byte range contains the group's midpoint. Four row groups means four tasks with work and twelve that open the file, read its footer, find no row group of their own and finish. Those empty tasks still took around 210 ms each, against about 430 ms for the busy ones; this was the first query in a fresh JVM, and my suspicion is that most of that is start-up cost (class loading, JIT compilation) rather than I/O, since an empty task reads only a footer; but they're the clearest possible demonstration that parallelism in Spark is decided by how the input is laid out, not by how many cores you have.
 
 The practical version of this, which [Part IV](../roadmap.md) works through properly: a scan can't be more parallel than its row groups, small files and huge row groups both hurt, and when a stage is slow the first thing to look at in the UI is whether its tasks did similar amounts of work.
@@ -173,6 +189,13 @@ def zones_by_borough():
 spark.sql.optimizer.singleTaskExecution.enabled=false:   82.8 ms per query, 5.0 jobs, 5.0 tasks
 spark.sql.optimizer.singleTaskExecution.enabled=true:    49.3 ms per query, 2.0 jobs, 2.0 tasks
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch01-feather.webp">
+    <source src="../../media/clips/ch01-feather.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>feather.py</code>: the same small query with single-task execution off and on (timings vary a few milliseconds between runs).</figcaption>
+</figure>
 
 Across three runs of the script the default stayed between 82 and 87 ms and single-task execution between 48 and 50 ms. Both settings include one job that has nothing to do with the query, because reading a CSV with `header=true` runs a one-task job to read the first line for the column names (a bare `spark.read.option("header", True).csv(...)` with no action after it runs exactly one job). What's left is four jobs (scan, then the AQE stages for the aggregate and the sort, like the taxi query above) collapsing into one. The 33 ms saved per query is nothing for a batch job and a lot for a test suite that builds hundreds of tiny DataFrames, which is exactly who Feather is for; the [Ultimate Guide to Spark 4.3](https://systemsnull.net/posts/data-engineering-ai/ultimate-guide-spark-43) covers the rest of it, including the Arrow-backed cache.
 

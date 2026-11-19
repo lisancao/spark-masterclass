@@ -1,0 +1,32 @@
+# Spark Masterclass, Chapter 4: Spark Connect. Storyboard: storyboard.md.
+#   film render code/film/ch04.tape --format chapter
+Set TypingSpeed 40ms
+Set WaitPattern /❯$/
+
+# Setup, off camera at the start of every clip.
+Hide
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
+Sleep 1s
+Show
+
+# beat: connect | A query and a mistake, over Spark Connect
+Hide
+Type "ch04/server.sh start >/dev/null; rm -f ../data/failed_op; clear" Enter
+Wait@120s
+Show
+Type "# the same DataFrame code, sent to a Connect server as a plan" Enter
+Sleep 500ms
+Type "python ch04/connect.py 2>/dev/null | sed -n '/busiest/,/SQLSTATE/p'" Enter
+Wait@120s
+Sleep 10s
+
+# beat: rest | The failed operation, from the server's REST API
+Hide
+Type "export API=localhost:4041/api/v1/applications/$(curl -s localhost:4041/api/v1/applications | jq -r '.[0].id') OP=$(cat ../data/failed_op); clear" Enter
+Sleep 1s
+Show
+Type "# new in 4.3: look the operation up by the ID the client printed" Enter
+Sleep 500ms
+Type "curl -s $API/connect/operations | jq '.[] | select(.operationId == env.OP) | {operationId, state, executionTime, sqlExecIds, detail: .detail[0:120]}'" Enter
+Sleep 10s

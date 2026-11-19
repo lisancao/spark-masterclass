@@ -26,7 +26,7 @@ print(plan(by_hour, "simple"))
 
 spark.sparkContext.setJobDescription("busiest hours")
 rows = by_hour.collect()          # the action: now Spark schedules work
-print(f"{len(rows)} rows back, e.g. {rows[8].asDict()}  {rows[18].asDict()}\n")
+print(f"{len(rows)} rows back, e.g.\n  {rows[8].asDict()}\n  {rows[18].asDict()}\n")
 
 print("What that one collect() became, from the Spark UI's REST API:\n")
 jobs = [j for j in ui_api("jobs") if j.get("description") == "busiest hours"]
@@ -39,8 +39,7 @@ for job in sorted(jobs, key=lambda j: j["jobId"]):
             print(f"  stage {sid:>2}  tasks {st['numCompleteTasks']:>3}  "
                   f"input rows {st['inputRecords']:>9,}  "
                   f"shuffle write {st['shuffleWriteRecords']:>6,}  "
-                  f"shuffle read {st['shuffleReadRecords']:>6,}  "
-                  f"{st['name'][:40]}")
+                  f"shuffle read {st['shuffleReadRecords']:>6,}")
 
 print("\nInside the scan stage, task by task:\n")
 scan = min(s for j in jobs for s in j["stageIds"])

@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from pyspark.sql import SparkSession, functions as F
-from common.book import TRIPS, MONTH_START, MONTH_END, ui_api
+from common.book import ROOT, TRIPS, MONTH_START, MONTH_END, ui_api
 
 
 def compact(msg):
@@ -45,13 +45,18 @@ with SparkSession.builder.remote("sc://localhost:15002").getOrCreate() as spark:
         bad.collect()
     except Exception as e:
         failed = e.operation_id
-        print(f"failed,    operation {failed}\n  {type(e).__name__}: {str(e).splitlines()[0]}")
+        (ROOT / "data" / "failed_op").write_text(failed)      # for looking it up later
+        import textwrap
+        print(f"failed,    operation {failed}")
+        print(textwrap.fill(f"{type(e).__name__}: {str(e).splitlines()[0]}", 90,
+                            initial_indent="  ", subsequent_indent="  "))
 
     # What isn't there: anything that lives in the JVM.
     try:
         spark.sparkContext
     except Exception as e:
-        print(f"\nspark.sparkContext -> {type(e).__name__}: {str(e).splitlines()[0][:110]}")
+        print(textwrap.fill(f"spark.sparkContext -> {type(e).__name__}: {str(e).splitlines()[0]}", 90,
+                            initial_indent="\n", subsequent_indent="  "))
 
 # 4.3: the server's record of every session and operation, from the monitoring REST API.
 ops = ui_api("connect/operations", port=4041)
