@@ -1,0 +1,10 @@
+[project]
+name = "spark-masterclass-code"
+version = "0.1.0"
+description = "Runnable code for every chapter of the Spark Masterclass, pinned to Apache Spark 4.3.0"
+requires-python = ">=3.11"
+dependencies = [
+  "pyspark[connect]==4.3.0",
+  "pandas>=2.2,<3",
+  "pyarrow>=18",
+]

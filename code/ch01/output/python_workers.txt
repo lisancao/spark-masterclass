@@ -1,0 +1,6 @@
++- ArrowEvalPython [fare_band(fare_amount#10)#21], [pythonUDF0#48], 10
+2.0 s; Python processes before the query: 0, at peak: 17
+  $10 to $30   2,192,451
+  invalid         16,815
+  over $30       777,470
+  under $10      850,512

@@ -1,0 +1,50 @@
+python  3.12.3
+pyspark 4.3.0
+java    openjdk version "17.0.21.1" 2026-11-17
+
+Spark 4.3.0 on local[*], 16 cores, UI at http://192.168.50.13:4040
+
+3,837,248 trips, 21 columns
+root
+ |-- VendorID: integer (nullable = true)
+ |-- tpep_pickup_datetime: timestamp_ntz (nullable = true)
+ |-- tpep_dropoff_datetime: timestamp_ntz (nullable = true)
+ |-- passenger_count: long (nullable = true)
+ |-- trip_distance: double (nullable = true)
+ |-- RatecodeID: long (nullable = true)
+ |-- store_and_fwd_flag: string (nullable = true)
+ |-- PULocationID: integer (nullable = true)
+ |-- DOLocationID: integer (nullable = true)
+ |-- payment_type: long (nullable = true)
+ |-- fare_amount: double (nullable = true)
+ |-- extra: double (nullable = true)
+ |-- mta_tax: double (nullable = true)
+ |-- tip_amount: double (nullable = true)
+ |-- tolls_amount: double (nullable = true)
+ |-- improvement_surcharge: double (nullable = true)
+ |-- total_amount: double (nullable = true)
+ |-- congestion_surcharge: double (nullable = true)
+ |-- Airport_fee: double (nullable = true)
+ |-- cbd_congestion_fee: double (nullable = true)
+ |-- request_source: string (nullable = true)
+
++--------------------+------------+------------+-------------+-----------+----------+------------+
+|tpep_pickup_datetime|PULocationID|DOLocationID|trip_distance|fare_amount|tip_amount|payment_type|
++--------------------+------------+------------+-------------+-----------+----------+------------+
+| 2026-06-01 00:04:22|         140|         238|          2.9|       16.3|       6.4|           1|
+| 2026-06-01 00:59:50|         138|         129|         2.31|       16.3|      7.14|           1|
+| 2026-06-01 00:19:05|         138|          90|         9.52|       39.4|       5.0|           1|
+| 2026-06-01 00:24:37|         246|          68|          0.9|        7.2|      2.55|           1|
+| 2026-06-01 00:47:37|         246|          79|          2.5|       14.9|       4.1|           1|
++--------------------+------------+------------+-------------+-----------+----------+------------+
+only showing top 5 rows
++-------+------------------+-----------------+------------------+
+|summary|     trip_distance|      fare_amount|   passenger_count|
++-------+------------------+-----------------+------------------+
+|  count|           3837248|          3837248|           2823748|
+|   mean|5.2017636519705865|21.43972443271672|1.2570296641201693|
+| stddev| 532.8536966799546|19.17533535065736|0.6561344679942783|
+|    min|               0.0|          -1683.7|                 0|
+|    max|         311565.39|           7045.0|                 9|
++-------+------------------+-----------------+------------------+
+

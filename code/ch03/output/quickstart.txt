@@ -1,0 +1,84 @@
++-------------------+-------------------+-----------+------------------+
+|first_pickup       |last_pickup        |lowest_fare|longest_trip_miles|
++-------------------+-------------------+-----------+------------------+
+|2008-12-31 23:03:25|2026-06-30 23:59:59|-1683.7    |311565.39         |
++-------------------+-------------------+-----------+------------------+
+
++---------+----------------------------+------+--------+-------+
+|Borough  |Zone                        |trips |avg_fare|tip_pct|
++---------+----------------------------+------+--------+-------+
+|Manhattan|Upper East Side South       |173550|14.03   |25.3   |
+|Manhattan|Midtown Center              |156493|18.35   |24.2   |
+|Manhattan|Upper East Side North       |152687|14.83   |24.8   |
+|Queens   |JFK Airport                 |142209|62.27   |19.0   |
+|Manhattan|Midtown East                |116289|17.27   |24.3   |
+|Manhattan|Lincoln Square East         |108791|15.77   |25.0   |
+|Manhattan|Times Sq/Theatre District   |106540|21.27   |23.7   |
+|Manhattan|Penn Station/Madison Sq West|104614|18.71   |23.3   |
+|Manhattan|Murray Hill                 |99467 |17.4    |24.1   |
+|Queens   |LaGuardia Airport           |98621 |46.29   |23.9   |
++---------+----------------------------+------+--------+-------+
+
+Same answer: True
+Same analyzed plan (sameSemantics): False
+Same optimized plan (sameResult):   True
+
+dataframe, analyzed:
+  GlobalLimit
+  +- LocalLimit
+     +- Sort
+        +- Aggregate
+           +- Join
+              :- Filter
+              :  +- Relation
+              +- Relation
+
+sql, analyzed:
+  GlobalLimit
+  +- LocalLimit
+     +- Sort
+        +- Aggregate
+           +- Filter
+              +- Join
+                 :- SubqueryAlias
+                 :  +- SubqueryAlias
+                 :     +- View
+                 :        +- Relation
+                 +- SubqueryAlias
+                    +- SubqueryAlias
+                       +- View
+                          +- Relation
+
+== Physical Plan ==
+AdaptiveSparkPlan (28)
++- == Final Plan ==
+   ResultQueryStage (17)
+   +- TakeOrderedAndProject (16)
+      +- * HashAggregate (15)
+         +- AQEShuffleRead (14), coalesced
+            +- ShuffleQueryStage (13), Statistics(sizeInBytes=89.9 KiB, rowCount=986)
+               +- Exchange (12)
+                  +- * HashAggregate (11)
+                     +- * Project (10)
+                        +- * BroadcastHashJoin Inner BuildRight (9)
+                           :- * Project (4)
+                           :  +- * Filter (3)
+                           :     +- * ColumnarToRow (2)
+                           :        +- Scan parquet  (1)
+                           +- BroadcastQueryStage (8), Statistics(sizeInBytes=32.0 MiB, rowCount=265)
+                              +- BroadcastExchange (7)
+                                 +- * Filter (6)
+                                    +- Scan csv  (5)
++- == Initial Plan ==
+   TakeOrderedAndProject (27)
+   +- HashAggregate (26)
+      +- Exchange (25)
+         +- HashAggregate (24)
+            +- Project (23)
+               +- BroadcastHashJoin Inner BuildRight (22)
+                  :- Project (19)
+                  :  +- Filter (18)
+                  :     +- Scan parquet  (1)
+                  +- BroadcastExchange (21)
+                     +- Filter (20)
+                        +- Scan csv  (5)

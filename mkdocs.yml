@@ -1,0 +1,78 @@
+site_name: Spark Masterclass
+site_description: >-
+  An open, in-depth book on Apache Spark 4.3: how it runs your code, DataFrames
+  and SQL, messy data, performance, streaming, pipelines, machine learning,
+  production, extending Spark and its internals. Every example runs on a laptop.
+site_url: https://lisancao.github.io/spark-masterclass/
+site_author: Lisa Cao
+
+repo_url: https://github.com/lisancao/spark-masterclass
+repo_name: lisancao/spark-masterclass
+edit_uri: edit/main/book/
+
+docs_dir: book
+
+exclude_docs: |
+  media/clips/out/
+  media/clips/cut.sh
+  media/clips/clips.tsv
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep orange
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home: index.md
+  - "Part I: Getting started":
+      - "1. How Spark runs your code": chapters/ch01-how-spark-runs.md
+      - "2. Installing Spark 4.3": chapters/ch02-installing.md
+      - "3. Quick start": chapters/ch03-quick-start.md
+      - "4. Spark Connect": chapters/ch04-spark-connect.md
+  - Roadmap: roadmap.md

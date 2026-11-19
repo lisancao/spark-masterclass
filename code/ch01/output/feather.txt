@@ -1,0 +1,11 @@
+spark.sql.optimizer.singleTaskExecution.enabled=false:   82.8 ms per query, 5.0 jobs, 5.0 tasks
+spark.sql.optimizer.singleTaskExecution.enabled=true:   49.3 ms per query, 2.0 jobs, 2.0 tasks
+
+  Bronx         43
+  Brooklyn      61
+  EWR           1
+  Manhattan     69
+  N/A           1
+  Queens        69
+  Staten Island 20
+  Unknown       1

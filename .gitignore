@@ -1,0 +1,10 @@
+/site/
+/data/
+.venv/
+__pycache__/
+*.pyc
+code/**/spark-warehouse/
+code/**/metastore_db/
+derby.log
+book/media/clips/out/
+.docs-venv/

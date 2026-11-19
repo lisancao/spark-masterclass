@@ -1,0 +1,129 @@
+pyspark.sql.connect.session | server runs Spark 4.3.0
+
+The unresolved plan the client builds:
+
+root {
+  limit {
+    input {
+      sort {
+        input {
+          aggregate {
+            input {
+              filter {
+                input {
+                  read {
+                    data_source {
+                      format: "parquet"
+                      schema: ""
+                      paths: "/home/lnc/spark-masterclass/data/nyc-taxi/yellow"
+                    }
+                  }
+                }
+                condition {
+                  unresolved_function {
+                    function_name: "and"
+                    arguments {
+                      unresolved_function {
+                        function_name: ">="
+                        arguments {
+                          unresolved_attribute {
+                            unparsed_identifier: "tpep_pickup_datetime"
+                            is_metadata_column: false
+                          }
+                        }
+                        arguments {
+                          literal {
+                            string: "2026-06-01"
+                          }
+                        }
+                      }
+                    }
+                    arguments {
+                      unresolved_function {
+                        function_name: "<"
+                        arguments {
+                          unresolved_attribute {
+                            unparsed_identifier: "tpep_pickup_datetime"
+                            is_metadata_column: false
+                          }
+                        }
+                        arguments {
+                          literal {
+                            string: "2026-07-01"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            group_type: GROUP_TYPE_GROUPBY
+            grouping_expressions {
+              unresolved_attribute {
+                unparsed_identifier: "PULocationID"
+                is_metadata_column: false
+              }
+            }
+            aggregate_expressions {
+              alias {
+                expr {
+                  unresolved_function {
+                    function_name: "count"
+                    arguments {
+                      literal {
+                        integer: 1
+                      }
+                    }
+                  }
+                }
+                name: "count"
+              }
+            }
+          }
+        }
+        order {
+          child {
+            unresolved_attribute {
+              unparsed_identifier: "count"
+              is_metadata_column: false
+            }
+          }
+          direction: SORT_DIRECTION_DESCENDING
+          null_ordering: SORT_NULLS_LAST
+        }
+        is_global: true
+      }
+    }
+    limit: 3
+  }
+}
+
+busiest pickup zones: [(237, 177610), (161, 161198), (236, 157113)]
+succeeded, operation 56ddc4ab-f162-4ea5-8bdf-92f3f071c6f2
+built a DataFrame over a column that doesn't exist; no error yet
+failed,    operation 18c06456-8661-4f65-af18-7d147dcd75c6
+  AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `revenue` cannot be resolved. Did you mean one of the following? [`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;
+
+spark.sparkContext -> PySparkAttributeError: [JVM_ATTRIBUTE_NOT_SUPPORTED] Attribute `sparkContext` is not supported in Spark Connect as it depends on the 
+
+The server's record of the failed operation:
+
+{
+  "jobTag": "SparkConnect_OperationTag_User_lnc_Session_84463696-f3b0-4e74-9db0-f8a7d76c35d6_Operation_18c06456-8661-4f65-af18-7d147dcd75c6",
+  "operationId": "18c06456-8661-4f65-af18-7d147dcd75c6",
+  "sessionId": "84463696-f3b0-4e74-9db0-f8a7d76c35d6",
+  "userId": "lnc",
+  "state": "CLOSED",
+  "startTimestamp": 1795069605335,
+  "finishTimestamp": 1795069605342,
+  "closeTimestamp": 1795069605344,
+  "duration": 9,
+  "executionTime": 7,
+  "sparkSessionTags": [],
+  "jobIds": [],
+  "sqlExecIds": [
+    "8"
+  ],
+  "detail": "INTERNAL: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `revenue` cannot be resolved. Did you mean one of the following? [`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;\n'Project ['revenue]\n+- Filter ((tpep_pickup_datetime#99 >= cast(2026-06-01 as timestamp_ntz)) AND (tpep_pickup_datetime#99 < cast(2026-07-01 as timestamp_ntz)))\n   +- Relation [VendorID#98,tpep_pickup_datetime#99,tpep_dropoff_datetime#100,passenger_count#101L,trip_distance#102,RatecodeID#103L,store_and_fwd_flag#104,PULocationID#105,DOLocationID#106,payment_type#107L,fare_amount#108,extra#109,mta_tax#110,tip_amount#111,tolls_amount#112,improvement_surcharge#113,total_amount#114,congestion_surcharge#115,Airport_fee#116,cbd_congestion_fee#117,request_source#118] parquet\n"
+}

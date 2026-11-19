@@ -1,0 +1,6 @@
+  all                                  3,837,248  100.0%
+  pickup outside June 2026                    17    0.0%
+  fare of zero or less                    16,815    0.4%
+  distance outside 0.1 to 100 miles      160,940    4.2%
+  no passenger count                   1,013,500   26.4%
+  not paid by card (no tip recorded)   1,404,377   36.6%
