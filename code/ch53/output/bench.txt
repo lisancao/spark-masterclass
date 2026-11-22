@@ -1,0 +1,15 @@
+local[*] on 16 cores, x86_64, Spark 4.3.0, Python 3.12.3
+
+A. is_png over 20,000,000 cached values
+  is_png_fast (StaticInvoke, in codegen)         0.377 s    1.0x  no Python        (6,666,667 rows)
+  Python UDF is_png, rewritten by PngRule        0.384 s    1.0x  no Python        (6,666,667 rows)
+  is_png (CodegenFallback)                       0.309 s    0.8x  no Python        (6,666,667 rows)
+  built-in substring(b, 1, 8) = X'89504E47...'   0.381 s    1.0x  no Python        (6,666,667 rows)
+  pandas UDF                                     2.062 s    5.5x  ArrowEvalPython  (6,666,667 rows)
+  Python UDF (Arrow, the 4.3 default)            3.356 s    8.9x  ArrowEvalPython  (6,666,667 rows)
+
+B. fare_band over 3,837,248 trips (group by band, count)
+  built-in when(...) chain                       0.633 s    1.0x  no Python        (4 rows)
+  Python UDF, transpiled (4.3, useArrow=False)   0.451 s    0.7x  no Python        (4 rows)
+  Python UDF (Arrow, the 4.3 default)            1.052 s    1.7x  ArrowEvalPython  (4 rows)
+  Python UDF (pickled, useArrow=False)           1.133 s    1.8x  BatchEvalPython  (4 rows)

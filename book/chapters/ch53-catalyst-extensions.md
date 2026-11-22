@@ -47,7 +47,7 @@ flowchart LR
   e5["injectPlannerStrategy<br/>injectColumnar"]:::ext -.-> plan
 ```
 
-The annotations of the class are `@DeveloperApi @Experimental @Unstable`. Its doc says: "We make NO guarantee about the stability regarding binary compatibility and source compatibility of methods here." The Catalyst classes that an extension uses (`Expression`, `LogicalPlan`, `PythonUDF`) are internal too. Thus, compile an extension against one Spark version, and test it again on each upgrade. Delta Lake does this, with one build for each minor version of Spark.
+The annotations of the class are `@DeveloperApi @Experimental @Unstable`. Its doc says that there is no guarantee of binary compatibility or source compatibility for its methods. The Catalyst classes that an extension uses (`Expression`, `LogicalPlan`, `PythonUDF`) are internal too. Thus, compile an extension against one Spark version, and test it again on each upgrade. Delta Lake does this, with one build for each minor version of Spark.
 
 There are three methods to load an extension class:
 
@@ -412,7 +412,7 @@ A rule also needs these two properties:
 Spark 4.3 adds `spark.sql.experimental.optimizer.transpilePyUDFs` (default `false`). When it is `true`, PySpark tries to change the body of a Python UDF into a Catalyst expression. Then the optimizer uses that expression instead of the Python worker. This is the work of `PngRule`, done automatically and for any name. The doc of the config gives the conditions:
 
 - It needs ANSI mode (`spark.sql.ansi.enabled=true`). The transpiled expressions use ANSI semantics.
-- "Transpiled UDFS attempt to match the Python functionality but may not be 100% equivalent." The doc names overflow of the input types, type coercion in comparisons and implicit returns.
+- The transpiled UDFs try to give the same results as Python, but they are possibly not equivalent in all cases. The doc names overflow of the input types, type coercion in comparisons and implicit returns.
 - "This initial version only works with non-Connect Spark".
 
 `python/pyspark/sql/udf.py` gives one more condition. It tries transpilation only for a deterministic UDF with eval type `SQL_BATCHED_UDF` (100), which is the pickled UDF, not the Arrow-optimized UDF. `transpile.py` shows what this means in 4.3:
@@ -457,8 +457,10 @@ The transpiler refuses many functions. It gives its reason in a warning when you
 Two more details from `transpile.py`:
 
 ```text
-== 4. the flag is read when the UDF is built, not when the query runs
-   built with the flag off, run with it on: Python node = BatchEvalPython
+== 4. the flag is read twice: when the UDF is built, and when the query is optimized
+   built with the flag off, optimized with it on: Python node = BatchEvalPython
+   built with the flag on, optimized with it off: Python node = BatchEvalPython
+   built with the flag on, optimized with it on:  Python node = none
 
 == 5. ANSI mode off
    warning: Python UDF transpilation (spark.sql.experimental.optimizer.transpilePyUDFs) is only supported when ANSI mode is enabled 
@@ -470,7 +472,12 @@ Two more details from `transpile.py`:
    equal: True
 ```
 
-PySpark reads the flag when it **builds** the UDF object, not when the query runs. A UDF that a module defined before you set the flag stays in Python. With ANSI off, PySpark gives a warning and keeps the Python UDF. And for the `fare_band` UDF, the Python and the transpiled versions give the same counts over all 3,837,248 trips of June 2026.
+The flag must be on at **two** times:
+
+- When `F.udf` builds the UDF object. In `python/pyspark/sql/udf.py`, PySpark reads the flag and transpiles the function at that time. A UDF that a module defined before you set the flag stays in Python.
+- When the optimizer runs. `ConvertToCatalyst` in `Optimizer.scala` reads the flag again. If the flag is off, it logs a warning and keeps the Python UDF.
+
+Thus, a session that turns the flag off after it builds the UDFs gets Python UDFs again. With ANSI off, PySpark gives a warning and keeps the Python UDF. For the `fare_band` UDF, the Python and the transpiled versions give the same counts over all 3,837,248 trips of June 2026.
 
 Where does the transpiled expression go? `planchange.py` also logs the rule `ConvertToCatalyst`, on a UDF that adds 1 to a `bigint`:
 
@@ -511,7 +518,7 @@ groupBy(sha2(content, 256)) is allowed: 6 groups
 The error occurs at `count()`, which builds the DataFrame, before any action. A Classic session analyzes each new DataFrame immediately, and check rules are part of analysis. This is also a caution:
 
 !!! warning "Reject only constructs that are always wrong"
-    Do not write a check rule that rejects a plan which can be correct as an intermediate DataFrame. A check rule sees **each** analyzed plan, and that includes each intermediate DataFrame. For example, a rule that rejects "a `binaryFile` read without a limit" would reject `spark.read.format("binaryFile").load(...)` itself.
+    Do not write a check rule that rejects a plan that is correct as an intermediate DataFrame. A check rule sees **each** analyzed plan, and that includes each intermediate DataFrame. For example, a rule that rejects "a `binaryFile` read without a limit" would reject `spark.read.format("binaryFile").load(...)` itself.
 
 A Java `IllegalArgumentException` gets to Python as the `IllegalArgumentException` of PySpark. The error classes of Spark, such as `DATATYPE_MISMATCH`, need entries in the error registry of Spark, and an extension cannot add entries. Thus, a clear standard exception is the correct choice.
 
@@ -520,10 +527,30 @@ A Java `IllegalArgumentException` gets to Python as the `IllegalArgumentExceptio
 `bench.py` measures each version. Each time is the median of 5 runs after 1 warm-up run, with a **new** DataFrame for each run. The script ran under the shared benchmark lock of the book. Part A counts the matches in 2,000,000 cached binary values (a third of them start with the PNG signature). Part B groups the June 2026 trips by `fare_band`:
 
 ```text
-BENCH
+local[*] on 16 cores, x86_64, Spark 4.3.0, Python 3.12.3
+
+A. is_png over 20,000,000 cached values
+  is_png_fast (StaticInvoke, in codegen)         0.377 s    1.0x  no Python        (6,666,667 rows)
+  Python UDF is_png, rewritten by PngRule        0.384 s    1.0x  no Python        (6,666,667 rows)
+  is_png (CodegenFallback)                       0.309 s    0.8x  no Python        (6,666,667 rows)
+  built-in substring(b, 1, 8) = X'89504E47...'   0.381 s    1.0x  no Python        (6,666,667 rows)
+  pandas UDF                                     2.062 s    5.5x  ArrowEvalPython  (6,666,667 rows)
+  Python UDF (Arrow, the 4.3 default)            3.356 s    8.9x  ArrowEvalPython  (6,666,667 rows)
+
+B. fare_band over 3,837,248 trips (group by band, count)
+  built-in when(...) chain                       0.633 s    1.0x  no Python        (4 rows)
+  Python UDF, transpiled (4.3, useArrow=False)   0.451 s    0.7x  no Python        (4 rows)
+  Python UDF (Arrow, the 4.3 default)            1.052 s    1.7x  ArrowEvalPython  (4 rows)
+  Python UDF (pickled, useArrow=False)           1.133 s    1.8x  BatchEvalPython  (4 rows)
 ```
 
-BENCH-PROSE
+The last column shows the Python node of each physical plan. The results group by that column:
+
+- **No Python node, no Python cost.** In part A, the four native forms take 0.31 s to 0.38 s. The Python UDF that `PngRule` replaced is one of them. It takes 0.384 s, against 3.356 s for the same UDF with a different name. The `CodegenFallback` version is not slower than the `StaticInvoke` version here, because the check reads only eight bytes of each value.
+- **A Python node costs a multiple.** The pandas UDF takes 5.5 times as long as `is_png_fast`, and the Arrow-optimized Python UDF takes 8.9 times as long.
+- **The transpiled UDF is native.** In part B, the transpiled `fare_band` has no Python node. It takes 0.451 s, against 1.052 s for the Arrow UDF and 1.133 s for the pickled UDF. The built-in `when` chain took 0.633 s. It ran first in its table, and this book did not measure the variation between runs. Thus, do not read the difference between the two native forms as a result.
+
+The script ran with the book's shared benchmark lock, on one machine, with `local[*]`.
 
 **The benchmark trap.** Run the same DataFrame object a second time, and Spark uses its physical plan again, and also the shuffle files of the earlier run. Thus, only the last stage runs again, and a slow Python UDF can look fast. Build a **new** DataFrame for each timed run, and make sure that a time is physically possible before you believe it.
 

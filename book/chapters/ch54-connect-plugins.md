@@ -475,7 +475,16 @@ The client reads the value with the usual configuration API. `planner.session()`
 Chapter 4 showed the 4.3 REST endpoint `connect/operations` of the Spark UI. Each plugin call is an operation, so the server keeps a record of it. `plugins.py` reads the records of its session and finds the operations whose recorded statement contains a `jplug` type URL:
 
 ```text
-OPS
+== 9. The server's record of the plugin operations (4.3 REST API)
+14 operations in this session; those whose recorded statement names a jplug type:
+  jplug.PlanNodes  CLOSED   1606 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED    840 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED    239 ms  jobs []  'INTERNAL: stage must be analyzed, optimized or physical, got'
+  jplug.PlanNodes  CLOSED   1104 ms  jobs ['4']  ''
+  jplug.PlanNodes  CLOSED   2066 ms  jobs ['5', '6', '7']  ''
+  jplug.PlanNodes  CLOSED    729 ms  jobs ['8', '9', '10']  ''
+  jplug.Note       CLOSED     17 ms  jobs []  'INTERNAL: [CONNECT_INVALID_PLAN.NO_HANDLER_FOR_EXTENSION] Th'
+  jplug.Note       CLOSED     21 ms  jobs []  ''
 ```
 
 The table shows these facts:
@@ -493,7 +502,9 @@ The times are those of one run on a laptop. They are not a measurement.
 Can an artifact deliver a plugin? `artifacts.py` does an experiment. `server.sh bare` starts a server with the plugin settings, but **without** the `jplug` jar on `spark.jars`. Session A calls `plan_nodes`, then uploads the jar and calls it again. Then a new session B, which never uploaded the jar, calls `plan_nodes`:
 
 ```text
-ARTIFACTS
+session A, before addArtifacts: UnknownException: (java.lang.ClassNotFoundException) jplug.PlanNodesPlugin
+session A, after addArtifacts:  [Row(id=0, parent=None, depth=0, node='Range', detail='Range (0, 3, step=1, splits=Some(16))')]
+session B, never uploaded it:   [Row(id=0, parent=None, depth=0, node='Range', detail='Range (0, 3, step=1, splits=Some(16))')]
 ```
 
 <figure markdown>
