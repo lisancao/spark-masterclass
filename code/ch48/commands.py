@@ -54,6 +54,14 @@ show("SparkSubmitOperator, conn spark_k8s, track_driver_via_k8s_api=True",
 sql = SparkSqlHook(sql="SELECT 1", conn_id="spark_sql_local", name="ch48-top-zones", verbose=False)
 show("SparkSqlOperator, conn spark_sql_local", sql._prepare_command(""))
 
+from airflow.providers.apache.spark.hooks.spark_pipelines import SparkPipelinesHook  # noqa: E402
+
+for conn_id in ["spark_local", "spark_connect_ch48"]:
+    sdp = SparkPipelinesHook(pipeline_spec="pipeline.yml", pipeline_command="dry-run", conn_id=conn_id)
+    cmd = sdp._build_spark_pipelines_command()
+    cmd = ["python" if "python" in w else w for w in cmd]     # the Airflow worker's interpreter
+    show(f"SparkPipelinesOperator, pipeline_command='dry-run', conn {conn_id}", cmd)
+
 for conn_id in ["spark_connect_ch48", "spark_connect_prod"]:
     print(f"# SparkConnectHook({conn_id!r}).get_connection_url()")
     print(SparkConnectHook(conn_id).get_connection_url() + "\n")
@@ -68,7 +76,7 @@ except ValueError as e:
 from airflow.sdk import DAG  # noqa: E402
 
 env = DAG("ch48_jinja").get_template_env()
-print("# Jinja on a template field (the DAG's own template environment)")
+print("\n# Jinja on a template field (the DAG's own template environment)")
 for text in ["{{APP_ID}}", "{{ '{{APP_ID}}' }}"]:
     try:
         print(f"{text!r:24} -> {env.from_string(text).render()!r}")
