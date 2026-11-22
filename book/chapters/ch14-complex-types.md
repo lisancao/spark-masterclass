@@ -343,6 +343,15 @@ explode_outer(tags)
 
 The optimizer knows that a row with a `NULL` or empty array cannot give an output row from `explode`. It adds `Filter ((size(tags, false) > 0) AND isnotnull(tags))` before the `Generate` node, and it pushes that filter as far down as it can. For `explode_outer`, the `true` flag in `Generate` means "outer", and there is no filter.
 
+<figure markdown>
+![The rows that explode and explode_outer give from 24 orders.](../media/figures/ch14-explode-light.svg#only-light)
+
+![The rows that explode and explode_outer give from 24 orders.](../media/figures/ch14-explode-dark.svg#only-dark)
+
+<figcaption>The tags of the 24 orders through the two generators, from the output above. The plain generator drops the 6 orders with no tags. The outer generator keeps them with a NULL tag.</figcaption>
+</figure>
+
+
 ```mermaid
 flowchart LR
   classDef in fill:#4b5563,fill-opacity:0.72,stroke:#4b5563,color:#ffffff
@@ -478,6 +487,14 @@ This book uses the name **tracing** for this process. The SQL form `transform(xs
 
 The executors loop over the elements in the JVM. No Python worker starts, and no data goes through Arrow or pickle. For this reason, a higher-order function is much cheaper than a Python UDF that does the same work.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch14-anim-tracing.webp">
+    <source src="../../media/clips/ch14-anim-tracing.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: PySpark calls the Python function one time, with a placeholder <code>Column</code>. The call builds an expression tree. The executors run the loop in the JVM. The values are from <code>lambdas.py</code>.</figcaption>
+</figure>
+
+
 ## Step 13: The errors that show the tracing
 
 If you know that the lambda runs one time on a placeholder, the errors make sense:
@@ -543,9 +560,11 @@ In a plain `select`, the plan contains `cast(id as int) * 3`, with no `BatchEval
 
 There are three traps:
 
-- **One `NULL` element makes the sum `NULL`.** `acc + NULL` is `NULL`, and all later steps keep the `NULL`. Use `coalesce(x, 0)` in the merge.
-- **An `INT` zero cannot hold a `DOUBLE` sum.** `lit(0)` is an `INT`, and `acc + x` with a `DOUBLE` element gives a `DOUBLE`. The analyzer refuses the merge. Use `lit(0.0)` in Python.
-- **In SQL, `0.0` is not a `DOUBLE`.** A SQL literal with a decimal point is a `DECIMAL`, here `decimal(1,1)`. Use `0D` for a `DOUBLE` zero.
+| Trap | Cause | Fix |
+|---|---|---|
+| One `NULL` element makes the sum `NULL`. | `acc + NULL` is `NULL`, and all later steps keep the `NULL`. | Use `coalesce(x, 0)` in the merge. |
+| An `INT` zero cannot hold a `DOUBLE` sum. | `lit(0)` is an `INT`, and `acc + x` with a `DOUBLE` element gives a `DOUBLE`. The analyzer refuses the merge. | Use `lit(0.0)` in Python. |
+| In SQL, `0.0` is not a `DOUBLE`. | A SQL literal with a decimal point is a `DECIMAL`, here `decimal(1,1)`. | Use `0D` for a `DOUBLE` zero. |
 
 The finish function changes the accumulator into the result. The mean example keeps a struct with a sum and a count, and the finish function divides them. This is the method that Spark itself uses for `avg` ([Chapter 1](ch01-how-spark-runs.md), Step 1).
 
@@ -563,6 +582,15 @@ The finish function changes the accumulator into the result. The mean example ke
 ```
 
 For `array(1, NULL)`, `exists(x > 3)` is `NULL`, not `false`. The `NULL` element can be larger than 3, so Spark cannot say "no". If one element matches, the answer is `true`, whatever the other elements are. `forall` on an empty array is `true`.
+
+<figure markdown>
+![A grid of exists, forall and array_contains results on four arrays.](../media/figures/ch14-three-valued-light.svg#only-light)
+
+![A grid of exists, forall and array_contains results on four arrays.](../media/figures/ch14-three-valued-dark.svg#only-dark)
+
+<figcaption>The results from the output above. A NULL element can be the match, so the answer can be NULL.</figcaption>
+</figure>
+
 
 The internal configuration `spark.sql.legacy.followThreeValuedLogicInArrayExists=false` gives the old two-valued result. Do not use it in new code. Use `coalesce(exists(...), false)` if a `NULL` must count as "no".
 
@@ -661,6 +689,10 @@ generated Java loop: /* 058 */         for (int project_i_0 = 0; project_i_0 < p
   </video>
   <figcaption><code>lambdas.py</code> on Spark 4.3.0. The array higher-order functions take part in whole-stage code generation, and the others stay interpreted.</figcaption>
 </figure>
+
+| In whole-stage codegen in 4.3 (`*(n) Project`) | Interpreted (`CodegenFallback`) |
+|---|---|
+| `transform`, `filter`, `exists`, `forall`, `aggregate` | `array_sort` with a comparator, `zip_with`, `transform_values`, `map_filter` |
 
 `transform`, `filter`, `exists`, `forall` and `aggregate` now compile to a Java `for` loop over the array. The last line is from the generated code of the `aggregate` on the order lines. `array_sort` with a comparator, `zip_with` and the map functions still use the interpreted path (`CodegenFallback` in `higherOrderFunctions.scala`). Their `Project` has no `*(n)`. The query gives the same result in the two cases. Only the speed is different.
 

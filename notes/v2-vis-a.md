@@ -25,3 +25,4 @@ Visual aids added to existing chapters. The prose substance is not changed. Chan
 | 11 | `ch11-png-header`, `ch11-formats` | `ch11-anim-packing` (2000 small files packed into 63 or 16 tasks) | none | `code/ch11/output/bytes.txt`, `formats.txt` |
 | 12 | `ch12-multiline-events`, `ch12-dropmalformed` | `ch12-anim-positions` (one header, columns by position, then unionByName) | none (the option table was already there) | `code/data/messy/logs/app.log`, `code/ch12/output/csv_drift.txt` |
 | 13 | `ch13-infer-cost`, `ch13-type-merge`, `ch13-balance` | `ch13-anim-inference` (two passes without a schema, one with) | none (the mode table was already there) | `code/ch13/output/infer_cost.txt`, `infer.txt`, `drift.txt` |
+| 14 | `ch14-explode`, `ch14-three-valued` | `ch14-anim-tracing` (a Python lambda traced into a Catalyst expression) | aggregate-trap list and codegen list as tables | `code/ch14/output/nested.txt`, `lambdas.txt` |
