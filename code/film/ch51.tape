@@ -1,4 +1,4 @@
-# Spark Masterclass, Chapter 51: Shipping a source. Storyboard: storyboard-part09a.md.
+# Spark Masterclass, Chapter 51: Python data sources II. Storyboard: storyboard-part09a.md.
 #   film render code/film/ch51.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -11,22 +11,32 @@ Sleep 1s
 Show
 
 
-# beat: workers | Which Python do the workers use?
+# beat: requests | Requests for each step
 Hide
 Type "clear" Enter
 Show
-Type "# the package is in 'with': first PYSPARK_PYTHON unset, then the workers use 'bare'" Enter
+Type "# count the requests that each step sends to the tickets API" Enter
 Sleep 500ms
-Type "$CH51_VENVS/with/bin/python ch51/registration.py lookup 2>/dev/null; PYSPARK_PYTHON=$CH51_VENVS/bare/bin/python $CH51_VENVS/with/bin/python ch51/registration.py lookup 2>/dev/null" Enter
+Type "python ch51/api_source.py 2>/dev/null | grep -E '^(load|explain|count|groupBy|cache|two more|page_size|pages_per)'" Enter
 Wait@300s
 Sleep 12s
 
-# beat: logs | Worker logs in a table
+# beat: ranges | Key ranges: stride and quantile
 Hide
 Type "clear" Enter
 Show
-Type "# logging and print() inside read(), read back from python_worker_logs()" Enter
+Type "# JDBC ranges are equal in key space, quantile ranges are equal in rows" Enter
 Sleep 500ms
-Type "PYSPARK_PYTHON=$CH51_VENVS/with/bin/python $CH51_VENVS/with/bin/python ch51/registration.py classic 2>/dev/null | sed -n '/^python_worker_logs/,$p'" Enter
+Type "python ch51/database_source.py 2>/dev/null | sed -n '/^JDBC/,/^quantile split/p'" Enter
+Wait@300s
+Sleep 12s
+
+# beat: timezone | The time zone of the worker
+Hide
+Type "clear" Enter
+Show
+Type "# the same naive datetime under three worker time zones" Enter
+Sleep 500ms
+Type "for tz in UTC America/Los_Angeles Asia/Ho_Chi_Minh; do TZ=$tz python ch51/arrow_batches.py --tz 2>/dev/null; done" Enter
 Wait@300s
 Sleep 12s
