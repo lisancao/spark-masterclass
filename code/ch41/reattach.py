@@ -18,8 +18,8 @@ from flaky_proxy import FlakyProxy
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from common.book import TRIPS, ui_api  # noqa: E402
 
-PORT = int(os.environ.get("CONNECT_PORT", "15058"))
-UI = os.environ.get("CONNECT_UI_PORT", "4158")
+PORT = int(os.environ.get("CONNECT_PORT", "10280"))
+UI = os.environ.get("CONNECT_UI_PORT", "4128")
 proxy = FlakyProxy(listen=PORT + 1, target=PORT).start()
 
 

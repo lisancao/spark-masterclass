@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Start or stop a Spark 4.3 Connect server from the pip install, for Part VIII.
-# gRPC on $CONNECT_PORT (default 15058), the UI and its REST API on $CONNECT_UI_PORT (default 4158).
+# gRPC on $CONNECT_PORT (default 10280), the UI and its REST API on $CONNECT_UI_PORT (default 4128).
 # Extra arguments go to start-connect-server.sh, so a chapter can pass its own --conf settings.
 #   ch41/server.sh start [--conf k=v ...] | stop
 set -euo pipefail
 cd "$(dirname "$0")/.."
-PORT=${CONNECT_PORT:-15058} UI=${CONNECT_UI_PORT:-4158}
+PORT=${CONNECT_PORT:-10280} UI=${CONNECT_UI_PORT:-4128}
 export SPARK_HOME=$(.venv/bin/python -c "import pyspark, os; print(os.path.dirname(pyspark.__file__))")
 # Logs and PID files go in the repo's own data/ folder (ignored by git), whatever BOOK_DATA says,
 # so that start and stop always find the same PID file.

@@ -10,7 +10,7 @@ from pyspark.sql import SparkSession, functions as F
 
 from chaos import fresh
 
-PORT = os.environ.get("CONNECT_PORT", "15058")
+PORT = os.environ.get("CONNECT_PORT", "10280")
 
 
 def compare(spark, mode):

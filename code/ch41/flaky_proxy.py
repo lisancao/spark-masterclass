@@ -1,6 +1,6 @@
 """A TCP proxy that can cut every open connection once, for fault injection on Spark Connect.
 
-    proxy = FlakyProxy(listen=15059, target=15058).start()
+    proxy = FlakyProxy(listen=10281, target=10280).start()
     proxy.cut_after(4_000_000)     # cut once, after 4 MB more from the server to the client
 
 The proxy forwards bytes in both directions on a background thread. gRPC runs one HTTP/2

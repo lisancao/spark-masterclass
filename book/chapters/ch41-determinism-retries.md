@@ -375,7 +375,7 @@ partitionOverwriteMode=dynamic after re-running 2026-06-02: {'2026-06-01': 5, '2
 - `append` adds a second copy of all rows.
 - `overwrite` replaces the output. This is idempotent for a job that writes all of the output.
 - For partitioned output, a run often writes only some partitions (one day, one source). With `partitionBy(...)` and `spark.sql.sources.partitionOverwriteMode=dynamic`, `overwrite` replaces only the partitions in the new data. The default is `static`, and then `overwrite` deleted the 2026-06-01 partition.
-- Table formats make the replacement explicit, for example Delta's `replaceWhere` or a `MERGE` with a key from the content. Chapter 29 covers them.
+- Table formats make the replacement explicit, for example Delta's `replaceWhere` or a `MERGE` with a key from the content. [Chapter 30](../roadmap.md) covers them.
 
 Side effects that are not files need the same discipline: an email, a payment, a row sent to another system. Inside a task, they occur again with each retry, each recomputed stage, each speculative copy and each extra action. Give each effect a stable key (the content id, the batch id). Then do the effect one time on the driver after the commit, or make the receiver ignore a key that it saw before.
 
