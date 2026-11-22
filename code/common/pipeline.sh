@@ -11,6 +11,8 @@
 #   ICEBERG=1   add the Iceberg runtime for Spark 4.3 (an unreleased build, see notes/part06.md)
 #   RAW=1       print the full log (by default WARN lines and Java stack frames are removed)
 #   EVENTLOG=1  write the server's Spark event log to <work>/spark-events
+#   SERVER_CONF="k=v ..."  extra static confs for the server, for example
+#               spark.sql.catalogImplementation=hive (with LOCAL=1 they go to the CLI as --conf)
 #   LOCAL=1     let spark-pipelines start its own in-process server (the reader's default,
 #               always on port 15002). Without it, this script starts a Connect server on
 #               $CONNECT_PORT (default 15056) in the project folder, runs the CLI with
@@ -41,12 +43,14 @@ trap stop_server EXIT
 
 if [[ "${LOCAL:-0}" == 1 ]]; then
   jars=(); [[ "${ICEBERG:-0}" == 1 ]] && jars=(--jars "$ICEBERG_JAR")
+  for kv in ${SERVER_CONF:-}; do jars+=(--conf "$kv"); done
   cli=(uv run --quiet --project "$CODE" --with pyyaml spark-pipelines "${jars[@]}")
 else
   port="${CONNECT_PORT:-15056}"
   sconf=(--master "local[*]" --conf "spark.connect.grpc.binding.port=$port"
          --conf "spark.ui.port=${SPARK_UI_PORT:-4056}" --conf spark.sql.session.timeZone=UTC)
   [[ "${ICEBERG:-0}" == 1 ]] && sconf+=(--jars "$ICEBERG_JAR")
+  for kv in ${SERVER_CONF:-}; do sconf+=(--conf "$kv"); done
   if [[ "${EVENTLOG:-0}" == 1 ]]; then
     mkdir -p "$work/spark-events"
     sconf+=(--conf spark.eventLog.enabled=true --conf "spark.eventLog.dir=file://$work/spark-events")

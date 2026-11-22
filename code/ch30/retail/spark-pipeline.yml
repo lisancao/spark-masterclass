@@ -1,0 +1,7 @@
+name: retail
+storage: file://@WORK@/pipeline-storage
+libraries:
+  - glob:
+      include: transformations/**
+configuration:
+  spark.sql.shuffle.partitions: "4"
