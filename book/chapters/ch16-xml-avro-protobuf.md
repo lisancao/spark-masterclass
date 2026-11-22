@@ -396,6 +396,15 @@ the same record as JSON: 43 bytes
 
 The record uses 14 bytes, and the same record as JSON uses 43. There are no field names and no type tags in the bytes. The reader knows from the schema that the first value is a string, the second a long, and so on. Integers use a zigzag variable-length form: small numbers use one byte. Without the schema, nobody can decode these bytes.
 
+The animation decodes the same 14 bytes with the correct schema, and then with a schema that reads `total` as a `float`.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch16-anim-wrongschema.webp">
+    <source src="../../media/clips/ch16-anim-wrongschema.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the correct schema reads four values from the 14 bytes. A schema with <code>total</code> as a <code>float</code> reads 4 of the 8 bytes. The next field starts in the wrong place, and no error occurs. The bytes and the two results are from <code>avro.py</code>.</figcaption>
+</figure>
+
 ## Step 15: Decode with the wrong schema
 
 Because the bytes have no types, a wrong schema does not always cause an error:
@@ -494,6 +503,14 @@ The topic has five kinds of message:
 - A message with a `NULL` value at offset 5. This is a **tombstone**: in a compacted topic, it deletes the key.
 - A message with schema ID 7 at offset 17. The consumer has no schema for this ID.
 - A message at offset 26 with no header. Its "schema ID" is a large random number from the first bytes of the data.
+
+<figure markdown>
+![The Confluent header bytes and the five kinds of message in the topic.](../media/figures/ch16-confluent-light.svg#only-light)
+
+![The Confluent header bytes and the five kinds of message in the topic.](../media/figures/ch16-confluent-dark.svg#only-dark)
+
+<figcaption>The header of the first message, and the 30 messages of the <code>orders</code> topic by kind, from the output above. The red messages have no usable schema.</figcaption>
+</figure>
 
 ## Step 17: Decode each schema version, and classify each message
 
@@ -606,6 +623,14 @@ protoc --include_imports --descriptor_set_out=payments.desc payments.proto
 Unlike Avro, each Protobuf value starts with a key byte.
 
 The key holds the field number and a wire type. `0x0a` is field 1 with wire type 2 (a length and bytes). `0x18` is field 3 with wire type 0 (a varint). The field numbers come from the `.proto` file. Because each value carries its number, a reader can skip a field that it does not know. This is why Protobuf allows a producer to add fields.
+
+<figure markdown>
+![The bytes of one Avro record and of one Protobuf message.](../media/figures/ch16-record-bytes-light.svg#only-light)
+
+![The bytes of one Avro record and of one Protobuf message.](../media/figures/ch16-record-bytes-dark.svg#only-dark)
+
+<figcaption>The bytes from Steps 14 and 19. Avro writes only the values, in the order of the schema. Protobuf writes a key byte before each value.</figcaption>
+</figure>
 
 ## Step 20: proto3 does not write default values
 
