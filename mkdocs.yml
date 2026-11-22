@@ -83,6 +83,8 @@ nav:
       - "15. VARIANT": chapters/ch15-variant.md
       - "16. XML, Avro and Protobuf": chapters/ch16-xml-avro-protobuf.md
       - "17. Documents, images and audio": chapters/ch17-documents-images-audio.md
+  - "Part IV: Performance":
+      - "24. Acceleration: Gluten and Velox, RAPIDS and cuDF, Comet": chapters/ch24-acceleration.md
   - "Part V: Streaming":
       - "25. Structured Streaming fundamentals": chapters/ch25-structured-streaming.md
       - "26. Streaming messy data": chapters/ch26-streaming-messy-data.md

@@ -48,7 +48,7 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 | 21 | Python UDTFs | JSON_TABLE as the alternative to parsing UDTFs |
 | 22 | Parquet from the inside | Footer hexdumps, row groups, statistics, pushdown |
 | 23 | Project Feather: small queries without the distributed tax | **4.3:** when single-task execution applies, the crossover measured across data sizes, what it does to plans, AQE, the UI and Connect |
-| 24 | Acceleration: Gluten and Velox, RAPIDS and cuDF, Comet | Native and GPU execution engines for Spark: how each one plugs in (plugins, columnar rules, fallbacks), which support Spark 4.3, and the same taxi queries measured on CPU, Velox and the GPU |
+| 24 | [Acceleration: Gluten and Velox, RAPIDS and cuDF, Comet](chapters/ch24-acceleration.md) | Native and GPU execution engines for Spark: how each one plugs in (plugins, columnar rules, fallbacks), which support Spark 4.3, and the same taxi queries measured on CPU, Velox and the GPU |
 
 ## Part V: Streaming
 *Data: taxi trips replayed to Kafka, messy events*
