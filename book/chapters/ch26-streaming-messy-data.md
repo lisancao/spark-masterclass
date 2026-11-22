@@ -254,6 +254,12 @@ drop 4: batch 3, 10 lines -> silver 38 (38 distinct ids), dead letters 4
 
 Drop 2 has 16 lines. Four went to the dead letters. One line was a copy in the same file, and two were events from drop 1. That leaves nine new events, and silver goes from 10 to 19. At the end, silver has 38 events and 38 distinct IDs: no duplicates.
 
+<figure markdown>
+  ![Lines of the four drops](../media/figures/ch26-routing-light.svg#only-light)
+  ![Lines of the four drops](../media/figures/ch26-routing-dark.svg#only-dark)
+  <figcaption markdown="span">The lines of the four drops, from `m2_parse.txt` and `m3_dead_letters.txt`. Four lines go to the dead letters with a reason. The deduplication removes four copies, and silver keeps 38 events.</figcaption>
+</figure>
+
 ```text
 Dead letters, with the raw line kept for replay:
 +--------+------------+--------------------------------------------------+
@@ -371,6 +377,12 @@ The output shows five rules of the watermark on messy data:
    dropDuplicatesWithinWatermark  state rows after each batch [1000, 2000, 3000, 3001, 3000, 3000]  (unique events kept 6000)
 ```
 
+<figure markdown>
+  ![State rows of the two operators](../media/figures/ch26-statebounds-light.svg#only-light)
+  ![State rows of the two operators](../media/figures/ch26-statebounds-dark.svg#only-dark)
+  <figcaption markdown="span">The state rows from `m5_state_bounds.txt`. The state of `dropDuplicates` grows with each batch. The state of `dropDuplicatesWithinWatermark` stops at about 3,000 rows.</figcaption>
+</figure>
+
 Both operators kept the same 6,000 unique events. The state of `dropDuplicates` grew by 1,000 rows each batch. The state of `dropDuplicatesWithinWatermark` stopped at about 3,000 rows: the IDs of the events that are newer than the watermark.
 
 The docstring of the operator gives its guarantee:
@@ -434,6 +446,13 @@ flowchart LR
   d3 -->|"watermark stays<br/>10-06 09:12"| d4["drop 4<br/>09:38 to 09:51<br/>10 of 10 late"]:::bad
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch26-anim-future-event.webp">
+    <source src="../../media/clips/ch26-anim-future-event.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the naive run on an event-time line. The event `e903` from the next day moves the watermark one day ahead, and the operators drop each event of drops 3 and 4. The watermarks, the late counts and the session counts come from `m4_naive.txt` and `m4_defended.txt`. The positions of the events in each drop are schematic.</figcaption>
+</figure>
+
 The defenses, the cheapest first:
 
 1. **Reject events from the future before `withWatermark`.** The `future_ts` check of Step 2 does this, with a tolerance for normal clock differences. The defended run shows the result: seven sessions, all complete.
@@ -456,6 +475,12 @@ The second part of `m5_state_bounds.py` sends 1,200 web events and 1,200 phone e
    policy max: global watermark per batch ['00:00', '09:04', '09:14', '09:24', '09:34', '09:44', '09:54']
      events counted 1600 of 2400; numRowsDroppedByWatermark 4
 ```
+
+<figure markdown>
+  ![Global watermark with the two policies](../media/figures/ch26-policy-light.svg#only-light)
+  ![Global watermark with the two policies](../media/figures/ch26-policy-dark.svg#only-dark)
+  <figcaption markdown="span">The global watermark of each batch from `m5_state_bounds.txt`. With `max`, the watermark is 30 minutes ahead of the phone input, and 800 events are lost.</figcaption>
+</figure>
 
 - **`min` counted all 2,400 events.** The watermark stayed with the slow phone input, 30 minutes behind the web input.
 - **`max` lost 800 events.** The watermark followed the web input, and most phone events were older than it. The metric says 4. The aggregation drops partial counts after the partial aggregation in each task, not single events, so a large loss shows as a small number.
