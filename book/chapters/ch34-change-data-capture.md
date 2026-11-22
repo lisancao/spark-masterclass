@@ -44,6 +44,14 @@ If a pipeline appends these events to a table, the table has nine rows and three
 | `c-01` Ottawa, `seq` 4 | file 2 | nothing: `seq` 4 is older than `seq` 5 |
 | `c-03` Montreal, `seq` 8 | file 2 | no change in the values |
 
+<figure markdown>
+  ![The three events for c-01 and the result of three ways to use them](../media/figures/ch34-three-ways-light.svg#only-light)
+
+  ![The three events for c-01 and the result of three ways to use them](../media/figures/ch34-three-ways-dark.svg#only-dark)
+
+  <figcaption>The events for <code>c-01</code> in the order of arrival, and three ways to use them. Only the rule "the highest <code>seq</code> wins for each key" gives Hanoi.</figcaption>
+</figure>
+
 The correct rule is: for each key, the event with the highest sequence number wins. A delete is also an event with a sequence number. A history table needs more. The event with `seq` 4 must go into the history between `seq` 1 and `seq` 5, although it arrived after both.
 
 ## Step 2: Read changes from a table
@@ -62,10 +70,12 @@ spark.read.option("startingVersion", "1").changes("t")
 
 The result has the columns of the table and three metadata columns: `_change_type` (`insert`, `delete`, `update_preimage` or `update_postimage`), `_commit_version` and `_commit_timestamp`. Options control the steps that Spark applies after the read:
 
-- `deduplicationMode` set to `dropCarryovers` removes carry-over rows. A copy-on-write change (Chapter 30, Step 4) deletes and inserts rows that did not change. These pairs are carry-overs.
-- `deduplicationMode` set to `netChanges` gives one net change for each row in the range.
-- `deduplicationMode` set to `none` gives the rows as the connector sends them.
-- `computeUpdates` turns a delete and an insert of the same row identity in one commit into `update_preimage` and `update_postimage`.
+| Option | Value | What it does |
+|---|---|---|
+| `deduplicationMode` | `dropCarryovers` | Removes carry-over rows. A copy-on-write change (Chapter 30, Step 4) deletes and inserts rows that did not change. These pairs are carry-overs. |
+| `deduplicationMode` | `netChanges` | Gives one net change for each row in the range. |
+| `deduplicationMode` | `none` | Gives the rows as the connector sends them. |
+| `computeUpdates` | | Turns a delete and an insert of the same row identity in one commit into `update_preimage` and `update_postimage`. |
 
 `read_changes.py` tries the API on Spark 4.3.0:
 
@@ -364,6 +374,13 @@ Each target applied the events by `seq`, not by arrival:
 - **The repeat.** `c-03` came again with the same values and `seq` 8. In SCD Type 1, the metadata column now holds 8. In SCD Type 2, no new version started, because no value changed. The Montreal version still starts at 3.
 - **The new customer.** `c-04` came in with one version.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch34-anim-scd2.webp">
+    <source src="../../media/clips/ch34-anim-scd2.mp4" type="video/mp4">
+  </video>
+  <figcaption>The events of <code>c-01</code> in the two targets. In SCD Type 2, each new value closes the current version. The late Ottawa event closes Toronto at <code>seq</code> 4 and goes in before Hanoi. SCD Type 1 does not change.</figcaption>
+</figure>
+
 ```mermaid
 gantt
   title c-01 in customers_history, by sequence number
@@ -446,6 +463,14 @@ The two history tables now differ:
 - `customers_city_history` tracks only `city`. The name changed but the city did not, so no new version started. The current version of `c-03` has the new name, and it still starts at `seq` 3. The source code calls this a *run* (`Scd2BatchProcessor.scala`). Consecutive events with the same tracked values join one version. The visible row has the values of the last event of the run.
 - Both tables started a new version of `c-04` at `seq` 10, because `city` changed.
 
+<figure markdown>
+  ![The versions of each customer in customers_history on a sequence axis, and c-03 in customers_city_history](../media/figures/ch34-history-light.svg#only-light)
+
+  ![The versions of each customer in customers_history on a sequence axis, and c-03 in customers_city_history](../media/figures/ch34-history-dark.svg#only-dark)
+
+  <figcaption>The two history tables after three files. Each bar is a version from <code>__START_AT</code> to <code>__END_AT</code>. A dashed bar is the current version. The name change of <code>c-03</code> starts a version only in the table that tracks all columns.</figcaption>
+</figure>
+
 Select the tracked columns carefully. Do not track a column that changes often, for example a counter or a time of the last login. Each event then makes a new version.
 
 ## Step 9: What Auto CDC keeps next to the target
@@ -501,6 +526,14 @@ Each Auto CDC target has an auxiliary table with the name `__spark_autocdc_aux_s
 
 - **For SCD Type 1, it holds tombstones.** The row for `c-02` records that a delete with `seq` 6 occurred. If an older upsert for `c-02` arrives later, Auto CDC compares it with the tombstone and does not bring the customer back.
 - **For SCD Type 2, it holds the hidden events of a run.** In `customers_history`, `c-03` had two events with the same values, `seq` 3 and `seq` 8. They are one run. The target shows one row for the run: it starts at 3 and has the values of the last event. The auxiliary table keeps the first event of the run (`seq` 3, `__RECORD_START_AT` 3). If a late event arrives inside a run, Auto CDC needs the hidden events to split the run correctly.
+
+<figure markdown>
+  ![The bronze table, the two Auto CDC targets and their auxiliary state tables](../media/figures/ch34-aux-light.svg#only-light)
+
+  ![The bronze table, the two Auto CDC targets and their auxiliary state tables](../media/figures/ch34-aux-dark.svg#only-dark)
+
+  <figcaption>Each Auto CDC target has an auxiliary state table. The values are from <code>internals.py</code> after three files.</figcaption>
+</figure>
 
 The table properties of the auxiliary table record the key columns and the tracked columns. Auto CDC compares them in each run. A change of the keys or of the tracked columns needs a full refresh of the target. Such a change gives a different sense to the history that is already there.
 

@@ -89,9 +89,11 @@ The package for this API is `pyspark.ml`. The older `pyspark.mllib` package uses
 
 The fitted model has six labels. NULL is not a label. The parameter `handleInvalid` controls a value that the model did not see in the training data, and a NULL value:
 
-- **`error`** (the default) stops the job. Here, the value "7" is not a label.
-- **`skip`** removes the row. Here, two of the four test rows disappear without a message. Do not use `skip` in a job that must score every row.
-- **`keep`** gives all unknown values and NULL one extra index, here 6.
+| `handleInvalid` | What it does | In this test |
+|---|---|---|
+| `error` (the default) | Stops the job. | The value "7" is not a label. |
+| `skip` | Removes the row. | Two of the four test rows disappear without a message. Do not use `skip` in a job that must score every row. |
+| `keep` | Gives all unknown values and NULL one extra index. | The extra index is 6. |
 
 **`OneHotEncoder`** changes an index into a vector with one slot for each category:
 
@@ -109,6 +111,14 @@ With `dropLast=True` (the default), the last category has no slot. It is the row
 == slots of an assembled vector
   2 input columns -> 7 slots: ['trip_distance', 'rate_vec_1', 'rate_vec_2', 'rate_vec_5', 'rate_vec_3', 'rate_vec_4', 'rate_vec_99']
 ```
+
+<figure markdown>
+  ![A rate code goes through StringIndexer, OneHotEncoder and VectorAssembler into seven slots](../media/figures/ch37-vector-light.svg#only-light)
+
+  ![A rate code goes through StringIndexer, OneHotEncoder and VectorAssembler into seven slots](../media/figures/ch37-vector-dark.svg#only-dark)
+
+  <figcaption>One row through the three stages. The value of <code>trip_distance</code> is an example. The slot names come from the output of <code>estimators.py</code>.</figcaption>
+</figure>
 
 The names come from the metadata of the vector column (`schema["features"].metadata["ml_attr"]`). Step 6 uses them to read feature importances. `VectorAssembler` also has `handleInvalid`, and its default is `error`. The raw rate code has NULL values, so the assembler stops the job:
 
@@ -135,6 +145,13 @@ for name, est in (("LinearRegression normal", LinearRegression(labelCol=LABEL, s
 ```
 
 All jobs are `treeAggregate`. Each job sends the current coefficients to the executors. Each task calculates partial sums (the loss and the gradient) over its partition. The partial sums come back to the driver in a tree of merges. The driver then takes one step of the optimizer.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch37-anim-treeaggregate.webp">
+    <source src="../../media/clips/ch37-anim-treeaggregate.mp4" type="video/mp4">
+  </video>
+  <figcaption>One <code>treeAggregate</code> job, and then the loop of jobs. The job counts are from <code>estimators.py</code>. The four partitions and the speed of the motion are schematic.</figcaption>
+</figure>
 
 - **The `normal` solver** solves the normal equations directly. It needs two passes over the data and no iterations.
 - **The `l-bfgs` solver** with elastic-net regularization needs one pass for each iteration. It ran 6 iterations and 11 jobs, because the line search of the optimizer can need more than one pass for an iteration.
@@ -200,6 +217,14 @@ mean absolute error by rate code (test set):
 ```
 
 Rate code 2 is the flat fare to JFK airport. The fare does not depend on the distance. The trees learn this rule (MAE 1.38), but the linear model cannot (MAE 5.91).
+
+<figure markdown>
+  ![Grouped bar chart of the mean absolute error of the two models for each rate code](../media/figures/ch37-mae-light.svg#only-light)
+
+  ![Grouped bar chart of the mean absolute error of the two models for each rate code](../media/figures/ch37-mae-dark.svg#only-dark)
+
+  <figcaption>The mean absolute error of the two models for each rate code, on the test set. The trees are better on the JFK flat fare (rate code 2), and worse on the rare rate codes 3, 4 and 5.</figcaption>
+</figure>
 
 For the rare rate codes 3, 4 and 5 (Newark, out of the city, and negotiated fares), the trees are worse. They have few examples, and a tree of depth 6 cannot give them their own leaves. A few very large errors on these trips increase the RMSE of the trees. Thus, one summary number does not choose the model. Look at the errors by segment.
 

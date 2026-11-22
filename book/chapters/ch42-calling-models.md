@@ -163,17 +163,27 @@ Each line has a cause in the optimizer:
 - **`asNondeterministic()`** tells the optimizer that two calls can give different results. Then it does not copy the UDF, and the model runs 240 times.
 - **`cache()`** stores the result. The `count()` that fills the cache runs the model for all 240 rows, and the filter after it runs the model 0 times.
 
+<figure markdown>
+  ![Bar chart of the rows that go into the model for six actions on the same DataFrame](../media/figures/ch42-runs-light.svg#only-light)
+
+  ![Bar chart of the rows that go into the model for six actions on the same DataFrame](../media/figures/ch42-runs-dark.svg#only-dark)
+
+  <figcaption>The rows that go into the model for each action on the same 240 rows. The filter on the label runs the model for 468 rows, and <code>count()</code> runs it for none.</figcaption>
+</figure>
+
 For a local model, the copies cost time. For a paid service, each copy is another bill. Task retries and speculative execution also run a partition again. Thus, a UDF that calls a service must give the same result when it runs two times, and it must not write anything itself.
 
 ## Step 6: A service that misbehaves
 
 The service in `service.py` copies the failures of real model services:
 
-- More than 16 requests in one second, from all clients together, get HTTP 429 with a `Retry-After` header.
-- More than 20 items in one request get HTTP 413.
-- An item with no letters gets a permanent error ("no text").
-- About one item in seven gets "model busy" the first time. That error is retryable.
-- About one request in five gets its answer after 1 second, longer than the client timeout of 0.5 seconds. A retry with the same `Idempotency-Key` gets the stored answer, and the model does not run again.
+| Condition | Response | Can a retry heal it? |
+|---|---|---|
+| More than 16 requests in one second, from all clients together | HTTP 429 with a `Retry-After` header | Yes |
+| More than 20 items in one request | HTTP 413 | No |
+| An item with no letters | A permanent error ("no text") | No |
+| About one item in seven, the first time | "model busy" | Yes |
+| About one request in five | The answer comes after 1 second, longer than the client timeout of 0.5 seconds. A retry with the same `Idempotency-Key` gets the stored answer, and the model does not run again. | Yes |
 
 Each ticket gets a content key, `sha2(coalesce(text, ''), 256)`. Two tickets with the same text get the same key, so the job sends each text one time:
 
@@ -283,6 +293,13 @@ The parts of the design are:
 - **A limit on tries.** After 4 tries, the item fails and goes to the dead letters.
 - **An idempotency key.** The key is a hash of the model version and the sorted item keys. A retry of the same request sends the same key. After a timeout, the client does not know if the service ran the model. With the key, the service returns its stored answer, and the model ran 0 extra times. Do not make the key from a random UUID or from the number of the try.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch42-anim-retry.webp">
+    <source src="../../media/clips/ch42-anim-retry.mp4" type="video/mp4">
+  </video>
+  <figcaption>A request times out, and the client tries again with the same <code>Idempotency-Key</code>. The service returns the stored answer, and the model does not run again. The counts come from the output of this step. The speed of the motion is schematic.</figcaption>
+</figure>
+
 ## Step 9: The rate limit is per task
 
 The limiter runs in each task. Thus, the total rate is the rate of each task times the number of tasks that run at the same time:
@@ -295,6 +312,14 @@ The limiter runs in each task. Thus, the total rate is the rate of each task tim
 ```
 
 With 4 partitions at 2 requests a second, the total is at most 8 a second, and the service accepted all requests. With 16 partitions, the total is 32 a second, which is above the limit of 16. The service sent 51 rejections, and the job made 78 requests instead of 35. With 16 partitions at 0.5 a second, the total is 8 again, and there were no rejections.
+
+<figure markdown>
+  ![Bar charts of requests and rejections: one request per row against a client per partition, and three rate settings](../media/figures/ch42-requests-light.svg#only-light)
+
+  ![Bar charts of requests and rejections: one request per row against a client per partition, and three rate settings](../media/figures/ch42-requests-dark.svg#only-dark)
+
+  <figcaption>Top: the requests of Step 7 and Step 8 for the same 232 texts. Bottom: the rate limit of each task, times the concurrent tasks, against the limit of the service. The two parts use different scales.</figcaption>
+</figure>
 
 Set the rate of each task to the budget of the service divided by the number of concurrent tasks. Fix the number of tasks with `repartition(n)` before `mapInPandas`, so the division stays correct. The times are single runs on a shared machine.
 

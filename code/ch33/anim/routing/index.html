@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="11" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Ids and destinations: data.json (run 1 of the shop pipeline).
+      const D = {"source": "code/data/retail/orders/orders_2026-10-0{1,2}.json and code/ch33/output/two_runs.txt (run 1)", "rows": [["o-1001", "silver"], ["o-1002", "silver"], ["o-1003", "silver"], ["o-1004", "silver"], ["o-1002", "copy"], ["o-1005", "invalid_price"], ["o-1006", "silver"], ["o-1007", "silver"], ["o-1008", "invalid_quantity"], ["o-1009", "unknown_customer"], ["o-1010", "silver"]]};
+      A.mount();
+      // beat open (0.0): title and the 11 bronze rows on screen at frame 0
+      A.title("Run 1: silver or quarantine");
+      A.text("bronze_orders", { x: 0.16, y: 0.22, size: 34, weight: 700, color: "var(--a-acc)" });
+      A.text("silver_orders", { x: 0.62, y: 0.22, size: 34, weight: 700 });
+      A.text("quarantine_orders", { x: 0.62, y: 0.635, size: 34, weight: 700 });
+      A.text("not kept", { x: 0.88, y: 0.22, size: 34, weight: 700, color: "var(--a-mute)" });
+      const Y0 = 0.29, DY = A.dy(52);
+      let si = 0, qi = 0;
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.9, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      D.rows.forEach(([id, dest], i) => {
+        A.box({ x: 0.16, y: Y0 + i * DY, w: 230, h: 44, kind: "ghost", title: id, size: 26, radius: 8 });
+        const b = A.box({ x: 0.16, y: Y0 + i * DY, w: 230, h: 44, kind: "paper", title: id, size: 26, radius: 8 });
+        let tx, ty;
+        if (dest === "silver") { tx = 0.62; ty = Y0 + (si++) * DY; }
+        else if (dest === "copy") { tx = 0.88; ty = Y0; }
+        else { tx = 0.62; ty = 0.685 + (qi++) * DY; }
+        const t = 1.6 + i * 0.4;
+        A.tl.to(b, { x: A.X(tx - 0.16), y: A.Y(ty - (Y0 + i * DY)), duration: 0.6, ease: "power2.inOut" }, t);
+        const k = dest === "silver" ? "ok" : dest === "copy" ? "ghost" : "accent";
+        const fin = A.box({ x: tx, y: ty, w: 230, h: 44, kind: k, title: id, size: 26, radius: 8 });
+        gsap.set(fin, { opacity: 0 });
+        A.tl.to(fin, { opacity: 1, duration: 0.25 }, t + 0.6);
+        A.tl.to(b, { opacity: 0, duration: 0.25 }, t + 0.6);
+        if (dest !== "silver" && dest !== "copy") {
+          const r = A.text(dest, { x: 0.62 + A.dx(140), y: ty, size: 26, mono: true, color: "var(--a-acc)", anchor: "left" });
+          A.in(r, t + 0.6);
+        }
+      });
+      // beat move (1.6): rows leave one by one
+      cap("A failed rule sends a row to the quarantine", 1.6, 6.4);
+      // beat sum (6.6): the conservation check
+      A.text("bronze keeps all 11 rows", { x: 0.16, y: 0.84, size: 26, color: "var(--a-mute)" });
+      cap("10 unique orders: 7 in silver plus 3 in quarantine", 6.6);
+      A.finish(11);
+    </script>
+  </body>
+</html>
