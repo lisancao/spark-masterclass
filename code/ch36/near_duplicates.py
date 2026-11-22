@@ -1,7 +1,7 @@
 """Chapter 36: near-duplicate messages with MinHashLSH, and the traps around it.
 
 Run from code/:  uv run python ch36/near_duplicates.py
-Over Connect:    SPARK_REMOTE=sc://localhost:15057 uv run python ch36/near_duplicates.py
+Over Connect:    SPARK_REMOTE=sc://localhost:10270 uv run python ch36/near_duplicates.py
 """
 import os, sys, textwrap
 from pathlib import Path
