@@ -131,6 +131,12 @@ Aggregate [PULocationID#7], [...], Statistics(sizeInBytes=9.3 MiB)
       +- Relation [VendorID#0,...] parquet, Statistics(sizeInBytes=62.4 MiB)
 ```
 
+<figure markdown>
+  ![Size estimates in the cost mode](../media/figures/ch18-estimates-light.svg#only-light)
+  ![Size estimates in the cost mode](../media/figures/ch18-estimates-dark.svg#only-dark)
+  <figcaption>The <code>cost</code> estimates from <code>explain_modes.txt</code>. The <code>Filter</code> keeps the 62.4 MiB of the file. The <code>Aggregate</code> estimate (9.3 MiB) is larger than the <code>Project</code> estimate (6.6 MiB) below it.</figcaption>
+</figure>
+
 These numbers are guesses. The `Relation` estimate is the file size on disk (65,465,637 bytes is 62.4 MiB). The `Filter` has the same estimate as its input, because Spark does not know the selectivity of a filter without table statistics. The `Project` estimate scales the input size by the ratio of the row widths. The estimate for the `Aggregate` is larger than the estimate for its input, which is clearly not true.
 
 Spark uses these numbers to select join strategies, so a bad estimate can cause a bad join. Step 6 shows an example.
@@ -184,6 +190,14 @@ And the rules that changed it:
   PushDownPredicates                                   6        2
   RemoveRedundantProjects                              2        1
 ```
+
+The figure shows the analyzed plan and the optimized plan side by side. The colours show which rule made each change:
+
+<figure markdown>
+  ![Analyzed plan and optimized plan](../media/figures/ch18-optimizer-light.svg#only-light)
+  ![Analyzed plan and optimized plan](../media/figures/ch18-optimizer-dark.svg#only-dark)
+  <figcaption>The plans from <code>optimizer.txt</code>. The filter moves below the join and splits into two parts. Each side gets a <code>Project</code> with only the columns that the query uses.</figcaption>
+</figure>
 
 Match each rule to a change in the plan:
 
@@ -314,6 +328,12 @@ AdaptiveSparkPlan isFinalPlan=true
 
 A star and a number mark the operators that Spark fused into one generated Java function. All operators with `*(1)` are one loop. The loop reads a row from the batch and applies the filter. Then it projects two columns and updates a hash map. No virtual function call occurs between the operators. The `Exchange` is not in a codegen stage, because a shuffle writes data out of the task.
 
+<figure markdown>
+  ![Codegen stages in the final plan](../media/figures/ch18-codegen-light.svg#only-light)
+  ![Codegen stages in the final plan](../media/figures/ch18-codegen-dark.svg#only-dark)
+  <figcaption>The final plan after <code>collect()</code>. The operators of stage 1 are one generated Java loop. The <code>Exchange</code> is the boundary between the two stages.</figcaption>
+</figure>
+
 Before the run, `explain("codegen")` says `Found 0 WholeStageCodegen subtrees.` This is because AQE does code generation for each query stage when it creates the stage. After the run, the same call prints the code:
 
 ```text
@@ -401,6 +421,13 @@ AdaptiveSparkPlan isFinalPlan=true
 
 `ResultQueryStage 1` is the final aggregate in that one task. The `== Initial Plan ==` part stays in the output for comparison.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch18-anim-coalesce.webp">
+    <source src="../../media/clips/ch18-anim-coalesce.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the shuffle of the <code>groupBy</code> writes 200 partitions. After the map stage, AQE merges partitions that are next to each other into one read, and the next stage runs 1 task. The task counts come from <code>aqe.txt</code>. The partition sizes are schematic.</figcaption>
+</figure>
+
 AQE only merges partitions. It never splits a normal partition into more partitions. If you set `spark.sql.shuffle.partitions` too low for a large shuffle, AQE cannot help. For this reason, keep this value high enough for the largest stage, and let AQE reduce it.
 
 The default of `spark.sql.adaptive.coalescePartitions.parallelismFirst` is `true`. With this value, AQE ignores the advisory size and keeps enough partitions for all cores. It still obeys `minPartitionSize` (1 MB). On a shared cluster, set it to `false`. Then AQE makes fewer partitions of the correct size.
@@ -468,6 +495,15 @@ after the run:
   </video>
   <figcaption><code>aqe.py</code>: the same join with the default ratio and with the ratio at 0.0. AQE changes the sort-merge join to a broadcast join only in the second run.</figcaption>
 </figure>
+
+The script runs the join four times. This table shows the result of each run, from `aqe.txt`:
+
+| `groupBy` key | Ratio | Join after the run | Jobs | Read of the left side |
+|---|---|---|---|---|
+| `PULocationID` | 0.2 | `SortMergeJoin` | 3 | `coalesced` |
+| `DOLocationID` | 0.2 | `SortMergeJoin` | 4 | `coalesced` |
+| `DOLocationID` | 0.0 | `BroadcastHashJoin` | 5 | `local` |
+| `PULocationID` | 0.0 | `BroadcastHashJoin` | 4 | `coalesced` |
 
 Note three things in this final plan:
 

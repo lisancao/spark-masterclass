@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Numbers from data.json (code/ch18/output/aqe.txt, section 1). Partition sizes are schematic.
+      const D = {"map_tasks": 16, "shuffle_partitions": 200, "reduce_tasks_after_aqe": 1, "result_rows": 258};
+      A.mount();
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+
+      // beat open (0.0): title and the 16 map tasks on screen at frame 0
+      A.title("AQE coalesces shuffle partitions", "groupBy(PULocationID) on the June trips");
+      A.text("stage 1: 16 map tasks", { x: 0.13, y: 0.27, size: 30, color: "var(--a-mute)" });
+      const maps = [];
+      for (let i = 0; i < D.map_tasks; i++) {
+        const r = Math.floor(i / 4), c = i % 4;
+        maps.push(A.box({ x: 0.06 + c * A.dx(100), y: 0.36 + r * A.dy(100), w: 84, h: 84, kind: "soft", radius: 8 }));
+      }
+      cap("Sixteen tasks scan the trips and count per zone", 0.3, 4.7);
+
+      // beat write (3.0): the shuffle writes 200 partitions, most of them small
+      A.text("shuffle: 200 partitions", { x: 0.5, y: 0.27, size: 30, color: "var(--a-mute)" });
+      const cells = [], GX = 0.325, GY = 0.35, STEP = 38;
+      for (let i = 0; i < D.shuffle_partitions; i++) {
+        const r = Math.floor(i / 20), c = i % 20;
+        // schematic fill: a few larger partitions, most small
+        const h = [0.25, 0.3, 0.35, 0.9, 0.3, 0.5][(i * 7) % 6];
+        const cell = A.el("", { x: GX + c * A.dx(STEP), y: GY + r * A.dy(STEP), css: { width: A.px(30) + "px", height: A.px(30) + "px",
+          borderRadius: A.px(3) + "px", background: "var(--a-acc)", opacity: 0 } });
+        cells.push(cell);
+        A.tl.to(cell, { opacity: h, duration: 0.3 }, 4.8 + (i % 20) * 0.04 + r * 0.06);
+      }
+      for (const m of maps) A.tl.to(m, { opacity: 0.45, duration: 0.4 }, 5.2);
+      cap("The shuffle writes 200 partitions, and most are almost empty", 4.8, 9.5);
+
+      // beat plan (6.5): the static plan wants 200 reduce tasks
+      const planned = A.text("planned: 200 reduce tasks", { x: 0.85, y: 0.27, size: 30, color: "var(--a-mute)" });
+      A.in(planned, 9.6);
+      const ghosts = [];
+      for (let i = 0; i < 40; i++) {
+        const r = Math.floor(i / 5), c = i % 5;
+        ghosts.push(A.box({ x: 0.775 + c * A.dx(42), y: 0.35 + r * A.dy(42), w: 32, h: 32, kind: "ghost", radius: 4 }));
+      }
+      A.in(ghosts, 9.7, { stagger: 0.01, dur: 0.3 });
+      const gl = A.text("40 of 200 drawn", { x: 0.85, y: 0.35 + A.dy(380), size: 24, color: "var(--a-mute)" }); A.in(gl, 10); A.out(gl, 14.4);
+      cap("AQE reads the real sizes before the next stage starts", 9.6, 14.3);
+
+      // beat merge (9.1): adjacent partitions become one read, one task
+      A.out(ghosts, 14.4, { dur: 0.3 });
+      A.out(planned, 14.4);
+      const final = A.box({ x: 0.85, y: 0.52, w: 320, h: 220, kind: "accent", title: "1 task", sub: "AQEShuffleRead coalesced", size: 44 });
+      A.in(final, 14.9);
+      const tx = A.X(0.85), ty = A.Y(0.52);
+      cells.forEach((cell, i) => {
+        const r = Math.floor(i / 20), c = i % 20;
+        const x0 = A.X(GX + c * A.dx(STEP)), y0 = A.Y(GY + r * A.dy(STEP));
+        A.tl.to(cell, { x: tx - x0, y: ty - y0, scale: 0.3, duration: 0.8, ease: "power2.in" }, 14.4 + i * 0.002);
+        A.tl.to(cell, { opacity: 0, duration: 0.2 }, 15.1 + i * 0.002);
+      });
+      const res = A.text("258 rows; stage 3: 1 task", { x: 0.85, y: 0.52 + A.dy(160), size: 30, mono: true, color: "var(--a-mute)" });
+      A.in(res, 15.4);
+      cap("Partitions next to each other merge: one task, not 200", 14.4);
+
+      A.in(A.note("task counts from aqe.py output; partition sizes schematic"), 0.4);
+      A.finish(13);
+    </script>
+  </body>
+</html>
