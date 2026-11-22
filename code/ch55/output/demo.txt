@@ -82,16 +82,16 @@ reader pushdown: count, filtered count, count again = [10, 5, 5]
 CaseFiles (a fresh load per table): [10, 5, 10]
 
 == 8. Writes publish by replacing one manifest
-after append: ['CASE-0001@d41f2e16', 'CASE-0002@d41f2e16', 'CASE-0003@d41f2e16', '_manifest.json']
-_manifest.json: {"version": 1, "cases": {"CASE-0001": "CASE-0001@d41f2e16", "CASE-0002": "CASE-0002@d41f2e16", "CASE-0003": "CASE-0003@d41f2e16"}, "jobs": [{"job": "d41f2e16", "mode": "append", "cases": 3}]}
+after append: ['CASE-0001@142c540f', 'CASE-0002@142c540f', 'CASE-0003@142c540f', '_manifest.json']
+_manifest.json: {"version": 1, "cases": {"CASE-0001": "CASE-0001@142c540f", "CASE-0002": "CASE-0002@142c540f", "CASE-0003": "CASE-0003@142c540f"}, "jobs": [{"job": "142c540f", "mode": "append", "cases": 3}]}
 a task that fails after four folders: ValueError: casefile: invalid case_id 'not a case', expected CASE-dddd
    folder unchanged: True
 a duplicate case_id: ValueError: casefile: duplicate case_id in this write: ['CASE-0006']
    folder unchanged: True
 an existing case_id: ValueError: casefile: case_id already exists (use overwrite): ['CASE-0001']
    folder unchanged: True
-after overwrite: ['CASE-0009@1a9179bc', 'CASE-0010@1a9179bc', '_manifest.json']
-_manifest.json: {"version": 2, "cases": {"CASE-0009": "CASE-0009@1a9179bc", "CASE-0010": "CASE-0010@1a9179bc"}, "jobs": [{"job": "d41f2e16", "mode": "append", "cases": 3}, {"job": "1a9179bc", "mode": "overwrite", "cases": 2}]}
+after overwrite: ['CASE-0009@bce3bb6b', 'CASE-0010@bce3bb6b', '_manifest.json']
+_manifest.json: {"version": 2, "cases": {"CASE-0009": "CASE-0009@bce3bb6b", "CASE-0010": "CASE-0010@bce3bb6b"}, "jobs": [{"job": "142c540f", "mode": "append", "cases": 3}, {"job": "bce3bb6b", "mode": "overwrite", "cases": 2}]}
 
 == 9. The changes table as a stream
 batches (id, rows): [(0, 7), (1, 7), (2, 8), (3, 7), (4, 7), (5, 7)]

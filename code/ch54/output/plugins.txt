@@ -14,25 +14,25 @@ jdocs by short name: [Row(name='gradient_32x32.png', width=32), Row(name='gray_2
 [Row(p=True)]
 
 == 4. plan_nodes: a relation plugin
-+---+------+-----+---------+--------------------------------------------------------------------------------------------------+
-|id |parent|depth|node     |detail                                                                                            |
-+---+------+-----+---------+--------------------------------------------------------------------------------------------------+
-|0  |NULL  |0    |Aggregate|Aggregate [_groupingexpression#286L], [_groupingexpression#286L AS k#283L, count(1) AS count#284L]|
-|1  |0     |1    |Project  |Project [(id#282L % 2) AS _groupingexpression#286L]                                               |
-|2  |1     |2    |Filter   |Filter (id#282L > 3)                                                                              |
-|3  |2     |3    |Range    |Range (0, 10, step=1, splits=Some(16))                                                            |
-+---+------+-----+---------+--------------------------------------------------------------------------------------------------+
++---+------+-----+---------+----------------------------------------------------------------------------------------------+
+|id |parent|depth|node     |detail                                                                                        |
++---+------+-----+---------+----------------------------------------------------------------------------------------------+
+|0  |NULL  |0    |Aggregate|Aggregate [_groupingexpression#22L], [_groupingexpression#22L AS k#19L, count(1) AS count#20L]|
+|1  |0     |1    |Project  |Project [(id#18L % 2) AS _groupingexpression#22L]                                             |
+|2  |1     |2    |Filter   |Filter (id#18L > 3)                                                                           |
+|3  |2     |3    |Range    |Range (0, 10, step=1, splits=Some(16))                                                        |
++---+------+-----+---------+----------------------------------------------------------------------------------------------+
 
-+---+------+-----+-------------+--------------------------------------------------------------------------------------------+
-|id |parent|depth|node         |detail                                                                                      |
-+---+------+-----+-------------+--------------------------------------------------------------------------------------------+
-|0  |NULL  |0    |HashAggregate|HashAggregate(keys=[_groupingexpression#314L], functions=[count(1)])                        |
-|1  |0     |1    |Exchange     |Exchange hashpartitioning(_groupingexpression#314L, 200), ENSURE_REQUIREMENTS, [plan_id=417]|
-|2  |1     |2    |HashAggregate|HashAggregate(keys=[_groupingexpression#314L], functions=[partial_count(1)])                |
-|3  |2     |3    |Project      |Project [(id#310L % 2) AS _groupingexpression#314L]                                         |
-|4  |3     |4    |Filter       |Filter (id#310L > 3)                                                                        |
-|5  |4     |5    |Range        |Range (0, 10, step=1, splits=16)                                                            |
-+---+------+-----+-------------+--------------------------------------------------------------------------------------------+
++---+------+-----+-------------+------------------------------------------------------------------------------------------+
+|id |parent|depth|node         |detail                                                                                    |
++---+------+-----+-------------+------------------------------------------------------------------------------------------+
+|0  |NULL  |0    |HashAggregate|HashAggregate(keys=[_groupingexpression#50L], functions=[count(1)])                       |
+|1  |0     |1    |Exchange     |Exchange hashpartitioning(_groupingexpression#50L, 200), ENSURE_REQUIREMENTS, [plan_id=51]|
+|2  |1     |2    |HashAggregate|HashAggregate(keys=[_groupingexpression#50L], functions=[partial_count(1)])               |
+|3  |2     |3    |Project      |Project [(id#46L % 2) AS _groupingexpression#50L]                                         |
+|4  |3     |4    |Filter       |Filter (id#46L > 3)                                                                       |
+|5  |4     |5    |Range        |Range (0, 10, step=1, splits=16)                                                          |
++---+------+-----+-------------+------------------------------------------------------------------------------------------+
 
 stage 'parsed' -> IllegalArgumentException: stage must be analyzed, optimized or physical, got 'parsed'
 
@@ -62,11 +62,11 @@ spark.conf.get('jplug.note') = checked by chapter 54
 
 == 9. The server's record of the plugin operations (4.3 REST API)
 14 operations in this session; those whose recorded statement names a jplug type:
-  jplug.PlanNodes  CLOSED     81 ms  jobs []  ''
-  jplug.PlanNodes  CLOSED     45 ms  jobs []  ''
-  jplug.PlanNodes  CLOSED     19 ms  jobs []  'INTERNAL: stage must be analyzed, optimized or physical, got'
-  jplug.PlanNodes  CLOSED     83 ms  jobs ['28']  ''
-  jplug.PlanNodes  CLOSED    187 ms  jobs ['29', '30', '31']  ''
-  jplug.PlanNodes  CLOSED     67 ms  jobs ['32', '33', '34']  ''
-  jplug.Note       CLOSED      1 ms  jobs []  'INTERNAL: [CONNECT_INVALID_PLAN.NO_HANDLER_FOR_EXTENSION] Th'
-  jplug.Note       CLOSED      1 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED    542 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED    219 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED     74 ms  jobs []  'INTERNAL: stage must be analyzed, optimized or physical, got'
+  jplug.PlanNodes  CLOSED    526 ms  jobs ['4']  ''
+  jplug.PlanNodes  CLOSED    991 ms  jobs ['5', '6', '7']  ''
+  jplug.PlanNodes  CLOSED    257 ms  jobs ['8', '9', '10']  ''
+  jplug.Note       CLOSED      7 ms  jobs []  'INTERNAL: [CONNECT_INVALID_PLAN.NO_HANDLER_FOR_EXTENSION] Th'
+  jplug.Note       CLOSED      6 ms  jobs []  ''
