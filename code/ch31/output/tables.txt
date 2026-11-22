@@ -1,0 +1,32 @@
+== CREATE TABLE
+     1,474  metadata/v1.metadata.json
+         1  metadata/version-hint.text
+
+v1.metadata.json: format-version 2, current-snapshot-id -1, snapshots 0
+  schema: 1:VendorID:int, 2:tpep_pickup_datetime:timestamp, 3:tpep_dropoff_datetime:timestamp, 4:passenger_count:long ...
+  partition spec: [{"spec-id": 0, "fields": [{"name": "tpep_pickup_datetime_day", "transform": "day", "source-id": 2, "field-id": 1000}]}]
+
+== INSERT the June trips
+rows: 3,837,231
+data/: 30 folders, tpep_pickup_datetime_day=2026-06-01 ... tpep_pickup_datetime_day=2026-06-30
+data files: 30
+metadata/:
+    12,528  47133b4e-72b5-4279-8550-fb3b504a2c8e-m0.avro
+     4,501  snap-5355822279716108590-1-47133b4e-72b5-4279-8550-fb3b504a2c8e.avro
+     1,474  v1.metadata.json
+     2,696  v2.metadata.json
+         1  version-hint.text
+
+v2.metadata.json: current-snapshot-id 5355822279716108590
+  manifest-list: snap-5355822279716108590-1-47133b4e-72b5-4279-8550-fb3b504a2c8e.avro
+  summary: {'operation': 'append', 'added-data-files': '30', 'added-records': '3837231', 'total-files-size': '57989583'}
+
+== Hidden partitioning: filter on the timestamp, not on a partition column
+BatchScan lake.nyc.trips[tpep_pickup_datetime#87, total_amount#96] IcebergScan(table=lake.nyc.trips, schemaId=0, snapshotId=5355822279716108590, branch=null, filters=tpep_pickup_datetime IS NOT NULL, tpep_pickup_datetime >= 1781481600000000, tpep_pickup_datetime < 1781568000000000, runtimeFilters=, groupedBy=) RuntimeFilters: []
+{'trips': 109514, 'avg_total': 31.1}
+  number of skipped data files: 29
+  total data manifests: 1
+  number of output rows: 109,514
+  total data file size (bytes): 1703561
+  number of scanned data manifests: 1
+  number of result data files: 1

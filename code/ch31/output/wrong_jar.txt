@@ -1,0 +1,5 @@
+Spark 4.3.0, runtime org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0
+CREATE TABLE failed:
+  java.lang.IncompatibleClassChangeError:
+    class org.apache.iceberg.spark.source.SparkView can not implement org.apache.spark.sql.connector.catalog.View,
+    because it is not an interface

@@ -1,0 +1,61 @@
+== One table in each catalog
+lake  (hadoop) 265 rows  file://$WORK/hadoop/nyc/zones
+jdbc  (jdbc  ) 265 rows  file://$WORK/jdbc/nyc/zones
+hive  (hive  ) 265 rows  file:$WORK/hive/nyc.db/zones
+rest  (rest  ) 265 rows  file://$WORK/polaris/nyc/zones
+
+SHOW CATALOGS: hive, jdbc, lake, rest, spark_catalog
+
+== Where each catalog keeps the pointer to the current metadata file
+lake: the file $WORK/hadoop/nyc/zones/metadata/version-hint.text contains '1'
+      so the current metadata file is ['v1.metadata.json']
+jdbc: a row in the SQLite table iceberg_tables:
+      ('jdbc', 'nyc', 'zones', 'file:$WORK/jdbc/nyc/zones/metadata/00000-d561872b-defd-40fd-acd7-6a08d8c4cb6e.metadata.json')
+hive: table parameters in the Hive Metastore:
+      metadata_location = file:$WORK/hive/nyc.db/zones/metadata/00000-92f0a201-5fbd-4eeb-92ba-708f0a368675.metadata.json
+      other keys: current-schema, current-snapshot-id, current-snapshot-summary, current-snapshot-timestamp-ms, format-version, snapshot-count, transient_lastDdlTime, uuid, write.parquet.compression-codec
+rest: GET /v1/config?warehouse=taxi -> prefix 'taxi', 39 endpoints
+      GET /v1/taxi/namespaces/nyc/tables/zones -> metadata-location:
+      file:$WORK/polaris/nyc/zones/metadata/00000-779cce92-f3da-47bb-a71f-18dc02469101.metadata.json
+
+== spark_catalog (Spark's Hive session catalog) reads the Hive table as a plain table
+spark_catalog.nyc.zones: java.lang.RuntimeException: Failed to instantiate org.apache.hadoop.mapred.FileInputFormat
+
+== Namespaces
+lake  ALTER NAMESPACE ... SET PROPERTIES: Cannot set namespace properties nyc : setProperties is not supported
+jdbc  ALTER NAMESPACE ... SET PROPERTIES: works
+hive  ALTER NAMESPACE ... SET PROPERTIES: works
+rest  ALTER NAMESPACE ... SET PROPERTIES: works
+DESCRIBE NAMESPACE EXTENDED rest.nyc:
+  Catalog Name         rest
+  Namespace Name       nyc
+  Location             file://$WORK/polaris/nyc/
+  Properties           ((team,data-eng))
+lake  nested namespace nyc.raw: created, ['nyc.raw']
+jdbc  nested namespace nyc.raw: created, ['nyc.raw']
+hive  nested namespace nyc.raw: Cannot support multi part namespace in Hive Metastore: nyc.raw
+rest  nested namespace nyc.raw: created, ['nyc.raw']
+
+== One query over three catalogs
++-------------+-----+
+|      Borough|zones|
++-------------+-----+
+|    Manhattan|   69|
+|       Queens|   69|
+|     Brooklyn|   61|
+|        Bronx|   43|
+|Staten Island|   20|
+|      Unknown|    1|
+|          EWR|    1|
+|          N/A|    1|
++-------------+-----+
+
+== DROP TABLE and DROP TABLE ... PURGE, and what stays on disk
+lake  DROP TABLE:         5 files before, 0 after
+lake  DROP TABLE ... PURGE: 5 files before, 0 after
+jdbc  DROP TABLE:         4 files before, 4 after
+jdbc  DROP TABLE ... PURGE: 4 files before, 0 after
+hive  DROP TABLE:         4 files before, 4 after
+hive  DROP TABLE ... PURGE: 4 files before, 0 after
+rest  DROP TABLE:         4 files before, 4 after
+rest  DROP TABLE ... PURGE: 4 files before, 0 after
