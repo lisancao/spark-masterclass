@@ -4,7 +4,7 @@ The stateful operators of [Chapter 39](ch39-structured-streaming.md) each have o
 
 Many real streams need a rule that is not in this list. A checkout session must close on a gap, but it must also ignore an event that the phone sent two times. A spend tracker must start from the balance in another system. A reminder must go to a user five seconds after the last click, also when no more events arrive.
 
-For these rules, Spark gives you `transformWithState`. You write a small class, and Spark calls it for each key with the new rows of that key. The class keeps typed state variables, sets timers, and gives a time to live (TTL) to state that must expire. Spark 4.0 added this API as the second version of arbitrary state. It replaces `mapGroupsWithState` and `applyInPandasWithState`. Spark 4.1 added the row-based Python API that this chapter uses.
+For these rules, Spark gives you `transformWithState`. You write a small class, and Spark calls it for each key with the new rows of that key. The class keeps typed state variables, sets timers, and gives a time to live (TTL) to state that must expire. Spark 4.0 added this API as the second version of arbitrary state. It replaces `mapGroupsWithState` and `applyInPandasWithState`, which Step 9 compares with it. Spark 4.1 added the row-based Python API that this chapter uses.
 
 **`transformWithState` gives your code the state of one key, one key at a time. Spark keeps that state in RocksDB, writes it into the checkpoint, and calls your code again when a timer expires. You decide what the state is and when it ends. Spark decides when your code runs. Most errors in a processor come from a wrong idea of when Spark calls it.**
 
@@ -617,6 +617,211 @@ The totals have no opening balances, because this query has no initial state. Th
 !!! note "New in 4.3: `transformWithState` in Real-time Mode"
     Spark 4.3.0 runs `transformWithState` in Real-time Mode, but only the Scala and Java API. The PySpark `transformWithState` and `transformWithStateInPandas` APIs are not in the allowlist. In Real-time Mode, Spark calls `handleInputRows` one time for each row. [Chapter 42](ch42-real-time-mode.md) explains Real-time Mode.
 
+## Step 9: The older APIs, and when each is still used
+
+`transformWithState` is the second version of arbitrary state. The first version is still in Spark 4.3.0, and many queries in production use it:
+
+- **`mapGroupsWithState` and `flatMapGroupsWithState`** (Spark 2.2) on a `KeyValueGroupedDataset`, in Scala and Java only.
+- **`applyInPandasWithState`** (Spark 3.4) on a grouped DataFrame, in Python. It is the Python form of `flatMapGroupsWithState`, with pandas DataFrames.
+
+All three give your function one object for each key: a `GroupState`. The object holds one value and one timeout. This step does three things. It runs the session rule of Step 4 in `applyInPandasWithState`. It runs the spend rule of Step 1 in both Scala APIs. Then it moves the open sessions of the old query into the `Sessionizer`.
+
+### applyInPandasWithState: one state value, one timeout
+
+`t6_legacy.py` writes the `Sessionizer` with a `GroupState`. The function gets the key, an iterator of pandas DataFrames and the state. Spark calls it for a key with new rows, or for a key whose timeout expired:
+
+```python
+def sessions(key, pdfs, state):
+    """One state tuple and one timeout per user. Spark calls this for new rows OR for a timeout."""
+    user = key[0]
+    if state.hasTimedOut:                                     # called for the timeout, with no rows
+        s = state.get
+        state.remove()
+        yield pd.DataFrame([dict(user=user, start_ms=s[0], end_ms=s[1], clicks=s[2], revenue=round(s[3], 2), closed_by="timeout")])
+        return
+    s = state.get if state.exists else None
+    ...                                                       # the same gap and re-send rules as Step 4
+    state.update(s)
+    state.setTimeoutTimestamp(s[1] + GAP_MS)                  # replaces the old timeout of this user
+    yield pd.DataFrame(closed, columns=OUT_COLS)
+
+legacy = events.groupBy("user").applyInPandasWithState(
+    sessions, outputStructType=OUT, stateStructType=STATE,
+    outputMode="append", timeoutConf=GroupStateTimeout.EventTimeTimeout)
+```
+
+The design is different from Step 4 in three places:
+
+- **One value for each key.** The session and the IDs of its events must go into one struct. The `Sessionizer` used a `ValueState` and a `MapState`.
+- **One timeout for each key.** `setTimeoutTimestamp` replaces the previous timeout. A processor can register many timers for one key.
+- **One function for two events.** `state.hasTimedOut` tells the function why Spark called it. The `Sessionizer` has `handleInputRows` and `handleExpiredTimer`.
+
+The script keeps the event IDs as one comma-separated `STRING`. In this test on 4.3.0, a state schema with an `ARRAY<STRING>` field failed in the Python worker with `KeyError: 'elementType'` (`t6_array_state.py`). The part notes record it as an open item.
+
+The query reads drops 1 to 3 on the default state store:
+
+```text
+1. applyInPandasWithState on drops 1 to 3, default state store (HDFS-backed):
+   provider: HDFSBackedStateStoreProvider
+   batches (id, input rows): [(0, 10), (1, 9), (2, 8), (3, 0)]
++----+--------+--------+------+-------+---------+
+|user|   start|     end|clicks|revenue|closed_by|
++----+--------+--------+------+-------+---------+
+|  u1|09:00:14|09:09:18|     3|  16.39|      gap|
+|  u2|09:02:03|09:48:54|     4|  43.33|  timeout|
+|  u3|09:30:04|09:58:49|     5|  39.26|  timeout|
+|  u4|09:38:21|10:05:44|     3|    0.0|      gap|
++----+--------+--------+------+-------+---------+
+```
+
+These are the same four sessions that the `Sessionizer` closed in Step 5 from the same drops. The old API ran on the default HDFS-backed store, because it keeps one value for each key. `transformWithState` needs RocksDB (Step 1).
+
+The state data source reads the old state too. The value has two fields: the `groupState` struct and the `timeoutTimestamp` of the key:
+
+```text
++----+--------+--------+------+-------------------+----------+
+|user|start   |last    |clicks|seen               |timeout_at|
++----+--------+--------+------+-------------------+----------+
+|u1  |10:45:56|10:50:12|2     |c018,c019          |11:20:12  |
+|u4  |10:58:40|10:58:40|1     |c023               |11:28:40  |
+|u5  |10:10:05|10:44:31|4     |c012,c017,c020,c021|11:14:31  |
+|u6  |10:55:05|10:55:05|1     |c022               |11:25:05  |
++----+--------+--------+------+-------------------+----------+
+```
+
+### mapGroupsWithState and flatMapGroupsWithState in Scala
+
+`t7_groupstate.scala` runs in `spark-shell` (`t7_groupstate.sh`). It keeps the spend of each user in a `GroupState[Double]`, with two output rules:
+
+```scala
+// mapGroupsWithState: exactly one output row per key that has new rows, update mode only.
+def spend(user: String, rows: Iterator[Pay], state: GroupState[Double]): (String, Double, Int) = {
+  val ps = rows.toSeq
+  val total = state.getOption.getOrElse(0.0) + ps.map(_._3).sum
+  state.update(total)
+  (user, r2(total), ps.size)                  // (user, total, payments)
+}
+pays.groupByKey(_._1).mapGroupsWithState(GroupStateTimeout.NoTimeout)(spend _)
+
+// flatMapGroupsWithState: zero or more rows per key, here one row only when a user passes 50.00.
+pays.groupByKey(_._1).flatMapGroupsWithState(OutputMode.Append(), GroupStateTimeout.NoTimeout)(alerts _)
+```
+
+```text
+1. mapGroupsWithState, update mode: one row per user per batch with payments
++----+-----+--------+
+|user|total|payments|
++----+-----+--------+
+|  u1|16.39|       1|
+|  u2|43.33|       1|
+|  u3|39.26|       1|
+|  u1|58.15|       1|
+|  u5|62.99|       1|
+|  u6|19.15|       1|
++----+-----+--------+
+
+2. flatMapGroupsWithState, append mode: a row only when a user passes 50.00
++----+-----+----------+
+|user|total|crossed_by|
++----+-----+----------+
+|  u1|58.15|      c019|
+|  u5|62.99|      c021|
++----+-----+----------+
+
+   batches (id, input rows): (0,1), (1,2), (2,2), (3,1)
+   state operator: flatMapGroupsWithState
+3. mapGroupsWithState in append mode:
+   ExtendedAnalysisException: mapGroupsWithState is not supported with Append output mode on a streaming DataFrame/Dataset;
+```
+
+- **`mapGroupsWithState`** returns exactly one row for each key with new rows. Thus, it accepts only update mode, as the error shows.
+- **`flatMapGroupsWithState`** returns an iterator, so a key can give no row or many rows. It accepts append mode, and the output can go to a file sink.
+
+The script uses tuples, not case classes. The first version used a case class that it defined in `spark-shell`. The executor task waited for the class of the shell line, and the driver thread ran the query in that same line. The query did not progress. A compiled application does not have this problem.
+
+### Move the state into transformWithState
+
+A checkpoint belongs to one stateful operator. The last part of `t6_legacy.py` starts `transformWithState` on the checkpoint of the old query, with drop 4:
+
+```text
+4. Restart the old checkpoint with transformWithState, and give it drop 4:
+  StreamingQueryException: [STREAM_FAILED] ...
+  [STREAMING_STATEFUL_OPERATOR_NOT_MATCH_IN_STATE_METADATA] Streaming stateful operator
+  name does not match with the operator in state metadata. This likely to happen when ...
+```
+
+The way across is the initial state of Step 1. Read the old state with the state data source, and give it to the new query as `initialState`. The new processor needs one more method, which loads one open session and registers its timer:
+
+```python
+class MigratedSessionizer(Sessionizer):
+    """The Sessionizer of Step 4, plus handleInitialState: load one open session from the old state."""
+
+    def handleInitialState(self, key, init, timerValues):
+        self.session.update((init.start_ms, init.last_ms, init.clicks, init.revenue))
+        for e in init.seen.split(","):
+            self.seen.updateValue((e,), (init.last_ms,))
+        self.handle.registerTimer(init.last_ms + GAP_MS)
+
+
+initial = old.select("key.user", "value.groupState.*").groupBy("user")
+tws = (spark.readStream.schema(SCHEMA).json(str(inbox4)).withWatermark("ts", "10 minutes")
+       .groupBy("user").transformWithState(MigratedSessionizer(), OUT, "Append", "EventTime", initialState=initial))
+```
+
+```text
+3. Move the open sessions into transformWithState (new checkpoint, RocksDB), then read drop 4:
+   batches (id, input rows): [(0, 4), (1, 0)]
++----+--------+--------+------+-------+---------+
+|user|   start|     end|clicks|revenue|closed_by|
++----+--------+--------+------+-------+---------+
+|  u1|10:45:56|10:50:12|     2|  41.76|      gap|
+|  u4|10:58:40|10:58:40|     1|    0.0|    timer|
+|  u5|10:10:05|10:44:31|     4|  62.99|    timer|
++----+--------+--------+------+-------+---------+
+
+   still open after drop 4:
++----+--------+--------+------+
+|user|   start|    last|clicks|
++----+--------+--------+------+
+|  u1|11:40:50|11:40:50|     1|
+|  u6|10:55:05|11:31:49|     3|
+|  u7|11:48:03|11:48:03|     1|
++----+--------+--------+------+
+```
+
+<figure markdown>
+  ![Move open sessions from applyInPandasWithState to transformWithState](../media/figures/ch41-migrate-light.svg#only-light)
+  ![Move open sessions from applyInPandasWithState to transformWithState](../media/figures/ch41-migrate-dark.svg#only-dark)
+  <figcaption markdown="span">The move in `t6_legacy.txt`. The old checkpoint is read, not restarted. Its open sessions become the initial state of a new checkpoint, and the new source starts after drop 3.</figcaption>
+</figure>
+
+The closed sessions and the open sessions are the same as in Step 5, where one `transformWithState` query read all four drops. The open session of `u1` from 10:45 closed by `gap`, and `u4` and `u5` closed by `timer`. Thus, the move kept the state and the timers.
+
+The move has a second half that the script does in a simple way. The new query has a new checkpoint, so its source starts from nothing. The script puts drop 4 into a new folder. For Kafka, give the new query `startingOffsets` as JSON ([Chapter 89](ch89-kafka-in-depth.md), Step 2). Use the offsets from the last `offsets/N` file of the old checkpoint. Stop the old query before you read its state.
+
+### When to use which API
+
+| | `mapGroupsWithState` | `flatMapGroupsWithState` | `applyInPandasWithState` | `transformWithState` |
+|---|---|---|---|---|
+| Languages | Scala, Java | Scala, Java | Python (pandas) | Scala, Java, Python (rows or pandas) |
+| Since | 2.2 | 2.2 | 3.4 | 4.0 (Python rows: 4.1) |
+| State for each key | one value | one value | one value (a struct) | many variables: value, list, map |
+| Timers for each key | one timeout | one timeout | one timeout | many timers |
+| TTL | no | no | no | yes, processing time (Step 6) |
+| Output for each key | exactly one row | zero or more rows | zero or more rows | zero or more rows |
+| Output modes | update | append, update | append, update | append, update |
+| Initial state | yes (3.2) | yes (3.2) | no | yes |
+| State store | any | any | any | RocksDB only |
+| Schema change of the state | no | no | no | add or remove variables, Avro encoding (below) |
+
+Use the older APIs in these cases:
+
+- **A query that already runs on them.** Its checkpoint holds state in the old format. Keep the query as it is, or move the state as this step shows.
+- **A state store that is not RocksDB.** The older APIs run on the default HDFS-backed store.
+- **A Scala `mapGroupsWithState` with one result row for each key**, when the rule is simple and the code exists.
+
+For new queries, use `transformWithState`. It has the state types, timers, TTL, schema changes and the test tools of Steps 3 to 7.
+
 ## Change a processor and keep its state
 
 A streaming query can run for months, and its processor changes. The checkpoint records the schema of each state variable, so a change to the processor must agree with that schema. The rules for `transformWithState` are:
@@ -642,6 +847,8 @@ A streaming query can run for months, and its processor changes. The checkpoint 
 - **Keep times in state as epoch milliseconds.** A `TIMESTAMP` comes back from Python state as a naive local time in 4.3.0.
 - **Do not combine `availableNow` with `timeMode="ProcessingTime"`.** The query does not stop (SPARK-50180).
 - **Test each rule with `TwsTester`**, and read production state with the `statestore` source.
+- **The older APIs keep one value and one timeout for each key.** `mapGroupsWithState`, `flatMapGroupsWithState` (Scala, Java) and `applyInPandasWithState` (Python) still run in 4.3.0, on any state store.
+- **Move old state with the state data source.** Read the old checkpoint, give the rows to `transformWithState` as `initialState`, and start the new source after the old offsets.
 
 The full code of this chapter, in the sequence of the steps:
 
@@ -652,6 +859,8 @@ uv run python ch41/t5_pandas_restart.py # Step 3 restart, Step 8 pandas
 uv run python ch41/t2_sessions.py       # Steps 4-5: sessions with event-time timers
 uv run python ch41/t3_time.py           # Step 6: processing-time timers and TTL
 uv run python ch41/t4_tester.py         # Step 7: TwsTester and availableNow
+uv run python ch41/t6_legacy.py         # Step 9: applyInPandasWithState and the move
+ch41/t7_groupstate.sh                   # Step 9: mapGroupsWithState, flatMapGroupsWithState
 ```
 
 ## Further reading

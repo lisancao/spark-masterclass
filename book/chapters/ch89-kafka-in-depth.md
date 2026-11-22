@@ -1,8 +1,10 @@
 # Chapter 89: Kafka with Spark in depth
 
-[Chapter 39](ch39-structured-streaming.md) read a Kafka topic for the first time. It showed the fixed schema of the source, one offset for each partition in the checkpoint, and `maxOffsetsPerTrigger`. [Chapter 42](ch42-real-time-mode.md) sent records from Kafka to Kafka in Real-time Mode. [Chapter 30](ch30-xml-avro-protobuf.md) decoded the bytes of a Kafka message. This chapter is about the connector itself: the options that decide which records a query reads, how many records each batch takes, what the sink promises, and how a query logs in to a broker that needs a password.
+[Chapter 39](ch39-structured-streaming.md) read a Kafka topic for the first time. It showed the fixed schema of the source and `maxOffsetsPerTrigger`. It also showed one offset for each partition in the checkpoint. In [Chapter 42](ch42-real-time-mode.md), records went from Kafka to Kafka in Real-time Mode.
 
-**The Kafka connector does not use Kafka to remember where a query is. The checkpoint holds the offsets, Spark picks each offset range itself, and the consumer group that Kafka shows is empty. Thus, the starting options apply only to a new checkpoint, `failOnDataLoss` decides what occurs when the broker deletes records that the checkpoint still wants, and the sink can write a record two times. A correct Kafka pipeline is a checkpoint, a retention time that is longer than the longest stop, and a reader that removes duplicates by key.**
+[Chapter 30](ch30-xml-avro-protobuf.md) decoded the bytes of a Kafka message. This chapter is about the connector itself. It shows the options that decide which records a query reads and how many records each batch takes. It also shows what the sink promises, and how a query logs in to a broker that needs a password.
+
+**The Kafka connector does not use Kafka to remember where a query is. The checkpoint holds the offsets, Spark picks each offset range itself, and the consumer group that Kafka shows is empty. Thus, the starting options apply only to a new checkpoint. `failOnDataLoss` decides what occurs when the broker deletes records that the checkpoint still wants. The sink can write a record two times. A correct Kafka pipeline is a checkpoint, a retention time that is longer than the longest stop, and a reader that removes duplicates by key.**
 
 All the code runs against Spark 4.3.0 and one Kafka broker in Docker. The scripts are in [`code/ch89`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch89), and each number in the chapter comes from their saved output in `code/ch89/output/`.
 
@@ -72,9 +74,9 @@ The coordinates have three parts, and each one must agree with your Spark:
 
 The connector brings `kafka-clients` 3.9.2, the Kafka client library. It also brings `commons-pool2` for the consumer pool (Step 8) and the token provider for delegation tokens (Step 9). The broker in this chapter is Kafka 4.0. A newer client talks to an older broker, and the reverse, through the version negotiation of the Kafka protocol. Headers need a broker of 0.11 or newer, and the timestamp options of Step 2 need 0.10.1 or newer.
 
-On a cluster without internet access, download the jars once and give them with `spark.jars`, or put them in the `jars/` folder of the Spark installation.
+If the cluster has no internet access, download the jars one time. Then give them with `spark.jars`, or put them in the `jars/` folder of the Spark installation.
 
-The source always has seven columns. `includeHeaders=true` adds an eighth:
+The schema of the source always contains seven columns. `includeHeaders=true` adds an eighth:
 
 ```text
 3. The source schema, with and without includeHeaders:
@@ -109,11 +111,11 @@ A new query on each line (availableNow, new checkpoint):
 
 Each line teaches one rule:
 
-- **The default for a stream is `latest`.** A new query with no option reads only records that arrive after it starts. With `availableNow`, that is nothing. For a batch read, the default is `earliest` (Step 3).
+- **The default for a stream is `latest`.** A new query with no option reads only records that arrive after it starts. With `availableNow`, the query reads no records. For a batch read, the default is `earliest` (Step 3).
 - **`earliest`** reads each partition from its first record that the broker still keeps.
 - **A JSON object** gives a start for each partition. `-2` means earliest and `-1` means latest. The JSON must name all partitions of the subscribed topics.
 - **An offset past the end of a partition is data loss.** Partition 3 had 383 records, so offset 500 does not exist. Spark treats this case as lost data, and `failOnDataLoss` (Step 6) decides the result.
-- **`startingTimestamp`** gives one time in milliseconds for all partitions. Spark asks the broker for the first offset with a record timestamp that is equal to or later than the time (`offsetsForTimes` in the Kafka client). The query read deliveries 2 and 3: 911 + 1018 = 1929 records.
+- **`startingTimestamp`** gives one time in milliseconds for all partitions. Spark asks the broker for the first offset with a record timestamp that is equal to or later than the time. The call is `offsetsForTimes` in the Kafka client. The query read deliveries 2 and 3: 911 + 1018 = 1929 records.
 - **`startingOffsetsByTimestamp`** gives a time for each partition. Here, partitions 0 and 3 start at delivery 3, and partitions 1 and 2 start at delivery 2.
 - **A time after the newest record has no offset.** The default `startingOffsetsByTimestampStrategy=error` stops the query. With `latest`, the partition starts at its end, as with `startingOffsets=latest`.
 
@@ -133,7 +135,7 @@ flowchart TD
   so -->|no| d["stream: latest<br/>batch: earliest"]:::a
 ```
 
-The first test is the most important. [Chapter 39](ch39-structured-streaming.md) showed that a restart ignores `startingOffsets`. The timestamp options obey the same rule. To start an existing query again from a time, start a new checkpoint.
+The first test is the most important. [Chapter 39](ch39-structured-streaming.md) showed that a restart ignores `startingOffsets`. The timestamp options obey the same rule. To start a query again from a time, give it a new checkpoint.
 
 The record timestamp is the time that the topic configuration selects (`message.timestamp.type`). `CreateTime` is the time of the producer, and `LogAppendTime` is the time of the broker. Spark gives the value to the broker and does not interpret it.
 
@@ -151,7 +153,9 @@ The rule for partitions that appear later: they start at earliest.
 
 Run 2 read the new partitions 4 and 5 from offset 0, also though the query started with `latest`. A partition that is not in the checkpoint starts at earliest, so the query does not lose the first records of a new partition.
 
-The first version of this script wrote the 1,089 trips with the same writer options as before. All the trips went to partitions 0 to 3, and partitions 4 and 5 stayed empty. The cause is the producer pool of the sink. Spark keeps one producer for each set of producer options (`spark.kafka.producer.cache.timeout`, 10 minutes by default). That producer still had the old topic metadata, with four partitions. The Kafka client refreshes the metadata only after `metadata.max.age.ms` (5 minutes by default). The final script gives a new `kafka.client.id`, so the sink makes a new producer that sees six partitions.
+The first version of this script wrote the 1,089 trips with the same writer options as before. All the trips went to partitions 0 to 3, and partitions 4 and 5 stayed empty.
+
+The cause is the producer pool of the sink. Spark keeps one producer for each set of producer options (`spark.kafka.producer.cache.timeout`, 10 minutes by default). That producer still had the old topic metadata, with four partitions. The Kafka client refreshes the metadata only after `metadata.max.age.ms` (5 minutes by default). The final script gives a new `kafka.client.id`, so the sink makes a new producer that sees six partitions.
 
 ## Step 3: Kafka as a batch source
 
@@ -203,7 +207,7 @@ Some options belong to one mode only, and some Kafka client options are not allo
 ```
 
 - Each option with the prefix `kafka.` goes to the Kafka client. Spark refuses the client options that would take control from it: `auto.offset.reset`, `enable.auto.commit`, `interceptor.classes` and the deserializers.
-- `maxOffsetsPerTrigger` has no meaning in a batch read. Spark ignores it, and the read took all 4,522 records.
+- `maxOffsetsPerTrigger` does nothing in a batch read. Spark ignores it, and the read took all 4,522 records.
 
 ## Step 4: How many records a batch takes, and how many tasks read them
 
@@ -250,7 +254,7 @@ With `earliest` and `latest`, the batch read ignored the option. With explicit s
 
 ### A batch that waits for enough records
 
-`maxOffsetsPerTrigger` puts an upper limit on a batch ([Chapter 39](ch39-structured-streaming.md), Step 9). `minOffsetsPerTrigger` puts a lower limit on it. Spark does not start a batch until enough new records are available, or until `maxTriggerDelay` (15 minutes by default) has passed since the last batch. The second part of the script uses a minimum of 1,000 records and a delay of 6 seconds. A producer writes 400 records every 1.5 seconds, and then 100 records every 2 seconds:
+`maxOffsetsPerTrigger` puts an upper limit on a batch ([Chapter 39](ch39-structured-streaming.md), Step 9). `minOffsetsPerTrigger` puts a lower limit on it. Spark does not start a batch until enough new records are available. The other condition is time: Spark starts the batch when the time since the last batch is more than `maxTriggerDelay` (15 minutes by default). The second part of the script uses a minimum of 1,000 records and a delay of 6 seconds. A producer writes 400 records every 1.5 seconds, and then 100 records every 2 seconds:
 
 ```text
 2. A stream that waits for 1000 records, or at most 6 seconds after the last batch:
@@ -285,7 +289,7 @@ Use `minOffsetsPerTrigger` when each batch has a fixed cost (a `MERGE` into a ta
 
 ## Step 5: Headers, and the columns of the sink
 
-The Kafka sink reads up to five columns from the DataFrame that you write. Only `value` is required. `k5_headers.py` writes each trip with all five:
+The Kafka sink reads up to five columns from the DataFrame that you write. It needs only `value`. `k5_headers.py` writes each trip with all five:
 
 ```python
 out = trips.select(
@@ -300,7 +304,7 @@ out.write.format("kafka").option("kafka.bootstrap.servers", PLAIN).option("inclu
 ```
 
 1. The key, as a string or binary. The producer hashes the key to select a partition.
-2. The value, as a string or binary. This column is required.
+2. The value, as a string or binary. The sink needs this column.
 3. Headers: an array of structs with a string key and a binary value. A header can occur more than one time.
 4. The topic of each row. Without the `topic` option, each row names its own topic.
 5. The partition of each row. Here, airport trips go to partition 0, and a NULL lets the producer select.
@@ -318,7 +322,7 @@ The sink checks the types of these columns before it writes a record:
   Append and ErrorIfExists (default).
 ```
 
-A topic cannot be overwritten, so a batch write accepts only the save modes `append` and `errorifexists`. Both modes append. If the DataFrame has a `topic` column and you also set the `topic` option, the option wins.
+The sink cannot overwrite a topic, so a batch write accepts only the save modes `append` and `errorifexists`. Both modes append. If the DataFrame has a `topic` column and you also set the `topic` option, the option wins.
 
 The reader asks for the headers with `includeHeaders=true`. A filter on a header does not need to parse the value:
 
@@ -343,7 +347,7 @@ src.where(borough == "Queens").groupBy("partition").count()
 +-----------+---------+-----+
 ```
 
-Headers are the correct place for data about the record: a schema version, a source system, a trace ID, a content type. A consumer can route or reject a record before it decodes the value. [Chapter 30](ch30-xml-avro-protobuf.md) shows the other method, a schema ID in the first bytes of the value.
+Headers are the correct place for data about the record: a schema version, a source system, a trace ID, a content type. A consumer can route or reject a record before it decodes the value. The other method is in [Chapter 30](ch30-xml-avro-protobuf.md): a schema ID in the first bytes of the value.
 
 ## Step 6: failOnDataLoss, when records leave the topic first
 
@@ -376,13 +380,13 @@ A broker deletes old records when the retention time or size of the topic passes
   <figcaption><code>k6_dataloss.py</code> on Spark 4.3.0. The broker deletes 400 records that the checkpoint still wants. With the default, the restart stops. With <code>failOnDataLoss=false</code>, it continues and skips them.</figcaption>
 </figure>
 
-- **The default stops the query.** Spark found that offset 508 of partition 0 no longer exists, and the message names the range. Nothing was written, and the checkpoint is unchanged except for `offsets/1`.
+- **The default stops the query.** Spark found that offset 508 of partition 0 no longer exists, and the message names the range. The query wrote nothing. The checkpoint got only the new file `offsets/1`.
 - **`failOnDataLoss=false` continues.** Run 3 used the same checkpoint and read the 600 records that were left. The 400 deleted records are lost, and the query did not fail.
 - **The option is not in the checkpoint.** You can change it on a restart, as run 3 did.
 
 The same rule applies to a batch read that starts before the first record that is left. With the default, the count failed with `OffsetOutOfRangeException`. With `false`, it returned the 600 records.
 
-The other causes of this error are a topic that someone deleted and created again, and offsets in `startingOffsets` that do not exist (Step 2).
+This error has two other causes. Someone deleted the topic and made it again, or `startingOffsets` names offsets that do not exist (Step 2).
 
 !!! caution "Do not set failOnDataLoss to false to make an error go away"
     Set `failOnDataLoss=false` only when you accept lost records for that query. With `false`, a query that is slower than the retention time loses data each day, and no error tells you. Make the retention of the topic longer than the longest stop of the query, and monitor the lag (Step 8).
@@ -410,7 +414,7 @@ rides_out holds:
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch89-anim-replay.webp">
     <source src="../../media/clips/ch89-anim-replay.mp4" type="video/mp4">
   </video>
-  <figcaption markdown="span">Animation: the replay of batch 2 in `k7_sink.py`. The sink wrote the 449 records, the commit is missing, and the restart writes the same 449 records again. The counts come from `k7_sink.txt`. The time scale is schematic.</figcaption>
+  <figcaption markdown="span">Animation: the replay of batch 2 in `k7_sink.py`. The sink wrote the 449 records, Spark wrote no commit, and the restart writes the same 449 records again. The counts come from `k7_sink.txt`. The time scale is schematic.</figcaption>
 </figure>
 
 Run 2 ran batch 2 again, and the topic now has 1,894 records for 1,445 trips. Each of the 449 records of batch 2 is in the topic two times. The engine processed each input record exactly one time, as the 1,445 distinct `src` values show. The delivery to Kafka is at least once.
@@ -442,6 +446,13 @@ The sink accepts no Kafka transactions:
   IllegalStateException: Cannot add partition rides_out-0 to transaction before
   completing a call to initTransactions
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch89-sink.webp">
+    <source src="../../media/clips/ch89-sink.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>k7_sink.py</code> on Spark 4.3.0, a second run. The replay of batch 2 leaves 1,894 records in the topic for 1,445 trips. The wait for Spark is cut out.</figcaption>
+</figure>
 
 ### Idempotent results from an at-least-once sink
 
@@ -487,7 +498,9 @@ The query read about 1,000 records, but the broker listed no group. The console 
 - **The executors assign partitions themselves.** Each task calls `assign` and `seek` for its offset range. It never subscribes, so the broker sees no group member.
 - **Nobody commits.** `kafkaParamsForExecutors` sets `enable.auto.commit=false`. The checkpoint holds the offsets.
 
-The executors still use a group ID. It is `spark-kafka-source-<random UUID>-<hash of the checkpoint path>-executor` for a stream, and `spark-kafka-relation-<UUID>-executor` for a batch read. `groupIdPrefix` changes the first part. `kafka.group.id` sets the full ID. The script started one query with each, and the broker still listed only `cli-reader`. Set these options when the broker has access rules (ACLs) on group IDs. Do not use them to monitor the query.
+The executors still use a group ID. It is `spark-kafka-source-<random UUID>-<hash of the checkpoint path>-executor` for a stream, and `spark-kafka-relation-<UUID>-executor` for a batch read. `groupIdPrefix` changes the first part. `kafka.group.id` sets the full ID. The script started one query with each, and the broker still listed only `cli-reader`.
+
+Set these options when the broker has access rules (ACLs) on group IDs. Do not use them to monitor the query.
 
 !!! caution "Do not share one kafka.group.id between two queries"
     Give each query its own group ID. The Spark guide warns that queries with the same `kafka.group.id` can interfere with each other, and each query can read only part of the data.
@@ -514,7 +527,7 @@ Spark keeps Kafka clients between batches, because a new client is slow to conne
 | `spark.kafka.consumer.fetchedData.cache.timeout` | 5m | how long fetched records that a task did not use stay in the pool |
 | `spark.kafka.producer.cache.timeout` | 10m | how long an idle producer stays in the pool |
 
-The consumer pool has one entry for each topic partition and group ID, so a task in the next batch can use the consumer of the previous batch. If a task fails, Spark closes the consumers of that key and the new attempt makes a new one. The producer pool has one producer for each set of producer options. Step 2 showed one effect of this pool: a producer that keeps old topic metadata.
+The consumer pool has one entry for each topic partition and group ID. Thus, a task in the next batch can use the consumer of the previous batch. If a task fails, Spark closes the consumers of that key, and the next try makes a new one. The producer pool has one producer for each set of producer options. Step 2 showed one effect of this pool: a producer that keeps old topic metadata.
 
 ## Step 9: A broker that needs a login
 
@@ -561,7 +574,7 @@ The errors are different, and each one points to its cause:
 - **A wrong password** gives `SaslAuthenticationException` at once.
 - **The PLAINTEXT listener** accepts anyone. On a real broker, open only the authenticated listeners to clients.
 
-`SASL_PLAINTEXT` sends the records without encryption. Only the login is protected, and with `PLAIN`, the password itself goes over the network as text. This chapter uses it only because the broker and Spark are on one machine. For a real cluster, use TLS. The options for each protocol are:
+`SASL_PLAINTEXT` sends the records without encryption. SASL protects only the login. With `PLAIN`, the password itself goes over the network as text. This chapter uses it only because the broker and Spark are on one machine. For a real cluster, use TLS. The options for each protocol are:
 
 | `kafka.security.protocol` | Encryption | Login | Other `kafka.` options that you set |
 |---|---|---|---|
@@ -575,7 +588,7 @@ Only `SASL_PLAINTEXT` ran in this chapter. The `SSL` and `SASL_SSL` rows come fr
 The truststore and keystore files must be on each executor at the same path, because the executors open their own connections. Ship them with `--files`, or put them in the container image.
 
 !!! caution "Do not write a password in the code of a query"
-    Read the password from a secret store or an environment variable, as `k9_security.py` does. A password in `sasl.jaas.config` also goes into the query options. It can appear in logs and in the plan that the Spark UI shows.
+    Read the password from a secret store. An environment variable also works, as in `k9_security.py`. A password in `sasl.jaas.config` also goes into the query options. It can appear in logs and in the plan that the Spark UI shows.
 
 ### Delegation tokens
 
@@ -587,7 +600,7 @@ spark.kafka.clusters.<cluster>.target.bootstrap.servers.regex   brokers that acc
 spark.kafka.clusters.<cluster>.security.protocol        SASL_SSL by default
 ```
 
-Spark renews the token. The provider is on when `spark.security.credentials.kafka.enabled` is `true` (the default) and a cluster is configured. This setup needs a Kerberos realm, and it did not run in this chapter.
+Spark renews the token. The provider is on when `spark.security.credentials.kafka.enabled` is `true` (the default) and you configure a cluster. This setup needs a Kerberos realm, and it did not run in this chapter.
 
 ### New in 4.3: options that a platform team forbids
 
@@ -604,10 +617,10 @@ Spark renews the token. The provider is on when `spark.security.credentials.kafk
   static Spark config: "spark.sql.kafka.disallowedOptions". SQLSTATE: 46110
 ```
 
-The list holds option names without the `kafka.` prefix. The setting is static, so a session cannot change it after it starts. It applies to the source and to the sink.
+The list holds option names without the `kafka.` prefix. The configuration is static, so a session cannot change it after it starts. It applies to the source and to the sink.
 
 !!! note "New in 4.3: `partition.metadata.cache.ttl.ms`"
-    A new source option keeps the list of topic partitions in the driver for a time, so that each batch does not ask the broker again (SPARK-49442). The default `-1` turns the cache off. With a cache, a new partition is found only after the time expires. This chapter did not measure the option.
+    A new source option caches the topic partitions in the driver (SPARK-49442). Thus, each batch does not ask the broker again. The default `-1` turns the cache off. With a cache, a new partition is found only after the time expires. This chapter did not measure the option.
 
 ## The options, on one page
 
