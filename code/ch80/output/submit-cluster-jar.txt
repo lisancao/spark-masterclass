@@ -1,0 +1,7 @@
+ClientEndpoint: ... waiting before polling master for driver state
+ClientEndpoint: Driver successfully submitted as driver-20261122145725-0000
+ClientEndpoint: State of driver-20261122145725-0000 is RUNNING
+ClientEndpoint: Driver running on 127.0.0.1:40913 (worker-20261122144846-127.0.0.1-40913)
+ClientEndpoint: State of driver driver-20261122145725-0000 is FINISHED, exiting spark-submit JVM.
+--- driver-20261122145725-0000/stdout on the worker
+Pi is roughly 3.141614557080728

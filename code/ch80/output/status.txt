@@ -1,0 +1,5 @@
+master spark://127.0.0.1:7151  status ALIVE  workers alive 2  cores 4  memory 4096 MiB
+  worker 127.0.0.1:34507  ALIVE   cores 2  used 2  memory 2048 MiB
+  worker 127.0.0.1:40913  ALIVE   cores 2  used 2  memory 2048 MiB
+  app app-20261122145746-0003  Spark Pi  RUNNING  cores 3
+  driver driver-20261122145743-0001  RUNNING  on worker-20261122144843-127.0.0.1-34507  org.apache.spark.examples.SparkPi

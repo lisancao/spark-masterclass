@@ -1,0 +1,6 @@
+spark.io.encryption.enabled=false
+  shuffle data  shuffle_0_7_0.data         3,414 B  4c5a3442 6c6f636b 25d00200 00cc0500 00e6d71f 0c530000  |LZ4Block%............S..|
+  cached block  rdd_13_0                  51,613 B  4c5a3442 6c6f636b 25c42900 00008000 00b76cdc 0ef029ac  |LZ4Block%.).......l...).|
+spark.io.encryption.enabled=true
+  shuffle data  shuffle_0_7_0.data         3,478 B  54f13743 549b4724 0b5ad27f 3df723ce 3a4b0768 0c5e26d0  |T.7CT.G$.Z..=.#.:K.h.^&.|
+  cached block  rdd_13_0                  51,629 B  f6d28dfd c924a92b 511aec01 1e91e4ff cb6cc135 4fd13b3e  |.....$.+Q........l.5O.;>|

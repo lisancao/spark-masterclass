@@ -1,0 +1,39 @@
+--- what Spark created (while the application runs)
+KIND        NAME                                                ROLE       STATUS    NODE
+Pod         ch80-app-a68054a20584cf38-exec-1                    executor   Running   ops80-worker
+Pod         ch80-app-a68054a20584cf38-exec-2                    executor   Running   ops80-worker
+Pod         ch80-k8s-01dcd7a20584affb-driver                    driver     Running   ops80-worker2
+ConfigMap   ch80-k8s-01dcd7a20584affb-driver-podspec-conf-map   <none>     <none>    <none>
+ConfigMap   kube-root-ca.crt                                    <none>     <none>    <none>
+ConfigMap   spark-drv-af1657a20584b63f-conf-map                 <none>     <none>    <none>
+ConfigMap   spark-exec-3d0deea20584d82d-conf-map                executor   <none>    <none>
+ch80-k8s-01dcd7a20584affb-driver-svc   None         7078,7079,4040,15002
+--- pod/ch80-app-a68054a20584cf38-exec-1: fields from the template
+label book.chapter:      80
+annotation book/template: executor
+env BOOK_TEMPLATE:       from-the-pod-template
+volume spark-local-dir-1: {"sizeLimit":"2Gi"}
+--- pod/ch80-app-a68054a20584cf38-exec-1: fields that Spark set
+container:        spark-executor
+image:            spark-masterclass/spark:4.3.0-book
+args:             ["executor"]
+resources:        {"limits":{"memory":"1433Mi"},"requests":{"cpu":"500m","memory":"1433Mi"}}
+SPARK_LOCAL_DIRS: /spark-local
+service account:  spark-driver
+owner:            Pod/ch80-k8s-01dcd7a20584affb-driver
+--- spark-submit, which waits for the driver pod (spark.kubernetes.submission.waitAppCompletion=true)
+	 phase: Pending
+	 phase: Running
+	 phase: Succeeded
+15:09:32 INFO LoggingPodStatusWatcherImpl: Application ch80-k8s with application ID spark-3aca87ef7aa34af383635d8ba92262e8 and submission ID spark-apps:ch80-k8s-01dcd7a20584affb-driver finished
+--- driver stdout (pod/ch80-k8s-01dcd7a20584affb-driver)
+driver host   ch80-k8s-01dcd7a20584affb-driver  pid 63
+master        k8s://https://127.0.0.1:40845
+deploy mode   client
+app id        spark-3aca87ef7aa34af383635d8ba92262e8
+executor driver  10.244.1.8:7079        cores 0
+executor      2  10.244.2.15:45481      cores 1
+executor      1  10.244.2.14:37815      cores 1
+trips by payment_type: 0=1,013,500, 1=2,432,871, 2=357,804, 3=11,205, 4=21,866, 5=2
+--- pods after the end
+ch80-k8s-01dcd7a20584affb-driver   Succeeded

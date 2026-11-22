@@ -1,0 +1,4 @@
+15:12:36 ERROR ExecutorPodsLifecycleManager: Max number of executor failures (4) reached
+15:12:36 ERROR SparkContext: Error initializing SparkContext.
+--- pod/ch80-app-a40d5fa205882d03-exec-1 log
+Caused by: java.io.IOException: Failed to connect to /0.0.0.0:7178

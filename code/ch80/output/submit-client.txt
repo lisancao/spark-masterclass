@@ -1,0 +1,16 @@
+StandaloneAppClient$ClientEndpoint: Connecting to master spark://127.0.0.1:7151...
+StandaloneSchedulerBackend: Connected to Spark cluster with app ID app-20261122145658-0001
+StandaloneAppClient$ClientEndpoint: Executor added: app-20261122145658-0001/0 on worker-20261122144846-127.0.0.1-40913 (127.0.0.1:40913) with 2 core(s)
+StandaloneSchedulerBackend: Granted executor ID app-20261122145658-0001/0 on hostPort 127.0.0.1:40913 with 2 core(s), 1024.0 MiB RAM
+StandaloneAppClient$ClientEndpoint: Executor added: app-20261122145658-0001/1 on worker-20261122144843-127.0.0.1-34507 (127.0.0.1:34507) with 2 core(s)
+StandaloneSchedulerBackend: Granted executor ID app-20261122145658-0001/1 on hostPort 127.0.0.1:34507 with 2 core(s), 1024.0 MiB RAM
+StandaloneAppClient$ClientEndpoint: Executor updated: app-20261122145658-0001/1 is now RUNNING
+StandaloneAppClient$ClientEndpoint: Executor updated: app-20261122145658-0001/0 is now RUNNING
+driver host   laptop  pid 4138463
+master        spark://127.0.0.1:7151
+deploy mode   client
+app id        app-20261122145658-0001
+executor driver  localhost:32843        cores 0
+executor      1  127.0.0.1:45819        cores 2
+executor      0  127.0.0.1:42185        cores 2
+trips by payment_type: 0=1,013,500, 1=2,432,871, 2=357,804, 3=11,205, 4=21,866, 5=2
