@@ -1,0 +1,46 @@
+== 1. two ways to make an RDD
+parallelize: 8 partitions, PipelinedRDD
+textFile:    2 partitions, first line: "LocationID","Borough","Zone","service_zone"
+
+== 2. transformations are lazy, actions run jobs
+filter + map defined in 0.06 ms, jobs run: 0
+count(): 500000  jobs run: 1
+take(3): [4, 16, 36]  reduce(add): 166667166667000000
+
+== 3. the zone file as key-value pairs
+first pairs: [('EWR', 'Newark Airport'), ('Queens', 'Jamaica Bay'), ('Bronx', 'Allerton/Pelham Gardens')]
+reduceByKey: [('Queens', 69), ('Manhattan', 69), ('Brooklyn', 61), ('Bronx', 43), ('Staten Island', 20), ('Unknown', 1), ('N/A', 1), ('EWR', 1)]
+
+== 4. trips as pairs: (PULocationID, fare)
+an RDD from a DataFrame: 16 partitions
+aggregateByKey avg fare, zones 132, 138, 161: [(132, 60.84), (138, 46.01), (161, 18.47)]
+combineByKey max fare, zone 132: [1683.7]
+lookup() in this driver: PYTHON_HASH_SEED_NOT_SET
+join with zone names, top 3: [(177610, 'Upper East Side South'), (161198, 'Midtown Center'), (157113, 'Upper East Side North')]
+countByKey is an action that returns a dict: defaultdict
+
+== 5. the lineage of that last RDD
+(18) PythonRDD[58] at RDD at PythonRDD.scala:59 []
+ |   MapPartitionsRDD[55] at mapPartitions at PythonRDD.scala:197 []
+ |   ShuffledRDD[54] at partitionBy at NativeMethodAccessorImpl.java:0 []
+ +-(18) PairwiseRDD[53] at sortByKey at basics.py:65 []
+    |   PythonRDD[52] at sortByKey at basics.py:65 []
+    |   MapPartitionsRDD[49] at mapPartitions at PythonRDD.scala:197 []
+    |   ShuffledRDD[48] at partitionBy at NativeMethodAccessorImpl.java:0 []
+    +-(18) PairwiseRDD[47] at join at basics.py:65 []
+       |   PythonRDD[46] at join at basics.py:65 []
+       |   UnionRDD[45] at union at NativeMethodAccessorImpl.java:0 []
+       |   PythonRDD[43] at RDD at PythonRDD.scala:59 []
+       |   MapPartitionsRDD[42] at mapPartitions at PythonRDD.scala:197 []
+       |   ShuffledRDD[41] at partitionBy at NativeMethodAccessorImpl.java:0 []
+       +-(16) PairwiseRDD[40] at reduceByKey at basics.py:64 []
+          |   PythonRDD[39] at reduceByKey at basics.py:64 []
+          |   MapPartitionsRDD[27] at javaToPython at NativeMethodAccessorImpl.java:0 []
+          |   MapPartitionsRDD[26] at javaToPython at NativeMethodAccessorImpl.java:0 []
+          |   SQLExecutionRDD[25] at javaToPython at NativeMethodAccessorImpl.java:0 []
+          |   MapPartitionsRDD[24] at javaToPython at NativeMethodAccessorImpl.java:0 []
+          |   MapPartitionsRDD[23] at javaToPython at NativeMethodAccessorImpl.java:0 []
+          |   FileScanRDD[22] at javaToPython at NativeMethodAccessorImpl.java:0 []
+       |   PythonRDD[44] at RDD at PythonRDD.scala:59 []
+       |   ~/spark-masterclass/data/nyc-taxi/taxi_zone_lookup.csv MapPartitionsRDD[2] at textFile at NativeMethodAccessorImpl.java:0 []
+       |   ~/spark-masterclass/data/nyc-taxi/taxi_zone_lookup.csv HadoopRDD[1] at textFile at NativeMethodAccessorImpl.java:0 []

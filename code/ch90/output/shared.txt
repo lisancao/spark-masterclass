@@ -1,0 +1,24 @@
+== 1. a closure gets a copy of the variable, not the variable
+counter after foreach over 3,837,248 ids: 0
+
+== 2. what the closure takes with it
+pickled function with zone_names (265 entries):        6,127 bytes
+pickled function with big dict (200,000 entries):   20,678,098 bytes
+spark.broadcast.UDFCompressionThreshold: 1,048,576 bytes (above it, PySpark broadcasts the command)
+5 jobs, big dict in the closure: 0.65 s per job;  as one broadcast: 0.56 s per job
+closure with a threading.Lock: PicklingError Could not serialize object: TypeError: cannot pickle '_thread.lock' ob
+closure that uses sc: PicklingError | Could not serialize object: PySparkRuntimeError: [CONTEXT_ONLY_VALID_ON_DRIVER
+
+== 3. a broadcast variable: one copy per executor, read with .value
+type: Broadcast  id: 22  top zone: ('Upper East Side South', 177610)
+after unpersist(), value in driver: 265 entries
+after destroy(): [INTERNAL_ERROR_BROADCAST] Attempted to use Broadcast(22) after it was destroyed
+
+== 4. accumulators: tasks add, only the driver reads
+fares <= 0 or null: 16,815   sum of good fares: 82,599,574.36
+accumulator inside map(), two actions on an uncached RDD: 7,674,496 (= 2 x 3,837,248)
+
+== 5. the DataFrame equivalents
+F.broadcast(df) join: +- BroadcastHashJoin [cast(PULocationID#7 as bigint)], [cast(LocationI
+a small map as a literal column: Row(z='Newark Airport')
+Observation after one action: {'bad': 16815, 'total': 82599574.36}
