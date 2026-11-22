@@ -36,7 +36,104 @@ A DataFrame is immutable. `withColumn` does not change `fares`. It returns a dif
 
 Immutability is important for a different reason. A plan that never changes is a full recipe for its result. Thus Spark can run the plan again for a lost partition, and it can compare two plans, as Chapter 3 did with `sameSemantics`.
 
-## Step 2: Three ways to name a column
+## Step 2: The everyday operations
+
+Most DataFrame code uses a small set of methods. `basics.py` shows them on the "blogs" table from the book *Learning Spark*. It is six rows with an explicit schema:
+
+```python
+schema = StructType([
+    StructField("Id", IntegerType(), False),
+    StructField("First", StringType()),
+    StructField("Last", StringType()),
+    StructField("Url", StringType()),
+    StructField("Published", StringType()),
+    StructField("Hits", IntegerType()),
+    StructField("Campaigns", ArrayType(StringType())),
+])
+blogs = spark.createDataFrame(data, schema)
+```
+
+```text
+== 1. the blogs table, with an explicit schema
+root
+ |-- Id: integer (nullable = false)
+ |-- First: string (nullable = true)
+ |-- Last: string (nullable = true)
+ |-- Url: string (nullable = true)
+ |-- Published: string (nullable = true)
+ |-- Hits: integer (nullable = true)
+ |-- Campaigns: array (nullable = true)
+ |    |-- element: string (containsNull = true)
+```
+
+The schema says that `Id` cannot be NULL, and that `Campaigns` is an array of strings. `createDataFrame` makes sure that each Python row agrees with this schema (Step 11 shows the check). Then a chain of methods makes a report:
+
+```python
+report = (blogs
+          .where(F.col("Hits") > 5000)
+          .withColumns({"Big_Hitter": F.col("Hits") > 10000,
+                        "Published_Date": F.to_date("Published", "M/d/yyyy"),
+                        "Channels": F.size("Campaigns")})
+          .drop("Url", "Published", "Campaigns")
+          .withColumnRenamed("First", "first_name")
+          .orderBy(F.desc("Hits")))
+```
+
+```text
+== 2. select, where, withColumns, drop, rename, sort
++---+----------+-------+-----+----------+--------------+--------+
+| Id|first_name|   Last| Hits|Big_Hitter|Published_Date|Channels|
++---+----------+-------+-----+----------+--------------+--------+
+|  5|     Matei|Zaharia|40578|      true|    2014-05-14|       4|
+|  6|   Reynold|    Xin|25568|      true|    2015-03-02|       2|
+|  4| Tathagata|    Das|10568|      true|    2018-05-12|       2|
+|  2|    Brooke|  Wenig| 8908|     false|    2018-05-05|       2|
+|  3|     Denny|    Lee| 7659|     false|    2019-06-07|       4|
++---+----------+-------+-----+----------+--------------+--------+
+
+columns: ['Id', 'first_name', 'Last', 'Hits', 'Big_Hitter', 'Published_Date', 'Channels']
+drop a name that is not there: True
+```
+
+Each method returns a new DataFrame:
+
+- `where` keeps the rows where the condition is true. `filter` is the same method with a different name.
+- `withColumns` adds or replaces columns from a dictionary. `to_date` with the pattern `M/d/yyyy` changes the text `5/14/2014` into a `date`. `size` counts the elements of an array.
+- `drop` removes columns. A name that is not in the DataFrame gives no error, so a misspelt name in `drop` keeps the column.
+- `withColumnRenamed` changes one name. `withColumnsRenamed` (Step 16) changes many names with a dictionary.
+- `orderBy` sorts. `F.desc` sorts from the largest value to the smallest.
+
+You can also write an expression as SQL text. `selectExpr` takes one SQL expression for each column:
+
+```python
+tiers = blogs.selectExpr(
+    "Id",
+    "CASE WHEN Hits > 20000 THEN 'star' WHEN Hits > 8000 THEN 'regular' ELSE 'new' END AS tier",
+    "Hits::STRING || ' hits' AS label",
+    "array_contains(Campaigns, 'FB') AS on_fb")
+```
+
+```text
+== 3. expr, selectExpr and SQL expressions
++---+-------+----------+-----+
+| Id|   tier|     label|on_fb|
++---+-------+----------+-----+
+|  1|    new| 4535 hits|false|
+|  2|regular| 8908 hits|false|
+|  3|    new| 7659 hits| true|
+|  4|regular|10568 hits| true|
+|  5|   star|40578 hits| true|
+|  6|   star|25568 hits|false|
++---+-------+----------+-----+
+
+expr vs when/otherwise, same optimized plan: True
+```
+
+`CASE WHEN` in SQL and `F.when(...).when(...).otherwise(...)` in Python make the same expression. The last line of the output compares the two optimized plans, and they are the same. The first condition that is true gives the value. A row that matches no condition and has no `ELSE` (or no `otherwise`) gets NULL. `Hits::STRING` is the cast syntax that Spark 4.0 added, and `||` joins two strings.
+
+Choose the form that is easier to read. A long `CASE WHEN` is often clearer as SQL text. A condition that your program builds in a loop is easier as Python `Column` objects. An error in SQL text shows only when the driver parses it. But that also occurs before any task runs.
+
+## Step 3: Three ways to name a column
 
 A `Column` is an expression, not a set of values. You can make one in three ways:
 
@@ -62,9 +159,20 @@ The three forms are different:
 - `df["x"]` asks the DataFrame for its column. In Classic PySpark, the driver resolves the name immediately, so a bad name fails on that line.
 - `F.expr("...")` sends a SQL string to the SQL parser. Use it for SQL syntax that has no Python function, for example `TRIM(LEADING '0' FROM x)`.
 
-On Spark Connect, `df["x"]` does not fail immediately. The client does not have the schema. It sends the name in the plan, and the server finds the error at analysis time. [Chapter 4](ch04-spark-connect.md) showed this difference.
+On Spark Connect, `df["x"]` does not fail immediately. `basics.py` runs the same two lines in Classic mode and against the Part II Connect server:
 
-## Step 3: What a withColumn chain adds to the plan
+```text
+== 7. a bad column name, mode: Classic
+df['typo']: ERROR [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with n
+df.select(df['typo']).collect(): ERROR [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with n
+== 7. a bad column name, mode: Connect
+df['typo']: Column<'typo'>
+df.select(df['typo']).collect(): ERROR [CANNOT_RESOLVE_DATAFRAME_COLUMN] Cannot resolve dataframe column "typo". It's proba
+```
+
+In Classic mode, `df["typo"]` fails on its line. On Connect, it returns a `Column` and no error occurs. The Connect client does not keep the schema. It puts the name in the plan, and the server finds the error when it analyzes the plan, at `collect()`. The error class is also different. [Chapter 4](ch04-spark-connect.md) showed this difference in more detail. Code that must run in the two modes cannot use the `df["x"]` line as a check.
+
+## Step 4: What a withColumn chain adds to the plan
 
 `plans.py` adds three columns with three `withColumn` calls. Then it prints three of the plans that Catalyst makes from the chain:
 
@@ -146,7 +254,7 @@ flowchart BT
   end
 ```
 
-## Step 4: The cost of a long chain
+## Step 5: The cost of a long chain
 
 Many programs call `withColumn` in a loop, once for each new column. Each call makes a new DataFrame, and the driver analyzes each one. Thus the work of the analyzer increases with each call. `plans.py` builds DataFrames with `n` new columns in two ways, and measures the time to build, analyze and optimize each one:
 
@@ -162,13 +270,25 @@ def build_once(n):
     return fares.withColumns({f"c{i}": F.col("fare_amount") + i for i in range(n)})
 ```
 
-TIMING_TABLE
+```text
+== 4. build + analyze + optimize, median of 7 after a warmup (ms)
+ columns  withColumn loop  withColumns  Projects (loop)
+      25             48.9         25.3               26
+      50            101.1         47.4               51
+     100            286.2        110.7              101
+     200            957.4        285.9              201
+     400           7582.4        703.5              401
+```
+
+The script ran under the shared bench lock on a quiet machine, with `local[*]` on 16 cores. Each number is the median of 7 runs after one warmup run. The loop leaves one `Project` for each call (plus the `select`), and `withColumns` leaves one.
+
+The two curves do not have the same shape. From 200 to 400 columns, `withColumns` takes about 2.5 times longer. The loop takes about 8 times longer. Each loop call analyzes a plan that is one node deeper than the plan before it. Thus the total work increases faster than the number of columns.
 
 No task runs in this measurement. All the time is driver time, before the first job starts. The loop also leaves one `Project` node per call in the analyzed plan, and the optimizer must collapse all of them.
 
 With a few columns the difference is small. With hundreds of columns, the loop costs seconds for each DataFrame that you build. If you build such a DataFrame inside another loop, the cost multiplies. Use `withColumns` or one `select` when you add more than a few columns.
 
-## Step 5: Spark's types
+## Step 6: Spark's types
 
 `typeof()` gives the SQL type of any value. `type_system.py` applies it to a literal of each main type:
 
@@ -212,16 +332,32 @@ A literal with a decimal point and no suffix is a `decimal`, not a `double`. Thu
 | `DATE` | `DateType` | a calendar day | `datetime.date` |
 | `TIMESTAMP` | `TimestampType` | an instant | `datetime.datetime` |
 | `TIMESTAMP_NTZ` | `TimestampNTZType` | a wall-clock date and time | `datetime.datetime` |
-| `TIME(p)` | `TimeType` | a time of day (Step 7) | `datetime.time` |
+| `TIME(p)` | `TimeType` | a time of day (Step 8) | `datetime.time` |
 | `INTERVAL ...` | `DayTimeIntervalType`, `YearMonthIntervalType` | a length of time | `datetime.timedelta` (day-time only) |
 | `ARRAY<T>` | `ArrayType(T)` | an ordered list | `list` |
 | `MAP<K,V>` | `MapType(K, V)` | key to value pairs | `dict` |
 | `STRUCT<...>` | `StructType([...])` | named fields | `Row` |
 | `VARIANT` | `VariantType` | any JSON-like value | `VariantVal` |
 
-[Chapter 6](ch06-cleaning-values.md) shows the collated string type. `VARIANT` gets its own chapter in Part III. Spark 4.3 also has a preview of nanosecond timestamps, and Chapter 6 shows them.
+`VARIANT` holds a JSON-like value as one typed column. Spark keeps it in a binary form, so a query can get a field without a parse of the full text for each row. `basics.py` gives a first look:
 
-## Step 6: Numbers: overflow, doubles and decimals
+```python
+v.selectExpr("typeof(payload)", "variant_get(payload, '$.device.os', 'string') AS os",
+             "payload:device.ver::int AS ver", "payload:tags[1]::string AS tag2")
+```
+
+```text
+== 6. VARIANT
++---------------+---+---+----+
+|typeof(payload)| os|ver|tag2|
++---------------+---+---+----+
+|        variant|ios| 17|   b|
++---------------+---+---+----+
+```
+
+`variant_get` takes a JSON path and a target type. The `:` operator is a short form of the same path, and `::` casts the result. Part III gives `VARIANT` its own chapter, with the 4.3 functions that edit a value. [Chapter 6](ch06-cleaning-values.md) shows the collated string type. Spark 4.3 also has a preview of nanosecond timestamps, and Chapter 6 shows them.
+
+## Step 7: Numbers: overflow, doubles and decimals
 
 ANSI mode is on by default since Spark 4.0. Thus a number that does not fit its type causes an error. It does not wrap to a different value:
 
@@ -242,7 +378,7 @@ The last two lines show three rules for money:
 
 Chapter 6 shows the full set of ANSI errors and the `try_` functions that return NULL.
 
-## Step 7: Two timestamp types, intervals and TIME
+## Step 8: Two timestamp types, intervals and TIME
 
 Spark has two timestamp types. If you use the wrong type, the times can move by some hours.
 
@@ -275,11 +411,20 @@ The `TIMESTAMP` text gives two instants, 14,400 seconds (four hours) apart. The 
 
 The next two lines show a trap in PySpark. `collect()` converts a `TIMESTAMP` to a naive `datetime` in the time zone of the Python process, not the session time zone. The script runs the same query in two child processes, with the session time zone set to UTC in both. The value that `collect()` gives changes with the `TZ` of the process. `toPandas()` uses the session time zone, so it gives the same value in both. Set `spark.sql.session.timeZone` in each job, and compare instants inside Spark, not after `collect()`.
 
+A literal or a cast that says only `TIMESTAMP` gets the type from `spark.sql.timestampType`. The default is `TIMESTAMP_LTZ`:
+
+```text
+spark.sql.timestampType=TIMESTAMP_LTZ: typeof(TIMESTAMP'2026-06-01 10:00') = timestamp
+spark.sql.timestampType=TIMESTAMP_NTZ: typeof(TIMESTAMP'2026-06-01 10:00') = timestamp_ntz
+```
+
+Do not change this configuration in one job only. The same SQL text then gives a different type in different jobs. Write `TIMESTAMP_NTZ` or `TIMESTAMP_LTZ` in the code when the difference is important.
+
 Intervals are lengths of time. A day-time interval collects as a `timedelta`. In 4.3.0, a year-month interval still cannot go to Python. Cast it to a string first.
 
 The `TIME` type is a time of day with no date. In 4.3.0 it is behind the internal configuration `spark.sql.timeType.enabled`, which is `false` by default. The output shows an inconsistency: the `TIME'10:07:00'` literal works and collects as `datetime.time`, but `CAST(... AS TIME)` fails with `UNSUPPORTED_TIME_TYPE`. Do not use `TIME` in production code until the configuration is public.
 
-## Step 8: Write a schema down
+## Step 9: Write a schema down
 
 You can write a schema as a DDL string or as a `StructType`. DDL is short. A `StructType` is better when a program makes or examines the schema:
 
@@ -325,11 +470,11 @@ The output shows the four forms of one schema:
 
 A comment is in the `metadata` dictionary of the field. The metadata goes through `json()`, through Parquet files and through most transformations.
 
-`StructType` equality compares names, types, nullability, field order and metadata. Two schemas that differ only in nullability are not equal, but their `simpleString()` values are equal. Step 13 uses this fact.
+`StructType` equality compares names, types, nullability, field order and metadata. Two schemas that differ only in nullability are not equal, but their `simpleString()` values are equal. Step 14 uses this fact.
 
 The JSON form is the base of a **schema contract**. A schema contract is a file that holds the agreed shape of a source. Keep the file with your code in version control. Then code can load the file, compare it with the data that arrives, and read files through it.
 
-## Step 9: Nested types and paths
+## Step 10: Nested types and paths
 
 Data from other systems usually contains nested values. A **struct** contains named fields, and each row has the same fields. An **array** holds a list of values of one type. A **map** holds key-value pairs whose keys are not known before you read the data. You use a path to get a value from each type:
 
@@ -353,7 +498,7 @@ StructField('geo', StructType([StructField('country', StringType(), True)]), Tru
 
 A `StructType` uses the same path. `schema["user"]` is a `StructField`, its `dataType` is the nested `StructType`, and you can index that type again. Part III teaches the complex types and the functions that operate on them.
 
-## Step 10: Nullability: what the analyzer tracks and what file readers drop
+## Step 11: Nullability: what the analyzer tracks and what file readers drop
 
 Each field has a `nullable` flag. The analyzer calculates the flag for each expression, and the optimizer uses it. `plans.py` filters a non-nullable column for NULL, and then does the same on a nullable column:
 
@@ -367,7 +512,7 @@ print(plan(fares.where("fare_amount IS NULL"), "simple").strip())
 == 5. nullability in the plan
 range: struct<id:bigint> False
 == Physical Plan ==
-LocalTableScan <empty>, [id#10104L]
+LocalTableScan <empty>, [id#14404L]
 --- the same filter on a nullable column
 == Physical Plan ==
 *(1) Filter isnull(fare_amount#10)
@@ -405,7 +550,7 @@ Both fields come back nullable, and 41 of the 61 events have no `user_id`. No er
 !!! warning "CAUTION"
     Do not set `verifySchema=False` for data that you do not control. A `None` in a non-nullable field becomes `0`, and no error occurs.
 
-## Step 11: Inference, and why the result changes
+## Step 12: Inference, and why the result changes
 
 If you do not give a schema, the JSON reader reads all the records once to infer the schema. Then it reads them again for the query. The inferred schema depends on the records that the reader saw. `drift.py` reads each day of the events alone:
 
@@ -423,6 +568,15 @@ Three days give three schemas. `amount` is a `double`, then a `string`, then a `
 - If the types of a field do not agree, the field becomes `string`.
 - A timestamp stays a `string`, unless you set `inferTimestamp` to `true`.
 
+A number with a decimal point becomes `double`. The option `prefersDecimal` makes the reader infer a `decimal` when the value fits:
+
+```text
+JSON default:       struct<amount:double>
+JSON prefersDecimal: struct<amount:decimal(4,2)>
+```
+
+Use `prefersDecimal` for money in JSON, because a `double` cannot hold `0.1` exactly (Step 7).
+
 Day 3 has a truncated line, so the reader adds a `_corrupt_record` column. Chapter 13 shows the parse modes and the corrupt record column.
 
 `samplingRatio` tells the reader to infer from a fraction of the records. This is faster, and the result is less stable:
@@ -437,7 +591,7 @@ Day 3 has a truncated line, so the reader adds a `_corrupt_record` column. Chapt
 
 At 0.1, the `user_id` column is not in the schema. At 0.05, `amount` is a `double` again, so the string amounts of day 2 become NULL. At 0.01, the sample has no records, and the DataFrame has 61 rows and no columns. The sample uses a fixed seed, so the same files give the same result. But Spark takes the sample in each partition, so a different number of files or cores gives a different result.
 
-## Step 12: Read through a schema that you chose
+## Step 13: Read through a schema that you chose
 
 A schema that you give removes the inference pass, and it gives the same output shape on each run. Values that do not fit the declared type become NULL. The reader ignores the fields that the schema does not name:
 
@@ -475,7 +629,7 @@ merge double + string: ERROR [CANNOT_MERGE_SCHEMAS] Failed merging schemas:
 
 Without `mergeSchema`, Spark takes the schema from one file (Step 1). Thus the columns that are only in other files are not in the result. `mergeSchema` reads the footer of each file and makes a union of the columns. `spark.sql.parquet.mergeSchema` is `false` by default, because the merge reads all footers. The merge adds columns, but it does not reconcile types. A `double` in one file and a `string` in another file stop the read.
 
-## Step 13: Detect drift in code
+## Step 14: Detect drift in code
 
 **Drift** is a difference between the schema that you expect and the schema that arrives. There are three kinds of drift: a new field, a field that is not there, and a changed type. A small recursive function finds all three kinds:
 
@@ -500,7 +654,7 @@ def schema_drift(expected, actual, prefix=""):
     return sorted(drift)
 ```
 
-The function compares types with `simpleString()`, so a change of nullability is not drift. File readers change nullability anyway (Step 10). The function goes into structs, so a new field in `user` shows as `user.geo` and not as a change of all of `user`. `drift.py` compares the contract with day 1 and with day 3:
+The function compares types with `simpleString()`, so a change of nullability is not drift. File readers change nullability anyway (Step 11). The function goes into structs, so a new field in `user` shows as `user.geo` and not as a change of all of `user`. `drift.py` compares the contract with day 1 and with day 3:
 
 ```text
 == 5. drift against the contract
@@ -520,7 +674,7 @@ Day 3 renamed `event` to `event_type`, so the report shows one field as `missing
 
 - A new field is usually safe. Write it to the log.
 - A field that is not there can be a renamed field. Send it to a person.
-- A changed type loses data without an error (Step 12). Stop the job or send an alert.
+- A changed type loses data without an error (Step 13). Stop the job or send an alert.
 
 Field order is part of a struct type, and JSON inference sorts fields by name. Thus a contract with `STRUCT<sku: STRING, qty: BIGINT>` has a different `simpleString()` from the inferred `struct<qty:bigint,sku:string>`. Write the nested fields of a contract in alphabetical order. The function compares top-level struct fields by name, but it compares a struct inside an array by its `simpleString()`.
 
@@ -538,7 +692,7 @@ flowchart LR
   drift --> report["added, missing,<br/>type_changed"]:::out
 ```
 
-## Step 14: Combine and reshape DataFrames
+## Step 15: Combine and reshape DataFrames
 
 `union` combines two DataFrames by column position, not by name. `unionByName` matches the names. Both fail on the events:
 
@@ -612,9 +766,9 @@ aligned day 1 + day 3: 41 rows, struct<event:string,user:struct<id:bigint,plan:s
 +----------+-----------+-----+
 ```
 
-The union now works, and the counts show the cost. All 21 rows of day 3 have no `event` (the field is now `event_type`) and no `amount` (the struct cannot become a double). The aligned DataFrame does not hide this loss. The drift report from Step 13 tells you why it occurred.
+The union now works, and the counts show the cost. All 21 rows of day 3 have no `event` (the field is now `event_type`) and no `amount` (the struct cannot become a double). The aligned DataFrame does not hide this loss. The drift report from Step 14 tells you why it occurred.
 
-## Step 15: Column names from other systems
+## Step 16: Column names from other systems
 
 Other systems use names that Spark reads in a special way:
 
@@ -639,9 +793,20 @@ Each line shows one rule:
 - **`withColumnsRenamed`** takes a dictionary. It ignores a name that does not exist (`"nope"` here) and gives no error.
 - **A CSV header** with duplicate names gets numbers (`name1`, `name2`), and an empty name gets its position (`_c3`).
 
+A join can also give two columns with one name. `basics.py` joins the blogs table to itself:
+
+```text
+== 4. the same column name on two sides
+pairs.columns has 2 columns named Hits
+select('Hits'): ERROR [AMBIGUOUS_REFERENCE] Reference `Hits` is ambiguous, could be: [`a`.`Hits`, `b`.`Hit
+select('a.Hits', 'b.Hits'): 15 rows
+```
+
+The result has two `Hits` columns. A plain name fails with `AMBIGUOUS_REFERENCE`, and the message lists the two candidates. Give each side an alias with `DataFrame.alias`, and then use the qualified names `a.Hits` and `b.Hits`. Another method is to rename the columns of one side before the join.
+
 Rename all columns to plain `snake_case` names immediately after you read a source. Use `withColumnsRenamed` with a dictionary, or `toDF(*names)` to replace all the names.
 
-## Step 16: From Python data to a DataFrame and back
+## Step 17: From Python data to a DataFrame and back
 
 `createDataFrame` accepts a list of `Row` objects, a pandas DataFrame or a PyArrow table:
 
@@ -654,9 +819,15 @@ Table id: int64 not null
 arrow for pandas conversions: true
 ```
 
+A NumPy array also works. Each row of a two-dimensional array becomes a row, and the columns get the names `_1`, `_2` and so on:
+
+```text
+from a NumPy array: struct<_1:double,_2:double>
+```
+
 From `Row` objects, Spark infers the types from the Python values, so a Python `int` becomes `bigint`. From pandas and PyArrow, Spark takes the types from the source. `spark.sql.execution.arrow.pyspark.enabled` is `true` by default in 4.3.0, so pandas conversions in both directions use Arrow. `DataFrame.toArrow()` (since 4.0) gives a `pyarrow.Table`, and it keeps the nullability: `id` is `not null`. Part IV measures these conversions.
 
-## Step 17: DataFrame.zip
+## Step 18: DataFrame.zip
 
 **New in 4.3:** `DataFrame.zip` (SPARK-55886, with Spark Connect support in SPARK-57247) puts the columns of two DataFrames side by side, row by row. The two DataFrames must come from the same plan. Only chains of projections (`select`, `withColumn` and similar calls) can make them different. Anything below those chains, such as a filter, a sort, a join or an aggregation, must be the same on both sides. These rules make sure that row *n* on the left is row *n* on the right.
 
@@ -679,7 +850,7 @@ zipped = left.zip(right)
 
 == Physical Plan ==
 CollectLimit 3
-+- *(1) Project [PULocationID#7, fare_amount#10, (tip_amount#13 / fare_amount#10) AS tip_pct#10112]
++- *(1) Project [PULocationID#7, fare_amount#10, (tip_amount#13 / fare_amount#10) AS tip_pct#14412]
    +- *(1) ColumnarToRow
       +- FileScan parquet [PULocationID#7,fare_amount#10,tip_amount#13] ...
 zip with a filtered side: [ZIP_PLANS_NOT_MERGEABLE] The two DataFrames in zip() cannot be merged. They must produc
@@ -705,6 +876,7 @@ Use `zip` when two parts of a program compute columns from one DataFrame, and yo
 ## The whole chapter, on one page
 
 - **A DataFrame is a schema and a plan.** Methods return new DataFrames with one more plan node. Only `spark.read` can run a job before an action, and for Parquet that job reads one footer.
+- **The everyday methods (`where`, `withColumns`, `drop`, `withColumnRenamed`, `orderBy`, `selectExpr`) each return a new DataFrame.** `drop` ignores a name that is not there. A self join needs aliases.
 - **The analyzer resolves names, types and nullability.** It adds casts and attribute IDs. In Classic PySpark it runs for each new DataFrame. On Connect it runs on the server when the plan arrives.
 - **`withColumn` adds one `Project` per call.** The optimizer collapses them, so the tasks are the same. But a loop of `withColumn` calls increases the driver time quickly. Use `withColumns` or one `select`.
 - **Use `DECIMAL(p,s)` for money and `TIMESTAMP_NTZ` for wall-clock times.** Set `spark.sql.session.timeZone` in each job, and compare instants in Spark, not after `collect()`.

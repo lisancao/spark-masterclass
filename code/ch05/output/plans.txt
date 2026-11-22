@@ -33,18 +33,18 @@ Project [fare_amount#10, tip_amount#13, tolls_amount#14, (tip_amount#13 / fare_a
 
 same optimized plan: True
 
-== 4. build + analyze + optimize, median of 5 after a warmup (ms)
+== 4. build + analyze + optimize, median of 7 after a warmup (ms)
  columns  withColumn loop  withColumns  Projects (loop)
-      25            772.4         90.0               26
-      50            315.5        121.7               51
-     100            486.1        188.4              101
-     200           1844.5        349.3              201
-     400           6459.7        476.0              401
+      25             48.9         25.3               26
+      50            101.1         47.4               51
+     100            286.2        110.7              101
+     200            957.4        285.9              201
+     400           7582.4        703.5              401
 
 == 5. nullability in the plan
 range: struct<id:bigint> False
 == Physical Plan ==
-LocalTableScan <empty>, [id#10104L]
+LocalTableScan <empty>, [id#14404L]
 --- the same filter on a nullable column
 == Physical Plan ==
 *(1) Filter isnull(fare_amount#10)
@@ -66,7 +66,7 @@ LocalTableScan <empty>, [id#10104L]
 
 == Physical Plan ==
 CollectLimit 3
-+- *(1) Project [PULocationID#7, fare_amount#10, (tip_amount#13 / fare_amount#10) AS tip_pct#10112]
++- *(1) Project [PULocationID#7, fare_amount#10, (tip_amount#13 / fare_amount#10) AS tip_pct#14412]
    +- *(1) ColumnarToRow
       +- FileScan parquet [PULocationID#7,fare_amount#10,tip_amount#13] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<PULocationID:int,fare_amount:double,tip_amount:double>
 zip with a filtered side: [ZIP_PLANS_NOT_MERGEABLE] The two DataFrames in zip() cannot be merged. They must produc
