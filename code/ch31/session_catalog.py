@@ -3,6 +3,7 @@
 Needs the Hive Metastore container:  code/ch31/catalogs.sh up
 Run from code/:  uv run python ch31/session_catalog.py
 """
+import shutil
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -26,6 +27,7 @@ spark.sql("CREATE NAMESPACE IF NOT EXISTS shared")
 spark.sql("USE spark_catalog.shared")
 for t in ("zones_parquet", "zones_iceberg", "zones_default"):
     spark.sql(f"DROP TABLE IF EXISTS {t} PURGE")
+    shutil.rmtree(WORK / "hive" / "shared.db" / t, ignore_errors=True)   # left by an earlier metastore
 spark.sql("CREATE TABLE zones_parquet USING parquet AS SELECT * FROM zones_csv")
 spark.sql("CREATE TABLE zones_iceberg USING iceberg AS SELECT * FROM zones_csv")
 spark.sql("CREATE TABLE zones_default AS SELECT * FROM zones_csv")      # no USING clause

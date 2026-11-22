@@ -24,3 +24,7 @@ iceberg-build.properties:
 
 Spark 4.3.0
 SELECT lake.system.iceberg_version(): unspecified
+
+for comparison, iceberg-spark-runtime-4.1_2.13-1.12.0.jar: 48,309,426 bytes, 24,164 classes
+  1.12.0 for 4.1   org.eclipse.collections.*: 5,480   software.amazon.*: 0
+  b1eab64 for 4.3  org.eclipse.collections.*:     0   software.amazon.*: 0

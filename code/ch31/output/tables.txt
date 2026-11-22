@@ -11,18 +11,18 @@ rows: 3,837,231
 data/: 30 folders, tpep_pickup_datetime_day=2026-06-01 ... tpep_pickup_datetime_day=2026-06-30
 data files: 30
 metadata/:
-    12,525  2c77125d-fc4a-4f5d-acf1-4d7759a7774d-m0.avro
-     4,497  snap-2208538448136476561-1-2c77125d-fc4a-4f5d-acf1-4d7759a7774d.avro
+    12,528  d832db5d-918c-4caa-a1d0-4e22c0085dfa-m0.avro
+     4,499  snap-7473603703071391542-1-d832db5d-918c-4caa-a1d0-4e22c0085dfa.avro
      1,474  v1.metadata.json
      2,696  v2.metadata.json
          1  version-hint.text
 
-v2.metadata.json: current-snapshot-id 2208538448136476561
-  manifest-list: snap-2208538448136476561-1-2c77125d-fc4a-4f5d-acf1-4d7759a7774d.avro
+v2.metadata.json: current-snapshot-id 7473603703071391542
+  manifest-list: snap-7473603703071391542-1-d832db5d-918c-4caa-a1d0-4e22c0085dfa.avro
   summary: {'operation': 'append', 'added-data-files': '30', 'added-records': '3837231', 'total-files-size': '57989583'}
 
 == Hidden partitioning: filter on the timestamp, not on a partition column
-BatchScan lake.nyc.trips[tpep_pickup_datetime#87, total_amount#96] IcebergScan(table=lake.nyc.trips, schemaId=0, snapshotId=2208538448136476561, branch=null, filters=tpep_pickup_datetime IS NOT NULL, tpep_pickup_datetime >= 1781481600000000, tpep_pickup_datetime < 1781568000000000, runtimeFilters=, groupedBy=) RuntimeFilters: []
+BatchScan lake.nyc.trips[tpep_pickup_datetime#87, total_amount#96] IcebergScan(table=lake.nyc.trips, schemaId=0, snapshotId=7473603703071391542, branch=null, filters=tpep_pickup_datetime IS NOT NULL, tpep_pickup_datetime >= 1781481600000000, tpep_pickup_datetime < 1781568000000000, runtimeFilters=, groupedBy=) RuntimeFilters: []
 {'trips': 109514, 'avg_total': 31.1}
   number of skipped data files: 29
   total data manifests: 1
