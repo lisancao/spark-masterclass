@@ -23,3 +23,4 @@ Visual aids added to existing chapters. The prose substance is not changed. Chan
 | 8 | `ch08-script-executions`, `ch08-udf-cost`, `ch08-zone-chain` | `ch08-anim-recursion` (UnionLoop passes on the zone chain) | recursion-limit list as a table | `code/ch08/output/scripting.txt`, `functions.txt` |
 | 9 | `ch09-join-types`, `ch09-strategy-times`, `ch09-skew-tasks` | `ch09-anim-movement` (broadcast against sort-merge data movement) | none (the strategy table was already there) | `code/ch09/output/strategies.txt`, `skew.txt` |
 | 11 | `ch11-png-header`, `ch11-formats` | `ch11-anim-packing` (2000 small files packed into 63 or 16 tasks) | none | `code/ch11/output/bytes.txt`, `formats.txt` |
+| 12 | `ch12-multiline-events`, `ch12-dropmalformed` | `ch12-anim-positions` (one header, columns by position, then unionByName) | none (the option table was already there) | `code/data/messy/logs/app.log`, `code/ch12/output/csv_drift.txt` |

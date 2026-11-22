@@ -198,6 +198,15 @@ lines: 134  events: 80
 
 `(?=...)` means "followed by". A line end that a date or `{` follows is the end of an event. The exception and its `at` lines never start in that way, so they stay with their event. The 134 lines become 80 events.
 
+<figure markdown>
+![The first eight lines of app.log, grouped into events.](../media/figures/ch12-multiline-events-light.svg#only-light)
+
+![The first eight lines of app.log, grouped into events.](../media/figures/ch12-multiline-events-dark.svg#only-dark)
+
+<figcaption>The first 8 lines of <code>app.log</code>. The split happens only before a line that starts with a date or a brace. Thus the exception lines stay with their event.</figcaption>
+</figure>
+
+
 This method needs each file in the memory of one task. For larger logs, there are better solutions:
 
 - Change the source. A JSON line for each event, with the stack trace in one field, is the best change for log analysis.
@@ -681,6 +690,15 @@ count() after cache()    1
 
 After `cache()`, Spark parses all columns. The CSV documentation says this directly: corrupt records can be different for a different set of required fields. Thus `DROPMALFORMED` with `count()` cannot measure the good rows. Use `PERMISSIVE` with a corrupt record column, and count the quarantine.
 
+<figure markdown>
+![The rows that DROPMALFORMED keeps for five queries.](../media/figures/ch12-dropmalformed-light.svg#only-light)
+
+![The rows that DROPMALFORMED keeps for five queries.](../media/figures/ch12-dropmalformed-dark.svg#only-dark)
+
+<figcaption>The same 5 rows with <code>DROPMALFORMED</code>, from the output above. Each query parses a different set of columns, so it drops a different set of rows.</figcaption>
+</figure>
+
+
 ```mermaid
 flowchart LR
   classDef s fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
@@ -724,6 +742,14 @@ enforceSchema=false -> sales_2026-10-01.csv
 Spark took the column names from **one** file (the day 3 file, with four columns). It skipped the first line of each file, and it put the values of the other files into columns **by position**.
 
 Thus the day 2 dates are in `id`. Nothing failed. With `enforceSchema=false`, the read fails on the first file that does not agree with the schema. That is better, because you then know about the problem. There are two ways to match the columns by name.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch12-anim-positions.webp">
+    <source src="../../media/clips/ch12-anim-positions.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: Spark takes the header of one file and puts the day 2 values into the columns by position. Thus a date goes into <code>id</code>. Fix 1 below reads each header and matches the columns by name.</figcaption>
+</figure>
+
 
 **Fix 1: read each file with its own header, then use `unionByName`.**
 
