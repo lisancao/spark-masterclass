@@ -525,8 +525,27 @@ The shredded file is larger, because each typed column has its own Parquet metad
 `bench.py` stores the same field of one million taxi trips in three ways and computes `sum(total_amount)` from each. It uses one warm-up run, then the median of five runs:
 
 ```text
-BENCH_PLACEHOLDER
+1,000,000 trips as JSON text (one object of up to 21 fields each; to_json drops NULL fields); local[*] on 16 cores
+
+files: JSON text 59.6 MiB, VARIANT 41.6 MiB, VARIANT shredded 20.4 MiB
+
+  JSON text, get_json_object             median   6.35 s   result 29767512.71
+  JSON text, parse_json + variant_get    median   9.43 s   result 29767512.71
+  VARIANT, variant_get                   median   1.98 s   result 29767512.71
+  VARIANT shredded, variant_get          median   0.68 s   result 29767512.71
+  VARIANT, to_json of the whole value    median   8.91 s   result 440622194
 ```
+
+All five queries read the same data, and the four sums are equal. The results show four effects:
+
+- **The binary format is smaller than the text.** The VARIANT files use 41.6 MiB against 59.6 MiB for the JSON text. The value stores numbers as binary and each object refers to field names by ID. The shredded files use 20.4 MiB. For this data, the typed columns take less space than the binary values.
+- **`variant_get` on stored VARIANT is about 3 times faster than `get_json_object` on text** (1.98 s against 6.35 s). `get_json_object` reads each JSON text from its start. `variant_get` reads the header of the object, finds the field ID, and jumps to the offset.
+- **Shredding makes the same query about 3 times faster again** (0.68 s). The scan reads one typed column of doubles, not the full value of each row.
+- **A parse on each query costs the most.** `parse_json` and then `variant_get` on the text took 9.43 s, slower than `get_json_object` alone. Parse the text one time, when you write the data, and store the VARIANT.
+
+`to_json` of the whole value (8.91 s) costs more than one extraction from the text. Use `to_json` for output, not inside a query that only needs some fields.
+
+These numbers come from one laptop with 16 cores. The run held the benchmark lock of the book. Other processes that do not take the lock could run at the same time, for example film renders. Thus use the ratios, not the absolute times.
 
 ## New in 4.3: functions that edit a VARIANT
 

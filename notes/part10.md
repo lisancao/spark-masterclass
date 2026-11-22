@@ -128,7 +128,7 @@ The lesson's case was the Python data source pushdown leak (`setReadInfo`). That
 | ch58: 60 of 60 byte-identical, broken bytes, unsorted IDs at 5/31/32/40, duplicate keys | `handmade.txt`; `Variant.java` (`BINARY_SEARCH_THRESHOLD = 32`) |
 | ch58: 128 MiB limit | `VariantUtil.java` `SIZE_LIMIT` (read, not run) |
 | ch58: shredding schema, row states, 60 of 60 rebuilt, mixes, ReadSchema, 7,403 vs 2,564 B | `shredding.txt`; `ShreddingUtils.java` |
-| ch58: benchmark numbers | `bench.txt` |
+| ch58: benchmark numbers | `bench.txt` (the second locked run). A first locked run, before a label fix in the script (it printed "20 fields"; the trips have 21 columns), gave 3.55 / 5.41 / 1.10 / 0.22 / 4.36 s, the same order and similar ratios; it was overwritten and is not quoted |
 | ch58: edit functions since 4.3.0 and their byte changes | `edits.txt`; `DESCRIBE FUNCTION EXTENDED variant_set` |
 | ch59: wrong rows on 4.3.0 | `code/ch59/output/repro.txt` |
 | ch59: boundary rows and evidence | `boundaries.txt` |
