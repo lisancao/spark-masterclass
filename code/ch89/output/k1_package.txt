@@ -1,0 +1,20 @@
+1. Without the package:
+   AnalysisException [KAFKA_DATA_SOURCE_NOT_ENABLED] Failed to find data source: kafka. Please deploy the application as per the deployment section of Structured Streaming + Kafka Integration
+
+2. spark.jars.packages = org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0
+   jars that Spark resolved and put on the classpath:
+     at.yawk.lz4_lz4-java-1.11.0.jar
+     com.google.code.findbugs_jsr305-3.0.0.jar
+     org.apache.commons_commons-pool2-2.13.1.jar
+     org.apache.hadoop_hadoop-client-api-3.5.0.jar
+     org.apache.hadoop_hadoop-client-runtime-3.5.0.jar
+     org.apache.kafka_kafka-clients-3.9.2.jar
+     org.apache.spark_spark-sql-kafka-0-10_2.13-4.3.0.jar
+     org.apache.spark_spark-token-provider-kafka-0-10_2.13-4.3.0.jar
+     org.scala-lang.modules_scala-parallel-collections_2.13-1.2.0.jar
+     org.slf4j_slf4j-api-2.0.17.jar
+     org.xerial.snappy_snappy-java-1.1.10.8.jar
+
+3. The source schema, with and without includeHeaders:
+   default:         key binary, value binary, topic string, partition int, offset bigint, timestamp timestamp, timestampType int
+   includeHeaders: + headers array<struct<key:string,value:binary>>

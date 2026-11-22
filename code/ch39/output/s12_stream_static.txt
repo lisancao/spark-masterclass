@@ -1,0 +1,30 @@
+1. Join types between a stream (left) and a static table (right), and the reverse:
+   stream INNER static         ok
+   stream LEFT OUTER static    ok
+   stream LEFT SEMI static     ok
+   stream LEFT ANTI static     ok
+   stream RIGHT OUTER static  AnalysisException: RightOuter join with a streaming DataFrame/Dataset on the left and ...
+   stream FULL OUTER static   AnalysisException: FullOuter joins with streaming DataFrames/Datasets on the left and ...
+   static LEFT OUTER stream   AnalysisException: LeftOuter join with a streaming DataFrame/Dataset on the right and ...
+   static RIGHT OUTER stream   ok
+
+2. The physical plan of one micro-batch (stream LEFT OUTER static):
+      +- StateStoreSave [Borough#26], state info [ checkpoint = file:~/spark-masterclass-parts/streaming/data/work/ch39/s
+            +- StateStoreRestore [Borough#26], state info [ checkpoint = file:~/spark-masterclass-parts/streaming/data/wo
+                  +- Exchange hashpartitioning(Borough#26, 4), REQUIRED_BY_STATEFUL_OPERATOR, [plan_id=107]
+                           +- *(2) BroadcastHashJoin [PULocationID#128], [PULocationID#29], LeftOuter, BuildRight, false,
+                              :- FileScan json [PULocationID#128] Batched: false, DataFilters: [], Format: JSON, Location
+                              +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, true] as bigint)),
+                                       +- FileScan csv [LocationID#25,Borough#26] Batched: false, DataFilters: [isnotnull
+
+3. When does a change to the static side reach the stream?
+   a) join with the static DataFrame in the query:
+   batch 0: labels found {'-': 489, 'airport': 19}   (v1 has two airport zones)
+   batch 1: labels found {'-': 432, 'airport': 18}   (a new file v2 added)
+   StreamingQueryException: [STREAM_FAILED] ... [FAILED_READ_FILE.FILE_NOT_EXIST]
+  Encountered error while reading file file://~/spark-masterclass-parts/streamin
+  g/data/work/ch39/s12/labels/v1/part-00000-0badd7a7-ea6e-416a-b68e-7f80c001ab34- ...
+   b) read the static side again in each batch, inside foreachBatch:
+   batch 0: labels found {'-': 489, 'airport': 19}   (v1 has two airport zones)
+   batch 1: labels found {'-': 399, 'airport': 18, 'midtown': 7, 'uptown': 26}   (a new file v2 added)
+   batch 2: labels found {'-': 408, 'airport': 10, 'midtown': 10, 'times-sq': 3, 'uptown': 30}   (v1 rewritten with a third zone)

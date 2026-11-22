@@ -1,0 +1,23 @@
+delivery 1: 995 trips, sent after t=1795387927214
+delivery 2: 911 trips, sent after t=1795387933700
+delivery 3: 1018 trips, sent after t=1795387936277
+end offsets per partition (kafka-get-offsets): {0: 925, 1: 1018, 2: 598, 3: 383} total 2924
+
+A new query on each line (availableNow, new checkpoint):
+  default (latest)                0 rows  p0=0 p1=0 p2=0 p3=0
+  earliest                     2924 rows  p0=925 p1=1018 p2=598 p3=383
+  JSON offsets                 1926 rows  p0=825 p1=1018 p2=0 p3=83
+  JSON, p3 past its end         StreamingQueryException: [STREAM_FAILED] ... Some data may have been lost because they
+  are not available in Kafka any more;
+  startingTimestamp=t2         1929 rows  p0=616 p1=663 p2=402 p3=248
+  startingOffsetsByTimestamp   1510 rows  p0=307 p1=663 p2=402 p3=138
+  timestamp in the future       StreamingQueryException: [STREAM_FAILED] ... No offset matched from request of topic-
+  partition trips-3 and timestamp 1795391538386. SQLSTATE: XXKST
+  future, strategy latest         0 rows  p0=0 p1=0 p2=0 p3=0
+  (JSON: p0 from offset 100, p1 earliest (-2), p2 latest (-1), p3 from offset 300, then 500)
+
+The rule for partitions that appear later: they start at earliest.
+  run 1, startingOffsets=latest: batches with rows []
+  topic altered to 6 partitions, then 1089 trips published; end offsets {0: 1021, 1: 1159, 2: 898, 3: 560, 4: 146, 5: 229}
+  run 2, same checkpoint:      batches with rows [(1, 1089)]
+  offsets/1 source line: {"trips":{"0":1021,"1":1159,"2":898,"3":560,"4":146,"5":229}}

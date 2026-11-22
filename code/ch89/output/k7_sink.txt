@@ -1,0 +1,17 @@
+published 1445 trips to rides
+run 1, batches (id, rows): [(0, 498), (1, 498), (2, 449)]
+removed commits/2: offsets [0, 1, 2] commits [0, 1]
+run 2, batches (id, rows): [(2, 449)]
+
+rides_out holds:
+  records            1894
+  distinct keys      1445   (trip_id)
+  distinct src       1445   (input topic:partition:offset)
+  keys written twice 449
+
+A reader that keeps one record per key gets the input exactly:
+  dropDuplicates(['key']) -> 1445 records, 1445 trips published
+
+The sink accepts no Kafka transactions:
+  IllegalStateException: Cannot add partition rides_out-0 to transaction before
+  completing a call to initTransactions

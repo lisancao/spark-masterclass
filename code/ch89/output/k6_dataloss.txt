@@ -1,0 +1,22 @@
+1. 1000 records published. Run 1: batches (id, rows) [(0, 1000)]
+   the checkpoint says: next offsets {'0': 508, '1': 492}
+
+2. 1000 more records published. End offsets now {0: 1035, 1: 965}
+   kafka-delete-records: partition: ledger-1	low_watermark: 692 partition: ledger-0	low_watermark: 708
+   400 records that the query did not read are gone
+
+3. Run 2, failOnDataLoss=true (the default):
+  StreamingQueryException: [STREAM_FAILED] ... Some data may have been lost because they
+  are not available in Kafka any more; either the data was aged out by Kafka or the
+  topic may have been deleted before all the data in the topic was processed. If you
+  don't want your streaming query to fail on such cases, set the source option
+  failOnDataLoss to false. Reason: Could not read records in offset [508, 1035) for ...
+
+4. Run 3, the same checkpoint, failOnDataLoss=false:
+   batches (id, rows) [(1, 600)]
+   records read in run 3 + records deleted = 600 + 400 = 1000 (the records after run 1)
+
+5. A batch read that starts before the first record that is left:
+   failOnDataLoss=true:OffsetOutOfRangeException: Fetch position FetchPosition{offset=0,
+  offsetEpoch=Optional.empty, ...
+   failOnDataLoss=false: 600 rows

@@ -1,0 +1,56 @@
+1. The DataFrame for the sink:
+root
+ |-- key: string (nullable = true)
+ |-- value: string (nullable = true)
+ |-- headers: array (nullable = false)
+ |    |-- element: struct (containsNull = false)
+ |    |    |-- key: string (nullable = false)
+ |    |    |-- value: binary (nullable = true)
+ |-- topic: string (nullable = false)
+ |-- partition: integer (nullable = true)
+
+   wrote 995 records, no `topic` option: each row names its topic
+
+2. Read both topics back with includeHeaders=true:
++---------------+---------+-----+
+|          topic|partition|count|
++---------------+---------+-----+
+|trips_manhattan|        0|  303|
+|trips_manhattan|        1|  269|
+|trips_manhattan|        2|  296|
+|    trips_other|        0|   69|
+|    trips_other|        1|   26|
+|    trips_other|        2|   32|
++---------------+---------+-----+
+
+   one record:
++-----------+---------+------+----------+--------------------------------+
+|topic      |partition|offset|key       |headers                         |
++-----------+---------+------+----------+--------------------------------+
+|trips_other|0        |0     |0610-00620|[schema=trip-v1, borough=Queens]|
++-----------+---------+------+----------+--------------------------------+
+
+3. Filter on a header without parsing the value:
++---------+-----+
+|partition|count|
++---------+-----+
+|        0|   43|
+|        1|    9|
+|        2|   11|
++---------+-----+
+
+4. The airport trips went to partition 0 of their topic, by the `partition` column:
++-----------+---------+-----+
+|      topic|partition|count|
++-----------+---------+-----+
+|trips_other|        0|   36|
++-----------+---------+-----+
+
+5. Sink errors:
+   no value column       AnalysisException: Required attribute 'value' not found
+   value as an int       AnalysisException: value attribute unsupported type int. value must be a(n) string
+  or binary
+   headers, wrong type   AnalysisException: headers attribute unsupported type string. headers must be a(n)
+  array<struct<key:string,value:binary>>
+   mode(overwrite)       AnalysisException: Save mode Overwrite not allowed for Kafka. Allowed save modes are
+  Append and ErrorIfExists (default).
