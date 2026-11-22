@@ -13,3 +13,4 @@ Scope: figures, animations, tables and captions added to existing chapters 33 to
 | Chapter | Figures | Animation | Tables and other elements | Sources of the numbers |
 |---|---|---|---|---|
 | 33 | `ch33-routing` (run 1 rows to silver, quarantine or not kept), `ch33-rules` (quarantine counts per rule), `ch33-gate-timeline` (run 2 truncate, failed attempts, skipped gold) | `ch33-anim-routing` | layer contract table (Step 1), file source options table (Step 2) | `code/data/retail/orders/`, `code/ch33/output/two_runs.txt`, `code/ch33/output/gate.txt` |
+| 34 | `ch34-three-ways` (append, arrival order, by seq for c-01), `ch34-history` (versions on a seq axis, all columns against TRACK HISTORY ON (city)), `ch34-aux` (targets and auxiliary state tables) | `ch34-anim-scd2` (SCD2 closes and opens versions; the late seq 4 event) | `deduplicationMode`/`computeUpdates` options table (Step 2) | change files in Step 1, `code/ch34/output/drops.txt`, `internals.txt` |
