@@ -433,4 +433,4 @@ df.groupBy("k").count().orderBy("k").explain()        # no Exchange, one HashAgg
 - The 4.3.0 source: `MarkSingleTaskExecution.scala`, `DataSourceScanExec.scala` (`useSingleTaskExecution`), `SparkOptimizer.scala` (the batch), `MarkSingleTaskExecutionSuite.scala` (the tests).
 - [The Ultimate Guide to Spark 4.3](https://systemsnull.net/posts/data-engineering-ai/ultimate-guide-spark-43), with the other changes in the release.
 - [Chapter 46](../roadmap.md) for Feather on a shared Connect server.
-- [Chapter 24](../roadmap.md) for native and GPU engines, the other way to make Spark faster on one machine.
+- [Chapter 24](ch24-acceleration.md) for native and GPU engines, the other way to make Spark faster on one machine.

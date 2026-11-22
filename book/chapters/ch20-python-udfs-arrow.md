@@ -507,4 +507,4 @@ spark.conf.set("spark.sql.pyspark.udf.profiler", "perf"); ...; spark.profile.sho
 - [Python user-defined functions](https://spark.apache.org/docs/4.3.0/api/python/user_guide/sql/python_udf.html) and [Arrow in PySpark](https://spark.apache.org/docs/4.3.0/api/python/user_guide/sql/arrow_pandas.html) in the PySpark user guide.
 - [The PySpark guide to find errors](https://spark.apache.org/docs/4.3.0/api/python/development/debugging.html), with the UDF profiler.
 - The 4.3.0 source: `python/pyspark/sql/udf.py`, `python/pyspark/sql/transpile.py`, and `sql/core/src/main/scala/org/apache/spark/sql/execution/python/`.
-- [Chapter 59](../roadmap.md) shows how Catalyst plans Python, and [Chapter 60](../roadmap.md) shows the Python worker protocol on the wire.
+- [Chapter 59](ch59-catalyst-plans-python.md) shows how Catalyst plans Python, and [Chapter 60](ch60-python-worker-protocol.md) shows the Python worker protocol on the wire.

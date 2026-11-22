@@ -409,4 +409,4 @@ spark.sql("SELECT t.* FROM docs, LATERAL JSON_TABLE(doc, '$.items[*]' COLUMNS (s
 - [Python user-defined table functions](https://spark.apache.org/docs/4.3.0/api/python/user_guide/sql/python_udtf.html) in the PySpark user guide.
 - [JSON_TABLE](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-qry-select-json-table.html) in the SQL reference.
 - The 4.3.0 source: `python/pyspark/sql/udtf.py` and `python/pyspark/worker.py` (the Python side), `EvalPythonUDTFExec.scala` (the JVM side).
-- [Chapter 13](../roadmap.md) for JSON drift and quarantine, and [Chapter 60](../roadmap.md) for the Python worker protocol.
+- [Chapter 13](../roadmap.md) for JSON drift and quarantine, and [Chapter 60](ch60-python-worker-protocol.md) for the Python worker protocol.
