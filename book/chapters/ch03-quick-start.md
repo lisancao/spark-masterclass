@@ -61,6 +61,7 @@ The first three problems are errors, and the filter removes these rows. The last
 ![Bar chart of the rows that each rule affects.](../media/figures/ch03-cleaning-rules-light.svg#only-light)
 
 ![Bar chart of the rows that each rule affects.](../media/figures/ch03-cleaning-rules-dark.svg#only-dark)
+
 <figcaption>Rows that each rule affects, from <code>what_cleaning_drops.py</code>. The red rows are errors, and the filter removes them. The blue and orange rows stay in the data.</figcaption>
 </figure>
 
@@ -103,6 +104,7 @@ The figure shows the method on four example rows.
 ![Example rows and the two conditional sums.](../media/figures/ch03-when-sum-light.svg#only-light)
 
 ![Example rows and the two conditional sums.](../media/figures/ch03-when-sum-dark.svg#only-dark)
+
 <figcaption>Schematic: <code>F.when(card, ...)</code> gives null for the cash rows, and <code>sum</code> ignores them. The tip percentage is a ratio of the two sums. <code>count</code> and <code>avg</code> still use all the rows.</figcaption>
 </figure>
 
@@ -128,6 +130,7 @@ The figure shows the method on four example rows.
 ![Trips, fares and tips of the ten busiest zones.](../media/figures/ch03-top-zones-light.svg#only-light)
 
 ![Trips, fares and tips of the ten busiest zones.](../media/figures/ch03-top-zones-dark.svg#only-dark)
+
 <figcaption>The ten busiest pickup zones from the table above. The two airports have the largest fares. JFK is the only zone with a tip percentage below 20%.</figcaption>
 </figure>
 

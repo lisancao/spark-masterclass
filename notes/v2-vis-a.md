@@ -17,3 +17,4 @@ Visual aids added to existing chapters. The prose substance is not changed. Chan
 |---|---|---|---|---|
 | 2 | `ch02-install-sizes`, `ch02-what-runs-where`, `ch02-data-problems` | `ch02-anim-drivers` (where the driver runs, four installs) | "How to choose" list as a table; annotation on the pip line | chapter table, `code/ch02/output/check_env.txt` |
 | 3 | `ch03-cleaning-rules`, `ch03-when-sum` (schematic rows), `ch03-top-zones` | `ch03-anim-plans` (analyzed plans become one optimized plan) | warning admonition for named parameters; annotation on the conditional sum | `code/ch03/output/what_cleaning_drops.txt`, `quickstart.txt` |
+| 5 | `ch05-chain-cost`, `ch05-timezones`, `ch05-drift-days` | `ch05-anim-projects` (withColumn loop vs withColumns, CollapseProject) | drift-kind list as a table; TIME warning as an admonition | `code/ch05/output/plans.txt`, `type_system.txt`, `drift.txt` |

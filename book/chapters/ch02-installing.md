@@ -49,6 +49,7 @@ The animation shows the same program on each install. Only the location of the d
 ![Bar chart of the size on disk of the four installs.](../media/figures/ch02-install-sizes-light.svg#only-light)
 
 ![Bar chart of the size on disk of the four installs.](../media/figures/ch02-install-sizes-dark.svg#only-dark)
+
 <figcaption>Size on disk of each install, from the table above. The thin client is small because it has no jars. It also needs pandas, pyarrow and grpcio.</figcaption>
 </figure>
 
@@ -167,6 +168,7 @@ The figure shows what each install puts on your machine, from your code down to 
 ![Four columns that show the layers that each install puts on your machine.](../media/figures/ch02-what-runs-where-light.svg#only-light)
 
 ![Four columns that show the layers that each install puts on your machine.](../media/figures/ch02-what-runs-where-dark.svg#only-dark)
+
 <figcaption>What each install puts on your machine. Only the thin client has no JVM and no JDK. Its driver is on a Connect server.</figcaption>
 </figure>
 
@@ -213,6 +215,7 @@ The data has these problems:
 ![Three panels that show the null passenger counts and the extreme distance and fare values.](../media/figures/ch02-data-problems-light.svg#only-light)
 
 ![Three panels that show the null passenger counts and the extreme distance and fare values.](../media/figures/ch02-data-problems-dark.svg#only-dark)
+
 <figcaption>The `describe()` summary as a picture. A quarter of the passenger counts are null. One distance and one fare are far outside the usual range.</figcaption>
 </figure>
 

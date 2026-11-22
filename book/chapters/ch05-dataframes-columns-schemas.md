@@ -282,9 +282,26 @@ def build_once(n):
 
 The script ran under the shared bench lock on a quiet machine, with `local[*]` on 16 cores. Each number is the median of 7 runs after one warmup run. The loop leaves one `Project` for each call (plus the `select`), and `withColumns` leaves one.
 
+<figure markdown>
+![Line chart of driver time against the number of new columns.](../media/figures/ch05-chain-cost-light.svg#only-light)
+
+![Line chart of driver time against the number of new columns.](../media/figures/ch05-chain-cost-dark.svg#only-dark)
+
+<figcaption>Driver time to build, analyze and optimize a DataFrame with <code>n</code> new columns, from the table above. At 400 columns, the loop takes 7,582.4 ms and <code>withColumns</code> takes 703.5 ms.</figcaption>
+</figure>
+
+
 The two curves do not have the same shape. From 200 to 400 columns, `withColumns` takes about 2.5 times longer. The loop takes about 8 times longer. Each loop call analyzes a plan that is one node deeper than the plan before it. Thus the total work increases faster than the number of columns.
 
 No task runs in this measurement. All the time is driver time, before the first job starts. The loop also leaves one `Project` node per call in the analyzed plan, and the optimizer must collapse all of them.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch05-anim-projects.webp">
+    <source src="../../media/clips/ch05-anim-projects.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: each <code>withColumn</code> call adds a <code>Project</code>, and the driver analyzes the new plan. <code>withColumns</code> adds one <code>Project</code>. The optimizer merges both into one. The animation shows six calls. The times are from the 400-column run.</figcaption>
+</figure>
+
 
 With a few columns the difference is small. With hundreds of columns, the loop costs seconds for each DataFrame that you build. If you build such a DataFrame inside another loop, the cost multiplies. Use `withColumns` or one `select` when you add more than a few columns.
 
@@ -416,6 +433,15 @@ for tz in ["UTC", "America/New_York"]:
 
 The `TIMESTAMP` text gives two instants, 14,400 seconds (four hours) apart. The `TIMESTAMP_NTZ` text gives the same number in both zones. (`unix_seconds` accepts `TIMESTAMP_NTZ` in 4.3, and it reads the wall clock as UTC.)
 
+<figure markdown>
+![A UTC timeline with the three values of the same text.](../media/figures/ch05-timezones-light.svg#only-light)
+
+![A UTC timeline with the three values of the same text.](../media/figures/ch05-timezones-dark.svg#only-dark)
+
+<figcaption>The same text on a UTC timeline. Under the New York session time zone, the <code>TIMESTAMP</code> value is four hours later. The <code>TIMESTAMP_NTZ</code> value does not move.</figcaption>
+</figure>
+
+
 The next two lines show a trap in PySpark. `collect()` converts a `TIMESTAMP` to a naive `datetime` in the time zone of the Python process, not the session time zone. The script runs the same query in two child processes, with the session time zone set to UTC in both. The value that `collect()` gives changes with the `TZ` of the process. `toPandas()` uses the session time zone, so it gives the same value in both. Set `spark.sql.session.timeZone` in each job, and compare instants inside Spark, not after `collect()`.
 
 A literal or a cast that says only `TIMESTAMP` gets the type from `spark.sql.timestampType`. The default is `TIMESTAMP_LTZ`:
@@ -429,7 +455,8 @@ Do not change this configuration in one job only. The same SQL text then gives a
 
 Intervals are lengths of time. A day-time interval collects as a `timedelta`. In 4.3.0, a year-month interval still cannot go to Python. Cast it to a string first.
 
-The `TIME` type is a time of day with no date. In 4.3.0 it is behind the internal configuration `spark.sql.timeType.enabled`, which is `false` by default. The output shows an inconsistency: the `TIME'10:07:00'` literal works and collects as `datetime.time`, but `CAST(... AS TIME)` fails with `UNSUPPORTED_TIME_TYPE`. Do not use `TIME` in production code until the configuration is public.
+!!! warning "The TIME type in 4.3.0"
+    The `TIME` type is a time of day with no date. In 4.3.0 it is behind the internal configuration `spark.sql.timeType.enabled`, which is `false` by default. The output shows an inconsistency: the `TIME'10:07:00'` literal works and collects as `datetime.time`, but `CAST(... AS TIME)` fails with `UNSUPPORTED_TIME_TYPE`. Do not use `TIME` in production code until the configuration is public.
 
 ## Step 9: Write a schema down
 
@@ -622,6 +649,15 @@ c = spark.read.schema("event STRING, amount DOUBLE").json(str(EVENTS))
 
 `F.count("amount")` counts the values that are not NULL. `_metadata.file_name` is a hidden column that gives the source file of each row. The counts show how much data did not fit: five string amounts on day 2 and all the struct amounts on day 3. The schema protects the job. The counts tell you what the schema removed.
 
+<figure markdown>
+![Three files and the rows of each that fit the schema.](../media/figures/ch05-drift-days-light.svg#only-light)
+
+![Three files and the rows of each that fit the schema.](../media/figures/ch05-drift-days-dark.svg#only-dark)
+
+<figcaption>Each day of events through <code>event STRING, amount DOUBLE</code>. Each square is one row. The type of <code>amount</code> changes each day, and the rows that do not fit become NULL.</figcaption>
+</figure>
+
+
 Parquet is different, because each file keeps the physical type of each column. A read schema that does not agree with a file causes an error, not NULL values. `drift.py` writes day 1 (`amount` is a double) and day 2 (`amount` is a string) to Parquet, and reads both with `amount DOUBLE`:
 
 ```text
@@ -686,9 +722,11 @@ day 03:
 
 Day 3 renamed `event` to `event_type`, so the report shows one field as `missing` and one field as `added`. A program cannot know that the two are the same field. A person must decide. Decide for each kind of drift what the job does:
 
-- A new field is usually safe. Write it to the log.
-- A field that is not there can be a renamed field. Send it to a person.
-- A changed type loses data without an error (Step 13). Stop the job or send an alert.
+| Kind of drift | Example on day 3 | Risk | What the job does |
+|---|---|---|---|
+| `added` | `event_type`, `user.geo` | usually safe | Write it to the log. |
+| `missing` | `event` | it can be a renamed field | Send it to a person. |
+| `type_changed` | `amount`: `double -> struct` | data loss without an error (Step 13) | Stop the job or send an alert. |
 
 Field order is part of a struct type, and JSON inference sorts fields by name. Thus a contract with `STRUCT<sku: STRING, qty: BIGINT>` has a different `simpleString()` from the inferred `struct<qty:bigint,sku:string>`. Write the nested fields of a contract in alphabetical order. The function compares top-level struct fields by name, but it compares a struct inside an array by its `simpleString()`.
 
