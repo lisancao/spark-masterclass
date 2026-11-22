@@ -42,6 +42,12 @@ flowchart LR
 
 A Parquet file starts and ends with the magic bytes `PAR1` (`50 41 52 31`). The 4 bytes before the last `PAR1` are the length of the footer, as a little-endian integer: `ca 03 00 00` is 0x03ca, which is 970. A reader opens a file at the end. It reads the last 8 bytes, then the footer, and only then the column data that it needs.
 
+<figure markdown>
+  ![Byte map of the zones file](../media/figures/ch22-bytemap-light.svg#only-light)
+  ![Byte map of the zones file](../media/figures/ch22-bytemap-dark.svg#only-dark)
+  <figcaption markdown="span">The zones file to scale, from the offsets in `footer.txt`. The `Zone` column has no dictionary. `Borough` and `service_zone` have a small dictionary page and a small data page each.</figcaption>
+</figure>
+
 This design has two results. A reader can find any column without a scan of the file. And each file costs at least one extra read for the footer. That read is the fixed cost of a file, and it is why many small files are slow ([Chapter 19](ch19-partitions-caching-memory.md), Step 2).
 
 The bytes after the first `PAR1` are already a Thrift structure: the header of the first data page. `15 00` is field 1 (`type`) with the value 0, which is `DATA_PAGE`. `15 d6 10` is field 2 (`uncompressed_page_size`), and `15 de 10` is field 3 (`compressed_page_size`). Step 3 decodes these headers.
@@ -193,6 +199,12 @@ layout C, first file, row group 0: 15,360 rows, user_id min 17475 max 17628; 17 
 ```
 
 <figure markdown>
+  ![Rows returned per layout and query](../media/figures/ch22-skipping-light.svg#only-light)
+  ![Rows returned per layout and query](../media/figures/ch22-skipping-dark.svg#only-dark)
+  <figcaption markdown="span">The rows that the reader returned in `skipping.txt`. Each layout lets the reader skip data for some queries. No layout skips data for the timestamp filter.</figcaption>
+</figure>
+
+<figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch22-skipping.webp">
     <source src="../../media/clips/ch22-skipping.mp4" type="video/mp4">
   </video>
@@ -208,6 +220,13 @@ Each layout changes what the reader can skip:
 - **The timestamp filter skipped nothing in any layout.** In layout A, the rows in each file are in time sequence, so statistics should help. Step 6 explains why they did not.
 
 The footer of layout C shows the narrow statistics: row group 0 of one file holds only `user_id` 17475 to 17628. The pushed filter `EqualTo(user_id,16073)` is outside that range, so the reader skips the row group without a read of its pages.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch22-anim-skipping.webp">
+    <source src="../../media/clips/ch22-anim-skipping.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the reader uses the minimum and maximum values to skip files and row groups for `user_id = 16073` in layout C. The count of 15,360 rows comes from `skipping.txt`. The ranges of the files and the row groups are schematic.</figcaption>
+</figure>
 
 ## Step 5: Turn off one mechanism at a time
 
@@ -271,6 +290,12 @@ This is a trap because the plan does not show it. `PushedFilters` is the list of
   zstd        58.2 MB  1 row groups  write   5.8 s  full read  0.84 s
   default spark.sql.parquet.compression.codec: snappy
 ```
+
+<figure markdown>
+  ![File size for each codec](../media/figures/ch22-codecs-light.svg#only-light)
+  ![File size for each codec](../media/figures/ch22-codecs-dark.svg#only-dark)
+  <figcaption markdown="span">The sizes and times from `skipping_codecs.txt`. `zstd` and `gzip` make the smallest files.</figcaption>
+</figure>
 
 - **`snappy` is the default.** It made the file 29% smaller than no compression, and it wrote and read faster than no compression, because there were fewer bytes to move.
 - **`lz4_raw` gave almost the same result as `snappy`.**
