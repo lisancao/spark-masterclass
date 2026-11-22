@@ -1,0 +1,19 @@
+Python writer vs parse_json: 60 of 60 rows byte-identical
+
+hand-made value 02 02 00 01 00 05 07 11 76 69 65 77 0c 07
+  to_json: {"event":"view","user_id":7}; variant_get user_id: 7
+  value cut after 5 bytes    -> [MALFORMED_VARIANT] Variant binary is malformed. Please check the data source is valid. 
+  primitive id 31 (unused)   -> [UNKNOWN_PRIMITIVE_TYPE_IN_VARIANT] Unknown primitive type with id 31 was found in a var
+  metadata version 2         -> [MALFORMED_VARIANT] Variant binary is malformed. Please check the data source is valid. 
+
+An object whose field ids are NOT sorted by key (the spec requires sorted ids):
+   5 fields   sorted ids: k00=0 k03=3        reverse-order ids: k00=0 k03=3
+  31 fields   sorted ids: k00=0 k03=3        reverse-order ids: k00=0 k03=3
+  32 fields   sorted ids: k00=0 k03=3        reverse-order ids: k00=None k03=None
+  40 fields   sorted ids: k00=0 k03=3        reverse-order ids: k00=None k03=None
+
+Duplicate keys in the JSON text:
+  allowDuplicateKeys=false parse_json -> [MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION] Malformed records are detected in recor
+                           try_parse_json IS NULL -> True
+  allowDuplicateKeys=true  parse_json -> {"a":2}
+                           try_parse_json IS NULL -> False

@@ -1,0 +1,28 @@
+--- one event, then each 4.3 edit function on it
+  original                       {"event":"view","note":null,"user_id":7}
+                                 keys ['event', 'user_id', 'note']; value 17 B (id size 1, offset size 1); metadata 22 B
+  variant_set $.user_id = 8      {"event":"view","note":null,"user_id":8}
+                                 keys ['event', 'note', 'user_id']; value 17 B (id size 1, offset size 1); metadata 22 B
+  variant_set $.plan (new key)   {"event":"view","note":null,"plan":"pro","user_id":7}
+                                 keys ['event', 'note', 'user_id', 'plan']; value 23 B (id size 1, offset size 1); metadata 27 B
+  variant_delete $.event         {"note":null,"user_id":7}
+                                 keys ['note', 'user_id']; value 10 B (id size 1, offset size 1); metadata 16 B
+  variant_strip_nulls            {"event":"view","user_id":7}
+                                 keys ['event', 'user_id']; value 14 B (id size 1, offset size 1); metadata 17 B
+  set $.plan, create_if_missing  {"event":"view","note":null,"user_id":7}
+                                 keys ['event', 'note', 'user_id']; value 17 B (id size 1, offset size 1); metadata 22 B
+
+--- an edit can change the widths of the whole object
+  three strings of 60 bytes      {"a":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx...
+                                 keys ['a', 'b', 'c']; value 192 B (id size 1, offset size 1); metadata 9 B
+  variant_set $.d = 80 bytes     {"a":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx...
+                                 keys ['a', 'b', 'c', 'd']; value 284 B (id size 1, offset size 2); metadata 11 B
+
+--- the edited bytes: set $.user_id = 8
+  before 02 03 00 02 01 00 07 05 08 11 76 69 65 77 0c 07 00
+  after  02 03 00 01 02 00 05 06 08 11 76 69 65 77 00 0c 08
+
+--- errors and try_
+  variant_set(parse_json('{"event": "view", "user_id": 7, "not   -> [VARIANT_PATH_TYPE_MISMATCH] The path '$.event.name' is incompatible w
+  try_variant_set(parse_json('{"event": "view", "user_id": 7,    -> None
+  variant_set(parse_json('{"event": "view", "user_id": 7, "not   -> [INVALID_VARIANT_PATH] The path '$' is not a valid `variant_set` targe
