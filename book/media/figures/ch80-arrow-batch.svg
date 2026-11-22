@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 470" font-family="Inter, 'DM Sans', Helvetica, Arial, sans-serif">
+  <style>
+    .h{font-size:18px;font-weight:700;fill:#8a909a}
+    .t{font-size:14px;fill:#8a909a}
+    .w{font-size:14px;fill:#fff;font-weight:600}
+    .ws{font-size:12px;fill:#fff}
+    .m{font-size:13px;fill:#8a909a;font-family:Menlo,monospace}
+    .mw{font-size:12.5px;fill:#fff;font-family:Menlo,monospace}
+    .g{stroke:#8a909a;stroke-width:1.5;fill:none;stroke-dasharray:4 4}
+  </style>
+  <text x="20" y="28" class="h">1. One ExecutePlanResponse (662 bytes of protobuf)</text>
+  <rect x="20" y="42" width="72" height="44" rx="4" fill="#6b7280"/><text x="56" y="62" class="ws" text-anchor="middle">session_id</text><text x="56" y="78" class="ws" text-anchor="middle">38 B</text>
+  <rect x="96" y="42" width="560" height="44" rx="4" fill="#3a5f96"/><text x="376" y="62" class="w" text-anchor="middle">arrow_batch: row_count = 3, data = 496 bytes, start_offset = 0</text><text x="376" y="78" class="ws" text-anchor="middle">field 2 of the response, 507 B</text>
+  <rect x="660" y="42" width="300" height="44" rx="4" fill="#6b7280"/><text x="810" y="62" class="ws" text-anchor="middle">operation_id, response_id,</text><text x="810" y="78" class="ws" text-anchor="middle">server_side_session_id: 114 B</text>
+  <path d="M110 86 L20 128 M640 86 L960 128" class="g"/>
+  <text x="20" y="150" class="h">2. arrow_batch.data: an Arrow IPC stream of 496 bytes</text>
+  <rect x="20" y="164" width="372" height="56" rx="4" fill="#c0661a"/>
+  <text x="206" y="186" class="w" text-anchor="middle">schema message @0, 240 B</text>
+  <text x="206" y="206" class="ws" text-anchor="middle">PULocationID: int32, trips: int64 not null</text>
+  <rect x="396" y="164" width="372" height="56" rx="4" fill="#3a5f96"/>
+  <text x="582" y="186" class="w" text-anchor="middle">record batch @240: metadata 184 B</text>
+  <text x="582" y="206" class="ws" text-anchor="middle">length 3, buffer offsets and lengths</text>
+  <rect x="772" y="164" width="120" height="56" rx="4" fill="#3a5f96" fill-opacity="0.75"/>
+  <text x="832" y="186" class="w" text-anchor="middle">body 56 B</text><text x="832" y="206" class="ws" text-anchor="middle">@432</text>
+  <rect x="896" y="164" width="64" height="56" rx="4" fill="#6b7280"/><text x="928" y="186" class="ws" text-anchor="middle">end</text><text x="928" y="206" class="ws" text-anchor="middle">8 B</text>
+  <text x="20" y="242" class="m">each message: ff ff ff ff (continuation)  + int32 metadata length + flatbuffer + body</text>
+  
+  <text x="20" y="290" class="h">3. The body: the three rows as columns, little-endian, 8-byte aligned</text>
+  <rect x="20" y="304" width="110" height="64" rx="4" fill="#6b7280"/><text x="75" y="326" class="ws" text-anchor="middle">validity</text><text x="75" y="352" class="mw" text-anchor="middle">07 + 7 pad</text>
+  <rect x="134" y="304" width="320" height="64" rx="4" fill="#c0661a"/><text x="294" y="326" class="ws" text-anchor="middle">PULocationID values (int32)</text>
+  <text x="294" y="352" class="mw" text-anchor="middle">ed000000 a1000000 ec000000 + 4 pad</text>
+  <rect x="458" y="304" width="110" height="64" rx="4" fill="#6b7280"/><text x="513" y="326" class="ws" text-anchor="middle">validity</text><text x="513" y="352" class="mw" text-anchor="middle">07 + 7 pad</text>
+  <rect x="572" y="304" width="388" height="64" rx="4" fill="#3a5f96"/><text x="766" y="326" class="ws" text-anchor="middle">trips values (int64)</text>
+  <text x="766" y="352" class="mw" text-anchor="middle">cab5020000000000 ae75020000000000 b965...</text>
+  <text x="294" y="392" class="m" text-anchor="middle">237, 161, 236</text>
+  <text x="766" y="392" class="m" text-anchor="middle">177610, 161198, 157113</text>
+  <text x="20" y="424" class="t">The client gives these buffers to Arrow as they are. There is no parse of each row and no pickle.</text>
+  <text x="20" y="446" class="t">Sizes and bytes from code/ch80/output/wire.txt.</text>
+</svg>

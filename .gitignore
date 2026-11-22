@@ -8,3 +8,5 @@ code/**/metastore_db/
 derby.log
 book/media/clips/out/
 .docs-venv/
+code/**/anim/**/renders/
+code/film/renders/

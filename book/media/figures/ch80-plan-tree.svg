@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 490" font-family="Inter, 'DM Sans', Helvetica, Arial, sans-serif">
+<style>.h{font-size:18px;font-weight:700;fill:#8a909a}.t{font-size:14px;fill:#8a909a}.w{font-size:15px;fill:#fff;font-weight:600}.ws{font-size:12.5px;fill:#fff}.m{font-size:13px;fill:#8a909a;font-family:Menlo,monospace}.ln{stroke:#8a909a;stroke-width:2}</style>
+<text x="20" y="28" class="h">The plan as the client builds it</text>
+<text x="350" y="28" class="h">The same plan on the wire: 592 bytes</text>
+<rect x="30" y="50" width="270" height="62" rx="8" fill="#3a5f96"/>
+<text x="165" y="76" class="w" text-anchor="middle">limit</text><text x="165" y="96" class="ws" text-anchor="middle">limit = 5</text>
+<line x1="165" y1="112" x2="165" y2="145" class="ln"/>
+<rect x="30" y="145" width="270" height="62" rx="8" fill="#3a5f96"/>
+<text x="165" y="171" class="w" text-anchor="middle">project</text><text x="165" y="191" class="ws" text-anchor="middle">PULocationID, fare_amount</text>
+<line x1="165" y1="207" x2="165" y2="240" class="ln"/>
+<rect x="30" y="240" width="270" height="62" rx="8" fill="#3a5f96"/>
+<text x="165" y="266" class="w" text-anchor="middle">filter</text><text x="165" y="286" class="ws" text-anchor="middle">fare_amount > 100</text>
+<line x1="165" y1="302" x2="165" y2="335" class="ln"/>
+<rect x="30" y="335" width="270" height="62" rx="8" fill="#3a5f96"/>
+<text x="165" y="361" class="w" text-anchor="middle">read</text><text x="165" y="381" class="ws" text-anchor="middle">parquet, path as a string</text>
+<text x="30" y="450" class="t">Relations, with Expressions inside.</text>
+<text x="30" y="470" class="t">No types. No resolved columns.</text>
+<text x="350" y="52" class="m">offset key   field</text>
+<text x="350" y="79" class="m">   0  0a</text>
+<text x="452" y="79" class="t">root (a Relation)</text>
+<rect x="640" y="67" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="640.0" y="67" width="268.6" height="16" rx="2" fill="#3a5f96" fill-opacity="0.9"/>
+<text x="970" y="79" class="m" text-anchor="end">589 B</text>
+<text x="350" y="111" class="m">   7  42</text>
+<text x="452" y="111" class="t">limit</text>
+<rect x="640" y="99" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="643.2" y="99" width="265.4" height="16" rx="2" fill="#3a5f96" fill-opacity="0.9"/>
+<text x="970" y="111" class="m" text-anchor="end">582 B</text>
+<text x="350" y="143" class="m">  17  1a</text>
+<text x="452" y="143" class="t">project</text>
+<rect x="640" y="131" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="647.8" y="131" width="260.0" height="16" rx="2" fill="#3a5f96" fill-opacity="0.9"/>
+<text x="970" y="143" class="m" text-anchor="end">570 B</text>
+<text x="350" y="175" class="m">  27  22</text>
+<text x="452" y="175" class="t">filter</text>
+<rect x="640" y="163" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="652.3" y="163" width="162.8" height="16" rx="2" fill="#3a5f96" fill-opacity="0.9"/>
+<text x="970" y="175" class="m" text-anchor="end">357 B</text>
+<text x="350" y="207" class="m">  30  0a</text>
+<text x="452" y="207" class="t">input: read</text>
+<rect x="640" y="195" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="653.7" y="195" width="31.5" height="16" rx="2" fill="#3a5f96" fill-opacity="0.9"/>
+<text x="970" y="207" class="m" text-anchor="end">69 B</text>
+<text x="350" y="239" class="m"> 101  12</text>
+<text x="452" y="239" class="t">condition</text>
+<rect x="640" y="227" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="686.1" y="227" width="129.1" height="16" rx="2" fill="#c0661a" fill-opacity="0.9"/>
+<text x="970" y="239" class="m" text-anchor="end">283 B</text>
+<text x="350" y="271" class="m"> 387  1a</text>
+<text x="452" y="271" class="t">expressions: PULocationID</text>
+<rect x="640" y="259" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="816.5" y="259" width="45.6" height="16" rx="2" fill="#c0661a" fill-opacity="0.9"/>
+<text x="970" y="271" class="m" text-anchor="end">100 B</text>
+<text x="350" y="303" class="m"> 407  92 01</text>
+<text x="452" y="303" class="t">common.origin</text>
+<rect x="640" y="291" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="825.6" y="291" width="36.0" height="16" rx="2" fill="#6b7280" fill-opacity="0.9"/>
+<text x="970" y="303" class="m" text-anchor="end">79 B</text>
+<text x="350" y="335" class="m"> 489  1a</text>
+<text x="452" y="335" class="t">expressions: fare_amount</text>
+<rect x="640" y="323" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="863.0" y="323" width="45.2" height="16" rx="2" fill="#c0661a" fill-opacity="0.9"/>
+<text x="970" y="335" class="m" text-anchor="end">99 B</text>
+<text x="350" y="367" class="m"> 508  92 01</text>
+<text x="452" y="367" class="t">common.origin</text>
+<rect x="640" y="355" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="871.7" y="355" width="36.0" height="16" rx="2" fill="#6b7280" fill-opacity="0.9"/>
+<text x="970" y="367" class="m" text-anchor="end">79 B</text>
+<text x="350" y="399" class="m"> 590  10</text>
+<text x="452" y="399" class="t">limit = 5</text>
+<rect x="640" y="387" width="270" height="16" rx="2" fill="#8a909a" fill-opacity="0.12"/>
+<rect x="909.1" y="387" width="3.0" height="16" rx="2" fill="#3a5f96" fill-opacity="0.9"/>
+<text x="970" y="399" class="m" text-anchor="end">2 B</text>
+<text x="350" y="430" class="t">Each bar is the byte range of the field in the serialized Plan.</text>
+<text x="350" y="450" class="t">Grey: the Python call site (origin) that the client adds to an expression.</text>
+<text x="350" y="470" class="t">All call sites in the plan are 405 of the 592 bytes.</text>
+</svg>

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" font-family="Inter, 'DM Sans', Helvetica, Arial, sans-serif">
+  <style>
+    .h{font-size:22px;font-weight:700;fill:#8a909a}
+    .t{font-size:15px;fill:#8a909a}
+    .w{font-size:15px;fill:#ffffff;font-weight:600}
+    .ws{font-size:12.5px;fill:#ffffff}
+    .m{font-size:13px;fill:#8a909a;font-family:'JetBrains Mono',Menlo,monospace}
+    .host{fill:none;stroke:#8a909a;stroke-width:1.5;stroke-dasharray:6 5}
+    .you{fill:#3a5f96}
+    .jvm{fill:#c0661a}
+    .ex{fill:#6b7280}
+    .ln{stroke:#8a909a;stroke-width:2;fill:none}
+  </style>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a909a"/></marker></defs>
+  <text x="230" y="30" class="h" text-anchor="middle">Spark Classic</text>
+  <text x="720" y="30" class="h" text-anchor="middle">Spark Connect</text>
+  <!-- classic -->
+  <rect x="30" y="48" width="400" height="290" rx="10" class="host"/>
+  <text x="44" y="70" class="t">one process tree on your machine</text>
+  <rect x="70" y="84" width="320" height="70" rx="8" class="you"/>
+  <text x="230" y="112" class="w" text-anchor="middle">Python process: your code</text>
+  <text x="230" y="134" class="ws" text-anchor="middle">pyspark/ 484 MB, with 462 MB of jars</text>
+  <path d="M230 154 V204" class="ln" marker-end="url(#a)"/>
+  <text x="240" y="184" class="t">Py4J, local socket</text>
+  <rect x="70" y="208" width="320" height="110" rx="8" class="jvm"/>
+  <text x="230" y="236" class="w" text-anchor="middle">driver JVM (a child process)</text>
+  <text x="230" y="258" class="ws" text-anchor="middle">SparkContext, analyzer, optimizer, scheduler</text>
+  <text x="230" y="278" class="ws" text-anchor="middle">catalogs, credentials, jars</text>
+  <text x="230" y="302" class="ws" text-anchor="middle">client tree RSS: 864 MB</text>
+  <path d="M230 338 V378" class="ln" marker-end="url(#a)"/>
+  <rect x="60" y="382" width="100" height="40" rx="6" class="ex"/><text x="110" y="407" class="ws" text-anchor="middle">executor</text>
+  <rect x="180" y="382" width="100" height="40" rx="6" class="ex"/><text x="230" y="407" class="ws" text-anchor="middle">executor</text>
+  <rect x="300" y="382" width="100" height="40" rx="6" class="ex"/><text x="350" y="407" class="ws" text-anchor="middle">executor</text>
+  <text x="230" y="452" class="t" text-anchor="middle">kill the Python process: the driver stops too</text>
+  <!-- connect -->
+  <rect x="520" y="48" width="400" height="110" rx="10" class="host"/>
+  <text x="534" y="70" class="t">your machine, notebook, service or agent</text>
+  <rect x="560" y="80" width="320" height="66" rx="8" class="you"/>
+  <text x="720" y="106" class="w" text-anchor="middle">Python process: your code, no JVM</text>
+  <text x="720" y="128" class="ws" text-anchor="middle">pyspark-client: pyspark/ 11 MB, RSS 136 MB</text>
+  <path d="M720 158 V204" class="ln" marker-end="url(#a)"/>
+  <text x="730" y="178" class="t">gRPC: plan out (protobuf)</text>
+  <text x="730" y="196" class="t">Arrow batches back</text>
+  <rect x="520" y="208" width="400" height="130" rx="10" class="host"/>
+  <text x="534" y="228" class="t">server host</text>
+  <rect x="560" y="236" width="320" height="90" rx="8" class="jvm"/>
+  <text x="720" y="262" class="w" text-anchor="middle">Connect server = the driver</text>
+  <text x="720" y="284" class="ws" text-anchor="middle">one session per client, analyzer, optimizer</text>
+  <text x="720" y="304" class="ws" text-anchor="middle">scheduler, catalogs, credentials, jars</text>
+  <path d="M720 338 V378" class="ln" marker-end="url(#a)"/>
+  <rect x="550" y="382" width="100" height="40" rx="6" class="ex"/><text x="600" y="407" class="ws" text-anchor="middle">executor</text>
+  <rect x="670" y="382" width="100" height="40" rx="6" class="ex"/><text x="720" y="407" class="ws" text-anchor="middle">executor</text>
+  <rect x="790" y="382" width="100" height="40" rx="6" class="ex"/><text x="840" y="407" class="ws" text-anchor="middle">executor</text>
+  <text x="720" y="452" class="t" text-anchor="middle">kill the client: the server and its other sessions continue</text>
+</svg>

@@ -29,6 +29,19 @@ def compact(msg):
     return msg
 
 
+def strip(msg, name):
+    """Clear every field called name, at any depth."""
+    from google.protobuf.message import Message
+    for field, value in msg.ListFields():
+        if field.name == name:
+            msg.ClearField(name)
+            continue
+        for v in (value if getattr(field, "is_repeated", False) else [value]):
+            if isinstance(v, Message):
+                strip(v, name)
+    return msg
+
+
 def tree(rel, depth=0):
     """The relations of a plan, one per line, with the expressions that each one holds."""
     kind = rel.WhichOneof("rel_type")
@@ -121,7 +134,9 @@ with SparkSession.builder.remote(f"sc://localhost:{PORT}").create() as spark:
     print(compact(small))
 
     raw = plan.SerializeToString()
-    print(f"== 3. The same plan as bytes: {len(raw)} bytes, field by field")
+    bare = pb.Plan(); bare.CopyFrom(plan); strip(bare, "origin")
+    print(f"== 3. The same plan as bytes: {len(raw)} bytes, field by field"
+          f" ({len(bare.SerializeToString())} bytes without the Python call sites in `origin`)")
     walk(raw, pb.Plan.DESCRIPTOR, max_depth=6)
 
 # What the proxy saw: the request around the plan, and the first Arrow batch that came back.
