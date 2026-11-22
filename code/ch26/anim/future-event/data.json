@@ -1,0 +1,7 @@
+{"source": "code/ch26/output/m4_naive.txt and m4_defended.txt; drop time ranges from the chapter's data table",
+ "drops": [{"drop": 1, "from": "09:00", "to": "09:12", "events": 10}, {"drop": 2, "from": "09:10", "to": "09:24", "events": 16},
+           {"drop": 3, "from": "09:25", "to": "09:37", "events": 10}, {"drop": 4, "from": "09:38", "to": "09:51", "events": 10}],
+ "future_event": {"id": "e903", "ts": "2026-10-06T09:22:00"},
+ "naive_watermark_after_drop": {"1": "10-05 09:02", "2": "10-06 09:12"}, "naive_late": {"3": "10 of 10", "4": "10 of 10"},
+ "sessions_written": {"naive": 5, "defended": 7},
+ "event_positions": "schematic (spread evenly inside each drop's time range)", "timing": "schematic"}

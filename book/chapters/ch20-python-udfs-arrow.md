@@ -111,11 +111,15 @@ def band(fare):
     else:
         return "under $10" if fare < 10 else "$10 to $30" if fare < 30 else "over $30"
 
-band_arrow = F.udf(band, "string")                     # Arrow by default in 4.3
-band_pickled = F.udf(band, "string", useArrow=False)   # rows pickled to the worker
+band_arrow = F.udf(band, "string")                     # (1)!
+band_pickled = F.udf(band, "string", useArrow=False)   # (2)!
 spark.conf.set("spark.sql.experimental.optimizer.transpilePyUDFs", "true")
-band_transpiled = F.udf(band, "string", useArrow=False)   # read and lowered when it is created
+band_transpiled = F.udf(band, "string", useArrow=False)   # (3)!
 ```
+
+1. Arrow by default in 4.3. The plan node is `ArrowEvalPython`.
+2. Rows pickled to the worker. The plan node is `BatchEvalPython`.
+3. PySpark reads the source and lowers it to Catalyst expressions when it creates the UDF. The setting must be on before this line.
 
 ```text
 3,837,248 trips, 16 cores; noop write; median of 5 runs after a warm-up
@@ -129,6 +133,12 @@ built-in when()         none                          0.31         1.0x
 
 all variants give the same bands and counts: True
 ```
+
+<figure markdown>
+  ![Time of the rule in five forms](../media/figures/ch20-bench-light.svg#only-light)
+  ![Time of the rule in five forms](../media/figures/ch20-bench-dark.svg#only-dark)
+  <figcaption>The medians from <code>bench.txt</code>. The two forms without a Python node take about 0.3 s. The three forms with a Python node take 2.1 to 3.0 times as long.</figcaption>
+</figure>
 
 All five variants gave the same bands and the same counts. The times split into two groups:
 
@@ -288,6 +298,12 @@ the physical plan of the filter case:
   +- FileScan parquet [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distanc
 ```
 
+<figure markdown>
+  ![Two Python nodes in the filter plan](../media/figures/ch20-calls-light.svg#only-light)
+  ![Two Python nodes in the filter plan](../media/figures/ch20-calls-dark.svg#only-dark)
+  <figcaption>The plan of the filter case from <code>calls.txt</code>. The lower node calls the UDF for each of the 1,000 rows. The upper node calls it again for the 410 rows that pass.</figcaption>
+</figure>
+
 - **`asNondeterministic()` stops the copy.** The optimizer does not duplicate or move a nondeterministic expression, so the UDF runs once for each row. Use it for a UDF that is expensive or that has side effects. It also blocks other optimizations, so use it only when the double call costs more than they save.
 - **Each action runs the UDF again.** Two `collect()` calls on one DataFrame make 2,000 calls. A `cache()` between them makes 1,000 calls, because the second action reads the cache.
 - **`count()` can skip the UDF.** A count does not need the `big` column, so column pruning removes the UDF from the plan. The UDF never runs. A UDF with a side effect, such as a call to a web service, is not a safe way to make that side effect occur.
@@ -329,6 +345,12 @@ Arrow batches into a pandas UDF, June trips (fare_amount only):
 defaults: {'maxRecordsPerBatch': '10000', 'maxBytesPerBatch': '67108864b', 'columnarInput.enabled': 'true', 'columnarReaderBatchSize': '4096'}
 ```
 
+<figure markdown>
+  ![Arrow batch sizes for each setting](../media/figures/ch20-batches-light.svg#only-light)
+  ![Arrow batch sizes for each setting](../media/figures/ch20-batches-dark.svg#only-dark)
+  <figcaption>The batch sizes from <code>arrow_batches.txt</code>. With columnar input, the Parquet batch size sets the size. Without it, <code>maxRecordsPerBatch</code> and <code>maxBytesPerBatch</code> set the size. The last batch of each run is smaller.</figcaption>
+</figure>
+
 The documented batch size, `spark.sql.execution.arrow.maxRecordsPerBatch` (10,000), did not apply. The batches had 4,096 rows, and a change to `maxRecordsPerBatch` had no effect. The reason is a newer path in the executor:
 
 - `spark.sql.execution.arrow.pythonUDF.columnarInput.enabled` (new in 4.2, default `true`) lets `ArrowEvalPythonExec` take columnar batches directly from the operator below it (`ArrowEvalPythonExec.supportsColumnar`).
@@ -336,6 +358,13 @@ The documented batch size, `spark.sql.execution.arrow.maxRecordsPerBatch` (10,00
 - In `ColumnarArrowEvalPythonEvaluatorFactory`, each input batch goes to Python as one Arrow batch when the UDF arguments are plain columns. Thus, the Parquet batch size sets the Python batch size.
 
 The output proves each part. With `columnarReaderBatchSize=20000`, the batches had 20,000 rows. With columnar input off, the batches had 10,000 rows, which is the `maxRecordsPerBatch` default, and `maxRecordsPerBatch=50000` then gave 50,000 rows. `maxBytesPerBatch` sets a limit in bytes. With `maxRecordsPerBatch=0` (no limit by records) and 1 MiB, the batches of one `double` column had 129,056 rows.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch20-anim-arrow-batches.webp">
+    <source src="../../media/clips/ch20-anim-arrow-batches.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the Parquet reader gives the task batches of 4,096 rows. Each batch goes to the Python worker as one Arrow batch, and the pandas UDF runs one time for each batch. The batch counts come from <code>arrow_batches.txt</code>. The timing is schematic.</figcaption>
+</figure>
 
 `maxRecordsPerBatch=-1` failed with `NegativeArraySizeException` on this columnar path. The documentation of the setting says that a negative value means no limit. Use `0` for no limit.
 

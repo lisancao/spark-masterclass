@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from data.json (arrow_batches.txt). Timing is schematic.
+      // beat open (0.0): the task in the JVM, the Python worker, the socket between them
+      A.title("Arrow batches to a Python worker", "a pandas UDF on the June trips, default settings");
+      const diag0 = A.root.children.length;
+      const jvm = A.box({ x: 0.22, y: 0.47, w: 560, h: 420, kind: "ghost", radius: 18 });
+      const py = A.box({ x: 0.78, y: 0.47, w: 560, h: 420, kind: "ghost", radius: 18 });
+      A.text("executor JVM: one task", { x: 0.22, y: 0.47 - A.dy(240), size: 32, weight: 600 });
+      A.text("Python worker", { x: 0.78, y: 0.47 - A.dy(240), size: 32, weight: 600 });
+      const reader = A.box({ x: 0.14, y: 0.47, w: 190, h: 300, kind: "soft", title: "Parquet<br>reader", size: 28 });
+      const fn = A.box({ x: 0.82, y: 0.47, w: 260, h: 150, kind: "ok", title: "batch_rows(fare)", sub: "pandas UDF", size: 28 });
+      A.line({ x1: 0.36, y1: 0.47, x2: 0.64, y2: 0.47, color: "var(--a-line)", width: 4 });
+      A.text("local socket", { x: 0.5, y: 0.47 + A.dy(36), size: 24, color: "var(--a-mute)" });
+      const diag1 = A.root.children.length;
+      cap("The Parquet reader gives the task batches of 4,096 rows", 0.2, 4.7);
+      // a batch = a tall bar with its row count
+      const batch = (t, back) => {
+        const b = A.el(`<div style="font-size:${A.px(20)}px;color:var(--a-bg);font-weight:700;writing-mode:vertical-rl">4,096</div>`,
+          { x: 0.25, y: 0.47, css: { width: A.px(46) + "px", height: A.px(170) + "px", background: "var(--a-acc)", borderRadius: A.px(6) + "px",
+          display: "flex", alignItems: "center", justifyContent: "center", opacity: 0 } });
+        A.tl.set(b, { opacity: 1 }, t);
+        A.tl.to(b, { x: A.X(0.70 - 0.25), duration: 1.0, ease: "power1.inOut" }, t);
+        A.tl.fromTo(fn, { scale: 1.08 }, { scale: 1, duration: 0.35 }, t + 1.0);
+        A.tl.set(b, { opacity: 0 }, t + 1.05);
+        if (back) {
+          const r = A.el("", { x: 0.70, y: 0.47 + A.dy(120), css: { width: A.px(46) + "px", height: A.px(60) + "px", background: "var(--a-ok)",
+            borderRadius: A.px(6) + "px", opacity: 0 } });
+          A.tl.set(r, { opacity: 1 }, t + 1.4);
+          A.tl.to(r, { x: -A.X(0.70 - 0.30), duration: 1.0, ease: "power1.inOut" }, t + 1.4);
+          A.tl.to(r, { opacity: 0, duration: 0.2 }, t + 2.4);
+        }
+      };
+      // beat cross (4.8): one batch goes over and its results come back
+      batch(5.0, true);
+      cap("Each batch crosses to the worker as one Arrow batch", 4.8, 9.5);
+      // beat once (9.6): many batches, one call each
+      for (let i = 0; i < 6; i++) batch(9.7 + i * 0.75, true);
+      const once = A.text("one call per batch", { x: 0.82, y: 0.47 + A.dy(120), size: 26, color: "var(--a-ok)", weight: 600 });
+      A.in(once, 10.0);
+      cap("The pandas UDF runs once per batch, not once per row", 9.6, 14.3);
+      // beat result (14.4): the measured batch counts
+      A.out([once], 14.4);
+      const tab = A.table(["setting", "rows per batch", "batches"],
+        [["defaults (columnar input)", "4,096", "937"], ["columnarInput=false", "10,000", "385"]], { x: 0.5, y: 0.47, w: 900, size: 30, hi: 0 });
+      A.out(Array.from(A.root.children).slice(diag0, diag1), 14.4);
+      A.root.appendChild(tab); gsap.set(tab, { opacity: 0 }); A.in(tab, 14.6);
+      cap("The Parquet batch size sets the Python batch size", 14.4);
+      A.in(A.note("batch counts from arrow_batches.txt (the last default batch has 3,392 rows); timing schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>

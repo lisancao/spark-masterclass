@@ -206,6 +206,13 @@ Compare the two plans from the bottom to the top:
 - **`AdaptiveSparkPlan` is still at the top.** AQE wraps a plan that contains an operator with a required distribution. The aggregate and the sort have one, so AQE still wraps the plan. But the final plan has one query stage, `ResultQueryStage 0`, and AQE has nothing to change in it. [Chapter 18](ch18-query-plans.md) gives the rule.
 - **Whole-stage codegen joins all the operators.** With the setting on, the scan, the aggregate and the sort are all in codegen stage `*(1)`. With the setting off, each shuffle starts a new codegen stage, `*(1)` to `*(3)`.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch23-anim-single-task.webp">
+    <source src="../../media/clips/ch23-anim-single-task.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the plan of the zones query with the setting off and on. The scan reports one partition, so the two `Exchange` nodes and the partial aggregate go away. The counts and the durations come from `plans_aqe.txt`. The timing is schematic.</figcaption>
+</figure>
+
 ```mermaid
 flowchart LR
   classDef scan fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
@@ -232,7 +239,15 @@ The plan change has a direct effect on the records of the Spark UI. The end of e
 -- SQL tab: execution 5, jobs [6], duration 340 ms
 ```
 
-With the setting off, one `collect()` became four jobs with one stage each, and the shuffles wrote 1,172 bytes. With the setting on, the same `collect()` became one job, one stage and one task, and the shuffle wrote nothing. In the **SQL / DataFrame** tab, the query has one job ID instead of four. The plan graph of the query has no `Exchange` boxes, and no `AQEShuffleRead` boxes.
+With the setting off, one `collect()` became four jobs with one stage each, and the shuffles wrote 1,172 bytes. With the setting on, the same `collect()` became one job, one stage and one task, and the shuffle wrote nothing.
+
+<figure markdown>
+  ![Jobs of one collect(), off and on](../media/figures/ch23-jobs-light.svg#only-light)
+  ![Jobs of one collect(), off and on](../media/figures/ch23-jobs-dark.svg#only-dark)
+  <figcaption markdown="span">The UI records of one `collect()` from `plans_aqe.txt`. With the setting on, the query is one job with one stage and one task.</figcaption>
+</figure>
+
+In the **SQL / DataFrame** tab, the query has one job ID instead of four. The plan graph of the query has no `Exchange` boxes, and no `AQEShuffleRead` boxes.
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch23-feather.webp">
@@ -298,6 +313,12 @@ cores: 16; runs per cell: 5 after a warm-up; times are medians in ms
  3,837,248   62.4  aggregate       230      334    1.45
  3,837,248   62.4  window          804     4438    5.52
 ```
+
+<figure markdown>
+  ![On/off ratio by file size](../media/figures/ch23-crossover-light.svg#only-light)
+  ![On/off ratio by file size](../media/figures/ch23-crossover-dark.svg#only-dark)
+  <figcaption markdown="span">The ratio column of `crossover.txt`. Below the line at 1, single-task execution is faster. The window crosses the line first.</figcaption>
+</figure>
 
 ```mermaid
 flowchart LR
@@ -399,6 +420,12 @@ default         3,837,248     1.7       102.1       114  DefaultCachedBatchSeria
 Arrow           3,837,248     1.3       149.5       132  ArrowCachedBatchSerializer
 Arrow, zstd     3,837,248     1.5        35.6       157  ArrowCachedBatchSerializer
 ```
+
+<figure markdown>
+  ![Memory of the cache for each serializer](../media/figures/ch23-arrowcache-light.svg#only-light)
+  ![Memory of the cache for each serializer](../media/figures/ch23-arrowcache-dark.svg#only-dark)
+  <figcaption markdown="span">The cache sizes and times from `arrow_cache.txt`. With `zstd`, the Arrow cache is the smallest.</figcaption>
+</figure>
 
 - **Without compression, the Arrow cache was larger.** It used 149.5 MiB for six columns of the June trips, and the default cache used 102.1 MiB. The default serializer compresses each column with simple encodings. Arrow stores plain buffers.
 - **With `zstd`, the Arrow cache was the smallest**, 35.6 MiB. `spark.sql.execution.arrow.compression.codec` is `none` by default, and it accepts `zstd` and `lz4`.

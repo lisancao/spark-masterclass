@@ -402,6 +402,14 @@ hourly: 8 engine operators, 0 Spark operators, 1 transitions
   <figcaption>The <code>hourly</code> query with the RAPIDS Accelerator 26.10.0 on Spark 4.2.0 and an RTX 5070 Ti. Each operator has a <code>Gpu</code> name, and the only transition is at the top.</figcaption>
 </figure>
 
+The figure puts the five plans of `hourly` side by side. It also has the Auron plan from Step 8:
+
+<figure markdown>
+  ![Operators of hourly per engine](../media/figures/ch24-plans-light.svg#only-light)
+  ![Operators of hourly per engine](../media/figures/ch24-plans-dark.svg#only-dark)
+  <figcaption markdown="span">The operators that ran for `hourly`, from `plans-*.txt`, without the glue nodes. Each engine replaces all the operators of the CPU plan. Each plan has at most one transition.</figcaption>
+</figure>
+
 The three plans have the same shape as the CPU plan. Each engine replaced each operator with its own version. In each plan, there is only one transition, at the top. The result must go to the driver as rows, so the last operator changes the batches into rows.
 
 The names tell you what each engine does:
@@ -422,6 +430,13 @@ flowchart BT
     b1["native scan"]:::eng --> b3["filter, project,<br/>aggregate (batches)"]:::eng --> b4["columnar shuffle"]:::eng --> b5["aggregate, sort"]:::eng --> b6["ColumnarToRow<br/>(to the driver)"]:::tr
   end
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch24-anim-transitions.webp">
+    <source src="../../media/clips/ch24-anim-transitions.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the batches of the `hourly` query on the CPU and on Gluten. On the CPU, the batches become rows above the scan. On Gluten, they become rows only at the top. The operator counts come from `plans-cpu.txt` and `plans-gluten.txt`. The animation shows fewer operators than the plans, and its time scale is schematic.</figcaption>
+</figure>
 
 ## Step 5: What falls back to the JVM, and how to see it
 
@@ -913,6 +928,12 @@ cpu    4.1.1      6437      3217              0         0
 gluten 4.1.1      1809       583            440         0
 ```
 
+<figure markdown>
+  ![Speed-up of each engine in two passes](../media/figures/ch24-speedups-light.svg#only-light)
+  ![Speed-up of each engine in two passes](../media/figures/ch24-speedups-dark.svg#only-dark)
+  <figcaption markdown="span">The speed-ups from `bench_table.txt`. The open circle is pass 1, and the full circle is pass 2. A long line shows a large difference between the two passes.</figcaption>
+</figure>
+
 Read the table in this sequence:
 
 1. **Compare the two passes of the CPU first.** On Spark 4.2.0, `hourly` took 1.30 seconds in pass 1 and 0.42 seconds in pass 2. This difference comes from the load of the machine, not from Spark. It is larger than most of the differences between engines.
@@ -944,6 +965,12 @@ rapids on Spark 4.2.0, boroughs:
 The CPU gives `2.506` for the average tip in Manhattan, and the GPU gives `2.5060000000000002`. The two values are the nearest doubles to two slightly different results of `round`. If your tests compare `DOUBLE` values exactly, they will find differences like this one.
 
 The memory columns show where each engine keeps its data. With the CPU, the peak of the JVM heap was 3,217 to 4,602 MiB. With each engine, the peak of the heap was 1,553 MiB or less, because the engine keeps its batches outside the heap. Spark counted 440 MiB of off-heap execution memory for Gluten and 243 MiB for Comet. Auron does not use Spark's off-heap pool, so its column shows 0. The RSS (the memory of the whole process, also native memory) was lower too.
+
+<figure markdown>
+  ![Peak JVM heap of each engine](../media/figures/ch24-memory-light.svg#only-light)
+  ![Peak JVM heap of each engine](../media/figures/ch24-memory-dark.svg#only-dark)
+  <figcaption markdown="span">The peak memory in pass 2 from `bench_table.txt`. Each engine keeps a smaller JVM heap than the CPU baseline on the same Spark version.</figcaption>
+</figure>
 
 But the JVM heap grows only when it must. These numbers show where the data was, not the minimum memory that each engine needs. The GPU pool of the RAPIDS Accelerator was 9,356 MiB in pass 2, because the other program used part of the GPU.
 

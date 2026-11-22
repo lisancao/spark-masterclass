@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from data.json (skipping.txt, layout C). File and row-group ranges are schematic. Timing schematic.
+      // beat open (0.0): eight files with their user_id ranges, and the pushed filter
+      A.title("How the Parquet reader skips data", "layout C: sorted by user_id, 1 MB row groups, 2,000,000 rows");
+      const flt = A.code("PushedFilters: [EqualTo(user_id,16073)]", { x: 0.5, y: 0.25, w: 900, size: 30 });
+      const files = [];
+      for (let i = 0; i < 8; i++) {
+        const lo = i * 2500, hi = lo + 2499;
+        files.push(A.box({ x: 0.08 + i * 0.12, y: 0.42, w: 200, h: 110, kind: i === 6 ? "accent" : "soft", title: `file ${i + 1}`, sub: `${lo}-${hi}`, size: 28 }));
+      }
+      cap("The filter user_id = 16073 goes to the Parquet reader", 0.2, 4.7);
+      // beat files (4.8): footer statistics rule out seven files
+      files.forEach((f, i) => { if (i !== 6) A.tl.to(f, { opacity: 0.18, duration: 0.4 }, 5.0 + i * 0.15); });
+      cap("The footer min and max rule out seven of the eight files", 4.8, 9.5);
+      // beat groups (9.6): the row groups of the last file
+      const rgs = [];
+      for (let k = 0; k < 17; k++) {
+        const lo = 15000 + k * 147;
+        rgs.push(A.box({ x: 0.06 + k * 0.0553, y: 0.64, w: 98, h: 96, kind: k === 7 ? "accent" : "soft", title: `${lo}`, sub: `rg ${k}`, size: 21, radius: 8 }));
+      }
+      A.in(rgs, 9.7, { stagger: 0.04, dur: 0.3 });
+      rgs.forEach((r, k) => { if (k !== 7) A.tl.to(r, { opacity: 0.18, duration: 0.3 }, 11.4 + Math.abs(k - 7) * 0.12); });
+      A.in(A.text("row groups of file 7, with the lowest user_id of each", { x: 0.5, y: 0.64 - A.dy(80), size: 26, color: "var(--a-mute)" }), 9.7);
+      cap("Narrow row-group ranges let the reader skip all but one", 9.6, 14.3);
+      // beat result (14.4): one row group read
+      const res = A.text("rows returned: 15,360 of 2,000,000", { x: 0.5, y: 0.78, size: 40, weight: 700, color: "var(--a-acc)" });
+      A.in(res, 14.6);
+      cap("The reader decodes one row group, and the Filter removes the rest", 14.4);
+      A.in(A.note("row count from skipping.txt; file and row-group ranges schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>

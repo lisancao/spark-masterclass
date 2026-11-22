@@ -146,6 +146,13 @@ gantt
 
 The diagram is schematic, not measured. It shows the shape: micro-batch stages run in sequence for each batch, and Real-time stages run side by side for the full batch.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch28-anim-pipelined.webp">
+    <source src="../../media/clips/ch28-anim-pipelined.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the count for each user in the two engines. In micro-batch mode, the records wait, and the two stages run one after the other. In Real-time Mode, the seven tasks run for the whole batch, and each record goes through the pipelined shuffle. The task counts come from `r4_pipeline.txt` and the medians from `r2_latency.txt`. The time scale is schematic.</figcaption>
+</figure>
+
 This design has a cost in cores. Each task holds its core for the full batch. The query above needs 4 cores for the scan and 3 cores for the aggregation, 7 in total, for as long as it runs. If the cluster has fewer free cores, the query cannot make progress. Run one Real-time query on a cluster, and size the cluster for the sum of the source partitions and the shuffle partitions.
 
 The checkpoint of the query shows the state configuration that Real-time Mode applied:
@@ -222,6 +229,12 @@ The medians over the three runs:
 | running count | micro-batch | 276 ms | 759 ms | 3296 to 3743 |
 | running count | Real-time Mode | 28 ms | 195 ms | 4000 |
 
+<figure markdown>
+  ![Latency of the two engines](../media/figures/ch28-latency-light.svg#only-light)
+  ![Latency of the two engines](../media/figures/ch28-latency-dark.svg#only-dark)
+  <figcaption markdown="span">The medians of the table on a log scale. The full circle is p50, and the open circle is p99.</figcaption>
+</figure>
+
 The numbers show four results:
 
 - **Real-time Mode removed most of the latency.** For the pass-through query, the median went from about 100 ms to 1 ms. Kafka timestamps have a resolution of 1 ms, so 1 ms is at the limit of this measurement.
@@ -269,6 +282,12 @@ spark.buffer.size = 64: one record a second, 20 s Real-time batches
   record  8  reached Python after   5230 ms
   record  9  reached Python after   4230 ms
 ```
+
+<figure markdown>
+  ![When records reach the Python writer](../media/figures/ch28-foreach-light.svg#only-light)
+  ![When records reach the Python writer](../media/figures/ch28-foreach-dark.svg#only-dark)
+  <figcaption markdown="span">The two runs of `r3_foreach.py` on one time line. With the default buffer, all records reach Python near the end. With a buffer of 64 bytes, they reach Python in groups of 1, 2, 4 and 3.</figcaption>
+</figure>
 
 The records now arrive in groups. Record 0 arrived alone after 121 ms. Records 1 and 2 arrived together, records 3 to 6 arrived together, and records 7 to 9 arrived together. Each record of a group waited for the last record of its group. The groups have the sizes 1, 2 and 4, as the pickler doubles its batch size. A smaller buffer does not remove the delay, but it changes the shape of the delay.
 
