@@ -1,0 +1,31 @@
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -v -E '^  File|^    ' | tail -8 | cut -c1-200; echo "exit code: ${PIPESTATUS[0]}"
+2026-11-22 10:16:31: Registering graph elements...
+2026-11-22 10:16:31: Loading definitions. Root directory: '~/spark-masterclass/data/work/sdp/ch78x/taxi_etl'.
+2026-11-22 10:16:31: Found 3 files matching glob 'transformations/**/*'
+2026-11-22 10:16:31: Registering SQL file ~/spark-masterclass/data/work/sdp/ch78x/taxi_etl/transformations/borough_daily.sql...
+2026-11-22 10:16:31: Registering SQL file ~/spark-masterclass/data/work/sdp/ch78x/taxi_etl/transformations/clean_trips.sql...
+2026-11-22 10:16:31: Importing ~/spark-masterclass/data/work/sdp/ch78x/taxi_etl/transformations/raw.py...
+Traceback (most recent call last):
+pyspark.errors.exceptions.connect.AnalysisException: [PATH_NOT_FOUND] Path does not exist: data/trips. SQLSTATE: 42K03
+exit code: 1
+$ ls ../elsewhere
+connect-server.log
+derby.log
+metastore_db
+$ grep -n "data/" transformations/raw.py
+15:    return spark.readStream.schema(TRIP_SCHEMA).parquet("~/spark-masterclass/data/work/sdp/ch78x/taxi_etl/data/trips")
+22:            .csv("~/spark-masterclass/data/work/sdp/ch78x/taxi_etl/data/taxi_zone_lookup.csv"))
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Run is'; echo "exit code: ${PIPESTATUS[0]}"
+2026-11-22 18:16:45: Run is COMPLETED.
+exit code: 0
+$ ls ../elsewhere ../elsewhere/spark-warehouse
+../elsewhere:
+connect-server.log
+derby.log
+metastore_db
+spark-warehouse
+../elsewhere/spark-warehouse:
+borough_daily
+clean_trips
+raw_trips
+zones

@@ -1,0 +1,26 @@
+$ cat transformations/conf_test.py
+from pyspark import pipelines as dp
+from pyspark.sql import DataFrame
+@dp.materialized_view(spark_conf={"spark.sql.shuffle.partitions": "2"})
+def by_zone_decorator() -> DataFrame:
+    return spark.table("clean_trips").groupBy("pickup_zone").count()
+@dp.materialized_view
+def by_zone_plain() -> DataFrame:
+    return spark.table("clean_trips").groupBy("pickup_zone").count()
+$ tail -2 spark-pipeline.yml
+configuration:
+  spark.sql.adaptive.enabled: "false"
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Run is|Exception'
+2026-11-22 18:38:54: Run is COMPLETED.
+$ files by_zone_decorator by_zone_plain
+by_zone_decorator  140 part files
+by_zone_plain      140 part files
+$ tail -3 spark-pipeline.yml
+configuration:
+  spark.sql.adaptive.enabled: "false"
+  spark.sql.shuffle.partitions: "3"
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Run is|Exception'
+2026-11-22 18:39:13: Run is COMPLETED.
+$ files by_zone_decorator by_zone_plain
+by_zone_decorator  3 part files
+by_zone_plain      3 part files

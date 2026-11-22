@@ -1,0 +1,11 @@
+$ echo '  spark.sql.catalogImplementation: "in-memory"' >> spark-pipeline.yml && tail -1 spark-pipeline.yml
+  spark.sql.catalogImplementation: "in-memory"
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E '^probe: spark.sql.catalog|Failed|Error|Exception|Run is' | sed -E 's/^[0-9-]+ [0-9:]+: //' | cut -c1-150 | uniq -c
+      1 ~/spark-masterclass/data/work/sdp/venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/conf.py:61: UserWarning
+      1 probe: spark.sql.catalogImplementation = hive
+      9 Error: [CANNOT_MODIFY_STATIC_CONFIG] Cannot modify the value of the static Spark config: "spark.sql.catalogImplementation". SQLSTATE: 46110
+      1 pyspark.errors.exceptions.connect.AnalysisException: [CANNOT_MODIFY_STATIC_CONFIG] Cannot modify the value of the static Spark config: "spark.sql.cata
+$ files borough_daily zones_by_borough
+borough_daily      0 part files
+zones_by_borough   0 part files
+$ sed -i '/catalogImplementation/d' spark-pipeline.yml

@@ -1,0 +1,8 @@
+$ spark-pipelines --remote sc://localhost:15104 --conf spark.sql.shuffle.partitions=8 --verbose dry-run 2>&1 | grep -A6 -E '^Main class:' | cut -c1-120
+Main class:
+org.apache.spark.deploy.PythonRunner
+Arguments:
+file:~/spark-masterclass/data/work/sdp/venv/lib/python3.12/site-packages/pyspark/pipelines/cli.py
+null
+dry-run
+Spark config:

@@ -1,0 +1,15 @@
+$ mkdir -p transformations/sub && cd transformations/sub
+$ spark-pipelines --conf spark.ui.port=4144 run 2>&1 | grep -E 'Loading pipeline spec|Exception|Run is' | cut -c1-160
+2026-11-22 10:17:03: Loading pipeline spec from ~/spark-masterclass/data/work/sdp/ch78l/taxi_etl/spark-pipeline.yml...
+pyspark.errors.exceptions.connect.AnalysisException: [PATH_NOT_FOUND] Path does not exist: data/trips. SQLSTATE: 42K03
+$ cd ../..
+$ spark-pipelines --conf spark.ui.port=4144 --conf spark.sql.catalogImplementation=hive run 2>&1 | grep -E 'Exception|Run is' | cut -c1-160
+2026-11-22 18:18:02: Run is COMPLETED.
+$ ls
+data
+derby.log
+metastore_db
+pipeline-storage
+spark-pipeline.yml
+spark-warehouse
+transformations

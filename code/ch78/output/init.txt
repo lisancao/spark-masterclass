@@ -1,0 +1,9 @@
+$ spark-pipelines init --name demo
+Pipeline project 'demo' created successfully. To run your pipeline:
+cd 'demo'
+spark-pipelines run
+$ spark-pipelines init --name demo 2>&1 | tail -1; echo "exit code: ${PIPESTATUS[0]}"
+FileExistsError: Directory 'demo' already exists. Please choose a different name or remove the existing directory.
+exit code: 1
+$ spark-pipelines init 2>&1 | tail -1
+cli.py init: error: the following arguments are required: --name

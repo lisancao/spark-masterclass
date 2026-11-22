@@ -1,0 +1,26 @@
+$ spark-pipelines --remote sc://localhost:15104 --class Foo run 2>&1 | grep -E 'ERROR|class'; echo "exit code: ${PIPESTATUS[0]}"
+26/11/22 10:13:08 ERROR SparkPipelines: --class argument not supported.
+exit code: 1
+$ spark-pipelines --remote sc://localhost:15104 --conf spark.api.mode=classic run 2>&1 | grep -E 'ERROR'; echo "exit code: ${PIPESTATUS[0]}"
+26/11/22 10:13:09 ERROR SparkPipelines: spark.api.mode must be 'connect' (was 'classic'). Declarative Pipelines currently only supports Spark Connect.
+exit code: 1
+$ spark-pipelines --remote sc://localhost:15104 run --name nightly 2>&1 | tail -1; echo "exit code: ${PIPESTATUS[0]}"
+cli.py: error: unrecognized arguments: --name nightly
+exit code: 2
+$ spark-pipelines --remote sc://localhost:15104 run --refresh 2>&1 | tail -1
+cli.py run: error: argument --refresh: expected one argument
+$ spark-pipelines --remote sc://localhost:15104 --verbose dry-run 2>&1 | grep -E '^(Main class|Arguments|  |--remote|Spark config)' | head -14
+  master                  local[*]
+  remote                  sc://localhost:15104
+  deployMode              null
+  executorMemory          null
+  executorCores           null
+  totalExecutorCores      null
+  propertiesFile          null
+  extraPropertiesFiles    []
+  driverMemory            null
+  driverCores             null
+  driverExtraClassPath    null
+  driverExtraLibraryPath  null
+  driverExtraJavaOptions  null
+  supervise               false

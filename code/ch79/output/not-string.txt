@@ -1,0 +1,5 @@
+$ sed -i 's/"3"/3/' spark-pipeline.yml && grep shuffle spark-pipeline.yml
+  spark.sql.shuffle.partitions: 3
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | tail -1
+pyspark.errors.exceptions.base.PySparkTypeError: [PIPELINE_SPEC_DICT_VALUE_NOT_STRING] For pipeline spec field `configuration`, value for key `spark.sql.shuffle.partitions` should be a string, got int.
+$ sed -i 's/partitions: 3/partitions: "3"/' spark-pipeline.yml

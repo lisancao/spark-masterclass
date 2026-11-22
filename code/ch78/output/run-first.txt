@@ -1,0 +1,12 @@
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Run is'; echo "exit code: ${PIPESTATUS[0]}"
+2026-11-22 18:13:23: Run is COMPLETED.
+exit code: 0
+$ find pipeline-storage -maxdepth 5 -type d | sort
+pipeline-storage
+pipeline-storage/_checkpoints
+pipeline-storage/_checkpoints/spark_catalog
+pipeline-storage/_checkpoints/spark_catalog/default
+pipeline-storage/_checkpoints/spark_catalog/default/clean_trips
+pipeline-storage/_checkpoints/spark_catalog/default/clean_trips/clean_trips
+pipeline-storage/_checkpoints/spark_catalog/default/raw_trips
+pipeline-storage/_checkpoints/spark_catalog/default/raw_trips/raw_trips
