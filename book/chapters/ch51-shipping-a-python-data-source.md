@@ -339,7 +339,7 @@ The script reads the table again until it has the 12 rows. In this run, the firs
 - **`getCondition()` can give `None`.** Read the first `[CONDITION]` in the message as a second method.
 - **Collect worker logs into a table** with `spark.sql.pyspark.worker.logging.enabled` and `python_worker_logs()`. Set a log level, and do not use `print()` with more than one argument.
 
-This chapter ends the Python part of the API. [Chapter 52](../roadmap.md) builds a connector in Java. It uses the DataSource V2 interfaces, which are under the Python API.
+This chapter ends the Python part of the API. [Chapter 52](ch52-dsv2-connector-java.md) builds a connector in Java. It uses the DataSource V2 interfaces, which are under the Python API.
 
 ## Further reading
 
