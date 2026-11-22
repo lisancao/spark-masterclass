@@ -265,6 +265,21 @@ pyspark.errors.exceptions.connect.AnalysisException: [SCHEMA_NOT_FOUND] The sche
 
 Create each database before the first run, for example with `CREATE DATABASE IF NOT EXISTS` in a setup step. Pipeline SQL files cannot do it, because SDP accepts only pipeline statements in them ([Chapter 36](ch36-pipeline-end-to-end.md)).
 
+```mermaid
+sequenceDiagram
+  participant C as spark-pipelines (client)
+  participant S as Connect server
+  C->>C: read the spec
+  C->>S: new session, then set each configuration value (silent)
+  C->>S: CreateDataflowGraph (catalog, database, sql_conf)
+  S->>S: setCurrentCatalog, setCurrentDatabase
+  Note over S: SCHEMA_NOT_FOUND here if the database does not exist
+  C->>S: DefineOutput, DefineFlow (each with its spark_conf)
+  S->>S: flow conf = graph sql_conf, then the flow spark_conf
+  C->>S: StartRun (storage)
+  S->>S: each flow: withSqlConf(flow conf), analyze, write
+```
+
 The names in your code then need no catalog or database. `spark.table("zones")` and `FROM clean_trips` resolve in the default place. The checkpoint path also includes the catalog and the database: `_checkpoints/<catalog>/<database>/<table>/<flow>`.
 
 ## Step 7: One project, two environments

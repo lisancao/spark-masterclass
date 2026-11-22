@@ -31,6 +31,17 @@ Spark config:
 
 `spark-submit` runs `cli.py` with `PythonRunner`, the same class that runs any Python application. Only `dry-run` reached the Python CLI. The `--remote` and `--conf` options stayed with `spark-submit`.
 
+```mermaid
+flowchart LR
+  classDef sh fill:#4b5563,fill-opacity:0.72,stroke:#4b5563,color:#ffffff
+  classDef jvm fill:#c0661a,fill-opacity:0.72,stroke:#c0661a,color:#ffffff
+  classDef py fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
+  a["bin/spark-pipelines<br/>(bash)"]:::sh --> b["spark-class<br/>SparkPipelines"]:::jvm
+  b -->|"splitArgs"| c["SparkSubmit<br/>+ spark.api.mode=connect"]:::jvm
+  c --> d["PythonRunner"]:::jvm --> e["pipelines/cli.py<br/>run, dry-run, init"]:::py
+  e -->|"gRPC: CreateDataflowGraph,<br/>DefineOutput, DefineFlow, StartRun"| f["Spark Connect server<br/>(--remote, or a local one)"]:::jvm
+```
+
 <figure markdown>
   ![The command line goes to SparkPipelines. Spark options go to spark-submit. Pipeline options go to cli.py.](../media/figures/ch78-argument-split.svg)
   <figcaption>How <code>SparkPipelines</code> sorts the arguments. The rules come from <code>splitArgs</code> in <code>SparkPipelines.scala</code>. The position of an option on the command line is not important.</figcaption>
