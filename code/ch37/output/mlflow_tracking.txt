@@ -1,0 +1,25 @@
+mlflow 3.18.0 | tracking store: sqlite:///~/spark-masterclass/data/ch37/mlflow/mlflow.db
+logged run cf91a6bc  linear {}
+logged run 15f78af9  gbt    {'maxDepth': 4, 'maxIter': 40}
+logged run 80101491  gbt    {'maxDepth': 6, 'maxIter': 30}
+
+  run_id params.model params.maxDepth params.maxIter  metrics.rmse  metrics.mae  metrics.r2
+cf91a6bc       linear            None           None         6.988        4.144       0.838
+15f78af9          gbt               4             40         8.062        3.571       0.784
+80101491          gbt               6             30         8.120        3.490       0.781
+
+artifacts of the best run (cf91a6bc):
+   MLmodel
+   conda.yaml
+   input_example.json
+   python_env.yaml
+   requirements.txt
+   serving_input_example.json
+   sparkml/
+   sparkml/metadata/
+   sparkml/stages/
+
+MLmodel flavors: ['python_function', 'spark'] | spark flavor: {'model_class': 'pyspark.ml.pipeline.PipelineModel', 'model_data': 'sparkml', 'pyspark_version': '4.3.0'}
+signature inputs: [('trip_distance', 'DataType.double'), ('hour', 'DataType.double'), ('weekday', 'DataType.double'), ('pickup_zone', 'DataType.string'), ('dropoff_zone', 'DataType.string'), ('rate_code', 'DataType.string')]
+mlflow.spark.load_model -> PipelineModel with 6 stages
+mlflow.pyfunc.load_model(...).predict(5 rows) -> [9.64, 25.95, 8.32, 10.54, 10.71]

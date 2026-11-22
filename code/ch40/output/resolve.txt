@@ -1,0 +1,67 @@
+== 139 records: crm 55, shop 44, support 40
+   answer key: 62 people, 105 true pairs, 9,591 pairs in all
+   dropDuplicates(): 139 rows, on (name, email, phone): 137 rows
+
+== matching keys
++-------------+----------+-------------+-------------------+----------+
+|id           |name      |tokens       |email_key          |phone_key |
++-------------+----------+-------------+-------------------+----------+
+|crm:CRM-0001 |dev García|[dev, garcia]|dev.garcia@mail.com|9025556970|
+|shop:10001   |Dev García|[dev, garcia]|dev.garcia@mail.com|9025556970|
+|support:S-001|Dev Garca |[dev, garca] |dev.garcia@mail.com|9025556970|
++-------------+----------+-------------+-------------------+----------+
+
+   element_at(map, missing key) under ANSI: None | soundex('Đặng') = Đặng | soundex('Dang') = D520
+   levenshtein('garcia', 'garccia') = 1 | with threshold 0: -1
+   jaro_winkler('martha', 'marhta') = 0.9611, name_similarity(['an','nguyen','van'], ['an','nguyen']) = 0.8333
+
+== blocking: candidates and blocking recall
+   email                  75 pairs, finds  75 of 105 true pairs
+   phone                  78 pairs, finds  70 of 105 true pairs
+   soundex of a token    880 pairs, finds 105 of 105 true pairs
+   all three passes      882 pairs (9.2% of all), finds 105 of 105
+   largest soundex blocks:
+     C500   20 records  ['chen', 'chne', 'coen', 'cohen', 'cohn']
+     G620   17 records  ['garca', 'garcai', 'garccia', 'garcia']
+     S530   13 records  ['smith']
+
+== scoring: a missing value is not a disagreement
+   weighted sum, missing = 0 (threshold 0.6): precision 1.000 recall 0.876
+   evidence, missing neutral (threshold 0.9): precision 0.991 recall 1.000
+   threshold sweep on the evidence score:
+     >= 0.7   156 matches  precision 0.673  recall 1.000
+     >= 0.8   115 matches  precision 0.913  recall 1.000
+     >= 0.9   106 matches  precision 0.991  recall 1.000
+     >= 1.0   102 matches  precision 0.990  recall 0.962
+     >= 1.1    96 matches  precision 1.000  recall 0.914
+     >= 1.3    89 matches  precision 1.000  recall 0.848
+   false match: 'Mei Chen' (shop:10042) and 'MEI CHEN' (support:S-037), score 1.000
+
+== label propagation without a cut
+     round 1: changed  77, analyzed plan   359 lines,   54 leaves, count() 0.95 s
+     round 2: changed   1, analyzed plan  1045 lines,  156 leaves, count() 3.90 s
+     round 3: changed   2, analyzed plan  2417 lines,  360 leaves, count() 10.27 s
+     round 4: changed   0, analyzed plan  5161 lines,  768 leaves, count() 28.83 s
+
+== label propagation with localCheckpoint() each round
+     round 1: changed  77, analyzed plan     1 lines,    1 leaves, count() 0.18 s
+     round 2: changed   1, analyzed plan     1 lines,    1 leaves, count() 0.18 s
+     round 3: changed   2, analyzed plan     1 lines,    1 leaves, count() 0.11 s
+     round 4: changed   0, analyzed plan     1 lines,    1 leaves, count() 0.08 s
+   61 entities after 4 rounds (the answer key has 62)
+   pairs implied by the clusters: 114, precision 0.921, recall 1.000
+   pairs the matcher called directly: 0.991 precision
+   largest cluster: 6 records, people in it per the key: ['E057', 'E058']
+   spark.conf.set('spark.checkpoint.dir') at runtime: [CANNOT_MODIFY_CONFIG]
+
+== golden records (largest entities)
++------------+------------+-----------------------+----------+---------+--------------------+-------+
+|label       |name_key    |email                  |phone     |city     |sources             |records|
++------------+------------+-----------------------+----------+---------+--------------------+-------+
+|crm:CRM-0049|chen mei    |meichen@gmail.com      |9025555398|Toronto  |[crm, shop, support]|6      |
+|crm:CRM-0013|okafor priya|priya.okafor@example.ca|4035554693|Montréal |[crm, shop, support]|4      |
+|crm:CRM-0043|chen ivan   |ivanchen@gmail.com     |4035554965|Vancouver|[crm, shop, support]|4      |
+|crm:CRM-0001|dev garcia  |dev.garcia@mail.com    |9025556970|Halifax  |[crm, shop, support]|3      |
++------------+------------+-----------------------+----------+---------+--------------------+-------+
+only showing top 4 rows
+   max_by(x, NULL ordering) ignores the row: a
