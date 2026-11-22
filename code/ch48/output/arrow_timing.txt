@@ -1,0 +1,5 @@
+tuple  2,000,000 rows: median 1.29 s over 5 runs (min 1.04, max 1.45)
+row    2,000,000 rows: median 3.32 s over 5 runs (min 2.38, max 3.62)
+arrow  2,000,000 rows: median 0.22 s over 5 runs (min 0.20, max 0.24)
+tuples / batches: 5.7x, rows / tuples: 2.6x
+conditions: local[*] on 16 cores, 4 partitions, maxRecordsPerBatch 10000
