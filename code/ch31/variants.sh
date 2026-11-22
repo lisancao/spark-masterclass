@@ -18,7 +18,7 @@ PY
   cp "ch31/variants/$v.py" "$W/transformations/variant_$v.py"
   for run in 1 2; do
     [ $run = 2 ] && cp "$W/data/later/orders_2026-10-03.json" "$W/data/orders/"
-    common/pipeline.sh ch31/shop part06/ch31-$v run | grep -E 'Error|Run is' | cut -c1-200 | sed -E 's/^[0-9-]+ //'
+    common/pipeline.sh ch31/shop part06/ch31-$v run | grep -E 'Error|Exception|Run is' | grep -v -E '^\s+(File|raise)' | sed -E 's/^.*(pyspark\.errors[a-z.]+Exception)/\1/' | cut -c1-220 | sed -E 's/^[0-9-]+ //'
     .venv/bin/python ch30/show_tables.py "$W" bronze_orders silver_orders 2>/dev/null | grep rows | sed "s/^/  run $run: /"
   done
   echo

@@ -32,7 +32,7 @@
   rejected  a source column that is not a dimension
             UNRESOLVED_COLUMN.WITH_SUGGESTION: A column, variable, or function parameter with name `payment_type` cannot be resolved. Did you mean 
   rejected  MEASURE() of a dimension
-            java.util.NoSuchElementException: key not found: ExprId(90,d08d7990-fc5d-4963-a41a-aa5f7077b660)
+            java.util.NoSuchElementException: key not found: ExprId(90,45a9d151-0b73-4ff0-968a-1d7d4ff8a0a5)
   rejected  MEASURE() in ORDER BY
             UNRESOLVED_COLUMN.WITH_SUGGESTION: A column, variable, or function parameter with name `trips` cannot be resolved. Did you mean one of 
   rejected  MEASURE() in HAVING

@@ -129,6 +129,13 @@ flowchart LR
   v2 -.-> C
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch29-delta.webp">
+    <source src="../../media/clips/ch29-delta.mp4" type="video/mp4">
+  </video>
+  <figcaption>The Delta log on disk after the MERGE. Version 1 has a <code>commitInfo</code>, an <code>add</code>, a <code>cdc</code> and a <code>remove</code> action. The new file has 5 rows, and the removed file had 3 rows.</figcaption>
+</figure>
+
 ## Step 4: MERGE and DELETE are new commits, not changes in place
 
 The script then merges three rows. Bob gets a raise, and Diana and Eve are new. After that, it deletes Charlie:
@@ -408,6 +415,13 @@ flowchart TB
   ml --> m0["manifest m0<br/>deleted: 1 file"]:::meta
   m1 --> d["data file<br/>4 rows"]:::data
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch29-iceberg.webp">
+    <source src="../../media/clips/ch29-iceberg.mp4" type="video/mp4">
+  </video>
+  <figcaption>The Iceberg metadata tree on disk. The current metadata file lists each snapshot with its parent: one append, then two overwrites, each with one data file.</figcaption>
+</figure>
 
 The commit operation is different too. To commit, an Iceberg writer writes a new metadata file. Then it asks the **catalog** to point to the new metadata file. The catalog does this only if its pointer still names the old file. This compare-and-swap is the atomic step.
 

@@ -1,10 +1,10 @@
 == drop 1 lands
 namespace lake.crm is ready
-2026-11-22 08:47:31: Flow lake.crm.customer_changes has COMPLETED.
-2026-11-22 08:47:35: Flow lake.crm.customers_current has COMPLETED.
-2026-11-22 08:47:40: Flow lake.crm.customers_city_history has COMPLETED.
-2026-11-22 08:47:40: Flow lake.crm.customers_history has COMPLETED.
-2026-11-22 08:47:42: Run is COMPLETED.
+2026-11-22 10:50:41: Flow lake.crm.customer_changes has COMPLETED.
+2026-11-22 10:51:04: Flow lake.crm.customers_current has COMPLETED.
+2026-11-22 10:51:49: Flow lake.crm.customers_history has COMPLETED.
+2026-11-22 10:51:50: Flow lake.crm.customers_city_history has COMPLETED.
+2026-11-22 10:51:51: Run is COMPLETED.
 customer_changes (bronze), by file:
 +----------------+------+-------+-------+
 |_source_file    |events|min_seq|max_seq|
@@ -42,49 +42,3 @@ customers_city_history (SQL, TRACK HISTORY ON (city)):
 +-----------+------------+---------+----------+--------+
 
 == drop 2 lands
-2026-11-22 08:48:08: Flow lake.crm.customer_changes has COMPLETED.
-2026-11-22 08:48:15: Flow lake.crm.customers_current has COMPLETED.
-2026-11-22 08:48:21: Flow lake.crm.customers_history has COMPLETED.
-2026-11-22 08:48:21: Flow lake.crm.customers_city_history has COMPLETED.
-2026-11-22 08:48:23: Run is COMPLETED.
-customer_changes (bronze), by file:
-+----------------+------+-------+-------+
-|_source_file    |events|min_seq|max_seq|
-+----------------+------+-------+-------+
-|changes_001.json|4     |1      |5      |
-|changes_002.json|4     |4      |8      |
-+----------------+------+-------+-------+
-
-customers_current (SCD Type 1):
-+-----------+------------+--------+------------------------+
-|customer_id|name        |city    |__spark_autocdc_metadata|
-+-----------+------------+--------+------------------------+
-|c-01       |Ada Nguyen  |Hanoi   |{NULL, 5}               |
-|c-03       |Chloe Martin|Montreal|{NULL, 8}               |
-|c-04       |Dev Patel   |Toronto |{NULL, 7}               |
-+-----------+------------+--------+------------------------+
-
-customers_history (SCD Type 2):
-+-----------+------------+---------+----------+--------+
-|customer_id|name        |city     |__START_AT|__END_AT|
-+-----------+------------+---------+----------+--------+
-|c-01       |Ada Nguyen  |Toronto  |1         |4       |
-|c-01       |Ada Nguyen  |Ottawa   |4         |5       |
-|c-01       |Ada Nguyen  |Hanoi    |5         |NULL    |
-|c-02       |Bao Tran    |Vancouver|2         |6       |
-|c-03       |Chloe Martin|Montreal |3         |NULL    |
-|c-04       |Dev Patel   |Toronto  |7         |NULL    |
-+-----------+------------+---------+----------+--------+
-
-customers_city_history (SQL, TRACK HISTORY ON (city)):
-+-----------+------------+---------+----------+--------+
-|customer_id|name        |city     |__START_AT|__END_AT|
-+-----------+------------+---------+----------+--------+
-|c-01       |Ada Nguyen  |Toronto  |1         |4       |
-|c-01       |Ada Nguyen  |Ottawa   |4         |5       |
-|c-01       |Ada Nguyen  |Hanoi    |5         |NULL    |
-|c-02       |Bao Tran    |Vancouver|2         |6       |
-|c-03       |Chloe Martin|Montreal |3         |NULL    |
-|c-04       |Dev Patel   |Toronto  |7         |NULL    |
-+-----------+------------+---------+----------+--------+
-

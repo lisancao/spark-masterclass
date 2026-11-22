@@ -1,0 +1,15 @@
+== variants/dedupe.py
+pyspark.errors.exceptions.connect.AnalysisException: [TABLE_OR_VIEW_NOT_FOUND] The table or view `bronze_orders` cannot be found. Verify the spelling and correctness of the schema and catalog.
+pyspark.errors.exceptions.connect.AnalysisException: [TABLE_OR_VIEW_NOT_FOUND] The table or view `bronze_orders` cannot be found. Verify the spelling and correctness of the schema and catalog.
+
+== variants/with_column.py
+10:46:09: Run is COMPLETED.
+  run 1: bronze_orders: 11 rows
+  run 1: silver_orders: 7 rows
+Error: [USER_RAISED_EXCEPTION] each unique bronze order must be in silver_orders or in quarantine_orders SQLSTATE: P0001
+Error: [USER_RAISED_EXCEPTION] each unique bronze order must be in silver_orders or in quarantine_orders SQLSTATE: P0001
+Error: [USER_RAISED_EXCEPTION] each unique bronze order must be in silver_orders or in quarantine_orders SQLSTATE: P0001
+pyspark.errors.exceptions.connect.SparkRuntimeException: [USER_RAISED_EXCEPTION] each unique bronze order must be in silver_orders or in quarantine_orders SQLSTATE: P0001
+  run 2: bronze_orders: 15 rows
+  run 2: silver_orders: 7 rows
+

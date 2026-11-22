@@ -1,10 +1,12 @@
 # Chapter 30: Declarative Pipelines: the model and the CLI
 
-A batch job that builds two tables is easy to write. The job reads a file, writes a table, reads that table and writes a second table. The hard part comes later. You must run the steps in the correct order. You must select a write mode for each table. A streaming step needs a checkpoint, and somebody must remember where it is. When the job runs a second time, each of these decisions must still be correct.
+A batch job that builds two tables is easy to write. The job reads a file, writes a table, reads that table and writes a second table.
+
+The hard part comes later. You must run the steps in the correct order. You must select a write mode for each table. A streaming step needs a checkpoint, and somebody must remember where it is. When the job runs a second time, each of these decisions must still be correct.
 
 Spark Declarative Pipelines (SDP) moves these decisions out of your code. SDP came into Apache Spark in 4.1. Spark 4.2 added Auto CDC, and Spark 4.3 added history tables to Auto CDC ([Chapter 32](ch32-change-data-capture.md)).
 
-**A pipeline is a graph of datasets. Your Python and SQL files only declare the datasets and the flows that fill them. The `spark-pipelines` CLI sends these declarations to a Spark Connect server. The server finds the dependencies, does a check of the full graph, and then selects the order, the write mode and the checkpoint of each flow.** This chapter shows each part of that sentence with a real project: its files, its spec, its errors and its runs.
+**A pipeline is a graph of datasets. Your Python and SQL files only declare the datasets and the flows that fill them. The `spark-pipelines` CLI sends these declarations to a Spark Connect server. The server finds the dependencies and does a check of the full graph. Then it selects the order, the write mode and the checkpoint of each flow.** This chapter shows each part of that sentence with a real project: its files, its spec, its errors and its runs.
 
 The code is in [`code/ch30`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch30). Each output block comes from `code/ch30/output/`. All runs use `pyspark==4.3.0`. The script `code/common/pipeline.sh` copies a project to a work folder and runs `spark-pipelines` there (Step 4 shows what it does).
 
@@ -43,7 +45,9 @@ except Exception as e:
 second run: TABLE_OR_VIEW_ALREADY_EXISTS
 ```
 
-The first run is correct. The second run fails, because the default save mode of `saveAsTable` is `errorifexists`. To make the job safe for a second run, you must select a mode for each table. If one step reads a stream, you must also keep a checkpoint path for it. If you add a third table, you must put it in the correct position in the code. The code that controls these decisions grows with each table. It does not hold any of the business logic.
+The first run is correct. The second run fails, because the default save mode of `saveAsTable` is `errorifexists`.
+
+To make the job safe for a second run, you must select a mode for each table. If one step reads a stream, you must also keep a checkpoint path for it. If you add a third table, you must put it in the correct position in the code. The code that controls these decisions grows with each table. It does not hold any of the business logic.
 
 ## Step 2: The same tables, declared
 
@@ -163,7 +167,9 @@ pyspark.errors.exceptions.base.PySparkException: [PIPELINE_SPEC_MISSING_REQUIRED
 pyspark.errors.exceptions.connect.AnalysisException: [RUN_EMPTY_PIPELINE] Pipelines are expected to have at least one non-temporary dataset defined (tables, persisted views) but no non-temporary datasets were found in your pipeline.
 ```
 
-The first two errors come from the client, in `base.PySparkException`, before the CLI connects to a server. The third error comes from the server (`connect.AnalysisException`). The spec is correct, but the graph that the server got has no dataset to write.
+The first two errors come from the client, in `base.PySparkException`, before the CLI connects to a server. The third error comes from the server (`connect.AnalysisException`).
+
+The spec is correct, but the graph that the server got has no dataset to write.
 
 ## Step 4: What occurs in a run
 
@@ -179,33 +185,42 @@ A pipeline always runs on Spark Connect. The book scripts start their own Connec
 The CLI then does these steps. Each step prints one line of the log:
 
 ```text
-2026-11-22 02:08:53: Loading pipeline spec from ~/spark-masterclass/data/work/part06/ch30-retail/spark-pipeline.yml...
-2026-11-22 02:08:53: Creating Spark session...
-2026-11-22 02:08:54: Creating dataflow graph...
-2026-11-22 02:08:55: Registering graph elements...
-2026-11-22 02:08:55: Loading definitions. Root directory: '~/spark-masterclass/data/work/part06/ch30-retail'.
-2026-11-22 02:08:55: Found 3 files matching glob 'transformations/**/*'
-2026-11-22 02:08:55: Registering SQL file ~/spark-masterclass/data/work/part06/ch30-retail/transformations/placed_by_customer.sql...
-2026-11-22 02:08:56: Importing ~/spark-masterclass/data/work/part06/ch30-retail/transformations/products.py...
+2026-11-22 02:17:25: Loading pipeline spec from ~/spark-masterclass/data/work/part06/ch30-retail/spark-pipeline.yml...
+2026-11-22 02:17:25: Creating Spark session...
+2026-11-22 02:17:26: Creating dataflow graph...
+2026-11-22 02:17:28: Registering graph elements...
+2026-11-22 02:17:28: Loading definitions. Root directory: '~/spark-masterclass/data/work/part06/ch30-retail'.
+2026-11-22 02:17:28: Found 3 files matching glob 'transformations/**/*'
+2026-11-22 02:17:28: Registering SQL file ~/spark-masterclass/data/work/part06/ch30-retail/transformations/placed_by_customer.sql...
+2026-11-22 02:17:28: Importing ~/spark-masterclass/data/work/part06/ch30-retail/transformations/products.py...
 query function products_by_category: called
-2026-11-22 02:08:57: Importing ~/spark-masterclass/data/work/part06/ch30-retail/transformations/orders.py...
-2026-11-22 02:08:58: Starting run...
-2026-11-22 10:08:58: Flow spark_catalog.default.placed_by_customer is QUEUED.
-2026-11-22 10:08:58: Flow spark_catalog.default.products_by_category is QUEUED.
-2026-11-22 10:08:58: Flow spark_catalog.default.ingest_orders is QUEUED.
-2026-11-22 10:08:58: Flow spark_catalog.default.products is QUEUED.
-2026-11-22 10:08:58: Flow spark_catalog.default.orders_by_status is QUEUED.
-2026-11-22 10:08:58: Flow spark_catalog.default.products is PLANNING.
-2026-11-22 10:08:58: Flow spark_catalog.default.products is STARTING.
-2026-11-22 10:08:58: Flow spark_catalog.default.products is RUNNING.
-2026-11-22 10:08:58: Flow spark_catalog.default.ingest_orders is STARTING.
-2026-11-22 10:08:59: Flow spark_catalog.default.ingest_orders is RUNNING.
-2026-11-22 10:09:02: Flow spark_catalog.default.products has COMPLETED.
-2026-11-22 10:09:02: Flow spark_catalog.default.ingest_orders has COMPLETED.
-2026-11-22 10:09:03: Flow spark_catalog.default.products_by_category is PLANNING.
-...
-2026-11-22 10:09:08: Flow spark_catalog.default.products_by_category has COMPLETED.
-2026-11-22 10:09:09: Run is COMPLETED.
+2026-11-22 02:17:30: Importing ~/spark-masterclass/data/work/part06/ch30-retail/transformations/orders.py...
+2026-11-22 02:17:30: Starting run...
+2026-11-22 10:17:31: Flow spark_catalog.default.orders_by_status is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.ingest_orders is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.products is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.placed_by_customer is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.products_by_category is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.products is PLANNING.
+2026-11-22 10:17:31: Flow spark_catalog.default.products is STARTING.
+2026-11-22 10:17:31: Flow spark_catalog.default.products is RUNNING.
+2026-11-22 10:17:31: Flow spark_catalog.default.ingest_orders is STARTING.
+2026-11-22 10:17:32: Flow spark_catalog.default.ingest_orders is RUNNING.
+2026-11-22 10:17:36: Flow spark_catalog.default.products has COMPLETED.
+2026-11-22 10:17:36: Flow spark_catalog.default.ingest_orders has COMPLETED.
+2026-11-22 10:17:37: Flow spark_catalog.default.products_by_category is PLANNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.products_by_category is STARTING.
+2026-11-22 10:17:37: Flow spark_catalog.default.products_by_category is RUNNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.placed_by_customer is PLANNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.placed_by_customer is STARTING.
+2026-11-22 10:17:37: Flow spark_catalog.default.placed_by_customer is RUNNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.orders_by_status is PLANNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.orders_by_status is STARTING.
+2026-11-22 10:17:37: Flow spark_catalog.default.orders_by_status is RUNNING.
+2026-11-22 10:17:41: Flow spark_catalog.default.orders_by_status has COMPLETED.
+2026-11-22 10:17:41: Flow spark_catalog.default.products_by_category has COMPLETED.
+2026-11-22 10:17:41: Flow spark_catalog.default.placed_by_customer has COMPLETED.
+2026-11-22 10:17:42: Run is COMPLETED.
 ```
 
 Read the log in three parts:
@@ -241,7 +256,49 @@ Chapter 34 follows these commands into the server source.
 The pipeline owns the session. `session_rules.sh` adds one extra file at a time to a small project, and runs `dry-run` each time:
 
 ```text
-@@SESSION@@
+== variants/conf_set.py
+  | spark.conf.set("spark.sql.shuffle.partitions", "8")   # at module scope
+pyspark.errors.exceptions.base.PySparkException: [SESSION_MUTATION_IN_DECLARATIVE_PIPELINE.SET_RUNTIME_CONF] Session 
+mutation 'RuntimeConf.set' is not allowed in declarative pipelines. Instead set configuration via the pipeline spec or 
+use the 'spark_conf' argument in various decorators.
+
+== variants/temp_view.py
+  | spark.range(3).createOrReplaceTempView("ids")   # at module scope
+pyspark.errors.exceptions.base.PySparkException: [SESSION_MUTATION_IN_DECLARATIVE_PIPELINE.CREATE_OR_REPLACE_TEMP_VIEW] 
+Session mutation 'DataFrame.createOrReplaceTempView' is not allowed in declarative pipelines. Instead use the 
+@temporary_view decorator to define temporary views.
+
+== variants/builder.py
+  | from pyspark.sql import SparkSession
+  | mine = SparkSession.builder.config("spark.sql.shuffle.partitions", "3").getOrCreate()
+  | print("builder returned the pipeline session:", mine is spark,
+  |       "| shuffle.partitions =", spark.conf.get("spark.sql.shuffle.partitions"))
+2026-11-22 02:42:48: Importing ~/spark-masterclass/data/work/part06/ch30-session/transformations/variant_builder.py...
+builder returned the pipeline session: True | shuffle.partitions = 3
+2026-11-22 10:42:50: Run is COMPLETED.
+
+== variants/count.py
+  | from pyspark import pipelines as dp
+  | 
+  | @dp.materialized_view
+  | def product_count():
+  |     n = spark.table("products").count()     # an action inside a query function
+  |     return spark.range(1).selectExpr(f"{n} AS products")
+pyspark.errors.exceptions.connect.AnalysisException: [ATTEMPT_ANALYSIS_IN_PIPELINE_QUERY_FUNCTION] Operations that 
+trigger DataFrame analysis or execution are not allowed in pipeline query functions. Move code outside of the pipeline 
+query function. SQLSTATE: 0A000
+
+== variants/called.py
+  | from pyspark import pipelines as dp
+  | print("module scope: runs once, when the CLI imports the file")
+  | 
+  | @dp.materialized_view
+  | def products_by_category():
+  |     print("query function: called")
+  |     return spark.table("products").groupBy("category").count()
+module scope: runs once, when the CLI imports the file
+query function: called
+2026-11-22 10:43:07: Run is COMPLETED.
 ```
 
 The results give four rules:
@@ -359,7 +416,24 @@ flowchart LR
 The input has 11 orders in `data/orders` and 2 orders in `data/backfill`. Thus, `orders_raw` must have 13 rows, and `order_events` must have 12 rows (9 placed, 3 shipped). `flows.sh` runs the project in three ways:
 
 ```text
-@@FLOWS@@
+== 1. default catalog (Parquet tables), flows run at the same time
+2026-11-22 10:06:19: Flow 'spark_catalog.default.backfill_orders' has FAILED.
+  Error: [STREAM_FAILED] Query [id = a6e28ccb-42c7-48e3-b357-3f1263a9c2eb, runId = b267e0d0-677b-4689-9273-10d2376d44c7] terminated with exception: Multiple streaming queries are concurrently using file:~/spark-masterclass/data/work/part06...
+2026-11-22 10:06:27: Run is COMPLETED.
+orders_raw: 11 rows
+order_events: 8 rows
+  Parquet files on disk in orders_raw: 3
+
+== 2. default catalog, spark.sql.pipelines.execution.maxConcurrentFlows = 1
+2026-11-22 10:07:12: Run is COMPLETED.
+orders_raw: 11 rows
+order_events: 2 rows
+
+== 3. Iceberg catalog, flows run at the same time
+namespace lake.retail is ready
+2026-11-22 10:08:05: Run is COMPLETED.
+orders_raw: 13 rows
+order_events: 12 rows
 ```
 
 Only the Iceberg run is correct. The two runs in the default catalog lose rows:
@@ -367,23 +441,80 @@ Only the Iceberg run is correct. The two runs in the default catalog lose rows:
 - **Run 1.** Both flows wrote batch 0 at the same time. One flow failed, SDP tried it again, and the run ended as `COMPLETED`. But `orders_raw` has 11 rows, not 13. The three Parquet files on disk hold all 13 rows. The rows of one flow are in a file that the table does not list.
 - **Run 2.** With one flow at a time, no flow failed. But the table has 11 rows again, and `order_events` has only 2 rows. This time, nothing in the log shows a problem.
 
-The cause is the table of the default catalog. A streaming table there is a folder of Parquet files that the file sink of Structured Streaming writes. The file sink keeps one log of batches, `_spark_metadata`, for the folder. Each flow counts its batches from 0. When the second flow writes its batch 0, the sink finds that batch 0 is already in the log, and skips the write (`FileStreamSink.addBatch`: `if (batchId <= fileLog.getLatestBatchId()...) logInfo("Skipping already committed batch ...")`). An Iceberg table has no shared batch log. Each flow commits a snapshot, so the two flows do not interfere.
+The cause is the table of the default catalog. A streaming table there is a folder of Parquet files that the file sink of Structured Streaming writes.
+
+The file sink keeps one log of batches, `_spark_metadata`, for the folder. Each flow counts its batches from 0. The second flow then writes its batch 0. The sink finds that batch 0 is already in the log, and skips the write (`FileStreamSink.addBatch`: `if (batchId <= fileLog.getLatestBatchId()...) logInfo("Skipping already committed batch ...")`). An Iceberg table has no shared batch log. Each flow commits a snapshot, so the two flows do not interfere.
 
 !!! warning "Caution: do not write two flows into one streaming table of the default catalog"
 
-    Use one flow for each streaming table in the default catalog, or keep the table in a format such as Iceberg. With two flows, the file sink skips a batch of one flow, and the run ends as `COMPLETED`. The part notes record this result as an open finding.
+    Use one flow for each streaming table in the default catalog, or keep the table in a format such as Iceberg. With two flows, the file sink skips a batch of one flow, and the run ends as `COMPLETED`. The part notes record this result as an open problem.
 
 ## Step 8: Find errors with a dry run
 
 `spark-pipelines dry-run` registers the graph and does all the checks of a run. Then it stops before any flow starts. `broken/transformations/revenue.py` has three bugs: a cycle, a wrong table name and a wrong column. `dry_run_errors.sh` runs a dry run, fixes one bug, and runs again:
 
 ```text
-@@DRYRUN@@
+== dry run 1
+pyspark.errors.exceptions.connect.AnalysisException: The downstream table 'spark_catalog.default.top_customers' is 
+referenced when creating the upstream table or view 'spark_catalog.default.revenue_by_customer'. Circular dependencies 
+are not supported in a pipeline. Please remove the dependency between 'spark_catalog.default.revenue_by_customer' and 
+'spark_catalog.default.top_customers'.
+
+== fix 1: revenue_by_customer reads orders_enriched. dry run 2
+2026-11-22 10:00:47: Failed to resolve flow due to upstream failure: 'spark_catalog.default.top_customers'.
+Error: Failed to read dataset 'spark_catalog.default.revenue_by_customer'. Dataset is defined in the pipeline but could 
+not be resolved.
+2026-11-22 10:00:47: Failed to resolve flow due to upstream failure: 'spark_catalog.default.revenue_by_customer'.
+Error: Failed to read dataset 'spark_catalog.default.orders_enriched'. Dataset is defined in the pipeline but could not 
+be resolved.
+2026-11-22 10:00:47: Failed to resolve flow due to upstream failure: 'spark_catalog.default.revenue_by_city'.
+Error: Failed to read dataset 'spark_catalog.default.orders_enriched'. Dataset is defined in the pipeline but could not 
+be resolved.
+2026-11-22 10:00:47: Failed to resolve flow: 'spark_catalog.default.orders_enriched'.
+Error: [TABLE_OR_VIEW_NOT_FOUND] The table or view `spark_catalog`.`default`.`orders_bronz` cannot be found. Verify the 
+spelling and correctness of the schema and catalog.
+Search path: [`system`.`builtin`, `system`.`session`, `spark_catalog`.`default`].
+If you did not qualify the name with a schema, verify the current_schema() output, or qualify the name with the correct 
+schema and catalog.
+To tolerate the error on drop use DROP VIEW IF EXISTS or DROP TABLE IF EXISTS. SQLSTATE: 42P01;
+'UnresolvedRelation [spark_catalog, default, orders_bronz], [], false
+pyspark.errors.exceptions.connect.AnalysisException: 
+Failed to resolve flows in the pipeline.
+A flow can fail to resolve because the flow itself contains errors or because it reads
+from an upstream flow which failed to resolve.
+Flows with errors: spark_catalog.default.orders_enriched
+Flows that failed due to upstream errors: spark_catalog.default.revenue_by_city, 
+spark_catalog.default.revenue_by_customer, spark_catalog.default.top_customers
+To view the exceptions that were raised while resolving these flows, look for flow
+failures that precede this log.
+
+== fix 2: orders_bronz -> orders_bronze. dry run 3
+2026-11-22 10:01:20: Failed to resolve flow: 'spark_catalog.default.revenue_by_city'.
+Error: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `region` cannot be 
+resolved. Did you mean one of the following? [`email`, `city`, `name`, `order_id`, `order_ts`]. SQLSTATE: 42703;
+'Aggregate ['region], ['region, sum(line_total#65) AS revenue#22]
++- SubqueryAlias spark_catalog.default.orders_enriched
+   +- LocalRelation <empty>, [customer_id#54, order_id#55, product_id#56, quantity#57, unit_price#58, status#59, 
+order_ts#60, name#61, email#62, city#63, signup_date#64, line_total#65]
+pyspark.errors.exceptions.connect.AnalysisException: 
+Failed to resolve flows in the pipeline.
+A flow can fail to resolve because the flow itself contains errors or because it reads
+from an upstream flow which failed to resolve.
+Flows with errors: spark_catalog.default.revenue_by_city
+Flows that failed due to upstream errors: 
+To view the exceptions that were raised while resolving these flows, look for flow
+failures that precede this log.
+
+== fix 3: region -> city. dry run 4
+2026-11-22 10:02:02: Run is COMPLETED.
+
+== what the dry run wrote
+files under spark-warehouse/ and pipeline-storage/: 0
 ```
 
-The errors come in a fixed order, because the server does its checks in a fixed order:
+The errors come in a fixed order, because the server does its checks in a fixed order (`DataflowGraph.validate` and `GraphValidations.validateSuccessfulFlowAnalysis`):
 
-1. **The shape of the graph.** `revenue_by_customer` reads `top_customers`, and `top_customers` reads `revenue_by_customer`. The server finds the cycle before it analyzes a query, and stops.
+1. **The cycle.** `revenue_by_customer` reads `top_customers`, and `top_customers` reads `revenue_by_customer`. Neither flow can resolve, because each needs the schema of the other. Before the server reports the flows that failed, it looks for a cycle among them. It finds one, and reports only the cycle.
 2. **The names.** `orders_bronz` does not exist. Read the log from the bottom: the summary lists one flow with errors and three flows that failed only because of it. The only line that says `Failed to resolve flow:` without `upstream failure` names the real problem, and the `TABLE_OR_VIEW_NOT_FOUND` error follows it.
 3. **The columns.** `revenue_by_city` groups by `region`, which `orders_enriched` does not have. The analyzer suggests `city`. The plan in the error shows a `LocalRelation <empty>`: the dry run analyzes each query against the schema of its inputs, with no data.
 
@@ -396,12 +527,14 @@ Use a dry run in two places. Run it after each change while you write the pipeli
 A pipeline must run many times. The first run creates the tables. Each run after that updates them. `run_retail.sh` runs the retail project twice in the default session catalog:
 
 ```text
-@@RUN2@@
+== run 2, in-memory catalog
+2026-11-22 02:18:00: Starting run...
+pyspark.errors.exceptions.connect.UnknownException: (org.apache.spark.sql.pipelines.graph.DatasetManager$TableMaterializationException) org.apache.spark.SparkRuntimeException: [LOCATION_ALREADY_EXISTS] Cannot name the managed table as `spark_catalog`.`default`.`products`, as its associated location 'file:~/spark-masterclass/data/work/part06/ch30-retail/spark-warehouse/products' already exists. Please pick a different table...
 ```
 
 The second run fails with `LOCATION_ALREADY_EXISTS`. The default catalog of a local session is `in-memory`. It forgets its tables when the server stops, but the folders of the tables stay in `spark-warehouse/`. In the second run, the catalog does not know `products`. Thus, SDP tries to create it, and the folder is in the way.
 
-A real pipeline uses a catalog that keeps its tables: a Hive metastore, or a catalog of a table format, such as the Iceberg catalog of [Chapter 29](ch29-tables-delta-iceberg.md). For a local project, the Hive metastore is the smallest change. Start the server with `spark.sql.catalogImplementation=hive`. The server then keeps a Derby database in `metastore_db/`, in its current folder:
+A real pipeline uses a catalog that keeps its tables. Examples are a Hive metastore and the Iceberg catalog of [Chapter 29](ch29-tables-delta-iceberg.md). For a local project, the Hive metastore is the smallest change. Start the server with `spark.sql.catalogImplementation=hive`. The server then keeps a Derby database in `metastore_db/`, in its current folder:
 
 ```bash
 spark-pipelines run --conf spark.sql.catalogImplementation=hive
@@ -410,15 +543,111 @@ spark-pipelines run --conf spark.sql.catalogImplementation=hive
 The configuration is static. Thus, it must go to the server when the server starts, not in the `configuration` key of the spec. With the Hive metastore, the same project runs twice:
 
 ```text
-@@HIVE@@
+== run 2, Hive metastore
+10:18:51: Flow spark_catalog.default.orders_by_status is QUEUED.
+10:18:51: Flow spark_catalog.default.products_by_category is QUEUED.
+10:18:51: Flow spark_catalog.default.products is QUEUED.
+10:18:51: Flow spark_catalog.default.placed_by_customer is QUEUED.
+10:18:51: Flow spark_catalog.default.ingest_orders is QUEUED.
+10:18:51: Flow spark_catalog.default.products is PLANNING.
+10:18:51: Flow spark_catalog.default.products is STARTING.
+10:18:51: Flow spark_catalog.default.products is RUNNING.
+10:18:51: Flow spark_catalog.default.ingest_orders is STARTING.
+10:18:52: Flow spark_catalog.default.ingest_orders is RUNNING.
+10:18:52: Flow spark_catalog.default.ingest_orders has COMPLETED.
+10:18:53: Flow spark_catalog.default.placed_by_customer is PLANNING.
+10:18:53: Flow spark_catalog.default.placed_by_customer is STARTING.
+10:18:53: Flow spark_catalog.default.placed_by_customer is RUNNING.
+10:18:53: Flow spark_catalog.default.orders_by_status is PLANNING.
+10:18:53: Flow spark_catalog.default.orders_by_status is STARTING.
+10:18:53: Flow spark_catalog.default.orders_by_status is RUNNING.
+10:18:54: Flow spark_catalog.default.products has COMPLETED.
+10:18:54: Flow spark_catalog.default.products_by_category is PLANNING.
+10:18:54: Flow spark_catalog.default.products_by_category is STARTING.
+10:18:54: Flow spark_catalog.default.products_by_category is RUNNING.
+10:18:56: Flow spark_catalog.default.orders_by_status has COMPLETED.
+10:18:56: Flow spark_catalog.default.placed_by_customer has COMPLETED.
+10:18:56: Flow spark_catalog.default.products_by_category has COMPLETED.
+10:18:57: Run is COMPLETED.
+
+tables: ['orders_by_status', 'orders_raw', 'placed_by_customer', 'products', 'products_by_category']
+orders_raw: 11 rows
+tables: ['orders_by_status', 'orders_raw', 'placed_by_customer', 'products', 'products_by_category']
+orders_by_status: 3 rows
++---------+-----------+
+|status   |order_count|
++---------+-----------+
+|shipped  |2          |
+|placed   |8          |
+|cancelled|1          |
++---------+-----------+
+
+placed_by_customer: 6 rows
++-----------+------+
+|customer_id|placed|
++-----------+------+
+|c-01       |2     |
+|c-02       |2     |
+|c-04       |1     |
+|c-05       |1     |
+|c-99       |1     |
+|c-03       |1     |
++-----------+------+
+
+products_by_category: 2 rows
++--------+--------+--------------+
+|category|products|avg_list_price|
++--------+--------+--------------+
+|hardware|2       |17.245000     |
+|merch   |2       |61.625000     |
++--------+--------+--------------+
 ```
 
-The second run completes. `orders_raw` still has 11 rows, because the streaming flow found no new file. The materialized views were computed again from all of their input.
+The second run completes. `orders_raw` still has 11 rows, because the streaming flow found no new file. The flows of the materialized views read all of their input again.
 
 The `storage` folder holds the checkpoint of each streaming flow, in the path `_checkpoints/<catalog>/<database>/<table>/<flow>/<n>`:
 
 ```text
-@@STORAGE@@
+$ find pipeline-storage | sort
+pipeline-storage
+pipeline-storage/_checkpoints
+pipeline-storage/_checkpoints/spark_catalog
+pipeline-storage/_checkpoints/spark_catalog/default
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/commits
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/commits/0
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/commits/.0.crc
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/metadata
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/.metadata.crc
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/offsets
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/offsets/0
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/offsets/.0.crc
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/sources
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/sources/0
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/sources/0/0
+pipeline-storage/_checkpoints/spark_catalog/default/orders_raw/ingest_orders/0/sources/0/.0.crc
+
+$ ls spark-warehouse spark-warehouse/orders_raw
+orders_by_status
+orders_raw
+placed_by_customer
+products
+products_by_category
+part-00000-84f81e1e-4b06-466f-9012-7047c4aa10c9-c000.snappy.parquet
+part-00001-79bb151a-987d-42b7-b3be-aea6d762efdd-c000.snappy.parquet
+_spark_metadata
+
+$ cat pipeline-storage/_checkpoints/.../ingest_orders/0/offsets/0
+v1
+{"batchWatermarkMs":0,"batchTimestampMs":1795342705712,"conf":{"spark.sql.streaming.stateStore.providerClass":
+{"logOffset":0}
+
+$ cat pipeline-storage/_checkpoints/.../ingest_orders/0/sources/0/0
+v1
+{"path":"file://~/spark-masterclass/data/work/part06/ch30-retail-hive/data/orders/orders_2026-10-01.json","timestamp":1795342681202,"batchId":0}
+{"path":"file://~/spark-masterclass/data/work/part06/ch30-retail-hive/data/orders/orders_2026-10-02.json","timestamp":1795342681202,"batchId":0}
 ```
 
 The checkpoint is the normal checkpoint of Structured Streaming:
@@ -435,7 +664,7 @@ The second run found no new file. Thus, it wrote no batch, and the folder has on
 
 ## Step 10: Select what a run updates
 
-With no option, `run` updates all datasets: streaming tables read new input, and materialized views are computed again. Three options select a smaller part of the graph:
+With no option, `run` updates all datasets: streaming tables read new input, and SDP computes materialized views again. Three options select a smaller part of the graph:
 
 - `--refresh a,b` updates only the datasets `a` and `b`, in the normal way.
 - `--full-refresh a,b` deletes the data and the checkpoints of `a` and `b`, and computes them again from all of their input.
@@ -444,7 +673,35 @@ With no option, `run` updates all datasets: streaming tables read new input, and
 `run_retail.sh` tries each option on the Hive project:
 
 ```text
-@@REFRESH@@
+== run --refresh products_by_category
+10:19:43: Flow spark_catalog.default.products_by_category is QUEUED.
+10:19:43: Flow 'spark_catalog.default.ingest_orders' is EXCLUDED.
+10:19:43: Flow 'spark_catalog.default.orders_by_status' is EXCLUDED.
+10:19:43: Flow 'spark_catalog.default.products' is EXCLUDED.
+10:19:43: Flow 'spark_catalog.default.placed_by_customer' is EXCLUDED.
+10:19:43: Flow spark_catalog.default.products_by_category is PLANNING.
+10:19:43: Flow spark_catalog.default.products_by_category is STARTING.
+10:19:43: Flow spark_catalog.default.products_by_category is RUNNING.
+10:19:45: Flow spark_catalog.default.products_by_category has COMPLETED.
+10:19:47: Run is COMPLETED.
+
+== run --full-refresh orders_raw
+10:20:01: Flow spark_catalog.default.ingest_orders is QUEUED.
+10:20:01: Flow 'spark_catalog.default.products_by_category' is EXCLUDED.
+10:20:01: Flow 'spark_catalog.default.products' is EXCLUDED.
+10:20:01: Flow 'spark_catalog.default.orders_by_status' is EXCLUDED.
+10:20:01: Flow 'spark_catalog.default.placed_by_customer' is EXCLUDED.
+10:20:01: Flow spark_catalog.default.ingest_orders is STARTING.
+10:20:02: Flow spark_catalog.default.ingest_orders is RUNNING.
+10:20:03: Flow spark_catalog.default.ingest_orders has COMPLETED.
+10:20:05: Run is COMPLETED.
+orders_raw: 11 rows
+checkpoint folders of ingest_orders: 0 1
+
+== run --full-refresh-all --refresh products
+pyspark.errors.exceptions.base.PySparkException: [CONFLICTING_PIPELINE_REFRESH_OPTIONS] --full-refresh-all option conflicts with --refresh
+The --full-refresh-all option performs a full refresh of all datasets, 
+so specifying individual datasets with --refresh is not allowed.
 ```
 
 The event stream shows the selection. Each flow that is not in the selection is `EXCLUDED`:
@@ -469,7 +726,7 @@ spark-pipelines run --remote sc://host:15002           # use a Connect server yo
 ```
 
 - **Declare, do not order.** A query function returns a DataFrame. SDP finds the order from the tables that each query reads.
-- **A project is a spec and source files.** `name` and `storage` are required. Python and SQL files make one graph.
+- **A project is a spec and source files.** The spec must have `name` and `storage`. Python and SQL files make one graph.
 - **The CLI is a Connect client.** It registers the graph, and the server runs it and sends events back.
 - **The pipeline owns the session.** Do not change configurations, create temporary views or call actions in pipeline code.
 - **Select the dataset type by how the input grows.** Streaming tables append new input. Materialized views compute everything again. Temporary views are not stored.
@@ -481,6 +738,6 @@ spark-pipelines run --remote sc://host:15002           # use a Connect server yo
 
 ## Further reading
 
-- [Spark Declarative Pipelines programming guide](https://spark.apache.org/docs/4.3.0/declarative-pipelines-programming-guide.html), the official guide for Spark 4.3.
+- [Spark Declarative Pipelines guide](https://spark.apache.org/docs/4.3.0/declarative-pipelines-programming-guide.html), the official guide for Spark 4.3.
 - `python/pyspark/pipelines/cli.py` and `api.py` in the Spark source (tag `v4.3.0`), the spec keys and the decorator options of this chapter.
 - `core/src/main/scala/org/apache/spark/deploy/SparkPipelines.scala`, the argument rules of Step 4.

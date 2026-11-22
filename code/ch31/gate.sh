@@ -34,3 +34,5 @@ LAKE=1 .venv/bin/python ch30/show_tables.py "$I" silver_orders revenue_by_curren
 cp "$I/data/incoming/orders_2026-10-03.csv" "$I/data/orders/"
 ICEBERG=1 common/pipeline.sh ch31/quality part06/ch31-quality-ice run | flows | grep -E 'Run is|FAILED|SKIPPED'
 LAKE=1 .venv/bin/python ch30/show_tables.py "$I" silver_orders revenue_by_currency 2>/dev/null | grep rows | sed 's/^/  run 2: /'
+echo; echo "== Iceberg snapshots of silver_orders"
+.venv/bin/python ch31/ice_snapshots.py 2>/dev/null
