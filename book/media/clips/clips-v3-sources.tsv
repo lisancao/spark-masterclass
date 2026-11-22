@@ -1,0 +1,4 @@
+clip	source	start	end	poster_at	chapter
+ch87-failure	chapter/01-failure.mp4	0	87.9	last	ch87
+ch87-success	chapter/02-success.mp4	0	13.8	last	ch87
+ch87-dpo	chapter/03-dpo.mp4	0	47.2	last	ch87

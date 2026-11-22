@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400" role="img"><title>S3 requests and job commit time for one write of 32 files</title><defs><marker id="m8a919e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a919e"/></marker><marker id="m8a919es" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#8a919e"/></marker></defs><line x1="120.0" y1="40" x2="120.0" y2="300" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="120.0" y="316.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">0</text>
+<line x1="225.0" y1="40" x2="225.0" y2="300" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="225.0" y="316.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">250</text>
+<line x1="330.0" y1="40" x2="330.0" y2="300" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="330.0" y="316.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">500</text>
+<line x1="435.0" y1="40" x2="435.0" y2="300" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="435.0" y="316.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">750</text>
+<line x1="540.0" y1="40" x2="540.0" y2="300" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="540.0" y="316.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">1000</text>
+<line x1="645.0" y1="40" x2="645.0" y2="300" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="645.0" y="316.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">1250</text>
+<text x="393.0" y="334.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="middle" font-weight="400">requests that MinIO received (mc admin trace)</text>
+<text x="110" y="72.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="14" fill="#8a919e" text-anchor="end" font-weight="700">file-v1</text>
+<rect x="120" y="54" width="204.95999999999998" height="26" rx="0" fill="#4b5563" fill-opacity="1"/>
+<rect x="324.96" y="54" width="181.01999999999998" height="26" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="505.97999999999996" y="54" width="28.14" height="26" rx="0" fill="#2f7d5b" fill-opacity="1"/>
+<rect x="534.12" y="54" width="26.88" height="26" rx="0" fill="#a8323a" fill-opacity="1"/>
+<rect x="561.0" y="54" width="27.72" height="26" rx="0" fill="#c0661a" fill-opacity="1"/>
+<text x="596.72" y="72.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">1116</text>
+<text x="860" y="72.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="end" font-weight="700">2.00 s</text>
+<text x="110" y="122.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="14" fill="#8a919e" text-anchor="end" font-weight="700">file-v2</text>
+<rect x="120" y="104" width="137.76" height="26" rx="0" fill="#4b5563" fill-opacity="1"/>
+<rect x="257.76" y="104" width="113.39999999999999" height="26" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="371.15999999999997" y="104" width="27.72" height="26" rx="0" fill="#2f7d5b" fill-opacity="1"/>
+<rect x="398.88" y="104" width="13.44" height="26" rx="0" fill="#a8323a" fill-opacity="1"/>
+<rect x="412.32" y="104" width="14.28" height="26" rx="0" fill="#c0661a" fill-opacity="1"/>
+<text x="434.59999999999997" y="122.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">730</text>
+<text x="860" y="122.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="end" font-weight="700">0.04 s</text>
+<text x="110" y="172.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="14" fill="#8a919e" text-anchor="end" font-weight="700">magic</text>
+<rect x="120" y="154" width="70.56" height="26" rx="0" fill="#4b5563" fill-opacity="1"/>
+<rect x="190.56" y="154" width="74.34" height="26" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="264.9" y="154" width="95.34" height="26" rx="0" fill="#2f7d5b" fill-opacity="1"/>
+<rect x="360.24" y="154" width="26.88" height="26" rx="0" fill="#6b4fa0" fill-opacity="1"/>
+<rect x="387.12" y="154" width="28.56" height="26" rx="0" fill="#c0661a" fill-opacity="1"/>
+<text x="423.68" y="172.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">704</text>
+<text x="860" y="172.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="end" font-weight="700">0.21 s</text>
+<text x="110" y="222.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="14" fill="#8a919e" text-anchor="end" font-weight="700">directory</text>
+<rect x="120" y="204" width="3.36" height="26" rx="0" fill="#4b5563" fill-opacity="1"/>
+<rect x="123.36" y="204" width="5.46" height="26" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="128.82" y="204" width="41.16" height="26" rx="0" fill="#2f7d5b" fill-opacity="1"/>
+<rect x="169.98" y="204" width="0.84" height="26" rx="0" fill="#c0661a" fill-opacity="1"/>
+<text x="178.82" y="222.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">121</text>
+<text x="860" y="222.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="end" font-weight="700">0.31 s</text>
+<text x="110" y="272.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="14" fill="#8a919e" text-anchor="end" font-weight="700">partitioned</text>
+<rect x="120" y="254" width="2.94" height="26" rx="0" fill="#4b5563" fill-opacity="1"/>
+<rect x="122.94" y="254" width="5.04" height="26" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="127.98" y="254" width="41.16" height="26" rx="0" fill="#2f7d5b" fill-opacity="1"/>
+<rect x="169.14" y="254" width="0.84" height="26" rx="0" fill="#c0661a" fill-opacity="1"/>
+<text x="177.98" y="272.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">119</text>
+<text x="860" y="272.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="end" font-weight="700">0.26 s</text>
+<text x="860" y="34.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#d9661f" text-anchor="end" font-weight="700">job commit</text>
+<rect x="120" y="352" width="14" height="14" rx="0" fill="#4b5563" fill-opacity="1"/>
+<text x="140" y="364.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">HEAD</text>
+<rect x="235" y="352" width="14" height="14" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<text x="255" y="364.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">LIST</text>
+<rect x="350" y="352" width="14" height="14" rx="0" fill="#2f7d5b" fill-opacity="1"/>
+<text x="370" y="364.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">PUT and parts</text>
+<rect x="465" y="352" width="14" height="14" rx="0" fill="#6b4fa0" fill-opacity="1"/>
+<text x="485" y="364.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">GET</text>
+<rect x="580" y="352" width="14" height="14" rx="0" fill="#a8323a" fill-opacity="1"/>
+<text x="600" y="364.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">COPY</text>
+<rect x="695" y="352" width="14" height="14" rx="0" fill="#c0661a" fill-opacity="1"/>
+<text x="715" y="364.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">DELETE</text>
+<text x="20" y="392.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">Median job commit time of three writes after a warm-up, local[4], MinIO in Docker on the same machine.</text></svg>

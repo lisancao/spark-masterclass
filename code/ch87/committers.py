@@ -83,6 +83,7 @@ def child(name):
                 "committer_bytes_committed", "object_delete_request")
         out["_SUCCESS metrics"] = {k: v for k, v in sorted(body.get("metrics", {}).items()) if k in keep}
         if name == "magic":
+            body["hostname"] = "<host>"
             Path(HERE / "output" / "success-magic.json").write_text(json.dumps(body, indent=1)[:4000] + "\n...\n")
     print("RESULT " + json.dumps(out))
 
