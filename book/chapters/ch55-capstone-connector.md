@@ -476,7 +476,7 @@ reader pushdown: count, filtered count, count again = [10, 5, 5]
 CaseFiles (a fresh load per table):  [10, 5, 10]
 ```
 
-With the pushdown reader, the third count is **5, not 10**. The filter of the second query stayed in the scan of the DataFrame, and the third query, which has no filter, received its result. This is a wrong result on Spark 4.3.0 with the flag on. Chapter 59 reproduces it, makes it smaller and finds its cause.
+With the pushdown reader, the third count is **5, not 10**. The filter of the second query stayed in the scan of the DataFrame, and the third query, which has no filter, received its result. This result is wrong, and it occurs on Spark 4.3.0 when `spark.sql.python.filterPushdown.enabled` is `true`. The cause is not yet confirmed, and the behavior is not yet reported to the Spark project. Until then, the book does not call it a Spark bug. Design your connector so that this behavior cannot affect it.
 
 `casefile` has two protections:
 
@@ -496,7 +496,7 @@ class CaseFiles:
 ```
 
 !!! warning "One pushdown DataFrame, one query"
-    A Python data source with `pushFilters` can give a wrong result on Spark 4.3.0. This occurs when you use one DataFrame for more than one query, and when `spark.sql.python.filterPushdown.enabled` is `true`. Make a new DataFrame with `load()` for each query, or keep pushdown off.
+    On Spark 4.3.0, a Python data source with `pushFilters` gave a wrong count in this test. This occurred when the test used one DataFrame for more than one query, and `spark.sql.python.filterPushdown.enabled` was `true`. Make a new DataFrame with `load()` for each query, or keep pushdown off.
 
 ## Step 9: The writer: publish with one pointer swap
 
@@ -789,7 +789,7 @@ One problem of the sample is not in any column: the change line of CASE-0006 tha
 
 Java gives column pruning: the cases table could skip `meta`. It gives aggregate pushdown, for example a `COUNT(*)` from the list of folders. It gives partitioning and statistics, and no Python worker in the read path. It costs a build, a jar on each executor, and `InternalRow` and `UTF8String` values in place of tuples.
 
-The problem of Step 8 is in the Python data source path of Spark, not in DSv2 itself. Spark makes a new scan builder for each scan. Thus, a Java connector can keep its pushdown state in its `ScanBuilder` and `Scan`, never in its `TableProvider` or `Table`. Then it does not share that state between queries. Chapter 59 shows the cause in the Python path.
+The result of Step 8 came from the Python data source path, not from DSv2. Spark makes a new scan builder for each scan. Thus, a Java connector can keep its pushdown state in its `ScanBuilder` and `Scan`, never in its `TableProvider` or `Table`. Then it does not share that state between queries.
 
 ## Taking it further
 
@@ -828,4 +828,4 @@ Part X goes into the engine. It shows how Catalyst plans Python, the protocol of
 - [`python/pyspark/sql/streaming/datasource.py` at v4.3.0](https://github.com/apache/spark/blob/v4.3.0/python/pyspark/sql/streaming/datasource.py), with `ReadMaxBytes`, `ReadAllAvailable` and `SupportsTriggerAvailableNow`.
 - [`plan_data_source_read.py` at v4.3.0](https://github.com/apache/spark/blob/v4.3.0/python/pyspark/sql/worker/plan_data_source_read.py), with the `NotImplementedError` fallback of Step 4.
 - [Chapter 52: a DSv2 connector in Java](ch52-dsv2-connector-java.md), the Java path of Step 14.
-- Chapter 59, "From wrong results to a fix", for the wrong result of Step 8.
+- Chapter 62, "From wrong results to a fix", for how to reproduce, minimize and report a wrong result such as the one in Step 8.

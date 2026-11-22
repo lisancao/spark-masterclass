@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # Run stecheck on a book page, after removing markdown noise the lint misreads
 # (link targets, HTML video tags, ** markers, tight lists joined into one sentence).
-# Usage: scripts/ste-check FILE [description|procedure] [--allow extra words]
+# Usage: scripts/ste-check FILE [description|procedure] [--allow word ...]
+# Words after --allow are added to the shared list in scripts/ste-allow.txt.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
-f=$1; m=${2:-description}; shift; [ $# -gt 0 ] && shift
-python3 "$here/ste_prep.py" "$f" | stecheck - --mode "$m" --allow $(cat "$here/ste-allow.txt") "$@"
+f=$1; shift
+m=description
+if [ $# -gt 0 ] && [ "$1" != "--allow" ]; then m=$1; shift; fi
+extra=()
+if [ $# -gt 0 ] && [ "$1" = "--allow" ]; then shift; extra=("$@"); fi
+python3 "$here/ste_prep.py" "$f" | stecheck - --mode "$m" --allow $(cat "$here/ste-allow.txt") "${extra[@]}"
