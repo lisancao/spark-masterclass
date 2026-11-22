@@ -1,0 +1,28 @@
+spark.sql.optimizer.avoidDoubleFilterEval = true
+slow query: 2 ArrowEvalPython nodes
+
+200 rows; 98 with status 200; 31 API calls among them; 70 API calls in all
+
+  withColumn(area).collect()                           rows  200   UDF calls  200
+  withColumn(area).count()                             rows  200   UDF calls    0
+  slow: filter on area and status, collect()           rows   31   UDF calls  129
+  filter on area only, collect()                       rows   70   UDF calls  270
+  u.union(u).collect()                                 rows  400   UDF calls  400
+  filter on area only, UDF nondeterministic            rows   70   UDF calls  200
+  count(), UDF nondeterministic                        rows  200   UDF calls    0
+
+Rewrites of the slow query:
+  filter first, then nondeterministic UDF: 1 ArrowEvalPython node, pushed: [IsNotNull(status), EqualTo(status,200)]
+    ... collect()                                      rows   31   UDF calls   98
+  native functions: 0 ArrowEvalPython nodes
+    ... collect()                                      rows   31   UDF calls    0
+
+Materialize, and the cache trap:
+  c = u.cache(); c.count() builds the cache            rows  200   UDF calls  200
+  c.filter(area = 'api').collect()                     rows   70   UDF calls    0
+  t.collect() before any cache                         rows  200   UDF calls  200
+  t.cache(); t.collect() on the same object            rows  200   UDF calls  200
+  t.filter(area = 'api').collect()                     rows   70   UDF calls  200
+  t.collect() again                                    rows  200   UDF calls  200
+  t.filter(area = 'api').collect() again               rows   70   UDF calls    0
+  t.select('*').collect(), a derived DataFrame         rows  200   UDF calls    0

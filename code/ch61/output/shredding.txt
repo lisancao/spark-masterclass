@@ -1,0 +1,103 @@
+spark.sql.variant.writeShredding.enabled = true
+spark.sql.variant.inferShreddingSchema   = true
+
+--- the Parquet columns of v (inferred from the 60 events):
+v
+  metadata: binary
+  value: binary
+  typed_value
+    amount
+      value: binary
+    event
+      value: binary
+      typed_value: string
+    event_type
+      value: binary
+      typed_value: string
+    items
+      value: binary
+      typed_value: list of
+        element
+          value: binary
+          typed_value
+            qty
+              value: binary
+              typed_value: int64
+            sku
+              value: binary
+              typed_value: string
+    ts
+      value: binary
+      typed_value: string
+    user
+      value: binary
+      typed_value
+        geo
+          value: binary
+          typed_value
+            country
+              value: binary
+              typed_value: string
+        id
+          value: binary
+          typed_value: int64
+        plan
+          value: binary
+          typed_value: string
+    user_id
+      value: binary
+      typed_value: int64
+
+--- three rows, field by field (value / typed_value):
+day 1: top-level value = None, metadata 27 bytes
+    amount      value = 20 02 65 02 00 00
+    event       typed_value = 'view'
+    event_type  missing
+    items       missing
+    ts          typed_value = '2026-10-01T10:00:00'
+    user        missing
+    user_id     typed_value = 0
+day 2: top-level value = None, metadata 46 bytes
+    amount      value = 15 33 32 2e 38 33
+    event       typed_value = 'purchase'
+    event_type  missing
+    items       typed_value = [{'value': None, 'typed_va
+    ts          typed_value = '2026-10-02T11:00:00'
+    user        typed_value = {'geo': {'value': None, 't
+    user_id     missing
+day 3: top-level value = None, metadata 78 bytes
+    amount      value = 02 02 08 07 06 00 0a 20 02 b1 0b
+    event       missing
+    event_type  typed_value = 'purchase'
+    items       typed_value = [{'value': None, 'typed_va
+    ts          typed_value = '2026-10-03T12:00:00'
+    user        typed_value = {'geo': {'value': None, 't
+    user_id     missing
+
+from_shredded() vs Spark's own read of the file: 60 of 60 rows equal
+
+--- what one field shreds to, for a few mixes of values:
+  int, decimal             x -> value: binary, typed_value: decimal128(18, 1)
+      {"x": 1}       value=None                                         typed_value=Decimal('1.0')
+      {"x": 2.5}     value=None                                         typed_value=Decimal('2.5')
+  int, double              x -> value: binary
+      {"x": 1}       value=b'\x0c\x01'                                  typed_value=None
+      {"x": 2.5e0}   value=b'\x1c\x00\x00\x00\x00\x00\x00\x04@'         typed_value=None
+  int, string              x -> value: binary
+      {"x": 1}       value=b'\x0c\x01'                                  typed_value=None
+      {"x": "a"}     value=b'\x05a'                                     typed_value=None
+      {"x": "b"}     value=b'\x05b'                                     typed_value=None
+  int, JSON null, missing  x -> value: binary, typed_value: int64
+      {"x": 1}       value=None                                         typed_value=1
+      {"x": null}    value=b'\x00'                                      typed_value=None
+      {}             value=None                                         typed_value=None
+
+--- the read side: a query for one field reads one leaf
+  ReadSchema: struct<v:struct<0:string>>
+  rows: [None, 'free', 'pro']
+
+--- the same 60 rows with writeShredding.enabled = false:
+v
+  value: binary
+  metadata: binary
+file size: shredded 7,403 B, not shredded 2,564 B

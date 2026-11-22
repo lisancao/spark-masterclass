@@ -1,0 +1,17 @@
+expected: (east, 10), (west, 20)
+
+case                                           metric view                     regular view
+1 USE other (has its own sales)                (east, 999)                     (east, 10), (west, 20)
+2 USE empty (no sales table)                   error TABLE_OR_VIEW_NOT_FOUND   (east, 10), (west, 20)
+3 USE default, temp view named sales           (north, 5)                      (east, 10), (west, 20)
+4 source qualified as default.sales, USE other (east, 10), (west, 20)          (east, 10), (west, 20)
+5 SQL source SELECT * FROM sales, USE other    (east, 999)                     (east, 10), (west, 20)
+6 subquery in filter: FROM regions, USE other  (west, 20)                      (east, 10), (west, 20)
+
+Evidence 1: the catalog stores the creation namespace of both views
+  mv_asset  type METRIC_VIEW  viewCatalogAndNamespace [spark_catalog, default]
+  v         type VIEW         viewCatalogAndNamespace [spark_catalog, default]
+
+Evidence 2: the relations in the analyzed plans, after USE other
+  metric view   ['Relation spark_catalog.other.sales']
+  regular view  ['Relation spark_catalog.default.sales']
