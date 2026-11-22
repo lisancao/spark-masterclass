@@ -1,0 +1,16 @@
+1. two clicks, then the same event again:
+   []
+   [] (re-sent: no output)
+   session state: (1791190800000, 1791191400000, 2, 5.0)
+   seen ids: ['c1', 'c2']
+2. a click 40 minutes later closes the session by gap:
+   [Row(user='u1', start_ms=1791190800000, end_ms=1791191400000, clicks=2, revenue=5.0, closed_by='gap')]
+3. move the watermark past the timer (last click + 30 min):
+   setWatermark(09:50 + 29 min) -> []
+   setWatermark(09:50 + 30 min) -> [Row(user='u1', start_ms=1791193800000, end_ms=1791193800000, clicks=1, revenue=0.0, closed_by='timer')]
+4. late events are filtered against the watermark the test set:
+   [] (08:00 is behind the 10:20 watermark)
+
+5. availableNow with timeMode=ProcessingTime: does the query stop by itself?
+   timeMode=None            finished=True  after  7.2 s, batches [0] (1)
+   timeMode=ProcessingTime  finished=False  after 45.4 s, batches [0, 1, 2, 3, 4, 5] ... (80)

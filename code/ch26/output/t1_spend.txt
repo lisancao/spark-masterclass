@@ -4,6 +4,20 @@
   Store backend
   org.apache.spark.sql.execution.streaming.state.HDFSBackedStateStoreProvider is not ...
 
+The physical plan of the query (expression ids and long lists removed):
+  !TransformWithStateInPySpark transformWithStateWithInitStateUDF(user, event_id, amount), [...], [...
+  :- *(2) Sort [...], false, 0
+  :  +- Exchange hashpartitioning(user, 2), REQUIRED_BY_STATEFUL_OPERATOR, [...]
+  :     +- *(1) Project [...]
+  :        +- *(1) Filter (isnotnull(action) AND (action = pay))
+  :           +- StreamingRelation FileSource[~/spark-masterclass-parts/part05/data/work/ch26/
+  +- *(4) Sort [...], false, 0
+     +- Exchange hashpartitioning(user, 2), REQUIRED_BY_STATEFUL_OPERATOR, [...]
+        +- *(3) Project [...]
+           +- *(3) Scan ExistingRDD[...]
+  
+  
+
 2. With RocksDB. Batches (id, input rows): [(0, 1), (1, 2), (2, 2), (3, 1)]
 Every row the memory sink received (update mode appends each emitted row):
 +----+-----+--------+-------+
@@ -37,6 +51,7 @@ The latest row per user:
 |  u3|            39.26|           1|
 |  u5|67.99000000000001|           0|
 |  u6|            19.15|           1|
+|  u9|             99.0|           1|
 +----+-----------------+------------+
 
 +----+--------+------+

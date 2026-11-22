@@ -44,7 +44,8 @@ class SpendTracker(StatefulProcessor):
 def build(spark, inbox):
     pays = (spark.readStream.schema(SCHEMA).option("maxFilesPerTrigger", 1).json(str(inbox))
             .where("action = 'pay'").select("user", "event_id", "amount"))
-    opening = spark.createDataFrame([("u1", 20.0), ("u5", 5.0)], "user STRING, opening DOUBLE")
+    opening = spark.createDataFrame([("u1", 20.0), ("u5", 5.0), ("u9", 99.0)],   # u9 never pays
+                                    "user STRING, opening DOUBLE")
     return pays.groupBy("user").transformWithState(
         statefulProcessor=SpendTracker(),
         outputStructType="user STRING, total DOUBLE, payments INT, flagged BOOLEAN",
@@ -73,6 +74,13 @@ ck = w / "checkpoint"
 q = (build(spark, inbox).writeStream.format("memory").queryName("spend").outputMode("update")
      .option("checkpointLocation", str(ck)).trigger(availableNow=True).start())
 q.awaitTermination()
+print("\nThe physical plan of the query (expression ids and long lists removed):")
+from common.book import plan
+import re
+for line in plan(build(spark, inbox), "simple").splitlines()[1:]:
+    line = re.sub(r"#\d+", "", line)               # drop expression ids
+    line = re.sub(r"\[(\w+(, )?){3,}[^\]]*\]", "[...]", line)
+    print("  " + line[:100])
 print("\n2. With RocksDB. Batches (id, input rows):", [(p.batchId, p.numInputRows) for p in q.recentProgress])
 print("Every row the memory sink received (update mode appends each emitted row):")
 spark.table("spend").orderBy("user", "total").show()
