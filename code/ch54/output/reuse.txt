@@ -1,0 +1,4 @@
+run 1: session ready in  4.9 s | localhost:10301 | session 4e39b911 | plan_nodes -> ['Filter', 'Range']
+discovery file keys: ['host', 'pid', 'port', 'spark_version', 'token'] | port 10301 | Spark 4.3.0
+run 2: session ready in  0.3 s | localhost:10301 | session ed62dc8b | plan_nodes -> ['Filter', 'Range']
+--stop: Stopped the persistent local Spark Connect server.

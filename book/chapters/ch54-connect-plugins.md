@@ -233,7 +233,7 @@ The output shows two traps:
 - **Warnings that you can ignore.** After the server starts, the client also tries to set the builder options on the Connect session. The static settings refuse, and the client gives one warning for each. The server already has the settings, and the plugin works: the last line is the result of `plan_nodes`.
 - **Port 15002.** The server in the process listens on the default Connect port, 15002. The client connects to `localhost:15002`. If a different process already listens on that port, the client can connect to **that** server, which does not have your plugin. Thus, `local_server.py` examines the port first. If a plugin "is not found" for no clear reason, find the process that has the port (`ss -ltnp`).
 
-**New in 4.3: a local server that stays.** Each `remote("local[*]")` starts a new server, and a new JVM takes many seconds to start. PySpark 4.3.0 adds `spark.local.connect.reuse` (or the environment variable `SPARK_LOCAL_CONNECT_REUSE`). The module doc of `python/pyspark/sql/connect/local_server.py` says that this module is experimental.
+**New in 4.3: a local server that stays.** Each `remote("local[*]")` starts a new server, and a new JVM takes some seconds to start. PySpark 4.3.0 adds `spark.local.connect.reuse` (or the environment variable `SPARK_LOCAL_CONNECT_REUSE`). The module doc of `python/pyspark/sql/connect/local_server.py` says that this module is experimental.
 
 With the option on, the first run starts one persistent server through `sbin/start-connect-server.sh`. That run gives the static settings to the server. It writes the host, port, authentication token, process ID and Spark version to a discovery file.
 
@@ -252,10 +252,13 @@ spark = (SparkSession.builder.remote("local[2]")
 ```
 
 ```text
-REUSE
+run 1: session ready in  4.9 s | localhost:10301 | session 4e39b911 | plan_nodes -> ['Filter', 'Range']
+discovery file keys: ['host', 'pid', 'port', 'spark_version', 'token'] | port 10301 | Spark 4.3.0
+run 2: session ready in  0.3 s | localhost:10301 | session ed62dc8b | plan_nodes -> ['Filter', 'Range']
+--stop: Stopped the persistent local Spark Connect server.
 ```
 
-The second run connects to the server that the first run started, with a new session. Its `getOrCreate()` is much faster, and the plugin is ready. Only the run that starts the server can set static settings. A later run with a different jar gets the old server. Stop the server with `python -m pyspark.sql.connect.local_server --stop`, as `reuse.py` does at the end.
+The second run connects to the server that the first run started, with a new session. Its session was ready in 0.3 s, against 4.9 s for the first run, and the plugin is ready. Only the run that starts the server can set static settings. A later run with a different jar gets the old server. Stop the server with `python -m pyspark.sql.connect.local_server --stop`, as `reuse.py` does at the end.
 
 ## Step 6: The client side in Python
 
