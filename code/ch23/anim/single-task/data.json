@@ -1,0 +1,4 @@
+{"source": "code/ch23/output/plans_aqe.txt",
+ "off": {"exchanges": 2, "jobs": 4, "stages": 4, "tasks": 4, "shuffle_write_bytes": 1172, "duration_ms": 1933},
+ "on": {"exchanges": 0, "jobs": 1, "stages": 1, "tasks": 1, "shuffle_write_bytes": 0, "duration_ms": 340},
+ "timing": "schematic"}
