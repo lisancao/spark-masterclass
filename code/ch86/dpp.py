@@ -109,3 +109,15 @@ print(f"  PartitionFilters: [{scan_filters(static)[:120]}]")
 static.collect()
 m = scan_metrics()
 print(f"  partitions read {m.get('number of partitions read', '?')}, files read {m.get('number of files read', '?')}")
+
+print("\n=== 5. new in 4.3: a small local DataFrame as the filtering side, with no filter at all (SPARK-54593)")
+hol = spark.createDataFrame([(dt.date(2026, 1, 1),), (dt.date(2026, 1, 19),), (dt.date(2026, 2, 16),),
+                             (dt.date(2026, 5, 25),), (dt.date(2026, 6, 19),)], "pickup_date date")
+for cbo in ("false", "true"):
+    spark.conf.set("spark.sql.cbo.enabled", cbo)
+    q = spark.table("trips_by_day").join(hol, "pickup_date").groupBy("pickup_date").count()
+    print(f"  spark.sql.cbo.enabled={cbo}: PartitionFilters [{scan_filters(q)[:100]}]")
+    q.collect()
+    m = scan_metrics()
+    print(f"    partitions read {m.get('number of partitions read', '?')}, rows out of scan {m.get('number of output rows', '?')}")
+spark.conf.unset("spark.sql.cbo.enabled")

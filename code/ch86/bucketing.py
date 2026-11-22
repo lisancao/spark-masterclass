@@ -78,13 +78,15 @@ for t in ("trips_plain", "trips_b16"):
     print(f"  {t:12} exchanges {len(ex)} {ex}")
 
 print("\n=== 4. bucket pruning: a filter on the bucket column")
-q = spark.table("trips_b16").where("PULocationID = 132").agg(F.count("*"))
-scan = [l for l in plan(q, "formatted").splitlines() if "SelectedBucketsCount" in l or "Bucketed:" in l]
-for l in scan:
-    print("  " + l.strip())
-q.collect()
-m = [mm for _, mm in last_sql_metrics(spark, "Scan parquet")][0]
-print(f"  files read {m.get('number of files read')}, rows out of scan {m.get('number of output rows')}")
+for auto in ("true", "false"):
+    spark.conf.set("spark.sql.sources.bucketing.autoBucketedScan.enabled", auto)
+    q = spark.table("trips_b16").where("PULocationID = 132").agg(F.count("*"))
+    scan = [l.strip() for l in plan(q, "formatted").splitlines() if "SelectedBucketsCount" in l or "Bucketed:" in l]
+    q.collect()
+    m = [mm for _, mm in last_sql_metrics(spark, "Scan parquet")][0]
+    print(f"  autoBucketedScan.enabled={auto}: {' | '.join(scan)}")
+    print(f"    files read {m.get('number of files read')}, rows out of scan {m.get('number of output rows')}")
+spark.conf.unset("spark.sql.sources.bucketing.autoBucketedScan.enabled")
 
 print("\n=== 5. a query that gains nothing from buckets: the planner turns the bucketed scan off")
 q = spark.table("trips_b16").where("total_amount > 100").agg(F.count("*"))

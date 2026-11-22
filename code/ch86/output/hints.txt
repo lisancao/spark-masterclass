@@ -1,31 +1,31 @@
 === 1. join hints in SQL (trips JOIN zones; zones is 6 KB, so the default is a broadcast)
-  (no hint)                  BroadcastHashJoin
-  BROADCAST(t)               BroadcastHashJoin
+  (no hint)                  BroadcastHashJoin BuildRight
+  BROADCAST(t)               BroadcastHashJoin BuildLeft
   MERGE(z)                   SortMergeJoin
   SHUFFLE_MERGE(z)           SortMergeJoin
-  SHUFFLE_HASH(z)            ShuffledHashJoin
+  SHUFFLE_HASH(z)            ShuffledHashJoin BuildRight
   SHUFFLE_REPLICATE_NL(z)    CartesianProduct
-  MAPJOIN(z)                 BroadcastHashJoin
+  MAPJOIN(z)                 BroadcastHashJoin BuildRight
 
 === 2. the same hints on a DataFrame
-  z.hint('broadcast')        BroadcastHashJoin
+  z.hint('broadcast')        BroadcastHashJoin BuildRight
   z.hint('merge')            SortMergeJoin
-  z.hint('shuffle_hash')     ShuffledHashJoin
+  z.hint('shuffle_hash')     ShuffledHashJoin BuildRight
   z.hint('shuffle_replicate_nl') CartesianProduct
-  F.broadcast(t)             BroadcastHashJoin
+  F.broadcast(t)             BroadcastHashJoin BuildRight
 
 === 3. two hints in one query: which one wins
-  BROADCAST(t), MERGE(z)                     BroadcastHashJoin
+  BROADCAST(t), MERGE(z)                     BroadcastHashJoin BuildLeft
   MERGE(t), SHUFFLE_HASH(z)                  SortMergeJoin
-  SHUFFLE_HASH(t), SHUFFLE_REPLICATE_NL(z)   ShuffledHashJoin
-  BROADCAST(t), BROADCAST(z)                 BroadcastHashJoin
-  SHUFFLE_HASH(t), SHUFFLE_HASH(z)           ShuffledHashJoin
+  SHUFFLE_HASH(t), SHUFFLE_REPLICATE_NL(z)   ShuffledHashJoin BuildLeft
+  BROADCAST(t), BROADCAST(z)                 BroadcastHashJoin BuildRight
+  SHUFFLE_HASH(t), SHUFFLE_HASH(z)           ShuffledHashJoin BuildRight
 
 === 4. hints that the planner cannot use (it ignores them and logs a warning)
   BROADCAST(t) on a full outer join:   SortMergeJoin
-  SHUFFLE_HASH(z) on a non-equi join:  BroadcastNestedLoopJoin
-  BROADCAST(x), no table x:            BroadcastHashJoin
-  BROADKAST(z), a misspelled name:     BroadcastHashJoin
+  SHUFFLE_HASH(z) on a non-equi join:  BroadcastNestedLoopJoin BuildRight
+  BROADCAST(x), no table x:            BroadcastHashJoin BuildRight
+  BROADKAST(z), a misspelled name:     BroadcastHashJoin BuildRight
 
 === 5. partitioning hints: the Exchange that each one adds, and the files of a write
   (no hint)                                  files   5  MB min   0.0 max  13.1

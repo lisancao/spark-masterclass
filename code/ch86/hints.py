@@ -22,7 +22,7 @@ def phys(q):
 
 
 def join_of(q):
-    m = re.findall(r"(BroadcastHashJoin|SortMergeJoin|ShuffledHashJoin|BroadcastNestedLoopJoin|CartesianProduct)[^\n]*?(BuildLeft|BuildRight)?", phys(q))
+    m = re.findall(r"(BroadcastHashJoin|SortMergeJoin|ShuffledHashJoin|BroadcastNestedLoopJoin|CartesianProduct)(?:[^\n]*?(BuildLeft|BuildRight))?", phys(q))
     return " ".join(x for x in m[0] if x) if m else "?"
 
 

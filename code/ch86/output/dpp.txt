@@ -1,0 +1,33 @@
+trips_by_day: 22,131,665 rows in 181 partitions; days: 181 rows
+
+=== 1. the plan for Sundays only: a subquery on the dimension filters the fact scan
+  +- BroadcastExchange (4)
+  PartitionFilters: [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+  Subquery:1 Hosting operator id = 1 Hosting Expression = pickup_date IN dynamicpruning
+  result: 261 pickup zones, 2,885,119 Sunday trips
+
+=== 2. what the fact scan read, and the time (median of 7 after a warmup)
+  DPP on (default)         partitions read   26  files   26  rows out of scan   2,885,119  1.34 s
+  DPP off                  partitions read  181  files  181  rows out of scan  22,131,665  1.64 s
+                           no broadcast: PartitionFilters [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+  DPP on, broadcast off    partitions read  181  files  181  rows out of scan  22,131,665  3.70 s
+  DPP off / DPP on: 1.2x
+
+=== 3. holidays: 'holiday IS NOT NULL' is not a selective predicate
+  PartitionFilters: [isnotnull(pickup_date)]
+  no column statistics     partitions read  181  files  181  rows out of scan  22,131,665  0.59 s
+  after ANALYZE ... FOR COLUMNS on both tables, and spark.sql.cbo.enabled=true:
+  PartitionFilters: [isnotnull(pickup_date)]
+  statistics and CBO       partitions read  181  files  181  rows out of scan  22,131,665  0.71 s
+  the same filter written as "d.holiday <> ''", a comparison:
+  PartitionFilters: [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+  holiday <> ''            partitions read    5  files    5  rows out of scan     479,694  0.33 s
+    Juneteenth                    116,083  2.87
+    Martin Luther King Jr. Day     95,810  2.95
+    Memorial Day                   75,497  3.25
+    New Year's Day                109,534  2.29
+    Presidents' Day                82,770  3.16
+
+=== 4. static partition pruning: the five holidays as literals
+  PartitionFilters: [pickup_date IN (2026-01-01,2026-01-19,2026-02-16,2026-05-25,2026-06-19)]
+  partitions read 5, files read 5

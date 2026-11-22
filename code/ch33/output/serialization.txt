@@ -1,0 +1,2 @@
+java (default)              objects   83.9 MiB | MEMORY_ONLY_SER  25.8 MiB 0.29 s | RDD shuffle  32.7 MiB 0.38 s | DataFrame shuffle 149.4 KiB
+kryo, not registered        objects   83.9 MiB | MEMORY_ONLY_SER  30.1 MiB 0.30 s | RDD shuffle  24.4 MiB 0.50 s | DataFrame shuffle 149.4 KiB

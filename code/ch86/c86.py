@@ -60,7 +60,9 @@ def bench_lock():
 
 
 def median_s(run, runs=5):
-    """Median wall time of run() over `runs` runs after one warmup, under the bench lock."""
+    """Median wall time of run() over `runs` runs after one warmup, under the bench lock.
+    BOOK_RUNS overrides `runs` (films use 1; the book quotes only the full runs saved in output/)."""
+    runs = int(os.environ.get("BOOK_RUNS", runs))
     with bench_lock():
         run()
         ts = []
