@@ -22,3 +22,4 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | 53 | manifest-states, checkpoint | anim-commit (file names, counts and abort call from writers.txt) | offset designs table | 0, 0 (part09a allowlist) |
 | 54 | setups, connect-order | anim-lookup (outcomes of runs 2 and 4 in packaging.txt; module order schematic) | none | 0, 0 (part09a allowlist) |
 | 55 | three-plans, partitioning | anim-countpush (final plan and counts from jdocs.txt; logical plan schematic) | timing runs table | 0, 0 |
+| 56 | rule-plans, bench | anim-rule (plan lines from planchange.txt, values from extensions.txt) | none; corrected '2,000,000' to '20,000,000' in Step 11 to match bench.py and bench.txt | 0, 0 |

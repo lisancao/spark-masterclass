@@ -325,6 +325,11 @@ is_png (rewritten by jext.PngRule):
 `ArrowEvalPython` with eval type `101` is the Arrow-optimized Python UDF, which is the default for a plain `@udf` in 4.3 (`spark.sql.execution.pythonUDF.arrow.enabled` is `true`). It sends the bytes of each file to Python. After the rewrite, the plan has no Python node. The condition is a plain Catalyst expression, so it is also in the `DataFilters` of the scan. The `Filter` has no `*` because `IsPng` is a `CodegenFallback`.
 
 <figure markdown>
+  ![The plans of a UDF that the rule ignores and of a UDF that it rewrites](../media/figures/ch56-rule-plans.svg)
+  <figcaption>The two physical plans above, as trees. After the rewrite, the plan has no <code>ArrowEvalPython</code> node.</figcaption>
+</figure>
+
+<figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch56-rule.webp">
     <source src="../../media/clips/ch56-rule.mp4" type="video/mp4">
   </video>
@@ -393,6 +398,13 @@ rewrites so far: 5
 ```
 
 The rewritten UDF gives the same values as the Python UDF. The native function alone gives `None` for the NULL row, and `~is_png` then loses that row.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch56-anim-rule.webp">
+    <source src="../../media/clips/ch56-anim-rule.mp4" type="video/mp4">
+  </video>
+  <figcaption>The rule checks the UDF and replaces it with <code>coalesce(is_png(content), false)</code>. The plan lines and the values come from <code>planchange.py</code> and <code>extensions.py</code>.</figcaption>
+</figure>
 
 A rule also needs these two properties:
 
@@ -524,7 +536,7 @@ A Java `IllegalArgumentException` gets to Python as the `IllegalArgumentExceptio
 
 ## Step 11: Measure without errors
 
-`bench.py` measures each version. Each time is the median of 5 runs after 1 warm-up run, with a **new** DataFrame for each run. The script ran under the shared benchmark lock of the book. Part A counts the matches in 2,000,000 cached binary values (a third of them start with the PNG signature). Part B groups the June 2026 trips by `fare_band`:
+`bench.py` measures each version. Each time is the median of 5 runs after 1 warm-up run, with a **new** DataFrame for each run. The script ran under the shared benchmark lock of the book. Part A counts the matches in 20,000,000 cached binary values (a third of them start with the PNG signature). Part B groups the June 2026 trips by `fare_band`:
 
 ```text
 local[*] on 16 cores, x86_64, Spark 4.3.0, Python 3.12.3
@@ -544,7 +556,13 @@ B. fare_band over 3,837,248 trips (group by band, count)
   Python UDF (pickled, useArrow=False)           1.133 s    1.8x  BatchEvalPython  (4 rows)
 ```
 
+<figure markdown>
+  ![Median seconds of each version, with the color of the Python node in the plan](../media/figures/ch56-bench.svg)
+  <figcaption>The output above as bars. The versions with no Python node take less time than the versions with a Python node.</figcaption>
+</figure>
+
 The last column shows the Python node of each physical plan. The results group by that column:
+
 
 - **No Python node, no Python cost.** In part A, the four native forms take 0.31 s to 0.38 s. The Python UDF that `PngRule` replaced is one of them. It takes 0.384 s, against 3.356 s for the same UDF with a different name. The `CodegenFallback` version is not slower than the `StaticInvoke` version here, because the check reads only eight bytes of each value.
 - **A Python node costs a multiple.** The pandas UDF takes 5.5 times as long as `is_png_fast`, and the Arrow-optimized Python UDF takes 8.9 times as long.
