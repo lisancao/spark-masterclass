@@ -100,9 +100,9 @@ root {
 }
 
 busiest pickup zones: [(237, 177610), (161, 161198), (236, 157113)]
-succeeded, operation 7bfd8c29-9d12-4b81-958c-b7064b683f23
+succeeded, operation 62b6c765-37cc-4832-abf3-743cae6f5509
 built a DataFrame over a column that doesn't exist; no error yet
-failed,    operation 1a1581bc-9318-42c1-b009-4393bbefaf56
+failed,    operation eb28b1ec-c374-4cdf-8564-1a27e17bd7d5
   AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function
   parameter with name `revenue` cannot be resolved. Did you mean one of the following?
   [`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;
@@ -116,20 +116,20 @@ spark.sparkContext -> PySparkAttributeError: [JVM_ATTRIBUTE_NOT_SUPPORTED] Attri
 The server's record of the failed operation:
 
 {
-  "jobTag": "SparkConnect_OperationTag_User_lnc_Session_44553310-d75d-4871-8a82-1f72299e7963_Operation_1a1581bc-9318-42c1-b009-4393bbefaf56",
-  "operationId": "1a1581bc-9318-42c1-b009-4393bbefaf56",
-  "sessionId": "44553310-d75d-4871-8a82-1f72299e7963",
+  "jobTag": "SparkConnect_OperationTag_User_lnc_Session_e484384c-bb96-4337-99eb-37304e87a9cd_Operation_eb28b1ec-c374-4cdf-8564-1a27e17bd7d5",
+  "operationId": "eb28b1ec-c374-4cdf-8564-1a27e17bd7d5",
+  "sessionId": "e484384c-bb96-4337-99eb-37304e87a9cd",
   "userId": "lnc",
   "state": "CLOSED",
-  "startTimestamp": 1795069997254,
-  "finishTimestamp": 1795069997260,
-  "closeTimestamp": 1795069997261,
-  "duration": 7,
-  "executionTime": 6,
+  "startTimestamp": 1795370579754,
+  "finishTimestamp": 1795370579937,
+  "closeTimestamp": 1795370579942,
+  "duration": 188,
+  "executionTime": 183,
   "sparkSessionTags": [],
   "jobIds": [],
   "sqlExecIds": [
-    "12"
+    "1"
   ],
-  "detail": "INTERNAL: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `revenue` cannot be resolved. Did you mean one of the following? [`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;\n'Project ['revenue]\n+- Filter ((tpep_pickup_datetime#155 >= cast(2026-06-01 as timestamp_ntz)) AND (tpep_pickup_datetime#155 < cast(2026-07-01 as timestamp_ntz)))\n   +- Relation [VendorID#154,tpep_pickup_datetime#155,tpep_dropoff_datetime#156,passenger_count#157L,trip_distance#158,RatecodeID#159L,store_and_fwd_flag#160,PULocationID#161,DOLocationID#162,payment_type#163L,fare_amount#164,extra#165,mta_tax#166,tip_amount#167,tolls_amount#168,improvement_surcharge#169,total_amount#170,congestion_surcharge#171,Airport_fee#172,cbd_congestion_fee#173,request_source#174] parquet\n"
+  "detail": "INTERNAL: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `revenue` cannot be resolved. Did you mean one of the following? [`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`]. SQLSTATE: 42703;\n'Project ['revenue]\n+- Filter ((tpep_pickup_datetime#2 >= cast(2026-06-01 as timestamp_ntz)) AND (tpep_pickup_datetime#2 < cast(2026-07-01 as timestamp_ntz)))\n   +- Relation [VendorID#1,tpep_pickup_datetime#2,tpep_dropoff_datetime#3,passenger_count#4L,trip_distance#5,RatecodeID#6L,store_and_fwd_flag#7,PULocationID#8,DOLocationID#9,payment_type#10L,fare_amount#11,extra#12,mta_tax#13,tip_amount#14,tolls_amount#15,improvement_surcharge#16,total_amount#17,congestion_surcharge#18,Airport_fee#19,cbd_congestion_fee#20,request_source#21] parquet\n"
 }

@@ -1,0 +1,9 @@
+                                              Classic            Connect
+first session and first query (s)                3.83               0.28
+top-3 zones query, median (ms)                     91                168
+df.columns, new DataFrame (ms)                    1.0                2.7
+client memory, RSS (MB)                           864                136
+bad column raises                         at select()       at collect()
+client killed with SIGKILL         driver JVM stopped  server still runs
+count of a replaced temp view                       3                  7
+UDF closure value                                 123                456

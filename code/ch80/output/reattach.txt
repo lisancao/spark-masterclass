@@ -1,0 +1,13 @@
+toPandas: 3,837,248 rows, 117 MiB in pandas
+RPCs: {'Config': 3, 'ExecutePlan': 1, 'ReleaseExecute': 392, 'ReattachExecute': 7, 'ReleaseSession': 1}
+Arrow batches: 385, rows per batch median 10,000 (max 10,000), bytes per batch median 327,056
+Arrow bytes in total: 120 MiB for 3,837,248 rows = 32.7 bytes per row
+
+The stream, call by call (ExecutePlan, then each ReattachExecute):
+  ExecutePlan        57 responses   16.2 MiB  last: arrow_batch
+  ReattachExecute    52 responses   16.2 MiB  last: arrow_batch
+  ReattachExecute    52 responses   16.2 MiB  last: arrow_batch
+  ReattachExecute    52 responses   16.2 MiB  last: arrow_batch
+  ...
+  ReattachExecute    52 responses   16.2 MiB  last: arrow_batch
+  ReattachExecute    23 responses    6.3 MiB  last: result_complete

@@ -3,12 +3,15 @@
 Start the server first:  ch04/server.sh start
 Run from code/:          uv run python ch04/connect.py
 """
-import json, sys, urllib.request
+import json, os, sys, urllib.request
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from pyspark.sql import SparkSession, functions as F
 from common.book import ROOT, TRIPS, MONTH_START, MONTH_END, ui_api
+
+PORT = os.environ.get("CONNECT_PORT", "15002")      # ch04/server.sh uses the same variables
+UI = os.environ.get("CONNECT_UI_PORT", "4041")
 
 
 def compact(msg):
@@ -22,7 +25,7 @@ def compact(msg):
                 compact(v)
     return msg
 
-with SparkSession.builder.remote("sc://localhost:15002").getOrCreate() as spark:   # 4.3: a context manager
+with SparkSession.builder.remote(f"sc://localhost:{PORT}").getOrCreate() as spark:   # 4.3: a context manager
     print(type(spark).__module__, "| server runs Spark", spark.version)
 
     trips = spark.read.parquet(str(TRIPS))
@@ -59,7 +62,7 @@ with SparkSession.builder.remote("sc://localhost:15002").getOrCreate() as spark:
                             initial_indent="\n", subsequent_indent="  "))
 
 # 4.3: the server's record of every session and operation, from the monitoring REST API.
-ops = ui_api("connect/operations", port=4041)
+ops = ui_api("connect/operations", port=UI)
 mine = next(o for o in ops if o["operationId"] == failed)
 print("\nThe server's record of the failed operation:\n")
 print(json.dumps({k: mine[k] for k in mine if k not in ("statement",)}, indent=2)[:1500])
