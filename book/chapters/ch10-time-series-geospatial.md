@@ -65,7 +65,7 @@ FROM VALUES (TIMESTAMP_NTZ'2026-06-10 12:00'), (TIMESTAMP_NTZ'2026-06-14 09:00')
 1970-01-01 was a Thursday
   window with a month             _LEGACY_ERROR_TEMP_3231: Intervals greater than a month is not supported (1 month).
   time_bucket with 0 minutes      DATATYPE_MISMATCH.VALUE_OUT_OF_RANGE: Cannot resolve "time_bucket(INTERVAL '00' MINUTE, TIMESTAMP_NTZ '2026-06
-  time_bucket with a column size  DATATYPE_MISMATCH.NON_FOLDABLE_INPUT: Cannot resolve "time_bucket(INTERVAL '00' MINUTE, TIMESTAMP_NTZ '2026-06
+  time_bucket with a column size  DATATYPE_MISMATCH.NON_FOLDABLE_INPUT: Cannot resolve "time_bucket(make_dt_interval(0, 0, id, 0.000000), TIMEST
   time_bucket on a DATE           DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE: Cannot resolve "time_bucket(INTERVAL '1' DAY, DATE '2026-06-10', TIMESTA
 ```
 
@@ -134,6 +134,13 @@ after the fill: 24 rows
 hours where the average over 3 rows is not the average over 3 hours: 2
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch10-gaps.webp">
+    <source src="../../media/clips/ch10-gaps.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>timeseries.py</code> runs against Spark 4.3.0. A quiet zone has 3 rows for 24 hours, and the fill makes the other 21.</figcaption>
+</figure>
+
 Only 3 of the 24 hours have a row. A chart of that result draws a line from 00:00 to 02:00 to 07:00, and it shows no hours with zero trips. To fill the gaps, make one row for each bucket, and join the counts to it:
 
 ```python
@@ -164,8 +171,17 @@ flowchart LR
 A session is a group of events with no long gap between them. `session_window(ts, gap)` makes these groups. `timeseries.py` groups the pickups at Newark Airport (zone 1) into sessions with gaps of 10 minutes or more:
 
 ```text
-SESSIONS_OUTPUT
+== 6. sessions: bursts of pickups at Newark Airport (zone 1), gaps over 10 minutes
++--------+-------+-----------+-------------+
+|sessions|largest|avg_minutes|single_pickup|
++--------+-------+-----------+-------------+
+|     423|      8|       11.2|          323|
++--------+-------+-----------+-------------+
+
+sessions with lag + running sum: 423
 ```
+
+Newark has 423 sessions in June. 323 of them have one pickup, and the largest has 8. A session window ends 10 minutes after its last event. Thus a session with one pickup is 10 minutes long, and the average is 11.2 minutes. Taxi pickups at Newark come one at a time, with long gaps between them.
 
 The same sessions come from two window functions. `lag` finds the gap before each pickup. A gap of 10 minutes or more marks the start of a new session. A running `sum` of the marks gives each row a session number:
 
@@ -408,6 +424,13 @@ plans:
   grid       ['BroadcastHashJoin', 'Generate', 'Window']
   NEAREST BY ['BroadcastNestedLoopJoin', 'Generate', 'SortAggregate']
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch10-nearest.webp">
+    <source src="../../media/clips/ch10-nearest.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>geo.py</code> runs against Spark 4.3.0. All pairs and <code>NEAREST BY</code> compare 1,788 pairs, the grid compares 320 and misses 4 deliveries.</figcaption>
+</figure>
 
 All pairs and `NEAREST BY` give the same store for each of the 149 deliveries. Both compare 149 × 12 = 1,788 pairs. The plans show it: `NEAREST BY` is a `BroadcastNestedLoopJoin` and a top-K aggregate, as in Chapter 9.
 

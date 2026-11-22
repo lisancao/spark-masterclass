@@ -55,14 +55,14 @@ after the fill: 24 rows
 
 hours where the average over 3 rows is not the average over 3 hours: 2
 
-== 6. sessions: bursts of pickups in zone 108 with gaps over 10 minutes
+== 6. sessions: bursts of pickups at Newark Airport (zone 1), gaps over 10 minutes
 +--------+-------+-----------+-------------+
 |sessions|largest|avg_minutes|single_pickup|
 +--------+-------+-----------+-------------+
-|      66|      2|       10.2|           62|
+|     423|      8|       11.2|          323|
 +--------+-------+-----------+-------------+
 
-sessions with lag + running sum: 66
+sessions with lag + running sum: 423
 
 == 7. trip minutes by hour of day (all June)
 +----+------+------------------+------------------+
