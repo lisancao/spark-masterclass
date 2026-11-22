@@ -1,0 +1,7 @@
+day 1 written: 2 rows
+day 2 appended with amount as a string: no error
+files: ['part-00000-cee0b9b4-...', 'part-00000-f619bc64-...']
+read: Py4JJavaError, conditions in the message: ['FAILED_READ_FILE.PARQUET_COLUMN_DATA_TYPE_MISMATCH']
+read with mergeSchema: Py4JJavaError, conditions in the message: ['CANNOT_MERGE_SCHEMAS', 'CANNOT_MERGE_INCOMPATIBLE_DATA_TYPE']
+after overwrite: ['part-00000-5d72e345-...'] 
+no version history, so the two earlier days are gone for good

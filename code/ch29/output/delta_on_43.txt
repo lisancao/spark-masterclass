@@ -1,0 +1,2 @@
+Spark 4.3.0 + io.delta:delta-spark_4.2_2.13:4.4.1
+write failed: : java.lang.NoSuchMethodError: 'void org.apache.spark.sql.execution.LogicalRDD.<init>(scala.collection.immutable.Seq, org.apache.spark.rdd.RDD, org.apache.spark.sql.catalyst.plans.physical.Partitionin
