@@ -533,7 +533,7 @@ flowchart LR
 
 ### New in 4.3: extractions inside aggregates and joins
 
-Before Spark 4.3, the rule pushed an extraction into the scan only from a `Project` or a `Filter` directly above it. An extraction inside an aggregate function, a join condition or a sort key made the scan read the full `VARIANT`. Spark 4.3 extends the rule (SPARK-58089). The internal configuration `spark.sql.variant.pushVariantIntoScan.pullOutExtractions` controls it, and it is on by default:
+Before Spark 4.3, the rule did not push an extraction that was inside an aggregate function, a join condition or a sort key. Such an extraction made the scan read the full `VARIANT`. Spark 4.3 extends the rule (SPARK-58089). The internal configuration `spark.sql.variant.pushVariantIntoScan.pullOutExtractions` controls it, and it is on by default:
 
 ```text
 == new in 4.3: extractions inside an aggregate are pushed into the scan too ==
