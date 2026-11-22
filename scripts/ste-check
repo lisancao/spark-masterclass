@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Run stecheck on a book page, after removing markdown noise the lint misreads
+# (link targets, HTML video tags, ** markers, tight lists joined into one sentence).
+# Usage: scripts/ste-check FILE [description|procedure] [--allow extra words]
+set -euo pipefail
+here=$(cd "$(dirname "$0")" && pwd)
+f=$1; m=${2:-description}; shift; [ $# -gt 0 ] && shift
+python3 "$here/ste_prep.py" "$f" | stecheck - --mode "$m" --allow $(cat "$here/ste-allow.txt") "$@"
