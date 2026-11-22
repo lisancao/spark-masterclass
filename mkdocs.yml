@@ -77,6 +77,8 @@ nav:
       - "4. Spark Connect": chapters/ch04-spark-connect.md
   - "Part VI: Pipelines and tables":
       - "31. Apache Iceberg with Spark": chapters/ch31-iceberg.md
+  - "Part VIII: Running Spark in production":
+      - "48. Orchestrating Spark": chapters/ch48-orchestration.md
   - "Part X: Internals":
       - "59. How Catalyst plans Python": chapters/ch59-catalyst-plans-python.md
       - "60. The Python worker protocol": chapters/ch60-python-worker-protocol.md

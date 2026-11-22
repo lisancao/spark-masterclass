@@ -94,7 +94,7 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 | 45 | Observability: listeners, event logs, metrics, profilers | **4.3:** Connect REST endpoints |
 | 46 | Spark Connect in production: deployment patterns | One server per app or shared, sessions and isolation, auth and proxies, reattach, a sandbox per agent. **4.3:** operation IDs, REST endpoints, Feather on the server |
 | 47 | Spark on Kubernetes with the Spark Kubernetes Operator | SparkApplication and SparkCluster resources, a Connect server on Kubernetes, run for real on a local cluster |
-| 48 | Orchestrating Spark: Airflow, operators, YuniKorn and Celeborn | Airflow's Spark operators (submit, Kubernetes, Connect), the Kubernetes operator under Airflow, gang scheduling and queues with Apache YuniKorn, remote shuffle with Apache Celeborn |
+| 48 | [Orchestrating Spark: Airflow, operators, YuniKorn and Celeborn](chapters/ch48-orchestration.md) | Airflow's Spark operators (submit, Kubernetes, Connect), the Kubernetes operator under Airflow, gang scheduling and queues with Apache YuniKorn, remote shuffle with Apache Celeborn |
 | 49 | Writing Spark pipelines with agents | What agents get wrong in Spark (from the OSA Con 2026 study), and a harness of declare, scope and context: dry-run, a Connect sandbox, version-pinned skills, metric views |
 
 ## Part IX: Extending Spark
