@@ -1,0 +1,128 @@
+
+== rowTag is required ==
+  spark.read.xml(path) without rowTag          -> XML_ROW_TAG_MISSING
+root
+ |-- _channel: string (nullable = true)
+ |-- _id: long (nullable = true)
+ |-- coupon: string (nullable = true)
+ |-- customer: string (nullable = true)
+ |-- items: struct (nullable = true)
+ |    |-- item: array (nullable = true)
+ |    |    |-- element: struct (containsNull = true)
+ |    |    |    |-- _sku: string (nullable = true)
+ |    |    |    |-- qty: long (nullable = true)
+
++---+--------+--------+------+-----------------------------+
+|_id|_channel|customer|coupon|items                        |
++---+--------+--------+------+-----------------------------+
+|0  |store   |C0      |SAVE0 |{[{P8, 2}, {P7, 3}]}         |
+|1  |web     |C1      |NULL  |{[{P9, 3}, {P8, 1}, {P4, 2}]}|
+|2  |store   |C2      |NULL  |{[{P1, 3}]}                  |
++---+--------+--------+------+-----------------------------+
+only showing top 3 rows
+orders: 10  rowTag elements in the file: 10
+
+== attributes, text and _VALUE ==
+root
+ |-- price: struct (nullable = true)
+ |    |-- _VALUE: double (nullable = true)
+ |    |-- _cur: string (nullable = true)
+ |-- qty: struct (nullable = true)
+ |    |-- _VALUE: double (nullable = true)
+ |    |-- _unit: string (nullable = true)
+
++-----------+-----------+
+|price      |qty        |
++-----------+-----------+
+|{4.5, CAD} |{2.0, NULL}|
+|{3.0, NULL}|{1.5, kg}  |
++-----------+-----------+
+
++-----------+-----------+
+|price      |qty        |
++-----------+-----------+
+|{CAD, 4.5} |{NULL, 2.0}|
+|{NULL, 3.0}|{kg, 1.5}  |
++-----------+-----------+
+
+excludeAttribute=true: struct<price:double,qty:double>
+inferSchema=false:     struct<price:struct<_VALUE:string,_cur:string>,qty:struct<_VALUE:string,_unit:string>>
+
+== one child or many: inference sees the whole file ==
+orders.xml (1 to 3 items): struct<item:array<struct<_sku:string,qty:bigint>>>
+a file where each order has one item: struct<item:struct<_sku:string,qty:bigint>>
+  explode(items.item) on that file             -> DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE
+with ARRAY in the schema: 2 item rows
+item rows from orders.xml: 23
+
+== VARIANT mode: one child is an OBJECT, many are an ARRAY ==
++---+----------------------------------------+
+|id |item_shape                              |
++---+----------------------------------------+
+|0  |ARRAY<OBJECT<_sku: STRING, qty: BIGINT>>|
+|1  |ARRAY<OBJECT<_sku: STRING, qty: BIGINT>>|
+|2  |OBJECT<_sku: STRING, qty: BIGINT>       |
++---+----------------------------------------+
+
+OBJECT<_channel: STRING, _id: BIGINT, coupon: STRING, customer: STRING, items: OBJECT<item: VARIANT>>
+  v:items.item::array<variant> on one item     -> INVALID_VARIANT_CAST
+  try_variant_get(..., 'array<variant>')       -> None
+  v:items.item[0] on one item                  -> None
+item rows from VARIANT, after the CASE: 23
+the same with variant_array_append (4.3): 23
+
+== from_xml and schema_of_xml on a string column ==
++----------------------------+------+----+
+|xml                         |_VALUE|_cur|
++----------------------------+------+----+
+|<price cur="CAD">4.5</price>|4.5   |CAD |
+|<price cur="USD">12</price> |12.0  |USD |
++----------------------------+------+----+
+
+schema_of_xml(lit): STRUCT<_VALUE: DOUBLE, _cur: STRING>
+  schema_of_xml('<price ...>') as a column name -> STRUCT<_VALUE: DOUBLE, _cur: STRING>
++---------------------------+
+|v                          |
++---------------------------+
+|{"_VALUE":4.5,"_cur":"CAD"}|
+|{"_VALUE":12,"_cur":"USD"} |
++---------------------------+
+
+
+== malformed XML: one bad tag ==
+useLegacyXMLParser=false: rows 2, good 1
++----+--------+------------------------------------------------------------+
+|_id |customer|_bad                                                        |
++----+--------+------------------------------------------------------------+
+|NULL|NULL    |<orders> <order id="1"><customer>C1</customer></order> <orde|
+|1   |C1      |NULL                                                        |
++----+--------+------------------------------------------------------------+
+
+useLegacyXMLParser=true: rows 4, good 3
++----+--------+--------------------------------------------+
+|_id |customer|_bad                                        |
++----+--------+--------------------------------------------+
+|NULL|NULL    |<order id="2"><customer>C2</custmer></order>|
+|1   |C1      |NULL                                        |
+|3   |C3      |NULL                                        |
+|4   |C4      |NULL                                        |
++----+--------+--------------------------------------------+
+
+  mode=FAILFAST                                -> MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION
+
+== namespaces ==
+rowTag=s:order:             ['_s:id', 's:customer']
+rowTag=order, ignoreNamespace: ['_id', 'customer'] 2 rows
+
+== the XML source splits a large file ==
+multiLine=true : 25.4 MB file, maxPartitionBytes 4 MB -> 1 partitions, 400000 rows, 400000 distinct ids
+  corrupt rows: []
+multiLine=false: 25.4 MB file, maxPartitionBytes 4 MB -> 7 partitions, 400002 rows, 400000 distinct ids
+  corrupt rows: ['<orders>', '</orders>']
+
+== write XML ==
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<items>
+    <item>
+        <order_id>0</order_id>
+        <sku>P8</sku>

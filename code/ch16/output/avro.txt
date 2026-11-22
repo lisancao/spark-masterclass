@@ -1,0 +1,107 @@
+
+== an Avro file: the header carries the schema ==
+first 4 bytes: b'Obj\x01'  file size: 345 bytes
+avro.schema in the header: {"type":"record","name":"topLevelRecord","fields":[{"name":"order_id","type":"string"},{"name":"user_id","type":"long"},{"name":"total","type":["double","null"]},{"name":"coupon","type":["string","null"]}]}
+other header keys: ['org.apache.spark.version', 'avro.codec'] codec: snappy
++--------+-------+-----+------+
+|order_id|user_id|total|coupon|
++--------+-------+-----+------+
+|O-1     |7      |12.5 |NULL  |
+|O-2     |8      |30.0 |SAVE5 |
++--------+-------+-----+------+
+
+
+== Spark types to Avro types, and back ==
+STRUCT<a: INT NOT NULL, b: STRING, c: TIMESTAMP NOT NULL, d: DECIMAL(10,2) NOT NULL, e: STRING NOT NULL, f: STRUCT<member0: INT, member1: STRING> NOT NULL, g: MAP<STRING, BIGINT> NOT NULL>
+  write a VARIANT column to Avro                 -> UNSUPPORTED_DATA_TYPE_FOR_DATASOURCE
+  from_avro on a union without stable names      -> STRUCT<member0: INT, member1: STRING>
+    with enableStableIdentifiersForUnionType     -> STRUCT<member_int: INT, member_string: STRING>
+
+== compression codecs on one million taxi trips ==
+  uncompressed    134.9 MB
+  snappy           43.6 MB
+  deflate          28.5 MB
+  zstandard        29.9 MB
+  xz               23.4 MB
+  (parquet)        20.9 MB
+  compression=lz5                                -> CODEC_SHORT_NAME_NOT_FOUND
+
+== write with an Avro schema of your own ==
+  method='CARD' into an enum                     -> written
+  method='BITCOIN' into an enum                  -> TASK_WRITE_FAILED
+
+== a folder with two versions of the schema ==
+schema from one file: ['order_id', 'user_id', 'amount', 'ts', 'day']
+mergeSchema=true:     ['order_id', 'user_id', 'amount', 'ts', 'day']
++--------+-----+--------+------+---------+---+
+|order_id|total|currency|coupon|items    |day|
++--------+-----+--------+------+---------+---+
+|O-1     |10.0 |CAD     |NULL  |[]       |1  |
+|O-2     |20.0 |EUR     |NULL  |[{P1, 2}]|2  |
++--------+-----+--------+------+---------+---+
+
+
+== Avro schema resolution: what a reader schema may change ==
+  same schema                                    -> {'a': 7, 'b': 'x'}
+  add a field with a default                     -> {'a': 7, 'b': 'x', 'c': 'CAD'}
+  add a nullable field, default null             -> {'a': 7, 'b': 'x', 'c': None}
+  add a field without a default                  -> AvroTypeException
+  remove field b                                 -> {'a': 7}
+  rename b to c, alias b                         -> {'a': 7, 'c': 'x'}
+  promote a: int to long                         -> {'a': 7, 'b': 'x'}
+  promote a: int to double                       -> {'a': 7.0, 'b': 'x'}
+  narrow: read int a as a string                 -> AvroTypeException
+
+== from_avro and to_avro: the bytes of one record ==
+to_avro: 14 bytes: 06 4f 2d 31 0e 00 00 00 00 00 00 29 40 00
+  06 'O-1'               string: length 3 as a zigzag varint (06), then the UTF-8 bytes
+  0e                     long 7 as a zigzag varint (7 * 2 = 14 = 0x0e)
+  00 00 00 00 00 00 29 40 double 12.5, 8 bytes little-endian
+  00                     union branch 0 (null), no more bytes
+the same record as JSON: 43 bytes
+
+== decode with the wrong schema ==
+  user_id as int (same bytes)                    -> Row(order_id='O-1', user_id=7, total=12.5, coupon=None)
+  fields in another order                        -> SparkException
+  total as float                                 -> Row(order_id='O-1', user_id=7, total=0.0, coupon=None)
+  one extra string field at the end              -> EOFException
+  garbage bytes, mode=FAILFAST                   -> EOFException
+  garbage bytes, mode=PERMISSIVE                 -> Row(order_id=None, user_id=None, total=None, coupon=None)
+  garbage bytes, mode=DROPMALFORMED              -> PARSE_MODE_UNSUPPORTED
+
+== the Kafka wire format: a Confluent header in front of the Avro bytes ==
+offset 0: 00 00 00 00 01 0c 4f 2d 32 30 30 31 0a ec 51 b8 1e 85 fb 59 40 80 e0 d1 e7 9e 68
+  00          magic byte
+  00 00 00 01 schema id 1, 4 bytes big-endian
+  0c ...      the Avro record of schema 1
++------+----------+--------+------------+
+|framed|schema_id |messages|first_offset|
++------+----------+--------+------------+
+|NULL  |NULL      |1       |5           |
+|true  |1         |12      |0           |
+|true  |2         |15      |13          |
+|true  |7         |1       |17          |
+|false |1328362041|1       |26          |
++------+----------+--------+------------+
+
+  from_avro on the full value (header included)  -> Row(order_id='', user_id=0, amount=1.56979527095074e-76, ts=datetime.datetime(1969, 12, 31, 16, 0, 0, 24000))
++-------------------+--------+-----------------------------------------------------------------------------------------------+
+|problem            |messages|offsets                                                                                        |
++-------------------+--------+-----------------------------------------------------------------------------------------------+
+|NULL               |26      |[0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 24, 25, 27, 28, 29]|
+|corrupt            |1       |[23]                                                                                           |
+|no confluent header|1       |[26]                                                                                           |
+|tombstone          |1       |[5]                                                                                            |
+|unknown schema id  |1       |[17]                                                                                           |
++-------------------+--------+-----------------------------------------------------------------------------------------------+
+
+current orders: 25  keys in the topic: 29
++--------+-------+------+--------+------+-------+---------+
+|order_id|user_id|total |currency|coupon|n_items|schema_id|
++--------+-------+------+--------+------+-------+---------+
+|O-2001  |5      |103.93|CAD     |NULL  |0      |1        |
+|O-2002  |7      |37.38 |CAD     |NULL  |0      |1        |
+|O-2004  |1      |57.25 |CAD     |NULL  |0      |1        |
+|O-2005  |9      |51.48 |CAD     |NULL  |0      |1        |
++--------+-------+------+--------+------+-------+---------+
+only showing top 4 rows
