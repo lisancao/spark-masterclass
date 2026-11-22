@@ -1,0 +1,24 @@
+zip entries: ['messytools/__init__.py']
+driver imports: <userFiles>/messytools.zip/messytools/__init__.py
+tasks import:   ['399997 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '399998 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
+
+before addPyFile:      ['400812 ModuleNotFoundError', '400814 ModuleNotFoundError']
+  captured includes: []
+old udf, after:        ['400812 ModuleNotFoundError', '400814 ModuleNotFoundError']
+  captured includes: []
+new udf, after:        ['400812 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '400814 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
+  captured includes: ['messytools.zip']
+old udf, again:        ['400812 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '400814 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
+
+spark.python.worker.reuse=true: after v1 ['1.0', '1.0'], after v2 ['1.0', '1.0']
+
+spark.python.worker.reuse=false: after v1 ['1.0', '1.0'], after v2 ['2.0', '2.0']
+
+tabulate-0.10.0.dist-info    py3-none-any
+ujson-6.1.0.dist-info        cp312-cp312-manylinux_2_17_x86_64, cp312-cp312-manylinux2014_x86_64
+zip     tabulate deps.zip/tabulate/__init__.py
+zip     ujson    ModuleNotFoundError: No module named 'ujson'
+archive tabulate deps/site-packages/tabulate/__init__.py
+archive ujson    deps/site-packages/ujson.cpython-312-x86_64-linux-gnu.so
+
+messytools-1.0-py3-none-any.whl via addPyFile: ['404794 ModuleNotFoundError', '404796 ModuleNotFoundError']

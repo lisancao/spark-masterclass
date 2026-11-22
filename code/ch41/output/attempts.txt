@@ -1,0 +1,12 @@
+local[4]: failed, PythonException
+  attempt files: p0_a0 p1_a0 p2_a0 p3_a0
+local[4] spark.task.maxFailures=4: failed, PythonException
+  attempt files: p0_a0 p1_a0 p2_a0 p3_a0
+local[4,2]: 400 rows
+  attempt files: p0_a0 p1_a0 p1_a1 p2_a0 p3_a0
+
+Row 120 lives in partition 1, so it ran in both attempts:
+  attempt 0: random.random() = 0.487818   rand(7) = 0.611899
+  attempt 1: random.random() = 0.563658   rand(7) = 0.611899
+
+spark.task.maxFailures as the scheduler sees it: 2

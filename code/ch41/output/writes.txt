@@ -1,0 +1,22 @@
+maxPartitionBytes=128m scan tasks= 4  sample rows= 3772  one trip: mid=  8590304387  xxhash64=588205441998661716
+maxPartitionBytes=8m   scan tasks= 8  sample rows= 3883  one trip: mid= 25770173571  xxhash64=588205441998661716
+sample(fraction=0.001, seed=7)  seed in the plan: 7
+sample(0.001, 7)                seed in the plan: 7
+sample(0.001, seed=7)           seed in the plan: 4149081280734837886
+
+p0_a0: what the task saw under the output folder while it ran
+   _temporary/0/_temporary/attempt_<job>_0000_m_000000_0/.part-00000-<uuid>-c000.snappy.parquet.crc
+   _temporary/0/_temporary/attempt_<job>_0000_m_000000_0/part-00000-<uuid>-c000.snappy.parquet
+
+p1_a0: what the task saw under the output folder while it ran
+   _temporary/0/_temporary/attempt_<job>_0000_m_000000_0/.part-00000-<uuid>-c000.snappy.parquet.crc
+   _temporary/0/_temporary/attempt_<job>_0000_m_000000_0/part-00000-<uuid>-c000.snappy.parquet
+
+p1_a1: what the task saw under the output folder while it ran
+   _temporary/0/task_<job>_0000_m_000000/part-00000-<uuid>-c000.snappy.parquet
+
+after the job commit: ['_SUCCESS', 'part-00000-<uuid>-c000.snappy.parquet', 'part-00001-<uuid>-c000.snappy.parquet']
+append    run twice: 20 rows (10 expected)
+overwrite run twice: 10 rows (10 expected)
+partitionOverwriteMode=static  after re-running 2026-06-02: {'2026-06-02': 5}
+partitionOverwriteMode=dynamic after re-running 2026-06-02: {'2026-06-01': 5, '2026-06-02': 5}

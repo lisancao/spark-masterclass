@@ -1,0 +1,10 @@
+1. no fault: 3,837,248 rows, operation 6d4b85e7
+   rpcs: ExecutePlan 1  ReattachExecute 3  ReleaseExecute 392
+   server: state=CLOSED jobIds=['27', '28'] executionTime=438 ms
+2. connection cut at 30 MB: 3,837,248 rows, operation c37f366d, cuts 1
+   rpcs: ExecutePlan 1  ReattachExecute 4  ReleaseExecute 397
+   server: state=CLOSED jobIds=['29', '30'] executionTime=490 ms
+3. not reattachable, cut at 30 MB: UnknownException INVALID_HANDLE.OPERATION_ABANDONED
+   rpcs: ExecutePlan 2, operation 1a412a02
+4. ExecutePlan #1 with operation c4e6ee16: ok, 3 arrow batch(es)
+4. ExecutePlan #2 with operation c4e6ee16: INVALID_HANDLE.OPERATION_ABANDONED
