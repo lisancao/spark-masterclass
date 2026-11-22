@@ -75,6 +75,13 @@ nav:
       - "2. Installing Spark 4.3": chapters/ch02-installing.md
       - "3. Quick start": chapters/ch03-quick-start.md
       - "4. Spark Connect": chapters/ch04-spark-connect.md
+  - "Part II: DataFrames and SQL":
+      - "5. DataFrames, columns and schemas": chapters/ch05-dataframes-columns-schemas.md
+      - "6. Cleaning values": chapters/ch06-cleaning-values.md
+      - "7. Spark SQL in depth": chapters/ch07-spark-sql-in-depth.md
+      - "8. Procedural SQL": chapters/ch08-procedural-sql.md
+      - "9. Joins": chapters/ch09-joins.md
+      - "10. Time series and geospatial": chapters/ch10-time-series-geospatial.md
   - "Part III: Files, formats and messy data":
       - "11. Files as files": chapters/ch11-files-as-files.md
       - "12. Text, logs and CSV": chapters/ch12-text-logs-csv.md
@@ -84,6 +91,12 @@ nav:
       - "16. XML, Avro and Protobuf": chapters/ch16-xml-avro-protobuf.md
       - "17. Documents, images and audio": chapters/ch17-documents-images-audio.md
   - "Part IV: Performance":
+      - "18. Reading query plans": chapters/ch18-query-plans.md
+      - "19. Partitions, caching, memory and spill": chapters/ch19-partitions-caching-memory.md
+      - "20. Python on Spark: UDFs and Arrow": chapters/ch20-python-udfs-arrow.md
+      - "21. Python UDTFs": chapters/ch21-python-udtfs.md
+      - "22. Parquet from the inside": chapters/ch22-parquet-inside.md
+      - "23. Project Feather": chapters/ch23-project-feather.md
       - "24. Acceleration: Gluten and Velox, RAPIDS and cuDF, Comet": chapters/ch24-acceleration.md
   - "Part V: Streaming":
       - "25. Structured Streaming fundamentals": chapters/ch25-structured-streaming.md

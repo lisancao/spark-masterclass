@@ -17,12 +17,12 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 
 | # | Chapter | Covers |
 |---|---|---|
-| 5 | DataFrames, columns and schemas | Analyzed plans for `withColumn` chains, nullability. **4.3:** `DataFrame.zip` |
-| 6 | Cleaning values: ANSI, try_ functions, strings, time | Collations, money, dates. **4.3:** nanosecond timestamps |
-| 7 | Spark SQL in depth: windows, pipe syntax, QUALIFY | Window functions get taught properly (LS04 used them untaught) |
-| 8 | Procedural SQL: scripting, SQL UDFs, recursive CTEs | Variables, loops, handlers, `EXECUTE IMMEDIATE` and the SQL path |
-| 9 | Joins: strategies, skew and the time-aware joins | Broadcast vs sort-merge on real sizes, NEAREST BY. **4.3:** ASOF JOIN |
-| 10 | Time series and geospatial | `time_bucket`, GEOMETRY and GEOGRAPHY. |
+| 5 | [DataFrames, columns and schemas](chapters/ch05-dataframes-columns-schemas.md) | Analyzed plans for `withColumn` chains, nullability. **4.3:** `DataFrame.zip` |
+| 6 | [Cleaning values: ANSI, try_ functions, strings, time](chapters/ch06-cleaning-values.md) | Collations, money, dates. **4.3:** nanosecond timestamps |
+| 7 | [Spark SQL in depth: windows, pipe syntax, QUALIFY](chapters/ch07-spark-sql-in-depth.md) | Window functions get taught properly (LS04 used them untaught) |
+| 8 | [Procedural SQL: scripting, SQL UDFs, recursive CTEs](chapters/ch08-procedural-sql.md) | Variables, loops, handlers, `EXECUTE IMMEDIATE` and the SQL path |
+| 9 | [Joins: strategies, skew and the time-aware joins](chapters/ch09-joins.md) | Broadcast vs sort-merge on real sizes, NEAREST BY. **4.3:** ASOF JOIN |
+| 10 | [Time series and geospatial](chapters/ch10-time-series-geospatial.md) | `time_bucket`, GEOMETRY and GEOGRAPHY. |
 
 ## Part III: Files, formats and messy data
 *Data: SparkTutor's seeded messy set*
@@ -42,12 +42,12 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 
 | # | Chapter | Covers |
 |---|---|---|
-| 18 | Reading query plans: Catalyst and AQE | One AQE explanation instead of three; real `explain` output |
-| 19 | Partitions, caching, memory and spill | Recorded Spark UI walkthrough. |
-| 20 | Python on Spark: UDFs, pandas UDFs and Arrow | **4.3:** UDF transpilation; the tuning tables get re-measured |
-| 21 | Python UDTFs | JSON_TABLE as the alternative to parsing UDTFs |
-| 22 | Parquet from the inside | Footer hexdumps, row groups, statistics, pushdown |
-| 23 | Project Feather: small queries without the distributed tax | **4.3:** when single-task execution applies, the crossover measured across data sizes, what it does to plans, AQE, the UI and Connect |
+| 18 | [Reading query plans: Catalyst and AQE](chapters/ch18-query-plans.md) | One AQE explanation instead of three; real `explain` output |
+| 19 | [Partitions, caching, memory and spill](chapters/ch19-partitions-caching-memory.md) | Recorded Spark UI walkthrough. |
+| 20 | [Python on Spark: UDFs, pandas UDFs and Arrow](chapters/ch20-python-udfs-arrow.md) | **4.3:** UDF transpilation; the tuning tables get re-measured |
+| 21 | [Python UDTFs](chapters/ch21-python-udtfs.md) | JSON_TABLE as the alternative to parsing UDTFs |
+| 22 | [Parquet from the inside](chapters/ch22-parquet-inside.md) | Footer hexdumps, row groups, statistics, pushdown |
+| 23 | [Project Feather: small queries without the distributed tax](chapters/ch23-project-feather.md) | **4.3:** when single-task execution applies, the crossover measured across data sizes, what it does to plans, AQE, the UI and Connect |
 | 24 | [Acceleration: Gluten and Velox, RAPIDS and cuDF, Comet](chapters/ch24-acceleration.md) | Native and GPU execution engines for Spark: how each one plugs in (plugins, columnar rules, fallbacks), which support Spark 4.3, and the same taxi queries measured on CPU, Velox and the GPU |
 
 ## Part V: Streaming
