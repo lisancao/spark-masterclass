@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 300" width="780" height="300" role="img"><title>The unqualified name sales in the metric view, resolved in two namespaces</title><defs><marker id="m2f7d5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f7d5b"/></marker><marker id="m2f7d5bs" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#2f7d5b"/></marker><marker id="ma8323a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#a8323a"/></marker><marker id="ma8323as" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#a8323a"/></marker></defs><rect x="12" y="40" width="360" height="140" rx="10" fill="none" stroke="#8a919e" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="24" y="59.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="600">namespace default</text>
+<rect x="30" y="72" width="140" height="50" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="100.0" y="95.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">sales</text>
+<text x="100.0" y="110.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">(east, 10), (west, 20)</text>
+<rect x="215" y="72" width="140" height="50" rx="6" fill="#6b4fa0" fill-opacity="1.0"/>
+<text x="285.0" y="95.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">mv</text>
+<text x="285.0" y="111.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="400">metric view, source: sales</text>
+<rect x="215" y="128" width="140" height="42" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="285.0" y="147.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">v</text>
+<text x="285.0" y="163.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="400">regular view, FROM sales</text>
+<rect x="408" y="40" width="360" height="140" rx="10" fill="none" stroke="#8a919e" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="420" y="59.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="600">namespace other</text>
+<rect x="520" y="72" width="140" height="50" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="590.0" y="95.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">sales</text>
+<text x="590.0" y="110.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">(east, 999)</text>
+<line x1="213" y1="97" x2="173" y2="97" stroke="#2f7d5b" stroke-width="2.5" marker-end="url(#m2f7d5b)"/>
+<path d="M285,70 C300,0 560,0 590,68" fill="none" stroke="#a8323a" stroke-width="2.5" marker-end="url(#ma8323a)"/>
+<text x="590" y="150.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#a8323a" text-anchor="middle" font-weight="700">4.3.0, after USE other:</text>
+<text x="590" y="165.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#a8323a" text-anchor="middle" font-weight="700">the session namespace</text>
+<text x="20" y="204.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#2f7d5b" text-anchor="start" font-weight="700">with the fix: the creation namespace (view.desc)</text>
+<text x="20" y="220.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#2f7d5b" text-anchor="start" font-weight="700">→ (east, 10), (west, 20)</text>
+<text x="420" y="204.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#a8323a" text-anchor="start" font-weight="700">4.3.0: the metric view reads other.sales</text>
+<text x="420" y="220.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#a8323a" text-anchor="start" font-weight="700">→ (east, 999), and no error</text>
+<text x="12" y="260.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">The regular view v always resolves in default: ViewResolution uses</text>
+<text x="12" y="276.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">AnalysisContext.withAnalysisContext(view.desc). The metric view placeholder did not get this context.</text></svg>

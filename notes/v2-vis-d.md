@@ -28,3 +28,4 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | 59 | twice, fusion | anim-copy (plan change log from rules.txt, counts from twice.txt) | none | 0, 0 |
 | 60 | processes, response, rlimit | anim-frames (frame sizes from tap.txt) | none | 10, 10 |
 | 61 | bytes, bench | anim-decode (bytes from layout.txt) | none | 15, 15 |
+| 62 | namespaces, boundaries | anim-resolve (results from repro.txt and test_fix.txt) | none | 6, 6 |
