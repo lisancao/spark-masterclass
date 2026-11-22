@@ -1,0 +1,16 @@
+Each probe runs for up to 12 s with trigger(realTime='5 seconds'):
+  Kafka -> console, stateless            ran
+  Kafka -> console, groupBy count        ran
+  Kafka -> console, dropDuplicates       ran
+  Kafka -> memory sink                   STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST
+  Kafka -> console, append mode          STREAMING_REAL_TIME_MODE.OUTPUT_MODE_NOT_SUPPORTED
+  rate source -> console                 STREAMING_REAL_TIME_MODE.INPUT_STREAM_NOT_SUPPORTED  (from the running query)
+  Kafka -> foreachBatch                  STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST
+  Kafka -> Python UDF -> console         STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
+  Kafka -> PySpark transformWithState    STDS_FAILED_TO_READ_OPERATOR_METADATA  (from the running query)
+  Kafka -> repartitionByRange            STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
+  stream-stream join                     STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
+The trigger and the configuration:
+  trigger(realTime='1 second')           INVALID_STREAMING_REAL_TIME_MODE_TRIGGER_INTERVAL
+  HDFS state store set explicitly        STREAMING_REAL_TIME_MODE.SQL_CONFIGURATION_NOT_SUPPORTED
+  checkpointFormatVersion=1              STREAMING_REAL_TIME_MODE.SQL_CONFIGURATION_NOT_SUPPORTED

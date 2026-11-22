@@ -1,0 +1,37 @@
+Every line gets at most one reason (NULL = a good event):
++------------+-----+
+|       error|count|
++------------+-----+
+|        NULL|   42|
+|    bad_json|    1|
+|      bad_ts|    1|
+|   future_ts|    1|
+|missing_user|    1|
++------------+-----+
+
+The rejected lines:
++------------+------------------------------------------------------------------+
+|error       |line                                                              |
++------------+------------------------------------------------------------------+
+|bad_json    |{"event_id": "e900", "user_id": "u3", "type": "page_v             |
+|bad_ts      |{"event_id": "e901", "user_id": "u3", "type": "page_view", "page":|
+|missing_user|{"event_id": "e902", "type": "page_view", "page": "/", "ts": "2026|
+|future_ts   |{"event_id": "e903", "user_id": "u4", "type": "page_view", "page":|
++------------+------------------------------------------------------------------+
+
+Drift alarm: keys nobody declared
++-------------+-----+
+| unknown_keys|count|
++-------------+-----+
+|[app_version]|   20|
++-------------+-----+
+
+Tracker 2.0 rows still have a type: 0 with type NULL
+
+The same function on a stream: the source schema is one column
+   struct<value:string>
+   struct<line:string,event_id:string,user_id:string,type:string,page:string,ts:timestamp,unknown_keys:array<string>,error: ...
+
+parse_json fails the whole job on the first bad line; try_parse_json returns NULL:
+  parse_json:     [MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION] Malformed records are detected in record parsing: {"event_id"
+  try_parse_json: None

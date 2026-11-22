@@ -1,0 +1,5 @@
+  batch 0: zones updated  95, Midtown Center trips so far 15
+  batch 1: zones updated  90, Midtown Center trips so far 27
+  batch 2: zones updated  88, Midtown Center trips so far 34
+  batch 3: zones updated  85, Midtown Center trips so far 44
+  ** the driver dies inside batch 3 (os._exit) **

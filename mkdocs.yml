@@ -83,6 +83,12 @@ nav:
       - "15. VARIANT": chapters/ch15-variant.md
       - "16. XML, Avro and Protobuf": chapters/ch16-xml-avro-protobuf.md
       - "17. Documents, images and audio": chapters/ch17-documents-images-audio.md
+  - "Part V: Streaming":
+      - "25. Structured Streaming fundamentals": chapters/ch25-structured-streaming.md
+      - "26. Streaming messy data": chapters/ch26-streaming-messy-data.md
+      - "27. Stateful processing with transformWithState": chapters/ch27-transform-with-state.md
+      - "28. Real-time Mode": chapters/ch28-real-time-mode.md
+      - "29. Inside a checkpoint and the state store": chapters/ch29-checkpoints-and-state-store.md
   - "Part VI: Pipelines and tables":
       - "30. Tables: Delta and Iceberg": chapters/ch30-tables-delta-iceberg.md
       - "31. Apache Iceberg with Spark": chapters/ch31-iceberg.md

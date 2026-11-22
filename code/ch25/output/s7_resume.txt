@@ -1,0 +1,9 @@
+offsets [0, 1, 2, 3], commits [0, 1, 2]: batch 3 was planned and never committed, so it runs again
+spark.sql.shuffle.partitions is now 8
+  batch 3: zones updated  85, Midtown Center trips so far 44
+  batch 4: zones updated  85, Midtown Center trips so far 49
+  batch 5: zones updated  89, Midtown Center trips so far 61
+batch 3: numShufflePartitions 4, numStateStoreInstances 12
+batch 4: numShufflePartitions 4, numStateStoreInstances 12
+batch 5: numShufflePartitions 4, numStateStoreInstances 12
+offsets [0, 1, 2, 3, 4, 5], commits [0, 1, 2, 3, 4, 5]

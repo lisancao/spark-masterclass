@@ -55,11 +55,11 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 
 | # | Chapter | Covers |
 |---|---|---|
-| 25 | Structured Streaming fundamentals | Sources and sinks, output modes, triggers, windows, watermarks and checkpoints |
-| 26 | Streaming messy data: drift, dead letters, late events | The future-dated event that wrecks a watermark |
-| 27 | Stateful processing with transformWithState | Timers, TTL, state inspection |
-| 28 | Real-time Mode | **4.3:** stateful RTM and the pipelined shuffle, latency measured both ways |
-| 29 | Inside a checkpoint and the state store | Delta files, RocksDB, the state data source |
+| 25 | [Structured Streaming fundamentals](chapters/ch25-structured-streaming.md) | Sources and sinks, output modes, triggers, windows, watermarks and checkpoints |
+| 26 | [Streaming messy data: drift, dead letters, late events](chapters/ch26-streaming-messy-data.md) | The future-dated event that wrecks a watermark |
+| 27 | [Stateful processing with transformWithState](chapters/ch27-transform-with-state.md) | Timers, TTL, state inspection |
+| 28 | [Real-time Mode](chapters/ch28-real-time-mode.md) | **4.3:** stateful RTM and the pipelined shuffle, latency measured both ways |
+| 29 | [Inside a checkpoint and the state store](chapters/ch29-checkpoints-and-state-store.md) | Delta files, RocksDB, the state data source |
 
 ## Part VI: Pipelines and tables
 *Data: SparkTutor's dirty retail set*

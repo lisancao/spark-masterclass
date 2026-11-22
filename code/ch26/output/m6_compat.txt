@@ -1,0 +1,33 @@
+change on restart                        result
+the same query                           ran (10 rows)
+watermark delay 10 -> 30 minutes         ran (10 rows)
+a different filter                       ran (10 rows)
+group by page, not user_id               ran (10 rows)
+group by user_id and page                STATE_STORE_KEY_SCHEMA_NOT_COMPATIBLE
+one more aggregate column                STATE_STORE_VALUE_SCHEMA_NOT_COMPATIBLE
+count -> sum of a different column       ran (10 rows)
+a dedup operator before the aggregate    STREAMING_STATEFUL_OPERATOR_NOT_MATCH_IN_STATE_METADATA
+
+The page experiment again, then its state read back with the state data source:
++------+-----------+-----+
+|window|key.user_id|count|
++------+-----------+-----+
+|09:20 |/p/chair   |1    |
+|09:20 |/p/lamp    |1    |
+|09:20 |/search    |3    |
+|09:20 |u4         |2    |
+|09:30 |/cart      |2    |
+|09:30 |/p/chair   |1    |
+|09:30 |/p/lamp    |1    |
++------+-----------+-----+
+
+The key schema error, in full (first lines):
+  [STATE_STORE_KEY_SCHEMA_NOT_COMPATIBLE] Provided key schema does not match existing state key schema.
+  Please check number and type of fields.
+  Existing key_schema=StructType(StructField(window,StructType(StructField(start,TimestampType,true),StructField(end,TimestampType,true)),true),StructFi
+  If you want to force running the query without schema validation, please set spark.sql.streaming.stateStore.stateSchemaCheck to false.
+
+Switch the session to RocksDB, then restart the HDFS-backed checkpoint:
+  session:      RocksDBStateStoreProvider
+  offsets/3:    HDFSBackedStateStoreProvider
+  state files:  8 .delta files, 0 RocksDB files

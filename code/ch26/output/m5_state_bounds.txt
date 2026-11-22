@@ -1,0 +1,9 @@
+1. Six batches of 1,000 events, 10 minutes of event time each, ~2% re-sent
+   dropDuplicates                 state rows after each batch [1000, 2000, 3000, 4000, 5000, 6000]  (unique events kept 6000)
+   dropDuplicatesWithinWatermark  state rows after each batch [1000, 2000, 3000, 3001, 3000, 3000]  (unique events kept 6000)
+
+2. Two inputs, one 30 minutes behind: which watermark wins?
+   policy min: global watermark per batch ['00:00', '08:34', '08:44', '08:54', '09:04', '09:14', '09:24']
+     events counted 2400 of 2400; numRowsDroppedByWatermark 0
+   policy max: global watermark per batch ['00:00', '09:04', '09:14', '09:24', '09:34', '09:44', '09:54']
+     events counted 1600 of 2400; numRowsDroppedByWatermark 4

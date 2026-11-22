@@ -1,0 +1,18 @@
+== run 1
+200 records/s for 30 s into a 4-partition topic, first 10 s left out, local[*] on 16 cores
+  mb_stateless         sent  6000  out rows  4000   p50    110  p90    170  p99    374  max   1072  ms
+  rtm_stateless        sent  6000  out rows  4000   p50      1  p90      3  p99     10  max     74  ms
+  mb_count             sent  6000  out rows  3296   p50    276  p90    396  p99   1068  max   1239  ms
+  rtm_count            sent  6000  out rows  4000   p50     28  p90     49  p99    195  max    309  ms
+== run 2
+200 records/s for 30 s into a 4-partition topic, first 10 s left out, local[*] on 16 cores
+  mb_stateless         sent  6000  out rows  4000   p50    177  p90    278  p99    387  max    664  ms
+  rtm_stateless        sent  6000  out rows  4000   p50      1  p90      1  p99      3  max     42  ms
+  mb_count             sent  6000  out rows  3743   p50    250  p90    348  p99    650  max    805  ms
+  rtm_count            sent  6000  out rows  4000   p50     28  p90     49  p99    232  max    357  ms
+== run 3
+200 records/s for 30 s into a 4-partition topic, first 10 s left out, local[*] on 16 cores
+  mb_stateless         sent  6000  out rows  4000   p50     95  p90    128  p99    192  max    584  ms
+  rtm_stateless        sent  6000  out rows  4000   p50      1  p90      2  p99      4  max     17  ms
+  mb_count             sent  6000  out rows  3372   p50    278  p90    386  p99    759  max    859  ms
+  rtm_count            sent  6000  out rows  4000   p50     27  p90     47  p99    145  max    300  ms
