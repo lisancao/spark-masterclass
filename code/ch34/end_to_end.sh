@@ -25,7 +25,7 @@ mark() { echo "=== $1" >> "$W/server.log"; }
 
 # 2. What the CLI sends: a dry run through the tracer.
 { echo '$ SPARK_REMOTE=sc://localhost:'$PORT' python ch34/trace_cli.py spark-pipeline.yml dry-run'
-  SPARK_REMOTE="sc://localhost:$PORT" .venv/bin/python ch34/trace_cli.py "$W/spark-pipeline.yml" dry-run 2>&1 \
+  SPARK_REMOTE="sc://localhost:$PORT" uv run --quiet --project "$CODE" --with pyyaml python ch34/trace_cli.py "$W/spark-pipeline.yml" dry-run 2>&1 \
     | grep -E '^  ->|Run is|Starting run' | sed -e "s#$HOME#~#g" -E -e 's/^[0-9-]+ [0-9:]+: //'
 } > $O/trace.txt
 
@@ -41,9 +41,15 @@ mark "run 1"
   mark "run 3"
   echo; echo "== run --full-refresh-all"; cli run --full-refresh-all | events
   cat "$W"/exports/shipping_feed/*.json | wc -l | sed 's/^/rows in the feed: /'
-  .venv/bin/python ch30/show_tables.py "$W" bronze_orders silver_orders 2>/dev/null | grep rows
+  echo "checkpoint versions of the sink flow: $(ls "$W"/pipeline-storage/_checkpoints/shipping_feed/shipped_orders_to_feed | xargs)"
+  echo "batches in the sink log exports/shipping_feed/_spark_metadata: $(ls "$W"/exports/shipping_feed/_spark_metadata | grep -v crc | xargs)"
 } > $O/runs.txt
 
-# 4. What the server logged for the pipeline, in run 2.
+# 4. Stop the server (the Derby metastore allows one process), then read the tables.
+kill $SERVER; wait $SERVER 2>/dev/null; trap - EXIT
+.venv/bin/python ch30/show_tables.py "$W" bronze_orders silver_orders 2>/dev/null | grep rows >> $O/runs.txt
+
+# 5. What the server logged for the pipeline, in run 2.
 sed -n '/=== run 2/,/=== run 3/p' "$W/server.log" | grep -E 'pipelines\.|Materializ|checkpoint|Starting flow|TRUNCATE' \
   | sed -E "s#$HOME#~#g; s/^[0-9/]+ [0-9:]+ //; s/spark_catalog\.default\.//g" | cut -c1-150 > $O/server_log.txt
+grep -E 'Materializing|Starting flow|using checkpoint' $O/server_log.txt | sed -E 's/`spark_catalog`.`default`.//; s#file:~/spark-masterclass/data/work/part06/ch34-shop/##' | cut -c1-110 > $O/server_log_short.txt

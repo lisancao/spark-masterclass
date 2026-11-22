@@ -42,3 +42,100 @@ customers_city_history (SQL, TRACK HISTORY ON (city)):
 +-----------+------------+---------+----------+--------+
 
 == drop 2 lands
+2026-11-22 10:53:24: Flow lake.crm.customer_changes has COMPLETED.
+2026-11-22 10:53:42: Flow lake.crm.customers_current has COMPLETED.
+2026-11-22 10:53:59: Flow lake.crm.customers_history has COMPLETED.
+2026-11-22 10:53:59: Flow lake.crm.customers_city_history has COMPLETED.
+2026-11-22 10:54:01: Run is COMPLETED.
+customer_changes (bronze), by file:
++----------------+------+-------+-------+
+|_source_file    |events|min_seq|max_seq|
++----------------+------+-------+-------+
+|changes_001.json|4     |1      |5      |
+|changes_002.json|4     |4      |8      |
++----------------+------+-------+-------+
+
+customers_current (SCD Type 1):
++-----------+------------+--------+------------------------+
+|customer_id|name        |city    |__spark_autocdc_metadata|
++-----------+------------+--------+------------------------+
+|c-01       |Ada Nguyen  |Hanoi   |{NULL, 5}               |
+|c-03       |Chloe Martin|Montreal|{NULL, 8}               |
+|c-04       |Dev Patel   |Toronto |{NULL, 7}               |
++-----------+------------+--------+------------------------+
+
+customers_history (SCD Type 2):
++-----------+------------+---------+----------+--------+
+|customer_id|name        |city     |__START_AT|__END_AT|
++-----------+------------+---------+----------+--------+
+|c-01       |Ada Nguyen  |Toronto  |1         |4       |
+|c-01       |Ada Nguyen  |Ottawa   |4         |5       |
+|c-01       |Ada Nguyen  |Hanoi    |5         |NULL    |
+|c-02       |Bao Tran    |Vancouver|2         |6       |
+|c-03       |Chloe Martin|Montreal |3         |NULL    |
+|c-04       |Dev Patel   |Toronto  |7         |NULL    |
++-----------+------------+---------+----------+--------+
+
+customers_city_history (SQL, TRACK HISTORY ON (city)):
++-----------+------------+---------+----------+--------+
+|customer_id|name        |city     |__START_AT|__END_AT|
++-----------+------------+---------+----------+--------+
+|c-01       |Ada Nguyen  |Toronto  |1         |4       |
+|c-01       |Ada Nguyen  |Ottawa   |4         |5       |
+|c-01       |Ada Nguyen  |Hanoi    |5         |NULL    |
+|c-02       |Bao Tran    |Vancouver|2         |6       |
+|c-03       |Chloe Martin|Montreal |3         |NULL    |
+|c-04       |Dev Patel   |Toronto  |7         |NULL    |
++-----------+------------+---------+----------+--------+
+
+== drop 3 lands
+2026-11-22 10:55:00: Flow lake.crm.customer_changes has COMPLETED.
+2026-11-22 10:55:16: Flow lake.crm.customers_current has COMPLETED.
+2026-11-22 10:55:34: Flow lake.crm.customers_history has COMPLETED.
+2026-11-22 10:55:34: Flow lake.crm.customers_city_history has COMPLETED.
+2026-11-22 10:55:35: Run is COMPLETED.
+customer_changes (bronze), by file:
++----------------+------+-------+-------+
+|_source_file    |events|min_seq|max_seq|
++----------------+------+-------+-------+
+|changes_001.json|4     |1      |5      |
+|changes_002.json|4     |4      |8      |
+|changes_003.json|2     |9      |10     |
++----------------+------+-------+-------+
+
+customers_current (SCD Type 1):
++-----------+----------------+--------+------------------------+
+|customer_id|name            |city    |__spark_autocdc_metadata|
++-----------+----------------+--------+------------------------+
+|c-01       |Ada Nguyen      |Hanoi   |{NULL, 5}               |
+|c-03       |Chloe Martin-Roy|Montreal|{NULL, 9}               |
+|c-04       |Dev Patel       |Hanoi   |{NULL, 10}              |
++-----------+----------------+--------+------------------------+
+
+customers_history (SCD Type 2):
++-----------+----------------+---------+----------+--------+
+|customer_id|name            |city     |__START_AT|__END_AT|
++-----------+----------------+---------+----------+--------+
+|c-01       |Ada Nguyen      |Toronto  |1         |4       |
+|c-01       |Ada Nguyen      |Ottawa   |4         |5       |
+|c-01       |Ada Nguyen      |Hanoi    |5         |NULL    |
+|c-02       |Bao Tran        |Vancouver|2         |6       |
+|c-03       |Chloe Martin    |Montreal |3         |9       |
+|c-03       |Chloe Martin-Roy|Montreal |9         |NULL    |
+|c-04       |Dev Patel       |Toronto  |7         |10      |
+|c-04       |Dev Patel       |Hanoi    |10        |NULL    |
++-----------+----------------+---------+----------+--------+
+
+customers_city_history (SQL, TRACK HISTORY ON (city)):
++-----------+----------------+---------+----------+--------+
+|customer_id|name            |city     |__START_AT|__END_AT|
++-----------+----------------+---------+----------+--------+
+|c-01       |Ada Nguyen      |Toronto  |1         |4       |
+|c-01       |Ada Nguyen      |Ottawa   |4         |5       |
+|c-01       |Ada Nguyen      |Hanoi    |5         |NULL    |
+|c-02       |Bao Tran        |Vancouver|2         |6       |
+|c-03       |Chloe Martin-Roy|Montreal |3         |NULL    |
+|c-04       |Dev Patel       |Toronto  |7         |10      |
+|c-04       |Dev Patel       |Hanoi    |10        |NULL    |
++-----------+----------------+---------+----------+--------+
+

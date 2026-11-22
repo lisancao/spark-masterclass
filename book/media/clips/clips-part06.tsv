@@ -1,3 +1,7 @@
 clip	source	start	end	poster_at	chapter
 ch29-delta	ch29-chapter.mp4	0	26.2	20	ch29
 ch29-iceberg	ch29-chapter.mp4	26.2	50.2	20	ch29
+ch31-incremental	ch31-chapter.mp4	0	17.9	14	ch31
+ch31-gate	ch31-chapter.mp4	17.9	55.2	32	ch31
+ch32-history	ch32-chapter.mp4	0	40.4	36	ch32
+ch33-measure	ch33-chapter.mp4	0	42.2	38	ch33

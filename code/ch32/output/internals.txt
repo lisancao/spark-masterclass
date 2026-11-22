@@ -1,1 +1,42 @@
 tables in lake.crm:
++------------------------------------------------+
+|tableName                                       |
++------------------------------------------------+
+|customer_changes                                |
+|customers_city_history                          |
+|__spark_autocdc_aux_state_customers_city_history|
+|customers_current                               |
+|customers_history                               |
+|__spark_autocdc_aux_state_customers_current     |
+|__spark_autocdc_aux_state_customers_history     |
++------------------------------------------------+
+
+the SCD Type 2 auxiliary state table:
+struct<customer_id:string,name:string,city:string,__START_AT:int,__END_AT:int,__spark_autocdc_metadata:struct<__RECORD_START_AT:int>,__spark_autocdc_deleted_by_batch_id:bigint>
++-----------+------------+--------+----------+--------+------------------------+-----------------------------------+
+|customer_id|name        |city    |__START_AT|__END_AT|__spark_autocdc_metadata|__spark_autocdc_deleted_by_batch_id|
++-----------+------------+--------+----------+--------+------------------------+-----------------------------------+
+|c-03       |Chloe Martin|Montreal|3         |NULL    |{3}                     |NULL                               |
++-----------+------------+--------+----------+--------+------------------------+-----------------------------------+
+
+the SCD Type 1 auxiliary state table (tombstones):
++-----------+------------------------+
+|customer_id|__spark_autocdc_metadata|
++-----------+------------------------+
+|c-02       |{6, NULL}               |
++-----------+------------------------+
+
+commits on customers_history (Iceberg snapshots):
++-------------------+---------+-----+-------+-----+
+|snapshot_id        |operation|added|deleted|total|
++-------------------+---------+-----+-------+-----+
+|5598794503198815902|append   |4    |NULL   |4    |
+|384384789072390072 |overwrite|6    |4      |6    |
+|639404348969494771 |overwrite|8    |6      |8    |
++-------------------+---------+-----+-------+-----+
+
+table properties on customers_history:
+  current-snapshot-id = 639404348969494771
+  format = iceberg/parquet
+  format-version = 2
+  write.parquet.compression-codec = zstd

@@ -414,6 +414,13 @@ Traceback (most recent call last):
 IsADirectoryError: [Errno 21] Is a directory: '/home/lnc/spark-masterclass/data/work/part06/ch31-shop/spark-events/eventlog_v2_local-1795343159111'
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch31-incremental.webp">
+    <source src="../../media/clips/ch31-incremental.mp4" type="video/mp4">
+  </video>
+  <figcaption>The streaming progress of <code>bronze_orders</code> in the Spark event log of each run: 11 rows in batch 0, then only the 4 new rows in batch 1.</figcaption>
+</figure>
+
 The query name is the full name of the table. Run 1 read 11 rows in batch 0. Run 2 started the same query (the same ID) from its checkpoint, and read only 4 rows in batch 1. The offsets are positions in the list of files that the file source keeps in its checkpoint (`sources/0/0` in Chapter 30). The materialized views are batch queries, and they post no streaming progress.
 
 Spark 4.3 writes the event log in a folder (`eventlog_v2_<app>`), and compresses it with zstd. Use the Spark history server to see the same runs in the UI, with the SQL plan of each flow.
@@ -671,6 +678,13 @@ The Iceberg run shows that a table format does not change this. Silver and gold 
 !!! warning "Caution: a failed run of a materialized view leaves the table empty"
 
     Do not let a gate inside the pipeline protect a table that other jobs read. In Spark 4.3, SDP truncates each materialized view at the start of the run. Thus, a gate failure leaves an empty table, and its readers get no error. Put the gate before the pipeline, and run the checks on the new files first. Or keep the table in a format with history, and roll back after a failure. The part notes record this behavior as an open problem.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch31-gate.webp">
+    <source src="../../media/clips/ch31-gate.mp4" type="video/mp4">
+  </video>
+  <figcaption>After the gate failed on day 3, the report shows a ratio of 0.75 for the new file, and <code>silver_orders</code> is empty.</figcaption>
+</figure>
 
 ```mermaid
 flowchart LR

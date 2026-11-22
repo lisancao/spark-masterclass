@@ -1,16 +1,16 @@
 # Chapter 33: Metric views: a semantic layer in Spark SQL
 
-A gold table answers the questions that somebody asked when the pipeline was written (Chapter 31). The next question needs a different grain: by hour, not by day, or by borough and payment type. Then somebody writes a new query, and the formula of each number goes into one more place.
+A gold table answers the questions that somebody asked when the team wrote the pipeline (Chapter 31). The next question needs a different grain: by hour, not by day, or by borough and payment type. Then somebody writes a new query, and the formula of each number goes into one more place.
 
-Some numbers are easy to compute again. A count or a sum can be added across groups. Other numbers cannot be added. A ratio of two sums is not the average of the ratios of its groups. A count of distinct values is not the sum of the counts of its groups. Both wrong queries run, and both give a number that looks correct.
+Some numbers are easy to compute again. You can add the counts or the sums of groups. You cannot add other numbers. A ratio of two sums is not the average of the ratios of its groups. A count of distinct values is not the sum of the counts of its groups. Both wrong queries run, and both give a number that looks correct.
 
 Spark 4.2 added metric views (SPARK-54119), and Spark 4.3 adds them to DSv2 catalogs. **A metric view stores the formula of each measure in the catalog, next to the dimensions that a query can group by. The function `MEASURE()` puts the formula into the query, at the grain that the query asks for. Thus, a ratio or a distinct count is correct at each grain, from one definition. A metric view does not stop a query that aggregates the results of `MEASURE()` again.** This chapter shows each part of that sentence on one month of New York taxi trips.
 
-The code is in [`code/ch33`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch33). Each output block comes from `code/ch33/output/`. The scripts use a Classic session on `pyspark==4.3.0` with a Hive metastore, so that a metric view that one script creates is there for the next script.
+The code is in [`code/ch33`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch33). Each output block comes from `code/ch33/output/`. The scripts use a Classic session on `pyspark==4.3.0` with a Hive metastore. Thus, a metric view that one script creates is there for the next script.
 
 ## Step 1: Two errors that run without an error
 
-`prepare.py` makes a table `taxi.trips` from the June 2026 trips: one row for each trip with a distance between 0 and 100 miles and a positive fare, with the pickup borough from the zone list.
+`prepare.py` makes a table `taxi.trips` from the June 2026 trips. The table has one row for each trip with a distance between 0 and 100 miles and a positive fare. It adds the pickup borough from the zone list.
 
 ```text
 taxi.trips: 3694387 rows
@@ -61,10 +61,10 @@ taxi.trips: 3694387 rows
 
 Both answers on the left are wrong:
 
-- **The average of ratios.** The fare per mile of the month is the total fare divided by the total distance: 6.3158. The average of the eight borough ratios is 10.9201. Each borough counts the same in an average, so EWR, with 131 trips and a ratio of 42.19, has the same weight as Manhattan, with more than three million trips.
+- **The average of ratios.** The fare per mile of the month is the total fare divided by the total distance: 6.3158. The average of the eight borough ratios is 10.9201. Each borough counts the same in an average. Thus, EWR, with 131 trips and a ratio of 42.19, has the same weight as Manhattan, with more than three million trips.
 - **The sum of distinct counts.** A zone that has pickups on 30 days is in 30 daily counts. The sum of the daily counts is 7083, but only 258 zones had a pickup in June.
 
-Neither query has a bug that Spark can find. The SQL is correct. The error is in the meaning: these measures are *non-additive*. A count and a sum are additive, so the sum of the group values is the total. A ratio of sums and a distinct count are not. To get them at a new grain, you must compute them again from the rows, with the original formula.
+Neither query has a bug that Spark can find. The SQL is correct. The error is in the sense of the numbers: these measures are *non-additive*. A count and a sum are additive, so the sum of the group values is the total. A ratio of sums and a distinct count are not. To get them at a new grain, you must compute them again from the rows, with the original formula.
 
 ## Step 2: Define the metric view
 
@@ -102,7 +102,7 @@ $$
 
 The YAML has five keys, all in version `0.1`:
 
-- `version` is required. Spark 4.3 accepts only `0.1`.
+- `version` must be there. Spark 4.3 accepts only `0.1`.
 - `source` is a table or view name, or a SQL query. Spark tries to parse the text as a name first, and as a query if that fails (`Source.apply` in `MetricViewCanonical.scala`).
 - `filter` is a condition that Spark applies to the source in each query of the view.
 - `dimensions` are the columns that a query can group by and filter on. Each has a name and an expression on the source.
@@ -138,7 +138,7 @@ created taxi.trip_metrics
   active_zones   bigint   {'metric_view.expr': 'COUNT(DISTINCT pickup_zone_id)', 'metric_view.type': 'measure'}
 ```
 
-The catalog keeps the full YAML as the view text, and the type `METRIC_VIEW`. The table properties `metric_view.from.*` and `metric_view.where` describe the source and the filter for catalog browsers. Each column also has metadata: `metric_view.type` says `dimension` or `measure`, and `metric_view.expr` holds the expression. The type of each measure comes from the analyzer, which resolves the expressions against the source when the view is created: `COUNT(1)` is a `bigint`, and the ratio of two sums of doubles is a `double`.
+The catalog keeps the full YAML as the view text, and the type `METRIC_VIEW`. The table properties `metric_view.from.*` and `metric_view.where` describe the source and the filter for catalog browsers. Each column also has metadata: `metric_view.type` says `dimension` or `measure`, and `metric_view.expr` holds the expression. The type of each measure comes from the analyzer. When you create the view, the analyzer resolves the expressions against the source. `COUNT(1)` is a `bigint`, and the ratio of two sums of doubles is a `double`.
 
 This metadata is the semantic layer. A BI tool, a notebook user or an agent can read `DESCRIBE TABLE EXTENDED` and find what "fare per mile" means, without the code of a dashboard.
 
@@ -194,6 +194,13 @@ This metadata is the semantic layer. A BI tool, a notebook user or an agent can 
 +--------+------+-------------+
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch33-measure.webp">
+    <source src="../../media/clips/ch33-measure.mp4" type="video/mp4">
+  </video>
+  <figcaption>The average of the borough ratios, then the same measure from the metric view, at the month and by borough.</figcaption>
+</figure>
+
 The measures are correct at each grain:
 
 - **The month.** `fare_per_mile` is 6.3138, the ratio of the totals after the filter (the `Unknown` and `N/A` boroughs are out). `active_zones` is 256, a real distinct count.
@@ -235,11 +242,13 @@ The last query of `grains.py` asks for the weekend fare per mile by borough. Its
 
 `ResolveMetricView` (`sql/core/src/main/scala/org/apache/spark/sql/catalyst/analysis/ResolveMetricView.scala`) does the rewrite in the analyzer:
 
-1. It finds the metric view in the query, and builds a `Project` over the source that computes each dimension, with the `filter` of the view under it.
+1. It finds the metric view in the query. It builds a `Project` over the source that computes each dimension, and puts the `filter` of the view under it.
 2. It replaces each `MEASURE(name)` with the expression of that measure. `MEASURE(fare_per_mile)` becomes `sum(fare_amount) / sum(trip_distance)`.
 3. The `GROUP BY` and `WHERE` of the query stay as they are, and refer to the dimension columns.
 
-After the rewrite, the query is a normal aggregate on the source. The optimizer then works as usual. It removed the columns that the query does not use, put the filter of the view and the filter of the query together, and changed `day_type = 'weekend'` into a condition on `dayofweek(pickup_date)`. The physical plan is a normal two-stage `HashAggregate` over a Parquet scan. A metric view adds no cost of its own at run time.
+After the rewrite, the query is a normal aggregate on the source. The optimizer then works as usual.
+
+The optimizer removed the columns that the query does not use. It put the filter of the view and the filter of the query together. It also changed `day_type = 'weekend'` into a condition on `dayofweek(pickup_date)`. The physical plan is a normal two-stage `HashAggregate` over a Parquet scan. A metric view adds no cost of its own at run time.
 
 ```mermaid
 flowchart LR
@@ -331,15 +340,15 @@ The definitions:
 
 - **The checks come from the analyzer.** A measure without an aggregate fails with `MISSING_AGGREGATION`. A dimension with an aggregate fails with `GROUP_BY_AGGREGATE`. A column that the source does not have fails with `UNRESOLVED_COLUMN`. Spark builds an `Aggregate` over the source from the YAML when you create the view, only to analyze it.
 - **The YAML is strict.** Version `1.0` and an unknown key such as `joins` fail with `INVALID_METRIC_VIEW_YAML`. Spark 4.3 has no joins in the YAML. To use more than one table, put the join in a SQL `source`, or in a view.
-- **A temporary view is not a source.** The source must be a catalog object. Here, `zones_temp` did not have the column, so the error is `UNRESOLVED_COLUMN`, but the rule is the same as for normal views: a persistent view cannot refer to a temporary view.
+- **A temporary view is not a source.** The source must be a catalog object. Here, `zones_temp` did not have the column, so the error is `UNRESOLVED_COLUMN`. But the rule is the same as for normal views: a persistent view cannot refer to a temporary view.
 - **Metric views are persistent.** `CREATE TEMPORARY VIEW ... WITH METRICS` is a syntax error.
-- **Two edges that Spark accepts.** A metric view with no dimensions and no measures is accepted, and a query of it reads the source. A column list after the view name is accepted too.
+- **Two edges that Spark accepts.** Spark accepts a metric view with no dimensions and no measures, and a query of it reads the source. Spark also accepts a column list after the view name.
 
 The queries:
 
 - **A measure needs `MEASURE()`**, and a dimension with a measure needs `GROUP BY`. A source column that is not a dimension is not visible.
-- **`MEASURE()` works in a window function**, after the aggregation. **It does not work in `ORDER BY` or `HAVING`.** The error says that the column `trips` cannot be resolved. Use the alias of the measure in `ORDER BY`, or filter in an outer query.
-- **Three queries fail with an internal error**, not with a clear error condition: `SELECT *`, `MEASURE()` of a dimension, and a join of the metric view to a table. The part notes record them as open findings. Spark 4.3 does not support these queries. Avoid them, and read the error as "not supported".
+- **`MEASURE()` works in a window function**, after the aggregation. **It does not work in `ORDER BY` or `HAVING`.** The error says that the analyzer cannot resolve the column `trips`. Use the alias of the measure in `ORDER BY`, or filter in an outer query.
+- **Three queries fail with an internal error**, not with a clear error condition. They are `SELECT *`, `MEASURE()` of a dimension, and a join of the metric view to a table. The part notes record them as open findings. Spark 4.3 does not support these queries. Avoid them, and read the error as "not supported".
 
 ## Step 8: Change, rename and drop a metric view
 
@@ -396,7 +405,7 @@ The last part of `lifecycle.py` creates a metric view with an unqualified source
             5
 ```
 
-With `USE taxi`, the view reads `taxi.trips` and counts 3,694,387 trips. With `USE default`, the same view reads a different table, `default.trips`, and counts 5. A normal view resolves its names in the database where it was created. In Spark 4.3.0, a metric view resolves an unqualified source in the current database of the query. A fix is proposed upstream as SPARK-60206 ("Resolve metric view sources in the namespace they were created in"). It is not in Spark 4.3.0.
+With `USE taxi`, the view reads `taxi.trips` and counts 3,694,387 trips. With `USE default`, the same view reads a different table, `default.trips`, and counts 5. A normal view resolves its names in the database where you created it. In Spark 4.3.0, a metric view resolves an unqualified source in the current database of the query. An upstream change proposes a fix as SPARK-60206 ("Resolve metric view sources in the namespace they were created in"). It is not in Spark 4.3.0.
 
 !!! warning "Caution: always qualify the source of a metric view"
 
@@ -407,10 +416,13 @@ With `USE taxi`, the view reads `taxi.trips` and counts 3,694,387 trips. With `U
 A metric view fits on top of the gold layer of a pipeline. But a pipeline cannot declare one. `in_pipeline.sh` adds a SQL file with `CREATE VIEW ... WITH METRICS` to a small pipeline and runs a dry run:
 
 ```text
-@@INPIPELINE@@
+2026-11-22 02:56:56: Registering SQL file 
+~/spark-masterclass/data/work/part06/ch33-pipeline/transformations/product_metrics.sql...
+pyspark.errors.exceptions.connect.AnalysisException: [PIPELINE_SQL_GRAPH_ELEMENT_REGISTRATION_ERROR] 
+Unsupported plan CreateMetricView parsed from SQL query
 ```
 
-A pipeline SQL file accepts only the statements of a pipeline: materialized views, streaming tables, temporary views and flows. Thus, create the metric view outside the pipeline, after its first run, on a table that the pipeline keeps. The view does not need a refresh. It reads the current data of its source in each query, so each pipeline run changes the numbers of the view at once.
+The SQL registration of a pipeline does not know the plan `CreateMetricView`, so the dry run fails with `PIPELINE_SQL_GRAPH_ELEMENT_REGISTRATION_ERROR`. A pipeline SQL file accepts only the statements of a pipeline: materialized views, streaming tables, temporary views and flows. Thus, create the metric view outside the pipeline, after its first run, on a table that the pipeline keeps. The view does not need a refresh. It reads the current data of its source in each query, so each pipeline run changes the numbers of the view at once.
 
 ## The whole chapter, on one page
 

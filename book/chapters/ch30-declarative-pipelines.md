@@ -229,6 +229,13 @@ Read the log in three parts:
 2. **The query function runs once, at registration.** The line `query function products_by_category: called` comes between two imports. The decorator calls the function at once, takes the plan of the DataFrame that it returns, and sends the plan to the server. The function does not run again in the run. SDP does not promise this number of calls, so a query function must not have side effects.
 3. **The run, on the server.** After `Starting run...`, each line is an event that the server sends back over the same connection. Each flow goes through `QUEUED`, `PLANNING`, `STARTING`, `RUNNING` and `COMPLETED`. The server starts a flow only when its inputs are complete. Thus, `products_by_category` waits for `products`, but `products` and `ingest_orders` run at the same time.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch30-run.webp">
+    <source src="../../media/clips/ch30-run.mp4" type="video/mp4">
+  </video>
+  <figcaption>A run of the retail pipeline with a Hive metastore. <code>products</code> and <code>ingest_orders</code> run at the same time. Each summary starts only when its input is complete.</figcaption>
+</figure>
+
 The events have the time of the server, and the server in this book uses UTC. The lines before `Starting run...` have the local time of the client. This difference is why the clock moves by eight hours in the middle of the log.
 
 ```mermaid
@@ -511,6 +518,13 @@ failures that precede this log.
 == what the dry run wrote
 files under spark-warehouse/ and pipeline-storage/: 0
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch30-dryrun.webp">
+    <source src="../../media/clips/ch30-dryrun.mp4" type="video/mp4">
+  </video>
+  <figcaption>A dry run of the broken pipeline reports the cycle. After the fix, the next dry run reports the wrong table name. Nothing is written.</figcaption>
+</figure>
 
 The errors come in a fixed order, because the server does its checks in a fixed order (`DataflowGraph.validate` and `GraphValidations.validateSuccessfulFlowAnalysis`):
 
