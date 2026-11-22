@@ -1,0 +1,153 @@
+== 1. whitespace
++--------------------+---+----+----+-------+----------+
+|                   s|len|trim|re_s|re_nbsp|re_unicode|
++--------------------+---+----+----+-------+----------+
+|{"s":"  ana   mar...| 15|  11|   9|      9|         9|
+|    {"s":"\tBinh\n"}|  6|   6|   4|      4|         4|
+|     {"s":" Chloé "}|  7|   7|   7|      5|         5|
++--------------------+---+----+----+-------+----------+
+
+trim(s, ' \t\n') with a string: ERROR [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function pa
+trim(s, lit(...)): ['ana   maria', 'Binh', 'Chloé']
+Row(a='120', b='hi')
+
+== 2. case
++------------------+------------------+------------------+
+|                 s|        initcap(s)|          lower(s)|
++------------------+------------------+------------------+
+|         BINH TRAN|         Binh Tran|         binh tran|
+|            o'neil|            O'neil|            o'neil|
+|mary-jane van dyke|Mary-jane Van Dyke|mary-jane van dyke|
+|          McDONALD|          Mcdonald|          mcdonald|
++------------------+------------------+------------------+
+
+== 3. regexp_replace and translate
++---------------+-----------+-----------+
+|              p|     digits| translated|
++---------------+-----------+-----------+
+| (416) 555-0199| 4165550199| 4165550199|
+|   416.555.0123| 4165550123| 4165550123|
+|+1 416 555 0147|14165550147|14165550147|
+|            n/a|           |        n/a|
++---------------+-----------+-----------+
+
+Row(swapped='Linh Nguyen')
+
+== 4. accents
++-------------+-------------+-------------+
+|            s|     udf_nfkd|    translate|
++-------------+-------------+-------------+
+|     Montréal|     Montreal|     Montreal|
+|Nguyễn Thị Hà|Nguyen Thi Ha|Nguyen Thi Ha|
+|          Zoë|          Zoe|          Zoe|
+|         Đặng|         Đang|         Dang|
+|        ﬁancé|       fiance|        ﬁance|
+|         NULL|         NULL|         NULL|
++-------------+-------------+-------------+
+
+built-in unaccent/normalize: ['vector_normalize']
++- ArrowEvalPython [strip_accents(s#57)#73], [pythonUDF0#75], 101
+
+== 5. collations
++-----+-----+----+-----+
+|plain|lcase|  ci|ci_ai|
++-----+-----+----+-----+
+|false| true|true| true|
++-----+-----+----+-----+
+
+deliveries: 166 rows, 29 raw spellings
+  collation            distinct  trim first
+  UTF8_BINARY                29          26
+  UTF8_LCASE                 20          15
+  UNICODE_CI                 18          13
+  UNICODE_CI_AI              15           9
+  UNICODE_CI_AI_RTRIM        11           9
+
+the same letters, different bytes:
++----------+---+--------------------+
+|utf8_lcase|n  |bytes               |
++----------+---+--------------------+
+|MONTRÉAL  |9  |4D4F4E5452C389414C  |
+|Montréal |5  |4D6F6E747265CC81616C|
+|montreal  |4  |6D6F6E747265616C20  |
++----------+---+--------------------+
+
++--------+-------+
+|trailing|leading|
++--------+-------+
+|    true|  false|
++--------+-------+
+
++-----+-----+-------+-----+-----+
+|   ci|ci_ai|root_ai|vi_ai|vi_ci|
++-----+-----+-------+-----+-----+
+|false| true|   true|false| true|
++-----+-----+-------+-----+-----+
+
+ORDER BY bytes:   ['A', 'B', 'a', 'b', 'e', 'f', 'é']
+ORDER BY UNICODE: ['a', 'A', 'b', 'B', 'e', 'é', 'f']
+collations(): 1164 | ICU 78.3.0.0
++-------------------+--------+-------+------------------+----------------+-------------+-----------+
+|NAME               |LANGUAGE|COUNTRY|ACCENT_SENSITIVITY|CASE_SENSITIVITY|PAD_ATTRIBUTE|ICU_VERSION|
++-------------------+--------+-------+------------------+----------------+-------------+-----------+
+|UNICODE_CI         |NULL    |NULL   |ACCENT_SENSITIVE  |CASE_INSENSITIVE|NO_PAD       |78.3.0.0   |
+|UNICODE_CI_AI      |NULL    |NULL   |ACCENT_INSENSITIVE|CASE_INSENSITIVE|NO_PAD       |78.3.0.0   |
+|UNICODE_CI_AI_RTRIM|NULL    |NULL   |ACCENT_INSENSITIVE|CASE_INSENSITIVE|RTRIM        |78.3.0.0   |
+|UNICODE_CI_RTRIM   |NULL    |NULL   |ACCENT_SENSITIVE  |CASE_INSENSITIVE|RTRIM        |78.3.0.0   |
++-------------------+--------+-------+------------------+----------------+-------------+-----------+
+
+where collations stop:
+  collect_set              ERROR [DATATYPE_MISMATCH.UNSUPPORTED_INPUT_TYPE] Cannot resolve "collect_set(collate(city,
+  LIKE, UNICODE_CI_AI      ERROR [DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE] Cannot resolve "collate(Montréal, UNICODE_
+  LIKE, UTF8_LCASE         Row(collate(Montréal, UTF8_LCASE) LIKE mont%=True)
+  two explicit collations  ERROR [COLLATION_MISMATCH.EXPLICIT] Could not determine which collation to use for string 
+  misspelt name            ERROR [COLLATION_INVALID_NAME] The value UNICODE_CIAI does not represent a correct collati
+  hash equal?              Row((hash(collate(Montréal, UNICODE_CI_AI)) = hash(collate(MONTREAL, UNICODE_CI_AI)))=False)
++-----------+-----+
+|       city|count|
++-----------+-----+
+|    Calgary|    2|
+|    ĐÀ NẴNG|   13|
+|     Ha Noi|   33|
+|HỒ CHÍ MINH|   27|
+|        Huế|    2|
+|  Montréal|   18|
+|     Ottawa|    2|
+|    TORONTO|   23|
+|  Vancouver|   46|
++-----------+-----+
+
++--------+---+
+|    city|  n|
++--------+---+
+|Montréal|  3|
+|  Hà Nội|  7|
++--------+---+
+
+WHERE city = 'montreal': [('Montréal', 1), ('MONTREAL', 2)]
+schema read back: StringType('UNICODE_CI_AI')
+['+- SortMergeJoin [collate(trim(city#111, None), UNICODE_CI_AI)], [collate(store_city#405, UNICODE_CI_AI)], Lef', ':  +- Exchange hashpartitioning(collate(trim(city#111, None), UNICODE_CI_AI), 200), ENSURE_REQUIREMENTS, [plan']
+matched: 160 of 166
+
+== 6. invalid UTF-8
++----------+-----+----------+---------+
+|     bytes|valid|made_valid|try_valid|
++----------+-----+----------+---------+
+|  436166E9|false|      Caf�|     NULL|
+|436166C3A9| true|      Café|     Café|
++----------+-----+----------+---------+
+
+validate_utf8: ERROR [INVALID_UTF8_STRING] Invalid UTF8 byte sequence found in string: \x43
+
+== 7. LIKE, ILIKE, RLIKE
++------------+-----+-----+--------+---------+-----+----+
+|           s| like|ilike|like_esc|like_any1|rlike|year|
++------------+-----+-----+--------+---------+-----+----+
+|INV-2026-001| true| true|   false|     true| true|2026|
+|inv_2026_002|false| true|    true|    false|false|2026|
+|    INV-26-3| true| true|   false|    false|false|    |
+|    INVX2026|false| true|   false|     true|false|2026|
++------------+-----+-----+--------+---------+-----+----+
+
+Row(dot_any=True, dot_x=True, escaped=False, rlike_finds_inside=True, like_whole=False)
+Row(extract='', substr=None)

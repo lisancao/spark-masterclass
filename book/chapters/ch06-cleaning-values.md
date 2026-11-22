@@ -266,7 +266,7 @@ The lengths show what each method removes:
 
 ## Step 7: Regular expressions, translate and accents
 
-`regexp_replace` replaces each match of a Java regular expression. `translate` replaces single characters: each character of the second argument becomes the character at the same position in the third argument, or it goes away if the third argument is shorter.
+`regexp_replace` replaces each match of a Java regular expression. `translate` replaces single characters. Each character of the second argument becomes the character at the same position in the third argument. If the third argument is shorter, the extra characters go away.
 
 ```text
 == 3. regexp_replace and translate
@@ -283,6 +283,43 @@ Row(swapped='Linh Nguyen')
 ```
 
 `[^0-9]` means "each character that is not a digit". It is more reliable than a list of characters to remove, because it also removes separators that you did not expect. But look at `n/a`. It becomes an empty string, not NULL. Change markers such as `n/a` to NULL before you remove characters. A replacement can use capture groups as `$1` and `$2`: the last line changes `Nguyen, Linh` to `Linh Nguyen`.
+
+To test a pattern, and not to change the text, Spark has three operators:
+
+```python
+inv.select("s", F.col("s").like("INV-%").alias("like"), F.col("s").ilike("inv%").alias("ilike"),
+           F.expr(r"s LIKE 'inv\\_%'").alias("like_esc"), F.expr("s LIKE 'INV_2026%'").alias("like_any1"),
+           F.col("s").rlike(r"^INV-\d{4}-\d{3}$").alias("rlike"),
+           F.regexp_extract("s", r"(\d{4})", 1).alias("year")).show()
+```
+
+```text
+== 7. LIKE, ILIKE, RLIKE
++------------+-----+-----+--------+---------+-----+----+
+|           s| like|ilike|like_esc|like_any1|rlike|year|
++------------+-----+-----+--------+---------+-----+----+
+|INV-2026-001| true| true|   false|     true| true|2026|
+|inv_2026_002|false| true|    true|    false|false|2026|
+|    INV-26-3| true| true|   false|    false|false|    |
+|    INVX2026|false| true|   false|     true|false|2026|
++------------+-----+-----+--------+---------+-----+----+
+
+Row(dot_any=True, dot_x=True, escaped=False, rlike_finds_inside=True, like_whole=False)
+```
+
+The rows show how the three operators are different:
+
+- **`LIKE` matches the full string.** `%` is any sequence of characters, and `_` is exactly one character. Thus `INV_2026%` also matches `INVX2026`. To match a literal `_`, write `\_`.
+- **`ILIKE` is `LIKE` without case.** It matches all four rows.
+- **`RLIKE` is a Java regular expression, and it finds a match anywhere in the string.** Add `^` and `$` to match the full string. In a regular expression, `.` is any character, so `a.b` matches `axb`. Write `a\.b` for a literal dot.
+
+`regexp_extract(col, pattern, group)` returns the text of one capture group, or an empty string when there is no match. It does not return NULL. `regexp_substr(col, pattern)` returns the first match, or NULL when there is no match:
+
+```text
+Row(extract='', substr=None)
+```
+
+If an empty string and "no match" must stay different, use `regexp_substr`, or wrap `regexp_extract` in `nullif(..., '')`.
 
 `Montréal`, `Montreal` and `MONTRÉAL` are one city for a person, and three strings for `==`. Spark 4.3 has no built-in function that removes accents. `strings.py` searches the function list, and the only match is `vector_normalize`, which is a vector function. There are two methods to change the text:
 
@@ -373,7 +410,11 @@ the same letters, different bytes:
 +----------+---+--------------------+
 ```
 
-The first two rows show the same word, but the bytes are different. The first has `C3 89`, the single character `É`. The second has `65 CC 81`, a plain `e` followed by a combining accent. Unicode calls these two forms "canonically equivalent". Text from macOS file names, PDF files and some keyboards often uses the second form. `UTF8_LCASE` compares bytes, so it sees two words. The `UNICODE` collations compare canonically equivalent strings as equal. (The second row is narrower in the table, because `show()` counts the combining accent as one character.) For text from many sources, use a `UNICODE` collation, even if you only want to ignore case.
+The first two rows show the same word, but the bytes are different. The first has `C3 89`, the single character `É`. The second has `65 CC 81`, a plain `e` followed by a combining accent. Unicode calls these two forms "canonically equivalent".
+
+Text from macOS file names, PDF files and some keyboards often uses the second form. `UTF8_LCASE` compares bytes, so it sees two words. The `UNICODE` collations compare canonically equivalent strings as equal.
+
+The second row is narrower in the table, because `show()` counts the combining accent as one character. For text from many sources, use a `UNICODE` collation, even if you only want to ignore case.
 
 ```mermaid
 flowchart LR
@@ -486,13 +527,34 @@ spark.sql("CREATE TABLE delivery_cities (city STRING, n INT) USING parquet DEFAU
 spark.sql("INSERT INTO delivery_cities VALUES ('Montréal', 1), ('MONTREAL', 2), ('Hà Nội', 3), ('ha noi', 4)")
 ```
 
-COLLATED_TABLE
+```python
+spark.sql("SELECT city, sum(n) AS n FROM delivery_cities GROUP BY city ORDER BY n").show()
+```
+
+```text
++--------+---+
+|    city|  n|
++--------+---+
+|Montréal|  3|
+|  Hà Nội|  7|
++--------+---+
+
+WHERE city = 'montreal': [('Montréal', 1), ('MONTREAL', 2)]
+schema read back: StringType('UNICODE_CI_AI')
+```
+
+The four rows became two groups. A filter with `city = 'montreal'` finds `Montréal` and `MONTREAL`, and the schema that Spark reads back from the table is `StringType('UNICODE_CI_AI')`. The `DEFAULT COLLATION` clause gives the collation to each string column that does not declare its own collation.
 
 All queries on this column now compare without accents and case, also the filters that you did not want to be fuzzy. Use a default collation for columns that contain names, not codes.
 
-A join on collated keys uses the collation key for the shuffle. `strings.py` disables broadcast joins to show the shuffle:
+`strings.py` also joins the deliveries to the store list on the city, under `UNICODE_CI_AI`. It sets `spark.sql.autoBroadcastJoinThreshold` to `-1`, so the plan shows a shuffle join and not a broadcast:
 
-COLLATED_JOIN
+```text
+['+- SortMergeJoin [collate(trim(city#111, None), UNICODE_CI_AI)], [collate(store_city#405, UNICODE_CI_AI)], Lef', ':  +- Exchange hashpartitioning(collate(trim(city#111, None), UNICODE_CI_AI), 200), ENSURE_REQUIREMENTS, [plan']
+matched: 160 of 166
+```
+
+The `Exchange` partitions both sides by the collated value. In the 4.3.0 source, `HashPartitioning` builds its partition ID with `CollationAwareMurmur3Hash` (`partitioning.scala`). This hash uses the collation key, so `Montréal` and `MONTREAL` go to the same partition. The `hash()` function from the last step does not do this. 160 of the 166 deliveries find a store city.
 
 The cost is in each comparison and each hash. `strings.py` groups 2,000,000 cached rows of 8 city spellings under four collations:
 
@@ -520,7 +582,13 @@ validate_utf8: ERROR [INVALID_UTF8_STRING] Invalid UTF8 byte sequence found in s
 
 ## Step 11: Money
 
-`to_number(col, format)` (since 3.5) parses text with a format, and `try_to_number` returns NULL when the text does not fit. In the format, `9` or `0` is a digit, `.` is the decimal point, `,` is a group separator, `$` is a dollar sign, `S` is a sign, `MI` is a trailing minus, and `PR` means angle brackets for a negative number. The result is a `DECIMAL`.
+`to_number(col, format)` (since 3.5) parses text with a format, and `try_to_number` returns NULL when the text does not fit. The result is a `DECIMAL`. The format uses these characters:
+
+- `9` or `0` is a digit.
+- `.` is the decimal point, and `,` is a group separator.
+- `$` is a dollar sign, and `S` is a sign.
+- `MI` is a trailing minus.
+- `PR` means angle brackets for a negative number.
 
 ```text
 == 1. money
@@ -577,7 +645,7 @@ def parse_date(c):
 +-------------------+------------+----------+
 ```
 
-`parse_date` is a Python function that returns a `Column`. It runs once, when it builds the plan, and it costs nothing at run time. `coalesce` stops at the first argument that is not NULL, so Spark does not try the other patterns for a row that already has a date. 30 February is not a date in any format, so it stays NULL.
+`parse_date` is a Python function that returns a `Column`. It runs once, when it builds the plan, and it costs nothing at run time. `coalesce` stops at the first argument that is not NULL. Thus Spark does not try the other patterns for a row that already has a date. 30 February is not a date in any format, so it stays NULL.
 
 The pattern letters are case-sensitive, and some errors give a valid date:
 
@@ -593,7 +661,7 @@ YYYY: ERROR [INCONSISTENT_BEHAVIOR_CROSS_VERSION.DATETIME_PATTERN_RECOGNITION] Y
 
 Each column is a trap:
 
-- **`04/03/2026` is two dates.** It is 4 March with `dd/MM/yyyy` and 3 April with `MM/dd/yyyy`. In a `coalesce`, the first pattern is used and no error occurs. Find the convention of each source, and use only that pattern.
+- **`04/03/2026` is two dates.** It is 4 March with `dd/MM/yyyy` and 3 April with `MM/dd/yyyy`. In a `coalesce`, the first pattern that matches gives the date, and no error occurs. Find the convention of each source, and use only that pattern.
 - **`mm` is minutes.** `yyyy-mm-dd` reads `03` as a minute, and the month becomes January.
 - **`dd` needs two digits.** `d` accepts one or two digits, so `d/M/yyyy` accepts more inputs.
 - **`yy` gives a year from 2000 to 2099.** Thus `69` becomes 2069. A birth date needs a different rule.
@@ -753,7 +821,7 @@ The join is a `left` join, so a row with no match stays, with a NULL code. An in
     reasons = F.concat_ws(",", *[F.when(checks[r], F.lit(r)) for r in REASONS])
 ```
 
-The result has typed columns and a `reject_reason`:
+The result has columns with types and a `reject_reason`:
 
 ```text
 +-----------+----------------+-------+-----------+--------------+----------+----+-------------------------------------------------------------+
@@ -783,7 +851,9 @@ rows kept: 40 | rows with a reject reason: 5
 unmapped countries: ['Mars']
 ```
 
-C003 has no age in the source, so its age is NULL and it has no reason. C004 has an age of `-3`, which is a valid integer, so its age is NULL and its reason is `bad_age`. The two NULL values have different meanings, and `reject_reason` keeps the difference. All 40 rows stay. You can count the problems for each check, send the rows with a reason to a quarantine table, and still load the good columns of a row that is partly bad. A left anti join finds the values that need a new mapping entry: only `Mars` here.
+C003 has no age in the source, so its age is NULL and it has no reason. C004 has an age of `-3`, which is a valid integer, so its age is NULL and its reason is `bad_age`. The two NULL values have different meanings, and `reject_reason` keeps the difference.
+
+All 40 rows stay. You can count the problems for each check. You can send the rows with a reason to a quarantine table. You can still load the good columns of a row that is partly bad. A left anti join finds the values that need a new mapping entry: only `Mars` here.
 
 ```mermaid
 flowchart LR
@@ -816,7 +886,12 @@ AdaptiveSparkPlan isFinalPlan=false
                +- FileScan csv [raw#252,code#253] Batched: false, DataFilters: [isnotnull(raw#252)],
 ```
 
-The left side of the join has two `Project` nodes, one for `tidy` and one for the typed values. In Chapter 5, `CollapseProject` merged adjacent projections into one. Here it does not. In the 4.3.0 source, `CollapseProject` merges two projections only if each value from the lower projection is used one time, or is cheap to calculate. The typed values use each tidied column more than once, and `tidy` contains `regexp_replace`. A merge would calculate the regular expression several times for each row, so the optimizer keeps two nodes.
+The left side of the join has two `Project` nodes, one for `tidy` and one for the typed values. In Chapter 5, `CollapseProject` merged two projections, one on top of the other, into one. Here it does not. In the 4.3.0 source, `CollapseProject` merges two projections only if one of two conditions is true:
+
+- The upper projection uses each value from the lower projection one time.
+- The value is cheap to calculate.
+
+The typed values use each tidied column more than once, and `tidy` contains `regexp_replace`. A merge would calculate the regular expression several times for each row, so the optimizer keeps two nodes.
 
 ## Step 16: Nanosecond timestamps
 
@@ -882,7 +957,7 @@ Spark Connect client 4.3.0
   toArrow()    ERROR [UNSUPPORTED_OPERATION] data type timestamp_ntz_nanos {
 ```
 
-Even `df.schema` fails, because the Python client cannot parse the type name. The data types page of the 4.3.0 docs lists the nanosecond types for the schema-driven Scala and Java APIs, and its Python table does not list them. In PySpark, cast a nanosecond column to a string, or to a microsecond type, before it goes to Python.
+Even `df.schema` fails, because the Python client cannot parse the type name. The data types page of the 4.3.0 docs lists the nanosecond types for Scala and Java. Its Python table does not list them. In PySpark, cast a nanosecond column to a string, or to a microsecond type, before it goes to Python.
 
 ```mermaid
 flowchart LR
@@ -912,7 +987,7 @@ Thus a SQL job can read nanosecond Parquet, transform it and write it with no lo
 
 ## The whole chapter, on one page
 
-- **ANSI mode stops the job at the first bad value, at the action.** Turning it off gives wrong numbers. Catch `PySparkException`, and read `getCondition()`, `getSqlState()` and `getMessageParameters()`.
+- **ANSI mode stops the job at the first bad value, at the action.** If you turn it off, the job gives wrong numbers. Catch `PySparkException`, and read `getCondition()`, `getSqlState()` and `getMessageParameters()`.
 - **A `try_` function changes one error into NULL.** Keep the raw value next to the result, so that "did not convert" and "no value" stay different.
 - **Casts are strict.** Separators, non-breaking spaces and `12.7` to `INT` fail. Leading zeros go away.
 - **`trim` removes only U+0020, and Java `\s` does not match U+00A0.** Use `[\s ]+` or `(?U)\s+`.
@@ -922,7 +997,7 @@ Thus a SQL job can read nanosecond Parquet, transform it and write it with no lo
 - **Map categories with a table and a left join, and keep each row with a `reject_reason`.**
 - **Nanosecond timestamps (4.3 preview) work in SQL and Parquet, not in PySpark.** Cast them before they go to Python.
 
-These rules all have one source. ANSI mode makes errors visible, and a `try_` function makes them data. The values that convert without an error, but to a wrong value, still need a test. [Chapter 7](ch07-spark-sql-in-depth.md) uses these clean values in SQL, with window functions, pipe syntax and `QUALIFY`.
+These rules all have one source. ANSI mode makes errors visible, and a `try_` function makes them data. Some values convert to a wrong value with no error. These values still need a test. [Chapter 7](ch07-spark-sql-in-depth.md) uses these clean values in SQL, with window functions, pipe syntax and `QUALIFY`.
 
 ## Further reading
 

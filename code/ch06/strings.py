@@ -142,23 +142,6 @@ print([l.strip()[:110] for l in plan(joined, "simple").splitlines() if "Join" in
 spark.conf.unset("spark.sql.autoBroadcastJoinThreshold")
 print("matched:", joined.where("store_city IS NOT NULL").count(), "of", deliveries.count())
 
-# The cost: group 2 million cached rows by city under each collation.
-print("\ncost of grouping 2,000,000 cached rows (median of 5 after a warmup)")
-spellings = ["Montréal", "MONTREAL", "montreal", "Toronto", "toronto", "Hà Nội", "Ha Noi", "HA NOI"]
-big = (spark.range(2_000_000).select(F.element_at(F.array(*[F.lit(s) for s in spellings]),
-                                                  (F.col("id") % len(spellings) + 1).cast("int")).alias("city"))
-       .cache())
-big.count()
-for coll in ["UTF8_BINARY", "UTF8_LCASE", "UNICODE", "UNICODE_CI_AI"]:
-    q = big.groupBy(F.collate("city", coll).alias("c")).count()
-    times = []
-    for _ in range(6):
-        t0 = time.perf_counter()
-        n = len(q.collect())
-        times.append(time.perf_counter() - t0)
-    print(f"  {coll:<14} {n} groups  {sorted(times[1:])[2]:.2f} s")
-big.unpersist()
-
 # 6. UTF-8 validation.
 print("\n== 6. invalid UTF-8")
 bad = (spark.createDataFrame([(bytearray(b"Caf\xe9"),), (bytearray("Café".encode()),)], "b BINARY")
@@ -167,3 +150,15 @@ bad.select(F.hex(F.col("s").cast("binary")).alias("bytes"), F.is_valid_utf8("s")
            F.make_valid_utf8("s").alias("made_valid"), F.try_validate_utf8("s").alias("try_valid")).show()
 print("validate_utf8:", attempt(lambda: bad.select(F.validate_utf8("s")).collect(), 70))
 shutil.rmtree(tmp)
+
+# 7. Pattern matching: LIKE, ILIKE, RLIKE and regexp_extract.
+print("\n== 7. LIKE, ILIKE, RLIKE")
+inv = spark.createDataFrame([("INV-2026-001",), ("inv_2026_002",), ("INV-26-3",), ("INVX2026",)], "s STRING")
+inv.select("s", F.col("s").like("INV-%").alias("like"), F.col("s").ilike("inv%").alias("ilike"),
+           F.expr(r"s LIKE 'inv\\_%'").alias("like_esc"), F.expr("s LIKE 'INV_2026%'").alias("like_any1"),
+           F.col("s").rlike(r"^INV-\d{4}-\d{3}$").alias("rlike"),
+           F.regexp_extract("s", r"(\d{4})", 1).alias("year")).show()
+print(spark.sql(r"SELECT 'a.b' RLIKE 'a.b' AS dot_any, 'axb' RLIKE 'a.b' AS dot_x, 'axb' RLIKE 'a\\.b' AS escaped, "
+                r"'xxINVxx' RLIKE 'INV' AS rlike_finds_inside, 'xxINVxx' LIKE 'INV' AS like_whole").first())
+print(spark.sql(r"SELECT regexp_extract('INV-26-3', '([0-9]{4})', 1) AS extract, "
+                r"regexp_substr('INV-26-3', '[0-9]{4}') AS substr").first())
