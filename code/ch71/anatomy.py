@@ -84,6 +84,10 @@ for p in files:
     parts = rel.parts
     short = "/".join(x if len(x) < 12 or "-" not in x else x[:x.index("-") + 5] + "..." for x in parts[1:])
     print(f"  {short:<64} {p.stat().st_size:>6,} B")
+print("\nreduce partition sizes in each map output, from the .index files:")
+for ix in (p for p in files if p.suffix == ".index"):
+    o = struct.unpack(f">{ix.stat().st_size // 8}q", ix.read_bytes())
+    print(f"  {ix.name:<22} {[y - x for x, y in zip(o, o[1:])]}  total {o[-1]:,} B")
 idx = next(p for p in files if p.suffix == ".index")
 raw = idx.read_bytes()
 offsets = struct.unpack(f">{len(raw) // 8}q", raw)

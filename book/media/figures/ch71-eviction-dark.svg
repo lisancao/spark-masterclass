@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 255" width="860" height="255">
+<text x="20" y="26" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="700" fill="#e6e8eb" text-anchor="start">The unified pool of a 1 GiB driver: 434.4 MiB (memory.txt)</text>
+<text x="20" y="86" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="600" fill="#e6e8eb" text-anchor="start">after cache()</text>
+<rect x="150" y="60" width="570.0" height="40" rx="4" fill="#272b34" stroke="#5c6370" stroke-width="1.5"/>
+<rect x="150" y="60" width="427.2375690607735" height="40" rx="4" fill="#7aa2e0" stroke="#7aa2e0" stroke-width="1.5"/>
+<text x="363.61878453038673" y="85" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">storage 325.6 MiB, 32/32 partitions</text>
+<text x="20" y="166" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="600" fill="#e6e8eb" text-anchor="start">after the sort</text>
+<rect x="150" y="140" width="570.0" height="40" rx="4" fill="#272b34" stroke="#5c6370" stroke-width="1.5"/>
+<rect x="150" y="140" width="280.27624309392263" height="40" rx="4" fill="#7aa2e0" stroke="#7aa2e0" stroke-width="1.5"/>
+<text x="290.1381215469613" y="165" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">storage 213.6 MiB, 21/32 partitions</text>
+<line x1="435.0" y1="50" x2="435.0" y2="200" stroke="#e08a3e" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="441.0" y="215" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#e08a3e" text-anchor="start">storageFraction 0.5 = 217.2 MiB: execution cannot evict below this line</text>
+<text x="150" y="240" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#a3a9b3" text-anchor="start">The sort needed execution memory. It evicted cached blocks until storage was under the line.</text>
+</svg>

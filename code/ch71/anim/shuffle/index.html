@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <script src="data.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="18" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Segment sizes, executors and fetch bytes come from data.js (anatomy.txt).
+      A.mount();
+      const D = window.DATA;
+      const [title, sub] = A.title("One shuffle: write, files, fetch", "4 map tasks, 6 reduce partitions, two executors");
+      const cap = (s, a, b) => { const c = A.text(s, { y: 0.9, size: 36 }); A.in(c, a); if (b) A.out(c, b); return c; };
+      const COLS = ["var(--a-acc)", "#7aa2e0", "var(--a-ok)", "#a88ad8", "#f07167", "#9aa1ab"];
+      const ex = { "1": { x: 0.27, label: "executor 1" }, "0": { x: 0.73, label: "executor 0" } };
+      for (const k of ["1", "0"]) {
+        A.box({ x: ex[k].x, y: 0.40, w: 760, h: 300, kind: "ghost", radius: 18 });
+        A.text(ex[k].label, { x: ex[k].x, y: 0.40 - A.dy(130), size: 30, weight: 700, color: "var(--a-mute)" });
+      }
+      // map outputs: rows of segments, one row per map output, inside its executor
+      const rowOf = { "1": 0, "0": 0 };
+      const SEG = 640 / 5100;            // px per byte, the same scale for every file
+      const segs = [];                   // segs[map][p] = element
+      D.maps.forEach((m, mi) => {
+        const r = rowOf[m.executor]++;
+        const y = 0.40 - A.dy(50) + r * A.dy(110);
+        const lab = A.text(`${m.name}.data`, { x: ex[m.executor].x - A.dx(330), y: y - A.dy(38), size: 22, mono: true,
+          color: "var(--a-mute)", anchor: "left" });
+        let x = ex[m.executor].x - A.dx(330);
+        segs[mi] = m.sizes.map((b, p) => {
+          const w = b * SEG;
+          const el = A.el(`<span style="font-size:${A.px(18)}px;color:#fff;font-weight:600">${b}</span>`,
+            { x, y, anchor: "left", css: { width: A.px(w - 3) + "px", height: A.px(40) + "px", background: COLS[p],
+              borderRadius: A.px(4) + "px", display: "flex", alignItems: "center", justifyContent: "center" } });
+          x += A.dx(w);
+          return el;
+        });
+        // beat write (0.8): each map task writes its file, partition by partition
+        A.tl.set([lab, ...segs[mi]], { opacity: 0 }, 0);
+        A.in(lab, 0.8 + mi * 0.5);
+        segs[mi].forEach((el, p) => A.tl.fromTo(el, { opacity: 0, scaleX: 0, transformOrigin: "0% 50%" },
+          { opacity: 1, scaleX: 1, duration: 0.25 }, 1.0 + mi * 0.5 + p * 0.12));
+      });
+      cap("Each map task writes its rows in reduce-partition order", 0.6, 4.4);
+      // beat index (4.6): the index file holds the offsets
+      let off = [0]; D.maps[0].sizes.forEach(b => off.push(off[off.length - 1] + b));
+      const idx = A.text(`${D.maps[0].name}.index = [${off.join(", ")}]`, { x: 0.5, y: 0.66, size: 28, mono: true, color: "var(--a-fg)" });
+      A.in(idx, 4.6);
+      cap("One .index file per map output: where each partition starts", 4.8, 8.2);
+      A.out(idx, 8.2);
+      // beat fetch (8.4): reduce tasks fetch one segment from every map output
+      const RY = 0.72;
+      const red = D.reduce.map((r, i) => {
+        const x = 0.1 + i * 0.16;
+        const b = A.box({ x, y: RY, w: 250, h: 100, kind: "paper", title: `reduce ${r.partition}`, sub: `executor ${r.executor}`, size: 24 });
+        b.style.borderColor = COLS[r.partition];
+        A.tl.set(b, { opacity: 0 }, 0);
+        A.in(b, 8.4 + i * 0.1);
+        return b;
+      });
+      D.reduce.forEach((r, i) => {
+        const at = 9.2 + i * 0.9;
+        D.maps.forEach((m, mi) => {
+          const el = segs[mi][r.partition];
+          const local = m.executor === r.executor;
+          const ghost = el.cloneNode(true); el.parentNode.appendChild(ghost);
+          gsap.set(ghost, { opacity: 0 });
+          const from = el.getBoundingClientRect(), to = red[i].getBoundingClientRect();
+          const dx = (to.left + to.width / 2) - (from.left + from.width / 2), dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+          A.tl.set(ghost, { opacity: 1, x: 0, y: 0 }, at);
+          A.tl.to(ghost, { x: dx, y: dy, scale: 0.5, duration: local ? 0.6 : 0.9, ease: "power2.in" }, at);
+          A.tl.to(ghost, { opacity: 0, duration: 0.15 }, at + (local ? 0.6 : 0.9));
+        });
+        const t = A.text(`local ${r.local} B<br>remote ${r.remote} B`, { x: 0.1 + i * 0.16, y: RY + A.dy(95), size: 22, mono: true, color: "var(--a-mute)", css: { whiteSpace: "nowrap" } });
+        A.tl.set(t, { opacity: 0 }, 0);
+        A.in(t, at + 0.9);
+      });
+      cap("Each reduce task fetches its segment from every map output", 8.6, 12.1);
+      cap("Blocks on its own executor are local, the others are remote", 12.8);
+      A.in(A.note("sizes in bytes from the .index files and the task metrics, timing schematic"), 0.5);
+      A.finish(18);
+    </script>
+  </body>
+</html>
