@@ -88,7 +88,7 @@ A JSON Lines file is splittable. A task can start in the middle of the file at t
 
 ## Step 2: Inference is a separate job
 
-When you do not give a schema, `spark.read.json` reads the data before it returns a DataFrame. The script counts the jobs that each call starts, from the monitoring REST API:
+When you do not give a schema, `spark.read.json` reads the data before it returns a DataFrame. The script counts the jobs that each call starts. It reads them from the REST API of the Spark UI:
 
 ```text
 == inference is a job of its own ==
