@@ -1,0 +1,72 @@
+
+== 1. Bytes on the wire: a jplug.PlanNodes inside a google.protobuf.Any
+message: b'\n\x02ab\x12\x08physical'
+type_url: type.googleapis.com/jplug.PlanNodes
+Any:     b'\n#type.googleapis.com/jplug.PlanNodes\x12\x0e\n\x02ab\x12\x08physical'
+
+== 2. A Connect session has no JVM
+pyspark.sql.connect.session | server runs Spark 4.3.0
+spark._jvm -> PySparkAttributeError: [JVM_ATTRIBUTE_NOT_SUPPORTED] Attribute `_jvm` is not supported in Spark Connect as it depends on the JVM. If you need to use this attribute, do not u
+
+== 3. What works without a plugin: names the server knows
+jdocs by short name: [Row(name='gradient_32x32.png', width=32), Row(name='gray_20x10.png', width=20)]
+[Row(p=True)]
+[Row(p=True)]
+
+== 4. plan_nodes: a relation plugin
++---+------+-----+---------+----------------------------------------------------------------------------------------------+
+|id |parent|depth|node     |detail                                                                                        |
++---+------+-----+---------+----------------------------------------------------------------------------------------------+
+|0  |NULL  |0    |Aggregate|Aggregate [_groupingexpression#22L], [_groupingexpression#22L AS k#19L, count(1) AS count#20L]|
+|1  |0     |1    |Project  |Project [(id#18L % 2) AS _groupingexpression#22L]                                             |
+|2  |1     |2    |Filter   |Filter (id#18L > 3)                                                                           |
+|3  |2     |3    |Range    |Range (0, 10, step=1, splits=Some(16))                                                        |
++---+------+-----+---------+----------------------------------------------------------------------------------------------+
+
++---+------+-----+-------------+------------------------------------------------------------------------------------------+
+|id |parent|depth|node         |detail                                                                                    |
++---+------+-----+-------------+------------------------------------------------------------------------------------------+
+|0  |NULL  |0    |HashAggregate|HashAggregate(keys=[_groupingexpression#50L], functions=[count(1)])                       |
+|1  |0     |1    |Exchange     |Exchange hashpartitioning(_groupingexpression#50L, 200), ENSURE_REQUIREMENTS, [plan_id=51]|
+|2  |1     |2    |HashAggregate|HashAggregate(keys=[_groupingexpression#50L], functions=[partial_count(1)])               |
+|3  |2     |3    |Project      |Project [(id#46L % 2) AS _groupingexpression#50L]                                         |
+|4  |3     |4    |Filter       |Filter (id#46L > 3)                                                                       |
+|5  |4     |5    |Range        |Range (0, 10, step=1, splits=16)                                                          |
++---+------+-----+-------------+------------------------------------------------------------------------------------------+
+
+stage 'parsed' -> IllegalArgumentException: stage must be analyzed, optimized or physical, got 'parsed'
+
+== 5. Plan facts a Connect test can now assert on
+pushed: PushedFilters: [IsNotNull(k), EqualTo(k,3)]
+double(id): ['WholeStageCodegen (2)', 'Project', 'InputAdapter', 'ArrowEvalPython', 'WholeStageCodegen (1)', 'Range']
+is_png(content), rewritten by jext.PngRule: ['Project', 'Scan binaryFile ']
+
+== 6. An extension nobody handles
+InvalidPlanInput: [CONNECT_INVALID_PLAN.NO_HANDLER_FOR_EXTENSION] The Spark Connect plan is invalid. No handler found for extension type: type.googleapis.com/jplug.Note
+
+== 7. has_magic: an expression plugin
++-------------------+-----+
+|file               |png  |
++-------------------+-----+
+|corrupt.png        |true |
+|gradient_32x32.png |true |
+|gray_20x10.png     |true |
+|logo_rgba_12x12.png|true |
+|readme.txt         |false|
+|red_16x8.png       |true |
++-------------------+-----+
+
+
+== 8. note: a command plugin
+spark.conf.get('jplug.note') = checked by chapter 57
+
+== 9. The server's record of the plugin operations (4.3 REST API)
+14 operations in this session; those whose recorded statement names a jplug type:
+  jplug.PlanNodes  CLOSED   1606 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED    840 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED    239 ms  jobs []  'INTERNAL: stage must be analyzed, optimized or physical, got'
+  jplug.PlanNodes  CLOSED   1104 ms  jobs ['4']  ''
+  jplug.PlanNodes  CLOSED   2066 ms  jobs ['5', '6', '7']  ''
+  jplug.PlanNodes  CLOSED    729 ms  jobs ['8', '9', '10']  ''
+  jplug.Note       CLOSED     17 ms  jobs []  'INTERNAL: [CONNECT_INVALID_PLAN.NO_HANDLER_FOR_EXTENSION] Th'
+  jplug.Note       CLOSED     21 ms  jobs []  ''

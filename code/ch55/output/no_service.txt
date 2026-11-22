@@ -1,0 +1,5 @@
+jar entries under META-INF/services: 0
+format('jdocs'): Py4JJavaError
+  org.apache.spark.SparkClassNotFoundException: [DATA_SOURCE_NOT_FOUND] Failed to find the data source: jdocs. Make sure the provider name is correct an
+  Caused by: java.lang.ClassNotFoundException: jdocs.DefaultSource
+format('jdocs.DocsSource'): 26 rows

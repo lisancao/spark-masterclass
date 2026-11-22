@@ -1,0 +1,3 @@
+session A, before addArtifacts: UnknownException: (java.lang.ClassNotFoundException) jplug.PlanNodesPlugin
+session A, after addArtifacts:  [Row(id=0, parent=None, depth=0, node='Range', detail='Range (0, 3, step=1, splits=Some(16))')]
+session B, never uploaded it:   [Row(id=0, parent=None, depth=0, node='Range', detail='Range (0, 3, step=1, splits=Some(16))')]

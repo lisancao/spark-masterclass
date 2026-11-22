@@ -1,0 +1,158 @@
+
+== 1. Full read: jdocs against the same source in Python
+schema: struct<path:string,name:string,kind:string,size:bigint,modified:timestamp,width:int,height:int>
+jdocs rows: 26, Python rows: 26, rows that differ: 0
+
+== 2. Short name in SQL
++-----+-----+
+| kind|files|
++-----+-----+
+|audio|    3|
+|email|    4|
+|image|    5|
+| json|    3|
+|  log|    2|
+|  pdf|    2|
+| text|    6|
+|  xml|    1|
++-----+-----+
+
+
+== 3. When each method runs
+load() returned ['path', 'name', 'kind', 'size', 'modified', 'width', 'height'] | scan builders so far: 0
+explain() -> IllegalArgumentException: option 'path' must be an existing folder, got '/nope'
+explain + collect + count on one DataFrame: scan builders 2 | listings 2
+
+== 4. Column pruning
++- BatchScan jdocs[name#175, size#177L] jdocs[files=26, pushed=[]] RuntimeFilters: []
+files opened: 0
+
+== 5. Predicates as Spark offers them
+kind = 'image' AND width > 12
+    returned IS_NOT_NULL(width)  |  width IS NOT NULL
+    pushed   =(kind, lit:UTF8String)  |  kind = 'image'
+    returned >(width, lit:Integer)  |  width > 12
+kind IN ('pdf', 'email')
+    pushed   IN(kind, lit:UTF8String, lit:UTF8String)  |  kind IN ('pdf', 'email')
+name LIKE '%.png'
+    pushed   ENDS_WITH(name, lit:UTF8String)  |  name LIKE '%.png' ESCAPE '\'
+name LIKE 'red%'
+    returned STARTS_WITH(name, lit:UTF8String)  |  name LIKE 'red%' ESCAPE '\'
+name LIKE '%ra%'
+    returned CONTAINS(name, lit:UTF8String)  |  name LIKE '%ra%' ESCAPE '\'
+kind <> 'image'
+    returned NOT(=(kind, lit:UTF8String))  |  NOT (kind = 'image')
+size BETWEEN 10 AND 100
+    pushed   >=(size, lit:Long)  |  size >= 10
+    pushed   <=(size, lit:Long)  |  size <= 100
+width IS NULL
+    returned IS_NULL(width)  |  width IS NULL
+lower(kind) = 'image'
+    returned =(LOWER(kind), lit:UTF8String)  |  LOWER(kind) = 'image'
+kind = 'audio' OR size < 100
+    returned OR(=(kind, lit:UTF8String), <(size, lit:Long))  |  (kind = 'audio') OR (size < 100)
+size % 2 = 1
+    returned =(%(size, lit:Long), lit:Long)  |  (size % 2) = 1
+width > height
+    returned IS_NOT_NULL(width)  |  width IS NOT NULL
+    returned IS_NOT_NULL(height)  |  height IS NOT NULL
+    returned >(width, height)  |  width > height
+modified > TIMESTAMP '2020-01-01 00:00:00'
+    returned >(modified, lit:Long)  |  modified > 1577836800000000
+
+== 6. kind = 'image', pushed: the plan and the files opened
+*(1) Project [name#366, width#370]
++- BatchScan jdocs[name#366, width#370] jdocs[files=5, pushed=[kind = 'image']] RuntimeFilters: []
+
+rows: 5 | files opened: 5
+
+== 7. What jdocs cannot decide stays in Spark
+kind = 'image' AND width > 12 -> 3 rows
+*(1) Project [name#375]
++- *(1) Filter (isnotnull(width#379) AND (width#379 > 12))
+   +- BatchScan jdocs[name#375, width#379] jdocs[files=5, pushed=[kind = 'image']] RuntimeFilters: []
+
+kind = 'audio' OR size < 100 -> 9 rows
+*(1) Project [name#390]
++- *(1) Filter ((kind#391 = audio) OR (size#392L < 100))
+   +- BatchScan jdocs[name#390, kind#391, size#392L] jdocs[files=26, pushed=[]] RuntimeFilters: []
+
+
+== 8. LIMIT
+*(1) Project [name#407]
++- BatchScan jdocs[name#407] jdocs[files=3, pushed=[], limit=3] RuntimeFilters: []
+
+with a filter left after the scan:
+CollectLimit 2
++- *(1) Project [name#415]
+   +- *(1) Filter (isnotnull(width#419) AND (width#419 > 12))
+      +- BatchScan jdocs[name#415, width#419] jdocs[files=26, pushed=[]] RuntimeFilters: []
+
+
+== 9. COUNT(*) without reading a file
+count of images: 5 | files opened: 0 | Spark jobs run: 1
+*(1) Project [count#440L AS count(1)#438L AS count#430L]
++- *(1) LocalTableScan [count#440L]
+
+*(1) Project [kind#459, count#460L AS count(1)#456L AS count#448L]
++- *(1) LocalTableScan [kind#459, count#460L]
+
+sum(size) is refused:
+AdaptiveSparkPlan isFinalPlan=false
++- HashAggregate(keys=[kind#463], functions=[sum(size#464L)], output=[kind#463, sum(size)#476L])
+   +- Exchange hashpartitioning(kind#463, 200), ENSURE_REQUIREMENTS, [plan_id=716]
+      +- HashAggregate(keys=[kind#463], functions=[partial_sum(size#464L)], output=[kind#463, sum#480L])
+         +- Project [kind#463, size#464L]
+            +- BatchScan jdocs[kind#463, size#464L] jdocs[files=26, pushed=[]] RuntimeFilters: []
+
+
+== 10. Statistics after pushdown
+spark.sql.cbo.enabled=false: Statistics(sizeInBytes=240.0 B) | estimateSizeInBytes calls 1, estimateStatistics calls 0
+spark.sql.cbo.enabled=true: Statistics(sizeInBytes=240.0 B, rowCount=2) | estimateSizeInBytes calls 0, estimateStatistics calls 1
+
+== 11. Reporting partitioning removes a shuffle
+byKind=false
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   ResultQueryStage 1
+   +- *(2) HashAggregate(keys=[kind#511], functions=[sum(size#512L)], output=[kind#511, bytes#516L])
+      +- AQEShuffleRead coalesced
+         +- ShuffleQueryStage 0
+            +- Exchange hashpartitioning(kind#511, 200), ENSURE_REQUIREMENTS, [plan_id=747]
+               +- *(1) HashAggregate(keys=[kind#511], functions=[partial_sum(size#512L)], output=[kind#511, sum#528L])
+                  +- *(1) Project [kind#511, size#512L]
+                     +- BatchScan jdocs[kind#511, size#512L] jdocs[files=26, pushed=[]] RuntimeFilters: []
++- == Initial Plan ==
+   HashAggregate(keys=[kind#511], functions=[sum(size#512L)], output=[kind#511, bytes#516L])
+   +- Exchange hashpartitioning(kind#511, 200), ENSURE_REQUIREMENTS, [plan_id=733]
+      +- HashAggregate(keys=[kind#511], functions=[partial_sum(size#512L)], output=[kind#511, sum#528L])
+         +- Project [kind#511, size#512L]
+            +- BatchScan jdocs[kind#511, size#512L] jdocs[files=26, pushed=[]] RuntimeFilters: []
+
+byKind=true
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   ResultQueryStage 0
+   +- *(1) HashAggregate(keys=[kind#533], functions=[sum(size#534L)], output=[kind#533, bytes#538L])
+      +- *(1) Project [kind#533, size#534L]
+         +- BatchScan jdocs[kind#533, size#534L] jdocs[files=26, pushed=[]] RuntimeFilters: []
++- == Initial Plan ==
+   HashAggregate(keys=[kind#533], functions=[sum(size#534L)], output=[kind#533, bytes#538L])
+   +- Project [kind#533, size#534L]
+      +- BatchScan jdocs[kind#533, size#534L] jdocs[files=26, pushed=[]] RuntimeFilters: []
+
+
+== 12. Runtime filters from a join (dynamic partition pruning)
+      +- *(2) BroadcastHashJoin [kind#558], [kind#553], Inner, BuildRight, false, false
+         :  +- BatchScan jdocs[name#557, kind#558] jdocs[files=8, pushed=[]] RuntimeFilters: [dynamicpruningexpression(kind#558 IN dynamicpruning#565)]
+   +- BroadcastHashJoin [kind#558], [kind#553], Inner, BuildRight, false, false
+      :  +- BatchScan jdocs[name#557, kind#558] jdocs[files=8, pushed=[]] RuntimeFilters: [dynamicpruningexpression(kind#558 IN dynamicpruning#565)]
+filter() received: kind IN ('image', 'audio')
+rows: 8 kinds: ['audio', 'image']
+
+== 13. A custom metric in the Spark UI
+BatchScan jdocs | files opened by jdocs = 5
+
+== 14. A wrong internal type fails in the task, not in planning
+planned: +- BatchScan jdocs[name#577] jdocs[files=26, pushed=[]] Runt
+java.lang.ClassCastException: class java.lang.String cannot be cast to class org.apache.spark.unsafe.types.UTF8String 

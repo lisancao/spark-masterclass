@@ -1,0 +1,109 @@
+
+== 1. What counts as a case
+on disk:      ['.DS_Store', 'CASE-0001', 'CASE-0002', 'CASE-0003', 'CASE-0004', 'CASE-0005', 'CASE-0006', 'CASE-0007', 'CASE-0008', 'CASE-0010', 'README.txt', '_staging', 'case-0009']
+case folders: ['CASE-0001', 'CASE-0002', 'CASE-0003', 'CASE-0004', 'CASE-0005', 'CASE-0006', 'CASE-0007', 'CASE-0008', 'CASE-0010', 'case-0009']
+
+== 2. Two index versions, one shape
+{'case_id': 'CASE-0007', 'schema_version': 1, 'opened': datetime.datetime(2026, 3, 4, 9, 30, tzinfo=datetime.timezone.utc), 'status': 'open', 'priority': 2, 'tags': ['billing', 'vip'], 'problems': []}
+{'case_id': 'CASE-0009', 'schema_version': 2, 'opened': datetime.datetime(2026, 3, 21, 8, 30, tzinfo=datetime.timezone.utc), 'status': 'open', 'priority': 2, 'tags': ['damaged', 'fr'], 'problems': []}
+{'case_id': 'CASE-0008', 'schema_version': None, 'opened': None, 'status': None, 'priority': None, 'tags': [], 'problems': ['bad_index']}
+{'case_id': 'CASE-0010', 'schema_version': 2, 'opened': datetime.datetime(2026, 3, 25, 9, 0, tzinfo=datetime.timezone.utc), 'status': 'open', 'priority': None, 'tags': ['vip'], 'problems': ['bad_priority']}
+
+== 3. Partitions planned by bytes (first fit decreasing)
+[['big'], ['a'], ['b', 'c'], ['d']]
+1 files: [('CASE-0002', 'call.wav')]
+13 files: [('CASE-0001', 'invoice_1001.pdf'), ('CASE-0006', 'receipt.pdf'), ('case-0009', 'lettre.eml')]
+
+== 4. Three tables
++---------+---------+--------------+-------------------+--------+--------+-----------------+---------------------+
+|case_id  |folder   |schema_version|opened             |status  |priority|tags             |problems             |
++---------+---------+--------------+-------------------+--------+--------+-----------------+---------------------+
+|CASE-0001|CASE-0001|2             |2026-03-02 09:15:00|open    |2       |[billing, refund]|[]                   |
+|CASE-0002|CASE-0002|2             |2026-03-03 14:02:00|closed  |3       |[phone, audio]   |[]                   |
+|CASE-0003|CASE-0003|2             |2026-03-05 08:30:00|triage  |1       |[escalation]     |[]                   |
+|CASE-0004|CASE-0004|2             |2026-03-09 10:00:00|waiting |2       |[damaged]        |[missing_attachment] |
+|CASE-0005|CASE-0005|2             |2026-03-11 16:45:00|open    |4       |[]               |[unlisted_attachment]|
+|CASE-0006|CASE-0006|2             |2026-03-12 11:20:00|resolved|3       |[billing]        |[]                   |
+|CASE-0007|CASE-0007|1             |2026-03-04 09:30:00|open    |2       |[billing, vip]   |[]                   |
+|CASE-0008|CASE-0008|NULL          |NULL               |NULL    |NULL    |[]               |[bad_index]          |
+|CASE-0009|case-0009|2             |2026-03-21 08:30:00|open    |2       |[damaged, fr]    |[]                   |
+|CASE-0010|CASE-0010|2             |2026-03-25 09:00:00|open    |NULL    |[vip]            |[bad_priority]       |
++---------+---------+--------------+-------------------+--------+--------+-----------------+---------------------+
+
++---------+-----------+-----+----+------------+
+|case_id  |name       |kind |size|status      |
++---------+-----------+-----+----+------------+
+|CASE-0004|scan.png   |image|NULL|missing     |
+|CASE-0005|stray.tmp  |other|60  |unlisted    |
+|CASE-0006|receipt.pdf|pdf  |472 |sha_mismatch|
+|CASE-0007|photo.png  |image|75  |unverified  |
+|CASE-0008|note.txt   |text |30  |unlisted    |
++---------+-----------+-----+----+------------+
+
++----+-------------------+--------+-------+------+-----+-------------------------------------------------+--------+
+|line|ts                 |field   |old    |new   |actor|raw                                              |problem |
++----+-------------------+--------+-------+------+-----+-------------------------------------------------+--------+
+|1   |2026-03-25 09:00:00|status  |new    |open  |emma |NULL                                             |NULL    |
+|2   |2026-03-25 09:07:00|status  |open   |triage|emma |NULL                                             |NULL    |
+|4   |NULL               |NULL    |NULL   |NULL  |NULL |2026-03-25T09:30:00Z | status | open triage | dev|unparsed|
+|5   |2026-03-25 09:14:00|priority|P2     |P1    |emma |NULL                                             |NULL    |
+|6   |2026-03-25 09:21:00|status  |waiting|open  |ana  |NULL                                             |NULL    |
++----+-------------------+--------+-------+------+-----+-------------------------------------------------+--------+
+
+
+== 5. Loose metadata as VARIANT
++---------+------+---------+----------------------------------------------------------------------------------------------------+
+|case_id  |tier  |sla_hours|meta_schema                                                                                         |
++---------+------+---------+----------------------------------------------------------------------------------------------------+
+|CASE-0001|gold  |24       |OBJECT<channel: STRING, customer: OBJECT<id: STRING, tier: STRING>, sla_hours: BIGINT>              |
+|CASE-0002|NULL  |NULL     |OBJECT<channel: STRING, recording: OBJECT<rate: BIGINT, seconds: DECIMAL(2,1)>>                     |
+|CASE-0003|NULL  |NULL     |OBJECT<customer: OBJECT<id: STRING>, escalated: BOOLEAN>                                            |
+|CASE-0004|silver|NULL     |OBJECT<customer: OBJECT<id: STRING, tier: STRING>, order: BIGINT>                                   |
+|CASE-0005|NULL  |NULL     |OBJECT<browser: STRING, channel: STRING>                                                            |
+|CASE-0006|gold  |NULL     |OBJECT<customer: OBJECT<id: STRING, tier: STRING>, refund: OBJECT<amount: STRING, currency: STRING>>|
+|CASE-0007|NULL  |NULL     |OBJECT<imported_from: STRING, legacy_id: BIGINT>                                                    |
+|CASE-0008|NULL  |NULL     |NULL                                                                                                |
+|CASE-0009|NULL  |NULL     |OBJECT<channel: STRING, customer: OBJECT<id: STRING, name: STRING>, lang: STRING>                   |
+|CASE-0010|gold  |4        |OBJECT<customer: OBJECT<id: STRING, tier: STRING>, sla_hours: BIGINT>                               |
++---------+------+---------+----------------------------------------------------------------------------------------------------+
+
+
+== 6. Pushdown: opt-in, and what the plan shows
+spark.sql.python.filterPushdown.enabled = false
+default reader, flag off: 5 open cases
+pushdown reader, flag off -> [DATA_SOURCE_PUSHDOWN_DISABLED] PushdownCaseFileReader implements pushFilters() but filter pushdown is disabled because configuration 'spark.sql.pytho
+PushedFilters: [EqualTo(status,open), GreaterThanOrEqual(opened,2026-03-09 17:00:00.0)]
+rows: ['CASE-0005', 'CASE-0009', 'CASE-0010'] | folders opened by tasks: ['CASE-0005', 'CASE-0010', 'case-0009']
+JVM default time zone: America/Los_Angeles | session time zone: UTC
+
+== 7. One DataFrame used twice, 4.3.0
+reader default : count, filtered count, count again = [10, 5, 10]
+reader pushdown: count, filtered count, count again = [10, 5, 5]
+CaseFiles (a fresh load per table): [10, 5, 10]
+
+== 8. Writes publish by replacing one manifest
+after append: ['CASE-0001@142c540f', 'CASE-0002@142c540f', 'CASE-0003@142c540f', '_manifest.json']
+_manifest.json: {"version": 1, "cases": {"CASE-0001": "CASE-0001@142c540f", "CASE-0002": "CASE-0002@142c540f", "CASE-0003": "CASE-0003@142c540f"}, "jobs": [{"job": "142c540f", "mode": "append", "cases": 3}]}
+a task that fails after four folders: ValueError: casefile: invalid case_id 'not a case', expected CASE-dddd
+   folder unchanged: True
+a duplicate case_id: ValueError: casefile: duplicate case_id in this write: ['CASE-0006']
+   folder unchanged: True
+an existing case_id: ValueError: casefile: case_id already exists (use overwrite): ['CASE-0001']
+   folder unchanged: True
+after overwrite: ['CASE-0009@bce3bb6b', 'CASE-0010@bce3bb6b', '_manifest.json']
+_manifest.json: {"version": 2, "cases": {"CASE-0009": "CASE-0009@bce3bb6b", "CASE-0010": "CASE-0010@bce3bb6b"}, "jobs": [{"job": "142c540f", "mode": "append", "cases": 3}, {"job": "bce3bb6b", "mode": "overwrite", "cases": 2}]}
+
+== 9. The changes table as a stream
+batches (id, rows): [(0, 7), (1, 7), (2, 8), (3, 7), (4, 7), (5, 7)]
+offsets/0, last line: {"v": 1, "pos": {"CASE-0001": [343, 8], "CASE-0002": [51, 1]}}
+rows streamed: 43 | rows in a batch read: 44
+
+== 10. Problems as warnings from the executors
+WARNING CASE-0004 missing scan.png
+WARNING CASE-0004 missing_attachment
+WARNING CASE-0005 unlisted stray.tmp
+WARNING CASE-0005 unlisted_attachment
+WARNING CASE-0006 sha_mismatch receipt.pdf
+WARNING CASE-0008 bad_index
+WARNING CASE-0008 unlisted note.txt
+WARNING CASE-0010 bad_priority

@@ -1,0 +1,1 @@
+built target/jdocs-0.1.0.jar with Apache Maven 3.8.7, javac 17.0.21.1
