@@ -57,6 +57,13 @@ The trigger and the configuration:
   checkpointFormatVersion=1              STREAMING_REAL_TIME_MODE.SQL_CONFIGURATION_NOT_SUPPORTED
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch27-rules.webp">
+    <source src="../../media/clips/ch27-rules.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>r1_rules.py</code> on Spark 4.3.0. In this clip, <code>RTM</code> is short for <code>STREAMING_REAL_TIME_MODE</code>, and <code>(late)</code> marks an error that came from the query after it started, not from <code>start()</code>.</figcaption>
+</figure>
+
 The results give the rules of Real-time Mode in Spark 4.3.0:
 
 - **Stateless queries run.** A projection and a filter on Kafka into the console ran.
@@ -198,6 +205,13 @@ The producer sends 200 records a second for 30 seconds, to 40 keys. The script l
   mb_count             sent  6000  out rows  3372   p50    278  p90    386  p99    759  max    859  ms
   rtm_count            sent  6000  out rows  4000   p50     27  p90     47  p99    145  max    300  ms
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch27-latency.webp">
+    <source src="../../media/clips/ch27-latency.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>r2_latency.py 200 20 mb_count rtm_count</code>, a shorter separate run of the count per user in both engines. Its numbers differ from the saved runs, but the gap between the engines has the same size order.</figcaption>
+</figure>
 
 The medians over the three runs:
 
