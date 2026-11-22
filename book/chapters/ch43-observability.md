@@ -316,6 +316,13 @@ History Server, the Connect records of local-1795343084699 after the server stop
   operation 3fbe2e6d  session 04690712  CLOSED   jobs ['4', '5']  sql ['2']  159 ms
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch43-connect.webp">
+    <source src="../../media/clips/ch43-connect.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>connect_obs.py</code>: two Connect sessions, the 4.3 Connect endpoints of the live server, then the same records from the History Server after the server stopped. The IDs and times change in each run.</figcaption>
+</figure>
+
 The History Server replayed the two event logs into its own status store. The Connect records are the same as on the live server. The only change is that the two sessions are now finished.
 
 The pip install also contains `sbin/start-history-server.sh`, which starts the server as a daemon. The script starts the class with `bin/spark-class` instead, so that it can stop the process by its PID. The settings go in `SPARK_HISTORY_OPTS`, because the History Server is a separate JVM that does not read your session configs.
@@ -346,6 +353,13 @@ classic: this process is PID 633407
 json.dumps(q.lastProgress): TypeError Object of type UUID is not JSON serializable
 q.lastProgress.json starts: {"id": "05050c33-bc79-41e6-bfe1-29dd6c447e94", "runId": "da6
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch43-listener.webp">
+    <source src="../../media/clips/ch43-listener.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>stream_listener.py</code>: a Python <code>StreamingQueryListener</code> reads the observed null counts of each micro-batch. The process IDs change in each run.</figcaption>
+</figure>
 
 The observed metrics show the drift in each batch before anyone examines the data. Batch 0 has no `user` values. Batch 2 has no `event` values, because the file calls the field `event_type`.
 
