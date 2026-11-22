@@ -68,6 +68,13 @@ what session B sees:
   B calls spark.stop() then A runs a query     3
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch44-isolation.webp">
+    <source src="../../media/clips/ch44-isolation.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>isolation.py</code>: session A sets state on a shared server, and session B finds what is isolated and what is shared.</figcaption>
+</figure>
+
 The output divides into three groups:
 
 - **Isolated:** temporary views, SQL configs and UDFs. These belong to the `SessionState` of each session.
@@ -164,6 +171,13 @@ server: defaultSessionTimeout=10s, maintenanceInterval=2s
   REST record of that operation                        state CLOSED, jobs ['0']
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch44-lifecycle.webp">
+    <source src="../../media/clips/ch44-lifecycle.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>lifecycle.py</code>: a session ends by idle timeout, by release and by a server restart, and a supervisor interrupts a tagged query.</figcaption>
+</figure>
+
 - **Idle timeout.** The server closed the session after 10 seconds without an RPC. The session ID goes into a list of closed sessions (`closedSessionsTombstonesSize`, default 1000). Thus a later request with that ID gets `INVALID_HANDLE.SESSION_CLOSED`, not a new empty session. A long-lived client must send RPCs, or connect again with a new session.
 - **Release.** `release_session()` closes the session at once and frees its state on the server. Spark 4.3 sessions are context managers, so `with ... as spark:` calls it for you.
 - **Server restart.** The new server has a new server-side session ID. The client sends the ID that it saw before in `client_observed_server_side_session_id`. The server answers with `INVALID_HANDLE.SESSION_CHANGED`, and the client marks the session closed. The next call then raises `NO_ACTIVE_SESSION` on the client. The server loses all state of the session, for example its temporary views and artifacts. Write important results to tables.
@@ -205,6 +219,13 @@ spark.sql.optimizer.singleTaskExecution.enabled: session off = false, session on
   single-task on :   54.7 ms median of 20, 2.0 jobs and 2.0 tasks per operation
 first row: Row(Borough='Queens', zones=69)
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch44-feather.webp">
+    <source src="../../media/clips/ch44-feather.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>feather_server.py</code>: one session on a shared server turns on single-task execution. This run happened while other renders used the machine, so its times are higher than in the output above.</figcaption>
+</figure>
 
 The query groups the 265 rows of the zone lookup file by borough. With the flag on, each operation ran 2 jobs and 2 tasks instead of 5 jobs and 9 tasks. The median time fell from 99.0 ms to 54.7 ms. The two sessions ran on the same server at the same time. Thus a shared server can give the single-task plans to interactive clients, and keep the normal plans for batch sessions. Interactive clients are, for example, dashboards and agents that ask many small questions.
 
