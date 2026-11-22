@@ -20,7 +20,7 @@ Words allowlisted on purpose for `scripts/ste-check` (all are technical names or
 | ch06 | 0 | |
 | ch07 | 0 | |
 | ch08 | 0 | |
-| ch09 | see below | |
+| ch09 | 0 | `salting`, `bucketing`, `reading` (a sensor reading, noun) added to the allowlist for this chapter. |
 | ch10 | 0 | |
 
 Rules broken on purpose:
@@ -93,7 +93,25 @@ Written mostly by the earlier writer. Finished here: Step 9 (collation cost re-m
 
 ### LS07 join_strategies, WN08 (NEAREST BY), MD21 (NEAREST BY), ASOF JOIN (4.3): chapter 9
 
-See the chapter section list; filled in after the chapter (below).
+| Topic | Where |
+|---|---|
+| join types incl. semi, anti, cross; NULL keys, `eqNullSafe`; duplicate key columns | Step 1 |
+| broadcast hash join, threshold, `BroadcastExchange` | Steps 2, 3 |
+| shuffled hash join, sort-merge join, BNLJ, Cartesian; hints from SQL and DataFrame | Steps 3 to 5 |
+| timings on real sizes (trips x zones, 3.8 M x 3.8 M) | Steps 3, 5 |
+| join selection order (`JoinSelection`), hints ignored, join type limits | Step 6 |
+| `preferSortMergeJoin` | Step 6 |
+| AQE SMJ to BHJ, local shuffle reader, adaptive threshold | Step 7 |
+| disabling broadcast with -1, restoring config | Steps 5, 7 (`conf.unset`) |
+| skew: factor, threshold, AQE skew join, salting, NULL keys | Steps 8 to 11 |
+| bucketing, no Exchange in the plan | Step 11 |
+| storage-partitioned joins | pointer to Chapter 31 |
+| LATERAL | Step 16 |
+| NEAREST BY (SQL and `nearestByJoin`), k range, join types, cross-product plan | Step 15 (and Chapter 10 Step 13) |
+| ASOF JOIN (4.3): flag, syntax, directions, LEFT, NULL, ties, plan, cost | Steps 12 to 14 |
+| `DataFrame.zip` vs a join | Chapter 5 Step 18 |
+| stream-static joins | left out: Part V |
+| `maxShuffledHashJoinLocalMapThreshold`, `coalesceBucketsInJoin` | left out: tuning detail, Chapter 18 |
 
 ### WN05 geospatial, MD21 (geo half), WN08 (time_bucket): chapter 10
 
@@ -164,6 +182,12 @@ See the chapter section list; filled in after the chapter (below).
 - Ports: `SPARK_UI_PORT=4022` for the book runs, 4122 for films and side runs. (Chapter 7 outputs ran on 4023 by mistake, which is part03's port; no output depends on the port.)
 - Data: the June 2026 yellow-taxi file and zone lookup from Part I; SparkTutor messy data copied to `code/data/events`, `code/data/cleaning`, `code/data/geo_deliveries`.
 - Timings: only the timings that the text quotes ran under the bench lock. The Chapter 8 and 9 scripts take the lock themselves, only around each timing loop (`bench_lock()` with `fcntl.flock` on `~/spark-masterclass/data/.bench.lock`). `BOOK_NO_LOCK=1` skips it for films. Medians of 3 after one warmup unless the output says otherwise. Each timed run builds a new DataFrame, because a second `collect()` on the same DataFrame reuses its shuffle files (found while fixing `ch06/collation_cost.py`; the first version measured 0.02 s for every collation).
+
+Benchmark check (coordinator's note on reused shuffle files): every timing loop in Part II calls a function that builds a new DataFrame for each run (`ch06/collation_cost.py`, `ch08/functions.py` via `df.first()`, which makes a new `limit` plan each call, and all of `ch09`). The first version of `ch06/collation_cost.py` had the bug and measured 0.02 s per collation; it was fixed and measured again before the note arrived. The timed runs were not checked one by one in the REST API for skipped stages.
+
+Other load: the films rendered without the lock, as the brief says, and sometimes at the same time as a locked timing of another writer or of this part. The ch08 Python UDF ratio moved between runs (0.09/0.57 s in an earlier locked run, 0.35/1.13 s in the run that the text quotes). Treat the Part II timings as relative, on a shared 16-core machine.
+
+ch09 Step 5 says that an earlier run with the broadcasts first also failed the sort-merge join with `java.lang.OutOfMemoryError`. That run's output was overwritten; the claim has no saved file. Another earlier run had the shuffled hash join fail with `UNABLE_TO_ACQUIRE_MEMORY` after the broadcasts. Both are why the script now runs the broadcasts last.
 
 ## Open findings
 
