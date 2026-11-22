@@ -1,0 +1,69 @@
+
+== content is read only when a query asks for it ==
++- FileScan binaryFile [path#0,length#2L] Batched: false,
+    DataFilters: [isnotnull(length#2L),
+    (length#2L > 5000)],
+    Format: BINARYFILE,
+    Location: InMemoryFileIndex(5 paths)[file:data/messy/images,
+    ...,
+    PartitionFilters: [],
+    PushedFilters: [IsNotNull(length),
+    GreaterThan(length,5000)],
+    ReadSchema: struct<path:string,length:bigint>
+maxLength=1000, select(path, length).count(): 17
+maxLength=1000, select(sha2(content)): [FAILED_READ_FILE.NO_HINT]
+  caused by: The length of gradient_32x32.png is 1795, which exceeds the max length allowed: 1000
+
+== magic bytes, not file names ==
++-------------------+------+-----+------+----------------+-----+------+
+|file               |length|kind |png_ok|first_8_bytes   |width|height|
++-------------------+------+-----+------+----------------+-----+------+
+|readme.txt         |13    |other|NULL  |6E6F7420616E2069|NULL |NULL  |
+|ticket_0.eml       |250   |other|NULL  |46726F6D3A206375|NULL |NULL  |
+|ticket_1.eml       |250   |other|NULL  |46726F6D3A206375|NULL |NULL  |
+|ticket_2.eml       |257   |other|NULL  |46726F6D3A206375|NULL |NULL  |
+|ticket_3.eml       |250   |other|NULL  |46726F6D3A206375|NULL |NULL  |
+|invoice_1001.pdf   |878   |pdf  |NULL  |255044462D312E34|NULL |NULL  |
+|invoice_1002.pdf   |603   |pdf  |NULL  |255044462D312E34|NULL |NULL  |
+|corrupt.png        |24    |png  |false |89504E470D0A1A0A|NULL |NULL  |
+|gradient_32x32.png |1795  |png  |true  |89504E470D0A1A0A|32   |32    |
+|gray_20x10.png     |90    |png  |true  |89504E470D0A1A0A|20   |10    |
+|logo_rgba_12x12.png|81    |png  |true  |89504E470D0A1A0A|12   |12    |
+|red_16x8.png       |76    |png  |true  |89504E470D0A1A0A|16   |8     |
+|upload_0001.png    |76    |png  |true  |89504E470D0A1A0A|16   |8     |
+|silence.wav        |8044  |wav  |NULL  |52494646641F0000|NULL |NULL  |
+|tone_440.wav       |4044  |wav  |NULL  |52494646C40F0000|NULL |NULL  |
+|tone_880_quiet.wav |4044  |wav  |NULL  |52494646C40F0000|NULL |NULL  |
+|voice_note.wav     |4044  |wav  |NULL  |52494646C40F0000|NULL |NULL  |
++-------------------+------+-----+------+----------------+-----+------+
+
++-----+-----+
+|kind |count|
++-----+-----+
+|other|5    |
+|pdf  |2    |
+|png  |6    |
+|wav  |4    |
++-----+-----+
+
+
+== decode a header without checking it first ==
++-----------+------------------+----------+---------+
+|bytes 13-16|bytes 9-24 as text|width     |height   |
++-----------+------------------+----------+---------+
+|7265616C   |not really a png  |1819877473|544239207|
++-----------+------------------+----------+---------+
+
+
+== duplicates by SHA-256 ==
++-----------------+---+-------------------------------+
+|sha256 (first 12)|n  |files                          |
++-----------------+---+-------------------------------+
+|ac5f8f645de6     |2  |[tone_440.wav, voice_note.wav] |
+|de806669504e     |2  |[red_16x8.png, upload_0001.png]|
++-----------------+---+-------------------------------+
+
+
+== binaryFile cannot write ==
+[UNSUPPORTED_FEATURE.WRITE_FOR_BINARY_SOURCE] The feature is not supported: Write for the binary fil
+as Parquet instead: struct<path:string,length:bigint,content:binary>
