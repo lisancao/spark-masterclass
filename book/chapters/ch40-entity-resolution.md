@@ -156,6 +156,14 @@ The weighted sum misses 12% of the true pairs. Those pairs have a support record
 
 The threshold sweep shows the usual trade. A lower threshold finds all pairs and more false matches. A higher threshold removes false matches and loses true pairs.
 
+<figure markdown>
+  ![Line chart of precision and recall of the evidence score at six thresholds](../media/figures/ch40-sweep-light.svg#only-light)
+
+  ![Line chart of precision and recall of the evidence score at six thresholds](../media/figures/ch40-sweep-dark.svg#only-dark)
+
+  <figcaption>Precision and recall of the evidence score at each threshold of the sweep. At 0.9, recall is 1.000 and precision is 0.991.</figcaption>
+</figure>
+
 At 0.9, the score has one false match: two records for "Mei Chen". The answer key says they are two different people with the same name. The two records share a name and nothing else. They have no e-mail or phone that disagrees. With this data, no rule can separate them. A real system needs more evidence, such as an address or a date of birth.
 
 The weights here come from judgment. A model can learn them from labelled pairs. The Fellegi-Sunter model and a `LogisticRegression` from [Chapter 37](ch37-mllib-mlflow.md) are the usual choices.
@@ -236,6 +244,14 @@ Clustering adds pairs that the scoring step never saw. The script counts the pai
 
 The matcher called one wrong pair, and it had a precision of 0.991. After clustering, the precision is 0.921. The wrong pair joined two people with three records each into one cluster of six. That cluster implies 15 pairs, and 9 of them are wrong (3 × 3). One wrong edge gave nine wrong pairs.
 
+<figure markdown>
+  ![Two groups of three records joined by one wrong match into one cluster of six](../media/figures/ch40-wrong-edge-light.svg#only-light)
+
+  ![Two groups of three records joined by one wrong match into one cluster of six](../media/figures/ch40-wrong-edge-dark.svg#only-dark)
+
+  <figcaption>The largest cluster. One wrong match joins two people with three records each. The cluster implies 15 pairs, and 9 of them are wrong.</figcaption>
+</figure>
+
 Thus, measure precision after clustering, not only after scoring. One bad edge can join two large clusters. Thus, use a higher threshold for edges. Or examine each cluster above a size limit before you accept it.
 
 ## Step 7: Survivorship: one golden record for each entity
@@ -313,6 +329,13 @@ flowchart LR
   r0 --> r3
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch40-anim-stars.webp">
+    <source src="../../media/clips/ch40-anim-stars.mp4" type="video/mp4">
+  </video>
+  <figcaption>Large-star and small-star on a path of six nodes. The edges of each round come from <code>components.py</code>. The positions of the nodes are schematic.</figcaption>
+</figure>
+
 Each operation is a window function and a `distinct`. The window finds `m(u)` with `min("v").over(Window.partitionBy("u"))`. An `explode` of a two-element array makes both directions of each edge, so each operation reads its input only one time:
 
 ```python
@@ -383,10 +406,20 @@ An iterative loop must keep each round's result somewhere. `components.py` runs 
 
 The results are different for each method:
 
-- **Nothing.** The star operations read their input one time, so the plan grows by a constant in each round (12 lines). But each action computes all earlier rounds again, and the time grows.
-- **`cache()`.** The data does not get computed again, so `count()` stays fast. But the optimized plan doubles in each round (54 to 3,433 lines). `cache()` does not cut the plan. A cached DataFrame appears in the plan as an `InMemoryRelation`, and an `InMemoryRelation` prints the plan that it came from, which contains the earlier `InMemoryRelation`. Spark makes this string for each action (the SQL tab of the UI shows it). After enough rounds, the string alone fills the driver memory.
-- **`localCheckpoint()`.** The plan is one scan in each round. The data stays in the executors' block storage. If an executor stops, Spark cannot compute the lost blocks again, and the job fails.
-- **`checkpoint()`.** The plan is one scan in each round. The data goes to files in the checkpoint directory, so it survives the loss of an executor. It is slower because it writes files, and it needs `spark.sparkContext.setCheckpointDir(...)`. Here, it wrote 7 part files.
+| Method | Plan in each round | Data and cost |
+|---|---|---|
+| Nothing | The star operations read their input one time, so the plan grows by a constant in each round (12 lines). | Each action computes all earlier rounds again, and the time grows. |
+| `cache()` | The optimized plan doubles in each round (54 to 3,433 lines). `cache()` does not cut the plan. A cached DataFrame appears in the plan as an `InMemoryRelation`, and an `InMemoryRelation` prints the plan that it came from, which contains the earlier `InMemoryRelation`. Spark makes this string for each action (the SQL tab of the UI shows it). After enough rounds, the string alone fills the driver memory. | The data does not get computed again, so `count()` stays fast. |
+| `localCheckpoint()` | One scan in each round. | The data stays in the executors' block storage. If an executor stops, Spark cannot compute the lost blocks again, and the job fails. |
+| `checkpoint()` | One scan in each round. | The data goes to files in the checkpoint directory, so it survives the loss of an executor. It is slower because it writes files, and it needs `spark.sparkContext.setCheckpointDir(...)`. Here, it wrote 7 part files. |
+
+<figure markdown>
+  ![Two line charts with a log scale: plan lines in each round for label propagation and for the four methods of Step 9](../media/figures/ch40-plan-growth-light.svg#only-light)
+
+  ![Two line charts with a log scale: plan lines in each round for label propagation and for the four methods of Step 9](../media/figures/ch40-plan-growth-dark.svg#only-dark)
+
+  <figcaption>The size of the plan in each round. Left: label propagation of Step 5. Right: the four methods of this step. The two cuts give a plan of one line in each round.</figcaption>
+</figure>
 
 ```text
 == what each cut leaves in the plan
