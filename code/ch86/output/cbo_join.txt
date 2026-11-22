@@ -2,38 +2,38 @@
   spark.sql.cbo.enabled=false
     estimate of the filtered fares: Statistics(sizeInBytes=30.6 MiB)
     planned join: ['SortMergeJoin'], hash exchanges planned: 2
-    final plan after AQE: ['SortMergeJoin']; median 0.67 s
+    final plan after AQE: ['SortMergeJoin']; median 0.58 s
   spark.sql.cbo.enabled=true
     estimate of the filtered fares: Statistics(sizeInBytes=647.7 KiB, rowCount=1.38E+4)
     planned join: ['BroadcastHashJoin'], hash exchanges planned: 0
-    final plan after AQE: ['BroadcastHashJoin']; median 0.26 s
+    final plan after AQE: ['BroadcastHashJoin']; median 0.27 s
   rows: 82
 
 === 2. join reorder: three tables, broadcast off so that order decides the shuffle size
   spark.sql.cbo.joinReorder.enabled=false: optimized join tree
+    Join Inner
           Join Inner
-                Join Inner
-                         Relation trips
-                         Relation fares
-                   Relation zones
-    rows out of the two SortMergeJoin nodes: 3,709,141 and 210
-    median 2.16 s
-  spark.sql.cbo.joinReorder.enabled=true: optimized join tree
-          Join Inner
-                Join Inner
-                         Relation trips
-                         Relation zones
+                   Relation trips
                    Relation fares
+             Relation zones
+    rows out of the two SortMergeJoin nodes: 3,709,141 and 210
+    median 1.60 s
+  spark.sql.cbo.joinReorder.enabled=true: optimized join tree
+    Join Inner
+          Join Inner
+                   Relation trips
+                   Relation zones
+             Relation fares
     rows out of the two SortMergeJoin nodes: 210 and 210
-    median 1.69 s
+    median 1.07 s
   result rows: 16
-  speed-up from reorder: 1.3x
+  speed-up from reorder: 1.5x
 
 === 3. the same query after histograms on the join keys
+    Join Inner
           Join Inner
-                Join Inner
-                         Relation trips
-                         Relation fares
-                   Relation zones
+                   Relation trips
+                   Relation fares
+             Relation zones
     estimate of the zones join: Statistics(sizeInBytes=378.3 MiB, rowCount=7.63E+6)
     real rows of trips JOIN zones (Staten Island): 210

@@ -6,7 +6,9 @@ For example, 16 tasks read a file with 4 row groups, and twelve tasks do nothing
 
 **Three numbers set the cost of most Spark jobs. They are the number of partitions in each stage, the memory that each task gets, and the bytes that move between stages. You can predict the first number from the input files before you run anything. You can read the second number from the memory settings. You can measure the third number in the Spark UI. Caching and repartitioning are tools that change these numbers, and each of them has a cost.**
 
-The scripts are in [`code/ch33`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch33), and each output block comes from `code/ch33/output/`. The data is six months of yellow-taxi trips, January to June 2026, plus the June file alone from [Chapter 5](ch05-how-spark-runs.md). The six months are six Parquet files of 372.6 MB, with 21,828,310 rows after the cleaning in Step 5. All runs use Spark 4.3.0 in `local[*]` mode on a machine with 16 cores. Each timing is a median after a warm-up run, measured while no other benchmark ran on the machine.
+The scripts are in [`code/ch33`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch33), and each output block comes from `code/ch33/output/`. The data is six months of yellow-taxi trips, January to June 2026, plus the June file alone from [Chapter 5](ch05-how-spark-runs.md). The six months are six Parquet files of 372.6 MB, with 21,828,310 rows after the cleaning in Step 5. All runs use Spark 4.3.0 in `local[*]` mode on a machine with 16 cores, except Step 12, which needs two executors and uses `local-cluster` mode.
+
+Each timing is a median after a warm-up run, measured while no other benchmark ran on the machine, unless the step says otherwise. Steps 10 and 11 use small Scala jobs in `spark-shell`. Serializers and the garbage collector act on JVM objects, and a PySpark DataFrame job makes few of them.
 
 ## Step 1: Which settings you can change, and when
 
@@ -501,7 +503,7 @@ Rules for large files:
 - Do not put a file that is larger than a small fraction of the executor heap into one row. Split it at the source, or read it in parts with your own reader. [Part XIII](ch65-python-data-sources-readers.md) builds such a reader as a Python data source.
 - Spark 4.3 can read entries inside zip and tar archives as separate files. [Chapter 25](ch25-files-as-files.md) shows it.
 
-## Step 9: A walk through the Spark UI
+## Step 9: The Spark UI, tab by tab
 
 The REST API gave all the numbers in this chapter. The web UI shows the same data, and it is the faster tool when you do not know yet where to look. `ui_tour.py` runs three labelled actions on the default 1 GiB heap, and then it keeps the application alive. `film/ch33_ui.py` records a browser while it visits the UI pages. The workload:
 
@@ -568,7 +570,316 @@ SQL execution 2 ('3. tips by pickup zone, from the cache'), jobs [7, 8]
 - **The Storage tab** shows each cache: its plan, its storage level, how many partitions it holds, and their size in memory and on the disk. A fraction cached below 100% means that some partitions did not fit and Spark must calculate them again.
 - **The SQL / DataFrame tab** shows each query as a graph of physical operators, with metrics on each node. This query starts at `InMemoryTableScan`, so it read the cache and not the files. The graph shows the final plan after AQE, and it is the easiest way to see what AQE did ([Chapter 32](ch32-query-plans.md), Step 7).
 
-The other tabs complete the picture. **Executors** shows the memory pools of Step 6, and the GC time and the shuffle bytes of each executor. **Environment** shows each setting that the application started with. The 4.3 UI marks the settings that are not at their default values.
+### The tabs, one by one
+
+`ui_tabs.py` runs one application that fills every tab: a batch query, a cache, a sort that spills, a streaming query, and a Spark Connect session. The Connect server runs as a plugin in the same application (`spark.plugins=org.apache.spark.sql.connect.SparkConnectPlugin`), and a client in another process connects to it. `film/ch33_ui_tabs.py` takes a screenshot of each tab with a headless browser. The orange boxes mark the parts that the text explains. What the REST API reported for the same run:
+
+```text
+<<UITABS>>
+```
+
+| Tab | URL | REST endpoint | Use it to find |
+|---|---|---|---|
+| Jobs | `/jobs/` | `/applications/{id}/jobs` | which action made which jobs, and the event timeline |
+| Stages | `/stages/` | `/applications/{id}/stages` | skew, spill, shuffle bytes, locality, GC time for each task |
+| Storage | `/storage/` | `/applications/{id}/storage/rdd` | the caches, their storage level and the fraction cached |
+| Environment | `/environment/` | `/applications/{id}/environment` | the settings that the application really used |
+| Executors | `/executors/` | `/applications/{id}/executors` | memory, cores, GC time, shuffle bytes and failures of each executor |
+| SQL / DataFrame | `/SQL/` | `/applications/{id}/sql` | the final physical plan with metrics on each node |
+| Structured Streaming | `/StreamingQuery/` | (listener events, [Chapter 61](ch61-observability.md)) | input rate, process rate, batch duration and state of each query |
+| Connect | `/connect/` | (none in 4.3.0; Connect has its own REST endpoints, [Chapter 20](ch20-connect-observability.md)) | Connect sessions, users and the requests of each one |
+
+**Jobs.** Each row is a job, with its description, its stages and its tasks. `setJobDescription` puts your own text in the **Description** column. **Event Timeline** shows when executors joined and when each job ran. A gap between jobs is time that the driver spent on something else, for example Python code or planning.
+
+<figure markdown>
+  ![The Jobs tab](../media/figures/ch33-ui-jobs.png)
+  <figcaption markdown="span">The Jobs tab. The first job of `ui_tabs.py` has the description `1. trips by pickup zone`.</figcaption>
+</figure>
+
+**Stages.** The list shows each stage with its input, output, shuffle read and shuffle write. The detail page of one stage has the numbers of Steps 7 and 12.
+
+It shows the **Locality Level Summary**, the spill totals and the **Summary Metrics**. The summary metrics are the minimum, the quartiles and the maximum of each task metric. A maximum that is much larger than the median is skew. Below it, the task table has one row for each task, with its executor, locality level, GC time and errors.
+
+<figure markdown>
+  ![The detail page of the sort stage](../media/figures/ch33-ui-stage-detail.png)
+  <figcaption markdown="span">The detail page of the sort stage, with the summary metrics of its tasks.</figcaption>
+</figure>
+
+**Storage.** The tab has one row for each cached RDD or DataFrame. Each row shows the storage level, the cached partitions against all partitions, and the size in memory and on the disk. The name of a DataFrame cache is its plan. A fraction below 100% means that Spark must calculate the partitions that are not in the cache again.
+
+<figure markdown>
+  ![The Storage tab](../media/figures/ch33-ui-storage.png)
+  <figcaption markdown="span">The Storage tab with the cached June tips at the level `Disk Memory Deserialized 1x Replicated`.</figcaption>
+</figure>
+
+**Environment.** The runtime (Java and Scala versions), every Spark property, the Hadoop properties, the system properties and the class path. This is the only place that shows the value that the application really used, after all the sources of [Chapter 8](ch08-setting-configurations.md). Spark redacts values whose keys match `spark.redaction.regex`, for example passwords.
+
+<figure markdown>
+  ![The Environment tab](../media/figures/ch33-ui-environment.png)
+  <figcaption markdown="span">The Environment tab: the runtime information, then the Spark properties.</figcaption>
+</figure>
+
+**Executors.** The tab has one row for each executor and for the driver. Each row shows the storage memory in use against the storage pool of Step 6, the disk in use, the cores and the tasks. It also shows **Task Time (GC Time)**, the input bytes and the shuffle bytes. A GC time that is a large part of the task time is the sign of Step 11. On a cluster, **Thread Dump** shows what each thread of a slow executor does now, and **Heap Histogram** counts the objects in its heap.
+
+<figure markdown>
+  ![The Executors tab](../media/figures/ch33-ui-executors.png)
+  <figcaption markdown="span">The Executors tab. In local mode, the driver is the only executor.</figcaption>
+</figure>
+
+**SQL / DataFrame.** One row for each query, with its jobs. The detail page draws the final plan as a graph, with the rows between the nodes and the metrics of each node. The graph shows what AQE changed ([Chapter 32](ch32-query-plans.md), Step 7). It is also the place to count the rows that a scan returned ([Chapter 36](ch36-parquet-inside.md), Step 4).
+
+<figure markdown>
+  ![The plan graph of one query](../media/figures/ch33-ui-sql-detail.png)
+  <figcaption markdown="span">The plan of `1. trips by pickup zone`. The scan returned 3,837,248 rows. The partial aggregate sent 1,003 rows to the `Exchange`.</figcaption>
+</figure>
+
+**Structured Streaming.** One row for each streaming query, active or completed. The statistics page of a query plots each metric over time, with a histogram. The metrics include the input rate, the process rate, the input rows, the batch duration and the state of each stateful operator. If the process rate stays below the input rate, the query falls behind ([Chapter 39](ch39-structured-streaming.md)).
+
+<figure markdown>
+  ![The statistics page of a streaming query](../media/figures/ch33-ui-streaming-detail.png)
+  <figcaption markdown="span">The statistics page of `rate_windows`. The input rate is the 200 rows each second of the rate source.</figcaption>
+</figure>
+
+**Connect.** This tab exists only when the Connect server runs in the application. It lists the Connect sessions with their user and start time. It also lists each request with its jobs, its SQL query, its duration and the start of the plan. The user is the `user_id` from the connection string. The tab and the Connect REST endpoints help you find and stop the work of one client ([Chapter 20](ch20-connect-observability.md)).
+
+<figure markdown>
+  ![The Connect tab](../media/figures/ch33-ui-connect.png)
+  <figcaption markdown="span">The Connect tab with the session of the user `reader` and its requests.</figcaption>
+</figure>
+
+## Step 10: Serialization: Java and Kryo
+
+Spark turns objects into bytes for three purposes: to send them over the network, to write shuffle files and to keep a serialized cache. `spark.serializer` selects the library for this:
+
+- **Java serialization** (`org.apache.spark.serializer.JavaSerializer`) is the default. It works with each class that implements `java.io.Serializable`.
+- **Kryo** (`org.apache.spark.serializer.KryoSerializer`) is a separate library. Spark 4.3.0 ships Kryo 4 (`kryo-shaded-4.0.3.jar`). The tuning guide says that it is often faster and more compact. To get the best result, you register your classes with it.
+
+Spark reads `spark.serializer` one time, when the application starts. Thus, `serialization.sh` starts a new `spark-shell` for each setting and runs the same Scala job, `serialization.scala`. The job makes 2,000,000 objects of a small Java class, `book.Trip`, with a `long`, an `int`, a `double` and a 3-character `String`. Then it measures four things:
+
+```scala
+val de = trips.persist(StorageLevel.MEMORY_ONLY); de.count()          // 1. objects in the heap
+val ser = trips.persist(StorageLevel.MEMORY_ONLY_SER); ser.count()    // 2. a serialized cache
+trips.map(t => (t.zone, t)).groupByKey(16).mapValues(_.size).count()  // 3. an RDD shuffle of the objects
+trips.map(t => (t.id, t.zone, t.distance, t.vendor)).toDF(...)        // 4. the same rows as a DataFrame
+  .groupBy("zone").count().count()
+```
+
+```text
+java (default)              objects   83.9 MiB | MEMORY_ONLY_SER  25.8 MiB 0.29 s | RDD shuffle  32.7 MiB 0.38 s | DataFrame shuffle 149.4 KiB
+kryo, not registered        objects   83.9 MiB | MEMORY_ONLY_SER  30.1 MiB 0.30 s | RDD shuffle  24.4 MiB 0.50 s | DataFrame shuffle 149.4 KiB
+kryo, registered            objects   83.9 MiB | MEMORY_ONLY_SER  28.3 MiB 0.45 s | RDD shuffle  22.6 MiB 0.61 s | DataFrame shuffle 149.4 KiB
+kryo, required, none        FAILED: IllegalArgumentException: Class is not registered: book.Trip
+kryo, required, registered  objects   83.9 MiB | MEMORY_ONLY_SER  28.3 MiB 0.28 s | RDD shuffle  22.6 MiB 0.49 s | DataFrame shuffle 149.4 KiB
+```
+
+<figure markdown>
+  ![Cache and shuffle sizes for each serializer](../media/figures/ch33-serialization-light.svg#only-light)
+  ![Cache and shuffle sizes for each serializer](../media/figures/ch33-serialization-dark.svg#only-dark)
+  <figcaption markdown="span">The sizes from `serialization.txt`. Each serialized form is about one third of the objects in the heap. The serializers differ by less than that.</figcaption>
+</figure>
+
+The results do not all agree with the general advice:
+
+- **Any serialized form is much smaller than the objects.** The 2,000,000 objects use 83.9 MiB of heap. A serialized cache uses 25.8 to 30.1 MiB. Step 11 shows where the extra bytes of an object come from.
+- **For the serialized cache, Java serialization was the smallest here.** A cached partition is one stream. Java serialization writes the description of the class one time for each stream, and it writes a short reference for each repeated `String` object. Kryo without registration writes the full class name with each object, so its cache was the largest, 30.1 MiB. Registration made it 28.3 MiB.
+- **For the shuffle, Kryo was smaller**: 22.6 MiB registered, against 32.7 MiB for Java. Spark compresses shuffle files (`spark.shuffle.compress`, LZ4 by default), and the Kryo output became smaller after compression.
+- **The times do not show a difference.** The two runs with the same Kryo settings took 0.45 s and 0.28 s for the cache. At this size, the run-to-run noise is larger than the effect. Do not expect a large speed-up from a change of serializer without a measurement on your own job.
+- **The DataFrame shuffle did not change at all**: 149.4 KiB with each serializer. DataFrame operators exchange Tungsten binary rows through their own `UnsafeRowSerializer`. `spark.serializer` does not apply to them.
+- **With `spark.kryo.registrationRequired=true`, a class without a registration causes an error.** The job fails with `Class is not registered: book.Trip`. Use this setting in tests to find each class that Kryo writes with its full name.
+
+This is the important part for most readers of this book. `spark.serializer` applies to JVM objects: RDDs of JVM objects, a serialized cache of them, broadcast variables, and accumulators. It does not apply to DataFrames. In PySpark, an RDD holds pickled Python objects, which the JVM sees as byte arrays. Spark also selects Kryo by itself for an RDD shuffle of primitive types, arrays of primitive types and strings (`SerializerManager.canUseKryo`).
+
+How to use Kryo, if your job has JVM objects:
+
+=== "Python (PySpark)"
+
+    ```python
+    spark = (SparkSession.builder
+             .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+             .config("spark.kryo.classesToRegister", "book.Trip,book.Zone")
+             .config("spark.kryo.registrationRequired", "true")     # in tests: fail on a class that is not registered
+             .getOrCreate())
+    ```
+
+=== "Scala"
+
+    ```scala
+    val conf = new SparkConf()
+      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .registerKryoClasses(Array(classOf[Trip], classOf[Zone]))
+    ```
+
+| Setting | Default | What it does |
+|---|---|---|
+| `spark.serializer` | `JavaSerializer` | the serializer for shuffles, serialized caches and broadcasts of JVM objects |
+| `spark.kryo.classesToRegister` | (none) | classes to register, separated by commas |
+| `spark.kryo.registrator` | (none) | classes that register classes and custom serializers in code |
+| `spark.kryo.registrationRequired` | false | fail if Kryo must write a class that is not registered |
+| `spark.kryo.referenceTracking` | true | write a reference for an object that occurs again in the same stream |
+| `spark.kryoserializer.buffer.max` | 64m | the largest serialized object; a larger object fails with a buffer overflow |
+
+## Step 11: Object size, garbage collection and memory tuning
+
+Step 6 showed how Spark divides the heap. This step is about what lives in the heap: JVM objects, and the garbage collector (GC) that removes them. These numbers matter most for RDDs of JVM objects, for user-defined code that builds collections, and for broadcast variables. DataFrame operators keep their data in Tungsten binary rows and in off-heap or byte-array pages, so they make far fewer objects.
+
+### How large is an object?
+
+The tuning guide names `SizeEstimator.estimate` as the tool to measure an object. `sizes.scala` measures some common structures:
+
+```text
+SizeEstimator.estimate on Java 17.0.21.1, heap 1g (compressed object pointers on)
+  one Trip (long, int, double, 3-char String)        raw data           23 B   on the heap           88 B     3.8x
+  a 10-character String                              raw data           10 B   on the heap           56 B     5.6x
+  Array[Int] of 1,000,000                            raw data    4,000,000 B   on the heap    4,000,016 B     1.0x
+  java.util.ArrayList[Integer] of 1,000,000          raw data    4,000,000 B   on the heap   20,000,040 B     5.0x
+  Scala List[Int] of 1,000,000                       raw data    4,000,000 B   on the heap   40,000,016 B    10.0x
+  java.util.HashMap[Integer,Integer] of 1,000,000    raw data    8,000,000 B   on the heap   78,180,224 B     9.8x
+  Array[Trip] of 1,000,000 (one shared String)       raw data   23,000,000 B   on the heap   44,000,064 B     1.9x
+```
+
+- **Each object has a header**, and each `String` is an object with a byte array inside it. 23 bytes of fields became 88 bytes. A 10-character string uses 56 bytes.
+- **A primitive array has no overhead for each element.** An `Array[Int]` of a million values is 4 MB.
+- **A collection of boxed values multiplies the size.** The same million `Int` values are 20 MB in an `ArrayList[Integer]` and 40 MB in a Scala `List`. A `HashMap` of a million pairs is 78 MB.
+- **Shared objects count once.** The `Array[Trip]` is 44 MB, not 88 MB, because all million objects point to the same `"CMT"` string.
+
+The rules from the tuning guide follow from these numbers. Use arrays of primitive types instead of collections of objects. Use numeric IDs instead of strings for keys. Keep compressed object pointers (`-XX:+UseCompressedOops`, the JVM default for heaps below 32 GB). Store a large cache in serialized form.
+
+### What GC costs, and how to see it
+
+`gc.sh` caches 4,000,000 `Trip` objects in a 2 GB heap. Then it runs five passes of a `reduceByKey` over the cache, and writes a GC log with `-Xlog:gc`. It does this for two storage levels and two collectors. The task metric `jvmGCTime` (the **GC Time** column of the Stages and Executors pages) is the GC time that the tasks saw:
+
+```text
+G1, MEMORY_ONLY (objects)          cached  167.8 MiB (16/16) | 5 passes  2.11 s | task GC time  2.33 s of  16.49 s task time
+                                   GC log: 30 pauses (20 young, 0 full), 280 ms in pauses
+G1, MEMORY_ONLY_SER (Kryo)         cached   56.6 MiB (16/16) | 5 passes  4.30 s | task GC time  1.54 s of  42.32 s task time
+                                   GC log: 36 pauses (26 young, 0 full), 287 ms in pauses
+Parallel, MEMORY_ONLY (objects)    cached  167.8 MiB (16/16) | 5 passes  1.31 s | task GC time  2.20 s of  11.29 s task time
+                                   GC log: 16 pauses (12 young, 4 full), 525 ms in pauses
+Parallel, MEMORY_ONLY_SER (Kryo)   cached   56.6 MiB (16/16) | 5 passes  3.11 s | task GC time  2.03 s of  35.34 s task time
+                                   GC log: 19 pauses (15 young, 4 full), 328 ms in pauses
+
+the first lines of one GC log (-Xlog:gc):
+  [0.003s][info][gc] Using G1
+  [1.276s][info][gc] GC(0) Pause Young (Concurrent Start) (Metadata GC Threshold) 102M->30M(2048M) 14.113ms
+  [1.277s][info][gc] GC(1) Concurrent Mark Cycle
+  [1.288s][info][gc] GC(1) Pause Remark 31M->31M(110M) 7.192ms
+  [1.290s][info][gc] GC(1) Pause Cleanup 31M->31M(110M) 0.082ms
+  [1.291s][info][gc] GC(1) Concurrent Mark Cycle 14.161ms
+```
+
+- **The serialized cache is three times smaller**: 56.6 MiB against 167.8 MiB for the same objects. It is one byte array for each partition, so the collector has 16 objects to trace instead of 4 million.
+- **The serialized cache cost CPU in each pass.** Each pass must deserialize all objects again. The task time grew from 16.49 s to 42.32 s with G1, and the passes were slower. A serialized cache is the right choice when the objects do not fit, or when GC time is a large part of the task time. In this run, GC was about 14% of the task time with objects, so the serialized cache did not pay.
+- **G1 made no full collections.** The parallel collector made 4 full collections in each run, and its pauses added up to more time. G1 is the default collector of Java 17 and later, which Spark 4.x requires.
+- **The times are single runs on a shared machine.** Two runs of `gc.sh` gave different times for the same setting. In both runs, the cache sizes and the full collections were the same, and the serialized cache needed more than twice the task time.
+
+These results come from a small heap with one cache. On an executor with a large cache and many short-lived objects, GC can be most of the task time. The **GC Time** column shows it, and it is the first number to look at.
+
+!!! warning "The GC flags in the 4.3.0 tuning guide do not work on Java 17"
+    Do not copy `-XX:+PrintGCTimeStamps` from the tuning guide. Java 17 rejects it, and the executor JVM does not start: `Unrecognized VM option 'PrintGCTimeStamps'`. Use the unified logging flag `-Xlog:gc*` instead. With `-XX:+PrintGCDetails`, the JVM still starts, and it writes a warning.
+
+To tune the collector, give the flags to the executors with `spark.executor.extraJavaOptions`. In local mode, the driver is the executor, so use `spark.driver.extraJavaOptions` or `--driver-java-options`. The guide's method, in short:
+
+| Symptom in the GC log | Action |
+|---|---|
+| Full collections before a task completes | The tasks need more memory. Use more partitions, or more memory for each core. |
+| Many young collections, few full collections | Make the young generation larger (`-Xmn`, about 4/3 of the memory that the tasks need for each executor). |
+| The old generation is almost full | Cache less: lower `spark.memory.fraction`, or use a serialized storage level. |
+| Large heaps with G1 | Increase the region size with `-XX:G1HeapRegionSize`. |
+
+```python
+spark = (SparkSession.builder
+         .config("spark.executor.extraJavaOptions", "-Xlog:gc*:file=/tmp/gc-%p.log -XX:G1HeapRegionSize=16m")
+         .getOrCreate())
+```
+
+The GC log goes to the file of each executor JVM (`%p` is its process ID), not to the driver.
+
+## Step 12: Data locality and `spark.locality.wait`
+
+A task is fastest when its data is in the same JVM. The task scheduler gives each task a list of preferred locations: the executors that cache its partition, or the hosts that store its file block. It then tries to run the task at the best **locality level** that it can get:
+
+| Level | The data is | Example |
+|---|---|---|
+| `PROCESS_LOCAL` | in the same executor JVM | a cached block in this executor |
+| `NODE_LOCAL` | on the same host, in another process | a cached block in another executor on the host, a local HDFS block |
+| `NO_PREF` | equally near from all places | a table in a database |
+| `RACK_LOCAL` | on another host in the same rack | an HDFS block on a neighbour |
+| `ANY` | somewhere else | data on another rack |
+
+Sometimes an executor is free, but no task prefers it. Then the scheduler can wait for a better executor, or it can run a task at a lower level at once. This is **delay scheduling**. `spark.locality.wait` (3s) is how long the scheduler waits at one level before it goes down to the next. `spark.locality.wait.process`, `.node` and `.rack` set each level separately.
+
+In `local[*]` mode, there is only one executor, so all cached data is `PROCESS_LOCAL`. `locality.py` uses `local-cluster[2,1,1024]` instead. This mode starts a real standalone master and worker in the driver JVM, and two executor JVMs with one core each.
+
+Job 1 caches 8 partitions. Partition 1 takes 6 seconds, so the other executor computes and caches all of partitions 2 to 7. Job 2 then runs a 1-second task on each cached partition. Each setting needs a new application. The time of job 2 is one run, under the bench lock:
+
+```text
+local-cluster[2,1,1024]: two executor JVMs with one core each, on one host
+
+spark.locality.wait=3s (default): job 2 took 6.7 s; cached blocks per executor {'0': 1, '1': 7}; task locality {'PROCESS_LOCAL': 7, 'NODE_LOCAL': 1}
+    + 0.0 s  executor 1  partition 0  PROCESS_LOCAL
+    + 0.0 s  executor 0  partition 1  PROCESS_LOCAL
+    + 1.4 s  executor 1  partition 2  PROCESS_LOCAL
+    + 2.4 s  executor 1  partition 3  PROCESS_LOCAL
+    + 3.5 s  executor 1  partition 4  PROCESS_LOCAL
+    + 3.5 s  executor 0  partition 5  NODE_LOCAL
+    + 4.5 s  executor 1  partition 6  PROCESS_LOCAL
+    + 5.5 s  executor 1  partition 7  PROCESS_LOCAL
+
+spark.locality.wait=0: job 2 took 5.4 s; cached blocks per executor {'0': 1, '1': 7}; task locality {'PROCESS_LOCAL': 5, 'NODE_LOCAL': 3}
+    + 0.0 s  executor 1  partition 0  PROCESS_LOCAL
+    + 0.0 s  executor 0  partition 1  PROCESS_LOCAL
+    + 1.7 s  executor 0  partition 2  NODE_LOCAL
+    + 1.8 s  executor 1  partition 3  PROCESS_LOCAL
+    + 2.9 s  executor 1  partition 4  PROCESS_LOCAL
+    + 2.9 s  executor 0  partition 5  NODE_LOCAL
+    + 4.0 s  executor 1  partition 6  PROCESS_LOCAL
+    + 4.1 s  executor 0  partition 7  NODE_LOCAL
+
+spark.locality.wait=10s: job 2 took 7.3 s; cached blocks per executor {'0': 7, '1': 1}; task locality {'PROCESS_LOCAL': 8}
+...
+3s, legacyResetOnTaskLaunch=true: job 2 took 7.3 s; cached blocks per executor {'0': 1, '1': 7}; task locality {'PROCESS_LOCAL': 8}
+...
+```
+
+<figure markdown>
+  ![Locality timeline](../media/figures/ch33-locality-light.svg#only-light)
+  ![Locality timeline](../media/figures/ch33-locality-dark.svg#only-dark)
+  <figcaption markdown="span">Launch times from `locality.txt`. Executor A cached 7 partitions. Bar lengths are schematic.</figcaption>
+</figure>
+
+- **With the default 3 s**, executor B finished its own partition at about 1 s and then had no local work. It waited until the locality timer expired, and at 3.5 s it ran partition 5 at `NODE_LOCAL`: it read the cached block from executor A. Then executor A had the rest again.
+- **With 0 s**, executor B took a `NODE_LOCAL` task each time it was free. The job took 5.4 s instead of 6.7 s.
+- **With 10 s**, executor B never got a second task. Executor A ran all 7 of its partitions in sequence, and the job took 7.3 s.
+- **With the legacy timer**, the result was the same as with 10 s. Before Spark 3.1, the scheduler reset the timer each time it launched a task at the current level. Executor A launched a local task each second, so the 3 s timer never expired. Since Spark 3.1, the scheduler resets the timer only if it did not refuse a free executor because of locality (`spark.locality.wait.legacyResetOnTaskLaunch`, false by default).
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch33-anim-locality.webp">
+    <source src="../../media/clips/ch33-anim-locality.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: delay scheduling with the default 3 s wait. The launch times come from `locality.txt`. The task lengths are schematic.</figcaption>
+</figure>
+
+The trade-off is the cost of a move against the cost of a wait. Here a move cost almost nothing, because the two executors were on one host and the blocks were small. On a real cluster, a `NODE_LOCAL` or `ANY` task can read hundreds of megabytes over the network.
+
+- If the Stages page shows many `ANY` tasks and slow reads, increase `spark.locality.wait`. The **Locality Level Summary** on the stage page counts the tasks at each level.
+- If executors are idle while one executor has a queue of local tasks, decrease it. Short tasks on small cached blocks usually do better with a short wait.
+- Data in object storage, such as S3, has no locality at all. The tasks are `NO_PREF` or `ANY`, and the wait does not apply.
+
+## Step 13: Hardware provisioning
+
+The page [Hardware provisioning](https://spark.apache.org/docs/4.3.0/hardware-provisioning.html) of the 4.3.0 docs gives these recommendations for each machine of a cluster. The numbers in this table come from that page. This book did not measure them, because they are about clusters and not about one machine.
+
+| Resource | Recommendation in the docs | Why | Where this chapter shows it |
+|---|---|---|---|
+| Storage | Run Spark near the storage system: on the same nodes as HDFS, or in the same local network. For low-latency stores such as HBase, other nodes can be better. | Most jobs start with a read of external data. | Step 12: locality levels |
+| Local disks | 4 to 8 disks for each node, without RAID, as separate mount points. Mount them with `noatime`. List them in `spark.local.dir`, separated by commas. | Spill and shuffle files go to local disks. | Step 7: spill |
+| Memory | 8 GiB to hundreds of gigabytes for each machine. Give at most 75% of it to Spark. Above about 200 GiB, run more than one executor on each machine. | The operating system and its buffer cache need the rest. Large JVM heaps do not always behave well. | Steps 6 and 11 |
+| Network | 10 Gb or faster. | When the data is in memory, many applications wait for the network, mostly in shuffles. | Step 9: shuffle bytes on the Stages tab |
+| CPU cores | At least 8 to 16 cores for each machine. | Spark scales to tens of cores, because tasks share little. | Step 2: tasks for each core |
+
+The docs also give a method to find the memory that you need. Cache a part of the data, read its size on the Storage tab, and scale it. Step 5 did this for the June trips. Step 11 shows that the storage level and the data structures can change the result by a factor of three or more.
+
+In `local[*]` mode, as in this book, all of these resources belong to one JVM on one machine. `spark.local.dir` is still important: it is `/tmp` by default, and a large spill can fill a small `/tmp` partition. In local mode, `SPARK_LOCAL_DIRS` or `spark.local.dir` sets the spill folder. On a cluster manager, the manager can set it instead (for example `LOCAL_DIRS` on YARN, or volumes on Kubernetes, [Chapter 62](ch62-kubernetes-operator.md)).
 
 ## The whole chapter, on one page
 
@@ -594,6 +905,13 @@ heavy.unpersist()
 
 # Static settings go to the builder, before the first session starts.
 SparkSession.builder.config("spark.driver.memory", "4g").config("spark.memory.fraction", "0.6")
+
+# JVM objects: Kryo with registration, a GC log for each executor, a locality wait for short tasks.
+(SparkSession.builder
+   .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+   .config("spark.kryo.classesToRegister", "book.Trip")
+   .config("spark.executor.extraJavaOptions", "-Xlog:gc*:file=/tmp/gc-%p.log")
+   .config("spark.locality.wait", "1s"))
 ```
 
 - **Scan partitions come from the file sizes**, through `maxPartitionBytes`, `openCostInBytes` and the default parallelism. Parquet tasks only do work if they hold the midpoint of a row group. gzip files do not split.
@@ -603,11 +921,18 @@ SparkSession.builder.config("spark.driver.memory", "4g").config("spark.memory.fr
 - **Execution and storage share `(heap - 300 MiB) x 0.6`.** Each of N tasks gets between 1/(2N) and 1/N of the execution memory.
 - **Spill is the sign of too little memory for each task.** More partitions, a smaller advisory size for AQE, or more memory for each core removes it.
 - **A binary value must fit in the heap several times.** Read metadata columns for an inventory, and keep large files out of single rows.
-- **The UI shows all of it**: spill and skew on the stage page, caches on the Storage tab, the final plan on the SQL tab.
+- **The UI shows all of it.** The stage page shows spill, skew and locality. The Storage tab shows caches, and the Environment tab shows settings.
+- **The other tabs**: GC time on the Executors tab, the final plan on the SQL tab, and streams and Connect sessions on their own tabs.
+- **`spark.serializer` applies to JVM objects, not to DataFrames.** Any serialized form was about one third of the objects. Kryo made smaller shuffle files, and Java serialization made a smaller cache of this class.
+- **JVM objects cost 2 to 10 times their raw data.** Arrays of primitive types cost nothing extra. A serialized cache is one object for each partition for the collector, and it costs CPU in each read.
+- **Delay scheduling trades a wait for locality.** With the default 3 s, an idle executor waited 3 s before it took a task of another executor. Look at the locality levels before you change `spark.locality.wait`.
+- **The docs give hardware rules.** Put storage near the compute. Use 4 to 8 local disks without RAID, and give at most 75% of the memory to Spark. Use a 10 Gb network and 8 to 16 cores or more.
 
 ## Further reading
 
 - [Tuning Spark](https://spark.apache.org/docs/4.3.0/tuning.html), with the memory management overview.
 - [Performance tuning for Spark SQL](https://spark.apache.org/docs/4.3.0/sql-performance-tuning.html): caching, partition hints, AQE.
 - [The Web UI guide](https://spark.apache.org/docs/4.3.0/web-ui.html), page by page.
-- The 4.3.0 source: `FilePartition.scala` (split sizes), `UnifiedMemoryManager.scala` and `ExecutionMemoryPool.scala` (the pools), `BinaryFileFormat.scala` (the binary reader).
+- [Hardware provisioning](https://spark.apache.org/docs/4.3.0/hardware-provisioning.html) and the scheduling settings (`spark.locality.*`) in the [configuration guide](https://spark.apache.org/docs/4.3.0/configuration.html#scheduling).
+- [Kryo](https://github.com/EsotericSoftware/kryo), the serializer library, and [Java 17 GC tuning](https://docs.oracle.com/en/java/javase/17/gctuning/introduction-garbage-collection-tuning.html).
+- The 4.3.0 source: `FilePartition.scala` (split sizes), `UnifiedMemoryManager.scala` and `ExecutionMemoryPool.scala` (the pools), `BinaryFileFormat.scala` (the binary reader), `SerializerManager.scala` and `KryoSerializer.scala` (serializers), `TaskSetManager.scala` (delay scheduling), `SizeEstimator.scala`.

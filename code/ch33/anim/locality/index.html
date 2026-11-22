@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      A.mount();
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from locality.txt (default run). Task lengths and the timer bar are schematic.
+      A.title("Delay scheduling", "spark.locality.wait = 3s (default), local-cluster[2,1,1024]");
+      const exA = A.box({ x: 0.14, y: 0.44, w: 300, h: 150, kind: "soft", title: "executor A", sub: "7 cached blocks", size: 32 });
+      const exB = A.box({ x: 0.14, y: 0.68, w: 300, h: 150, kind: "soft", title: "executor B", sub: "1 cached block", size: 32 });
+      // queue of tasks (partitions) waiting
+      const q = [];
+      for (let p = 0; p < 8; p++) {
+        q.push(A.box({ x: 0.33 + p * 0.075, y: 0.25, w: 120, h: 80, kind: p === 1 ? "warn" : "paper", title: `p${p}`, sub: p === 1 ? "on B" : "on A", size: 28, radius: 10 }));
+      }
+      A.in(A.text("task queue (each task prefers the executor with its block)", { x: 0.59, y: 0.185, size: 26, color: "var(--a-mute)" }), 0.3);
+      A.in(q, 0.6, { stagger: 0.06, dur: 0.3 });
+      cap("Job 2: eight 1 s tasks. A caches 7 blocks, B caches 1", 0.2, 2.9);
+      // lanes: x from 0.33 (t=0) to 0.93 (t=7.5 s)
+      const X = (t) => 0.33 + t * 0.08, yA = 0.44, yB = 0.68;
+      const runAt = (b, t, y, label, kind, at) => {
+        A.tl.to(b, { x: A.X(X(t) + 0.04) - A.X(0.33 + q.indexOf(b) * 0.075), y: A.Y(y) - A.Y(0.25), duration: 0.7, ease: "power2.inOut" }, at);
+      };
+      // beat local: p0 to A at 0 s, p1 to B at 0 s
+      runAt(q[0], 0, yA, "", "", 3.2);
+      runAt(q[1], 0, yB, "", "", 3.4);
+      A.in(A.text("0 s", { x: X(0), y: 0.80, size: 24, color: "var(--a-mute)" }), 3.0);
+      A.in(A.text("7 s", { x: X(7), y: 0.80, size: 24, color: "var(--a-mute)" }), 3.0);
+      cap("Each executor first runs the tasks of its own blocks", 3.0, 6.4);
+      // beat wait: A keeps running p2, p3, p4 (from 1.4 s); B idle with a timer
+      runAt(q[2], 1.4, yA, "", "", 6.6);
+      runAt(q[3], 2.4, yA, "", "", 7.6);
+      runAt(q[4], 3.5, yA, "", "", 8.6);
+      const timerBg = A.box({ x: X(2.25), y: yB, w: A.px ? 300 : 300, h: 46, kind: "paper", title: "", sub: "", radius: 8, size: 10 });
+      const timerTxt = A.text("waiting for locality: 3 s", { x: X(2.25), y: yB - A.dy(50), size: 26, color: "var(--a-acc)", weight: 600 });
+      A.in([timerBg, timerTxt], 6.8);
+      A.tl.fromTo(timerBg, { scaleX: 0.05, transformOrigin: "left center" }, { scaleX: 1, duration: 3.6, ease: "none" }, 6.8);
+      cap("B is free, but each waiting task prefers A. B waits for spark.locality.wait", 6.5, 10.9);
+      // beat steal: p5 to B at 3.5 s, NODE_LOCAL
+      A.tl.to([timerBg, timerTxt], { opacity: 0, duration: 0.4 }, 10.8);
+      runAt(q[5], 3.5, yB, "", "", 11.2);
+      A.in(A.text("NODE_LOCAL", { x: X(3.5) + 0.04, y: yB + A.dy(70), size: 26, weight: 700, color: "var(--a-warn, #A86A12)" }), 11.8);
+      runAt(q[6], 4.5, yA, "", "", 12.4);
+      runAt(q[7], 5.5, yA, "", "", 13.0);
+      cap("At 3.5 s the timer expires, and B runs p5 at NODE_LOCAL", 11.0, 14.9);
+      // result
+      const res = A.text("job 2: 6.7 s   |   with spark.locality.wait=0: 5.4 s", { x: 0.55, y: 0.565, size: 34, weight: 700, color: "var(--a-acc)" });
+      A.in(res, 15.2);
+      cap("A shorter wait moves work sooner. A longer wait keeps it local.", 15.0);
+      A.in(A.note("launch times and job times from locality.txt; task lengths and timer schematic"), 0.4);
+      A.finish(20);
+    </script>
+  </body>
+</html>

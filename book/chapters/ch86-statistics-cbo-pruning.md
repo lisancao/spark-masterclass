@@ -158,7 +158,16 @@ flowchart LR
 `cbo_join.py` joins all trips to the fares above $500. The filtered side has 82 rows, so a broadcast is the obvious plan. The planner sees it only with CBO:
 
 ```text
-<<CBO1>>
+=== 1. one filter on the small side: the strategy follows the estimate
+  spark.sql.cbo.enabled=false
+    estimate of the filtered fares: Statistics(sizeInBytes=30.6 MiB)
+    planned join: ['SortMergeJoin'], hash exchanges planned: 2
+    final plan after AQE: ['SortMergeJoin']; median 0.58 s
+  spark.sql.cbo.enabled=true
+    estimate of the filtered fares: Statistics(sizeInBytes=647.7 KiB, rowCount=1.38E+4)
+    planned join: ['BroadcastHashJoin'], hash exchanges planned: 0
+    final plan after AQE: ['BroadcastHashJoin']; median 0.27 s
+  rows: 82
 ```
 
 - **CBO off.** The filtered `fares` is 30.6 MiB to the planner, above the 10 MB threshold. It plans a sort-merge join with two hash exchanges, so it shuffles all 3.7 million trips.
@@ -172,7 +181,25 @@ The order of the joins in a query is the order that you wrote, unless CBO reorde
 `cbo_join.py` turns the broadcast off, so that each join is a sort-merge join and the order decides how much data moves. The query joins trips to fares, and then to the zones of Staten Island:
 
 ```text
-<<CBO2>>
+=== 2. join reorder: three tables, broadcast off so that order decides the shuffle size
+  spark.sql.cbo.joinReorder.enabled=false: optimized join tree
+    Join Inner
+          Join Inner
+                   Relation trips
+                   Relation fares
+             Relation zones
+    rows out of the two SortMergeJoin nodes: 3,709,141 and 210
+    median 1.60 s
+  spark.sql.cbo.joinReorder.enabled=true: optimized join tree
+    Join Inner
+          Join Inner
+                   Relation trips
+                   Relation zones
+             Relation fares
+    rows out of the two SortMergeJoin nodes: 210 and 210
+    median 1.07 s
+  result rows: 16
+  speed-up from reorder: 1.5x
 ```
 
 ```mermaid
@@ -192,7 +219,14 @@ As written, the first join makes 3.7 million rows, and the second join shuffles 
 The cost model is only as good as its estimates. The third block of `cbo_join.txt` adds histograms on the join keys and runs the same query:
 
 ```text
-<<CBO3>>
+=== 3. the same query after histograms on the join keys
+    Join Inner
+          Join Inner
+                   Relation trips
+                   Relation fares
+             Relation zones
+    estimate of the zones join: Statistics(sizeInBytes=378.3 MiB, rowCount=7.63E+6)
+    real rows of trips JOIN zones (Staten Island): 210
 ```
 
 With histograms on `PULocationID` and `LocationID`, the estimate for the join with the 38 zones of Staten Island is 7.63 million rows, more than the 3.7 million trips. The real join has 210 rows. With this estimate, the written order looks cheaper, and CBO keeps it. The join estimate uses the histograms of both keys. The filter `Borough = 'Staten Island'` is on another column, and the histogram of `LocationID` still describes all 265 zones. This book does not say that this is a defect. It is a limit of the estimate that you can see in `explain("cost")`, so read the estimates before you trust a reorder.
@@ -216,7 +250,67 @@ The CBO settings in Spark 4.3.0:
 
 <<BUCKET>>
 
-<<SPJ>>
+## Step 8: Storage-partitioned joins
+
+Bucketing is a feature of Spark's own file tables. A table format such as Apache Iceberg has its own partition transforms, for example `bucket(16, PULocationID)`. A DataSource V2 table can report its partitioning to Spark through the interface `SupportsReportPartitioning`. If both sides of a join report a compatible partitioning on the join keys, Spark can join them partition by partition, without a shuffle. This is a **storage-partitioned join** (SPJ). The 4.3.0 tuning guide calls it a generalization of the bucket join.
+
+!!! note "The Iceberg runtime in this step is not a release"
+    No released Iceberg runtime supports Spark 4.3 yet ([Chapter 45](ch45-iceberg.md), Step 1). `spj.py` uses the same jar as Chapter 45: `iceberg-spark-runtime-4.3_2.13`, built from apache/iceberg pull request 18749 (commit `b1eab64`). The Spark side of SPJ is in Spark 4.3.0. The Iceberg side can change before a release.
+
+`spj.py` makes three Iceberg tables in a Hadoop catalog. `trips` and `zstats` are partitioned by `bucket(16, PULocationID)`, and `zstats8` by `bucket(8, PULocationID)`. Then it runs one join with five sets of settings:
+
+```sql
+CREATE TABLE lake.db.trips (PULocationID INT, DOLocationID INT, total_amount DOUBLE, tip_amount DOUBLE)
+USING iceberg PARTITIONED BY (bucket(16, PULocationID))
+```
+
+```text
+Spark 4.3.0, Iceberg jar iceberg-spark-runtime-4.3_2.13-b1eab64.jar
+  lake.db.trips    data files 16
+  lake.db.zstats   data files 16
+  lake.db.zstats8  data files 8
+
+=== the same join, with each set of settings (broadcast off)
+  defaults                                 SortMergeJoin  Exchange nodes 2  0.53 s
+      +- Project (8)
+         +- SortMergeJoin Inner (7)
+            :- Sort (3)
+            :  +- Exchange (2)
+            :     +- BatchScan lake.db.trips (1)
+            +- Sort (6)
+               +- Exchange (5)
+                  +- BatchScan lake.db.zstats (4)
+  preserve-data-grouping                   SortMergeJoin  Exchange nodes 0  0.28 s
+      +- Project (6)
+         +- SortMergeJoin Inner (5)
+            :- Sort (2)
+            :  +- BatchScan lake.db.trips (1)
+            +- Sort (4)
+               +- BatchScan lake.db.zstats (3)
+  16 x 8 buckets, preserve-data-grouping   SortMergeJoin  Exchange nodes 2  0.46 s
+  16 x 8, + allowCompatibleTransforms      SortMergeJoin  Exchange nodes 0  0.32 s
+  v2 bucketing off                         SortMergeJoin  Exchange nodes 2  0.42 s
+```
+
+- **With the defaults, the plan has two `Exchange` nodes.** Spark's side of SPJ (`spark.sql.sources.v2.bucketing.enabled`) is on by default since Spark 3.3. But Iceberg reports its partitioning only if `spark.sql.iceberg.planning.preserve-data-grouping` is true, and that setting is false by default.
+- **With `preserve-data-grouping`, the `Exchange` nodes are gone.** Each `BatchScan` delivers the rows of one bucket to one task, and the sort-merge join reads them in place. The join took 0.28 s against 0.53 s.
+- **16 buckets against 8 buckets needs one more setting.** `bucket(16, x)` and `bucket(8, x)` are different transforms, so Spark shuffled both sides. With `spark.sql.sources.v2.bucketing.allowCompatibleTransforms.enabled`, Spark asks the bucket function for a reducer. Iceberg's `BucketFunction` (a `ReducibleFunction`) returns one that maps 16 buckets to their greatest common divisor with 8, so Spark groups the 16 buckets into 8, and the join has no `Exchange` again.
+- **With `spark.sql.sources.v2.bucketing.enabled=false`**, Spark ignores the reported partitioning.
+
+The settings for SPJ in Spark 4.3.0, from the tuning guide and `SQLConf.scala`:
+
+| Setting | Default | What it does |
+|---|---|---|
+| `spark.sql.sources.v2.bucketing.enabled` | true | use the partitioning that a V2 source reports |
+| `spark.sql.sources.v2.bucketing.pushPartValues.enabled` | true | if one side has partition values that the other side does not have, add empty partitions instead of a shuffle |
+| `spark.sql.requireAllClusterKeysForCoPartition` | true | require that the join keys are the same as the partition keys, in the same order |
+| `spark.sql.sources.v2.bucketing.partiallyClusteredDistribution.enabled` | false | split the partitions of the larger side and replicate the matching partitions of the other side, for skew |
+| `spark.sql.sources.v2.bucketing.allowKeysSubsetOfPartitionKeys.enabled` | false | allow a join on a subset of the partition keys (needs `requireAllClusterKeysForCoPartition=false`) |
+| `spark.sql.sources.v2.bucketing.allowCompatibleTransforms.enabled` | false | allow transforms that are compatible but not the same, such as two bucket counts |
+| `spark.sql.sources.v2.bucketing.shuffle.enabled` | false | shuffle only the side that does not report a partitioning |
+| `spark.sql.iceberg.planning.preserve-data-grouping` | false | an Iceberg setting: report the partitioning of the table to Spark |
+
+In 4.3.0, the main name of the subset setting is `spark.sql.sources.v2.bucketing.allowKeysSubsetOfPartitionKeys.enabled`, and `allowJoinKeysSubsetOfPartitionKeys` is its alternative name. The tuning guide of 4.3.0 still uses the old name. Both names work.
 
 ## Step 9: Hints
 

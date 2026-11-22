@@ -24,8 +24,7 @@ run "Parallel, MEMORY_ONLY (objects)" MEMORY_ONLY par-objects "-XX:+UseParallelG
 run "Parallel, MEMORY_ONLY_SER (Kryo)" MEMORY_ONLY_SER par-ser "-XX:+UseParallelGC" $KRYO
 echo
 echo "the first lines of one GC log (-Xlog:gc):"
-head -4 "$logs/g1-objects.log" | sed 's/^/  /'
-grep -m2 'Pause Young' "$logs/g1-objects.log" | sed 's/^/  /'
+head -6 "$logs/g1-objects.log" | sed 's/^/  /'
 echo
 echo "the flags in the tuning guide, on Java $(java -version 2>&1 | head -1 | cut -d'"' -f2):"
 java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -version 2>&1 | head -3 | sed 's/^/  /'

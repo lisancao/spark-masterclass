@@ -29,9 +29,12 @@ while not READY.exists():
     time.sleep(1)
 
 
-def shot(page, path, name, marks=(), scroll_to=None, wait=2.5):
+def shot(page, path, name, marks=(), scroll_to=None, wait=2.5, click=None):
     page.goto(f"{UI}{path}")
     time.sleep(wait)
+    if click:
+        page.get_by_text(click, exact=False).filter(visible=True).first.click()
+        time.sleep(1.5)
     page.evaluate("""h => { const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
         while (w.nextNode()) { const n = w.currentNode; if (n.nodeValue.includes(h)) n.nodeValue = n.nodeValue.split(h).join('~'); } }""", HOME)
     for m in marks:
@@ -48,7 +51,13 @@ def shot(page, path, name, marks=(), scroll_to=None, wait=2.5):
             pass
     out = FIG / f"ch33-ui-{name}.png"
     page.screenshot(path=str(out))
+    small(out)
     print(f"{out.name}: {out.stat().st_size // 1024} KB")
+
+
+def small(path):
+    """Quantize a screenshot to 128 colours with pngquant, to keep the book's media small."""
+    subprocess.run(["pngquant", "--force", "--skip-if-larger", "--quality=70-95", "128", "--output", str(path), str(path)])
 
 
 try:
@@ -65,20 +74,21 @@ try:
         app = json.load(urllib.request.urlopen(f"{UI}/api/v1/applications"))[0]["id"]
         st = json.load(urllib.request.urlopen(f"{UI}/api/v1/applications/{app}/stages?status=complete"))
         spill = max(st, key=lambda s: s["memoryBytesSpilled"])["stageId"]
-        shot(page, f"/stages/stage/?id={spill}&attempt=0", "stage-detail", marks=["Summary Metrics for", "Spill (memory)"],
+        shot(page, f"/stages/stage/?id={spill}&attempt=0", "stage-detail", marks=["Summary Metrics for", "Spill (Memory)"],
              scroll_to="Summary Metrics for")
         shot(page, "/storage/", "storage", marks=["Memory Deserialized 1x Replicated"])
-        shot(page, "/environment/", "environment", marks=["Runtime Information", "Spark Properties"])
+        shot(page, "/environment/", "environment", marks=[], click="Spark Properties")
         shot(page, "/executors/", "executors", marks=["Summary", "GC Time"])
         sql = json.load(urllib.request.urlopen(f"{UI}/api/v1/applications/{app}/sql?details=false&length=1000"))
         first = [e for e in sql if (e.get("description") or "").startswith("1.")][-1]["id"]
-        shot(page, "/SQL/", "sql", marks=["Completed Queries"])
+        shot(page, "/SQL/", "sql", marks=["Completed Queries", "Completed"])
         shot(page, f"/SQL/execution/?id={first}", "sql-detail", marks=["Exchange", "HashAggregate"], wait=4)
         shot(page, "/StreamingQuery/", "streaming", marks=["rate_windows"])
         page.goto(f"{UI}/StreamingQuery/"); time.sleep(2)
         link = page.locator("a[href*='StreamingQuery/statistics']").first
         link.click(); time.sleep(4)
-        page.screenshot(path=str(FIG / "ch33-ui-streaming-detail.png")); print("ch33-ui-streaming-detail.png")
+        page.screenshot(path=str(FIG / "ch33-ui-streaming-detail.png")); small(FIG / "ch33-ui-streaming-detail.png")
+        print("ch33-ui-streaming-detail.png")
         shot(page, "/connect/", "connect", marks=["reader", "ui-tour"])
         b.close()
 finally:

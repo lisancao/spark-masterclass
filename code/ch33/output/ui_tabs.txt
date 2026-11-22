@@ -1,0 +1,8 @@
+connect: 499999500000 3837248
+UI on port 4159
+  jobs 24, stages 39
+  storage: *(1) Project [PULocationID#7, tip_amount#13, fare_amount#10], 16/16 partitions, 64.5 MiB
+  executors: 1 (driver), cores 16, max memory 1,048.8 MiB
+  environment: 22 Spark properties, Java 17.0.21.1 (U
+  SQL executions: 26
+  streaming query: rate_windows, id 717b018f-8004-4523-b025-5dd27ba10a65, batches so far 10

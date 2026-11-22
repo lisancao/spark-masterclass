@@ -6,7 +6,17 @@ import re
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from c86 import start, plan, median_s, noop, last_sql_metrics, WH, F
+from c86 import start, plan, median_s, noop, last_sql_metrics, ui_api, WH, F
+
+
+def scan_input():
+    """Tasks of the last job's first stage that read any bytes, and the bytes they read (REST API)."""
+    job = max(ui_api("jobs"), key=lambda j: j["jobId"])
+    st = min(job["stageIds"])
+    att = [s for s in ui_api(f"stages/{st}") if True][0]["attemptId"]
+    tasks = ui_api(f"stages/{st}/{att}/taskList?length=1000")
+    used = [t for t in tasks if t.get("taskMetrics", {}).get("inputMetrics", {}).get("bytesRead", 0) > 0]
+    return len(tasks), len(used), sum(t["taskMetrics"]["inputMetrics"]["bytesRead"] for t in used)
 
 spark = start("ch86-bucketing", spark_driver_memory="8g", spark_sql_autoBroadcastJoinThreshold="-1")
 for t in ("trips_b16", "trips_b16_many", "trips_plain", "zstats_b16", "zstats_b8", "zstats_plain"):
@@ -84,8 +94,10 @@ for auto in ("true", "false"):
     scan = [l.strip() for l in plan(q, "formatted").splitlines() if "SelectedBucketsCount" in l or "Bucketed:" in l]
     q.collect()
     m = [mm for _, mm in last_sql_metrics(spark, "Scan parquet")][0]
+    n, used, b = scan_input()
     print(f"  autoBucketedScan.enabled={auto}: {' | '.join(scan)}")
-    print(f"    files read {m.get('number of files read')}, rows out of scan {m.get('number of output rows')}")
+    print(f"    metric 'number of files read' {m.get('number of files read')}, rows out of scan {m.get('number of output rows')}")
+    print(f"    scan tasks {n}, tasks that read bytes {used}, bytes read {b:,}")
 spark.conf.unset("spark.sql.sources.bucketing.autoBucketedScan.enabled")
 
 print("\n=== 5. a query that gains nothing from buckets: the planner turns the bucketed scan off")

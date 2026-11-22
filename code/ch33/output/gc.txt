@@ -1,0 +1,21 @@
+G1, MEMORY_ONLY (objects)          cached  167.8 MiB (16/16) | 5 passes  2.11 s | task GC time  2.33 s of  16.49 s task time
+                                   GC log: 30 pauses (20 young, 0 full), 280 ms in pauses
+G1, MEMORY_ONLY_SER (Kryo)         cached   56.6 MiB (16/16) | 5 passes  4.30 s | task GC time  1.54 s of  42.32 s task time
+                                   GC log: 36 pauses (26 young, 0 full), 287 ms in pauses
+Parallel, MEMORY_ONLY (objects)    cached  167.8 MiB (16/16) | 5 passes  1.31 s | task GC time  2.20 s of  11.29 s task time
+                                   GC log: 16 pauses (12 young, 4 full), 525 ms in pauses
+Parallel, MEMORY_ONLY_SER (Kryo)   cached   56.6 MiB (16/16) | 5 passes  3.11 s | task GC time  2.03 s of  35.34 s task time
+                                   GC log: 19 pauses (15 young, 4 full), 328 ms in pauses
+
+the first lines of one GC log (-Xlog:gc):
+  [0.003s][info][gc] Using G1
+  [1.276s][info][gc] GC(0) Pause Young (Concurrent Start) (Metadata GC Threshold) 102M->30M(2048M) 14.113ms
+  [1.277s][info][gc] GC(1) Concurrent Mark Cycle
+  [1.288s][info][gc] GC(1) Pause Remark 31M->31M(110M) 7.192ms
+  [1.290s][info][gc] GC(1) Pause Cleanup 31M->31M(110M) 0.082ms
+  [1.291s][info][gc] GC(1) Concurrent Mark Cycle 14.161ms
+
+the flags in the tuning guide, on Java 17.0.21.1:
+  Unrecognized VM option 'PrintGCTimeStamps'
+  Error: Could not create the Java Virtual Machine.
+  Error: A fatal exception has occurred. Program will exit.

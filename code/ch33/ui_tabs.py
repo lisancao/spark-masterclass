@@ -13,7 +13,7 @@ from pyspark.sql import functions as F
 from common.book import session, ui_api, ui_port, TRIPS
 
 CONNECT_PORT = os.environ.get("CONNECT_PORT", "15114")
-spark = session("ch33-ui-tabs", spark_sql_session_timeZone="UTC", spark_driver_memory="2g",
+spark = session("ch33-ui-tabs", spark_sql_session_timeZone="UTC",
                 spark_ui_showConsoleProgress="false",
                 spark_plugins="org.apache.spark.sql.connect.SparkConnectPlugin",
                 spark_connect_grpc_binding_port=CONNECT_PORT,
@@ -51,7 +51,7 @@ r = subprocess.run([sys.executable, "-c", client], capture_output=True, text=Tru
 print(r.stdout.strip().replace(str(TRIPS), "TRIPS") or r.stderr[-500:])
 time.sleep(12)
 
-print(f"UI on port {ui_port()}")
+print(f"UI on port {ui_port()} (default 1g heap, so that the sort spills)")
 jobs = ui_api("jobs")
 print(f"  jobs {len(jobs)}, stages {len(ui_api('stages'))}")
 st = ui_api("storage/rdd")[0]

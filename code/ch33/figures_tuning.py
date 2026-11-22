@@ -55,11 +55,12 @@ def serialization():
         m = re.match(r"(.+?)\s+objects\s+([\d.]+) MiB \| MEMORY_ONLY_SER\s+([\d.]+) MiB\s+([\d.]+) s \| RDD shuffle\s+([\d.]+) MiB\s+([\d.]+) s", l)
         if m:
             rows.append((m.group(1).strip(), *map(float, m.groups()[1:])))
+    rows = [r for r in rows if not r[0].startswith("kryo, required")]   # same sizes as "kryo, registered"
     W, H = 900, 70 + len(rows) * 58 + 40
     f = Fig(W, H, "Cache and shuffle sizes for each serializer")
     f.text(20, 22, "2,000,000 Trip objects: deserialized cache, serialized cache and RDD shuffle, in MiB (serialization.txt)",
            size=13, anchor="start", color="mute")
-    x0, x1 = 230, 880
+    x0, x1 = 230, 840
     vmax = max(max(r[1], r[2], r[4]) for r in rows)
     sx = lambda v: (x1 - x0) * v / vmax
     for i, (label, obj, ser, tser, shuf, tshuf) in enumerate(rows):
@@ -70,9 +71,9 @@ def serialization():
             f.box(x0, yy, max(2, sx(v)), 13, kind=kind, rx=2)
             f.text(x0 + sx(v) + 6, yy + 7, f"{v:.1f}", size=11, anchor="start", color="mute")
     ly = H - 22
-    x = x0
+    x = 40
     for kind, t in [("mute", "objects in the heap (MEMORY_ONLY)"), ("blue", "MEMORY_ONLY_SER"), ("accent", "RDD shuffle (compressed)")]:
-        f.box(x, ly - 7, 14, 14, kind=kind, rx=2); f.text(x + 20, ly, t, size=12, anchor="start"); x += 30 + len(t) * 7
+        f.box(x, ly - 7, 14, 14, kind=kind, rx=2); f.text(x + 20, ly, t, size=12, anchor="start"); x += 44 + len(t) * 6.6
     f.save("ch33-serialization")
 
 
