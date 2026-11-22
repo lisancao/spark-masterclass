@@ -1,0 +1,4 @@
+$ SPARK_HOME=$(python -c "import os, pyspark; print(os.path.dirname(pyspark.__file__))")
+$ $SPARK_HOME/sbin/start-connect-server.sh --conf spark.connect.grpc.binding.port=15104 --conf spark.sql.catalogImplementation=hive --conf spark.ui.port=4144 | sed "s#$W#.#"
+starting org.apache.spark.sql.connect.service.SparkConnectServer, logging to ./run/spark-lnc-org.apache.spark.sql.connect.service.SparkConnectServer-1-systemsnull.out
+$ export SPARK_REMOTE=sc://localhost:15104

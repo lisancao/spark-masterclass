@@ -1,0 +1,20 @@
+$ python look.py $SPARK_REMOTE
++-------------+
+|    tableName|
++-------------+
+|borough_daily|
+|  clean_trips|
+|    raw_trips|
+|        zones|
++-------------+
+raw_trips        111,546 rows
+clean_trips      104,952 rows
+zones                265 rows
+borough_daily          7 rows
++-----------+---------+-----+--------+
+|pickup_date|  borough|trips|avg_fare|
++-----------+---------+-----+--------+
+| 2026-06-01|Manhattan|91226|   17.25|
+| 2026-06-01|   Queens|11189|   52.88|
+| 2026-06-01| Brooklyn| 1984|   32.85|
++-----------+---------+-----+--------+
