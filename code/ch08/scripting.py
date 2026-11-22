@@ -45,7 +45,6 @@ spark.sql("SET VAR min_fare = 100")
 run("count with min_fare = 100", "SELECT count(*) AS n FROM trips WHERE fare_amount > session.min_fare")
 spark.sql("SET VAR min_fare = (SELECT percentile(fare_amount, 0.99) FROM trips)")
 run("the variable after SET VAR = (query)", "SELECT min_fare")
-run("a variable in a view", "CREATE TEMP VIEW big AS SELECT * FROM trips WHERE fare_amount > min_fare")
 
 # 2. A script is one call to spark.sql. It returns the result of its last query.
 print("\n== 2. a script, its control flow and its result")
