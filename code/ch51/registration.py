@@ -46,8 +46,16 @@ else:
              .config("spark.ui.port", os.environ.get("SPARK_UI_PORT", "4029")).getOrCreate())
     spark.sparkContext.setLogLevel("WARN" if os.environ.get("CH51_WARN") else "ERROR")
 
-print("driver python:", sys.executable.replace(os.path.expanduser("~"), "~"))
-print("PYSPARK_PYTHON:", (os.environ.get("PYSPARK_PYTHON") or "(not set)").replace(os.path.expanduser("~"), "~"))
+def shown(path):
+    """A path with $CH51_VENVS and ~ in place of the long prefixes."""
+    v = os.environ.get("CH51_VENVS")
+    if v and path.startswith(v):
+        path = "$CH51_VENVS" + path[len(v):]
+    return path.replace(os.path.expanduser("~"), "~")
+
+
+print("driver python:", shown(sys.executable))
+print("PYSPARK_PYTHON:", shown(os.environ.get("PYSPARK_PYTHON") or "(not set)"))
 
 # 1. The lookup: format("mailbox") with no register() call.
 r = condition(lambda: print("format('mailbox'), no register():",

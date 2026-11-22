@@ -180,13 +180,6 @@ addArtifacts(pyspark_mailbox.zip, pyfile=True), then count(): PYTHON_DATA_SOURCE
 register() again after addArtifacts(), then count(): 4 rows
 ```
 
-<figure markdown>
-  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch51-connect.webp">
-    <source src="../../media/clips/ch51-connect.mp4" type="video/mp4">
-  </video>
-  <figcaption>A Connect client sends the package to the server as an artifact. The read works only after a second <code>register()</code>.</figcaption>
-</figure>
-
 The client has the package, but the server workers do not, so the first two reads failed as in Step 2. A Connect client can send Python files to its server session with `spark.addArtifacts(path, pyfile=True)`. The script zips `src/pyspark_mailbox` and sends it. The next read still failed. A second `register()` after `addArtifacts()` made the read work.
 
 The 4.3.0 source shows why. `register()` creates the Python function of the source, with the Python includes of the session at that moment (`pythonIncludes` in `UserDefinedPythonDataSource.scala`). `PythonPlannerRunner` gives the worker only those includes. An artifact that the session gets after `register()` is not in the list. Thus, on Connect, call `addArtifacts()` first, and `register()` after it. The part notes record this order as a gap in the documentation.

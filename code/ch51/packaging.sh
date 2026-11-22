@@ -5,7 +5,8 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 CODE=$PWD
-V=${CH51_VENVS:-${TMPDIR:-/tmp}/ch51-venvs}
+export CH51_VENVS=${CH51_VENVS:-${TMPDIR:-/tmp}/ch51-venvs}
+V=$CH51_VENVS
 export SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=${SPARK_UI_PORT:-4029}
 short() { sed "s#$HOME#~#g; s#$V#\$CH51_VENVS#g"; }
 
