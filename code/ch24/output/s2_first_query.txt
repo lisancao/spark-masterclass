@@ -1,0 +1,69 @@
+run 1: delivered [487, 508], batches (id, rows) [(0, 995)]
++---------+-----+--------+
+|  Borough|trips| revenue|
++---------+-----+--------+
+|Manhattan|  868|21080.02|
+|   Queens|   63| 3909.38|
+| Brooklyn|   43| 1824.06|
++---------+-----+--------+
+only showing top 3 rows
+  checkpoint commits: ['0']
+run 2: delivered [450], batches (id, rows) [(1, 450)]
++---------+-----+--------+
+|  Borough|trips| revenue|
++---------+-----+--------+
+|Manhattan| 1267|30577.01|
+|   Queens|   87| 5532.62|
+| Brooklyn|   61| 2558.46|
++---------+-----+--------+
+only showing top 3 rows
+  checkpoint commits: ['0', '1']
+run 3: delivered [], batches (id, rows) [(2, 0)]
++-------+-----+-------+
+|Borough|trips|revenue|
++-------+-----+-------+
++-------+-----+-------+
+
+  checkpoint commits: ['0', '1']
+Run 2's progress report, trimmed:
+{
+ "id": "b516aa86-9219-4a82-be08-cd4b4fc9d5e6",
+ "runId": "ab8a9917-236b-4ca6-b907-6592ae668024",
+ "name": "by_borough",
+ "batchId": 1,
+ "numInputRows": 450,
+ "durationMs": {
+  "addBatch": 538,
+  "commitOffsets": 29,
+  "getBatch": 7,
+  "latestOffset": 47,
+  "queryPlanning": 74,
+  "triggerExecution": 732,
+  "walCommit": 37
+ },
+ "stateOperators": [
+  {
+   "operatorName": "stateStoreSave",
+   "numRowsTotal": 6,
+   "numRowsUpdated": 5,
+   "numShufflePartitions": 4,
+   "numStateStoreInstances": 4
+  }
+ ],
+ "sources": [
+  {
+   "description": "FileStreamSource[file:~/spark-masterclass-parts/part05/data/work/ch24/s2/inbox]",
+   "startOffset": {
+    "logOffset": 0
+   },
+   "endOffset": {
+    "logOffset": 1
+   },
+   "numInputRows": 450
+  }
+ ],
+ "sink": {
+  "description": "MemorySink",
+  "numOutputRows": 6
+ }
+}

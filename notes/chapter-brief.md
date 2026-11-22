@@ -8,7 +8,7 @@ A chapter teaches one subject in depth, at the depth of a long technical blog po
 
 Every chapter has:
 
-- **A thesis.** A loose opener, then the chapter's claim in bold. The chapter argues it step by step.
+- **A thesis.** A short opening paragraph, then the chapter's claim in bold. The chapter supports it step by step.
 - **Steps.** `## Step N: ...` headings. Each step makes one point and shows the artifact that proves it: code, its real output, a plan, a UI or REST record, a file listing, a hexdump.
 - **Mermaid diagrams** (two to four) wherever a structure or a sequence is easier to see than to read: plans, stage graphs, state machines, data layouts, request flows. Each diagram must match what the code showed.
 - **Code that ran.** Every snippet in the text comes from a file under `code/chNN/` that ran on `pyspark==4.3.0`, and every output block is pasted from `code/chNN/output/*.txt`. No invented output, no "output will look like".
@@ -16,12 +16,18 @@ Every chapter has:
 - **"The whole chapter, on one page"** as the closing section: the chapter's code in one runnable block, or a compact recap of the steps.
 - **New in 4.3** called out where it applies, checked against the 4.3 release notes, docs or source, not memory.
 
-## Voice and rules
+## Language: ASD-STE100 Simplified Technical English
 
-- Load the `zuma-voice` skill before writing prose. Write for smart readers: dense, specific, first person where it fits, no filler, no listicles.
-- No em dashes (U+2014) anywhere. Use semicolons, parentheses, commas or periods.
+The book's prose is written in ASD-STE100 Simplified Technical English (STE). Load the `asd-ste100` skill before you write, and keep its `rules.md` and `words.md` open. STE replaces a personal blog voice: the book must read clearly for non-native readers and for translation tools.
+
+- **Classify each block.** Explanations of how Spark works are *description* text (25 words or fewer per sentence). Things the reader does (install, run, change a config) are *procedure* text (20 words or fewer, imperative, one instruction per sentence, conditions before commands). Warnings and cautions use the STE safety-instruction form, in admonitions.
+- **Technical names and technical verbs** (API names, config keys, commands, operator names in plans, file formats, `shuffle`, `partition`, `broadcast`, `cache`, `spill`, `commit`) are allowed. Put code identifiers in code format. Use each term with one meaning in the whole chapter. List the technical names and verbs at the top of your part notes.
+- **Rules that catch most problems:** one topic per sentence; active voice; no `-ing` verb forms; no phrasal verbs; noun clusters of three words or fewer; keep articles and "that"; no semicolons (STE forbids them) and no em dashes (Lisa's rule). Split the sentence or use a vertical list.
+- **Keep the structure.** The chapter still has a thesis (a short bold statement after the opening paragraph, in STE), `## Step N:` headings, diagrams, code, output and clips. STE changes the sentences, not the depth. Do not remove content to make a sentence short; split it.
+- **Code, commands, output, plans and literal UI text stay exactly as they are.** STE applies to the prose around them. Mermaid labels are short phrases and follow STE word choice where they are words.
+- **Run the checker on every chapter:** `scripts/ste-check book/chapters/chNN-<slug>.md` (it wraps `stecheck --mode description`, skips code blocks and mermaid, and removes markdown noise such as link targets and video tags; shared allowlist in `scripts/ste-allow.txt`, add chapter-specific words with `--allow`). Fix every finding, or allowlist a technical name with `--allow`. Record the final finding count per chapter, and each rule you broke on purpose with the reason, in your part notes. Do not call the text "certified" or "fully compliant"; the checker cannot confirm the official dictionary.
 - No decorative numbers. Numbers in the text are measurements, versions, configs or results, and each one traces to saved output.
-- If a claim cannot be verified by running it or by reading Spark's source or docs, cut it or say plainly that it is unverified.
+- If a claim cannot be verified by running it or by reading Spark's source or docs, cut it or say plainly that it is not verified.
 - Something that looks like a Spark bug goes into your part notes as an open finding, not into the book as a bug.
 
 ## Running code

@@ -1,0 +1,13 @@
+query shape         append     update     complete   
+filter (no state)   ok (24)    ok (24)    error      
+groupBy count       error      ok (95)    ok (95)    
+window + watermark  ok (6)     ok (9)     ok (9)     
+groupBy + orderBy   error      error      ok (95)    
+orderBy (no agg)    error      error      error      
+
+filter (no state), complete:
+  [STREAMING_OUTPUT_MODE.UNSUPPORTED_OPERATION] Invalid streaming output mode: complete. This output mode is not supported for no streaming aggregations on streaming DataFrames/DataSets. SQLSTATE: 42KDE
+groupBy count, append:
+  [STREAMING_OUTPUT_MODE.UNSUPPORTED_OPERATION] Invalid streaming output mode: append. This output mode is not supported for streaming aggregations without watermark on streaming DataFrames/DataSets. SQLSTATE: 42KDE
+groupBy + orderBy, update:
+  Sorting is not supported on streaming DataFrames/Datasets, unless it is on aggregated DataFrame/Dataset in Complete output mode;

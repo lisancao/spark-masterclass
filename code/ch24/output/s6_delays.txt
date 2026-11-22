@@ -1,0 +1,9 @@
+
+delay 5 minutes: 13 windows written, holding 4644 trips; 1458 trips in them arrived too late
+(numRowsDroppedByWatermark summed to 65)
+
+delay 30 minutes: 10 windows written, holding 3406 trips; 166 trips in them arrived too late
+(numRowsDroppedByWatermark summed to 40)
+
+delay 60 minutes: 7 windows written, holding 627 trips; 20 trips in them arrived too late
+(numRowsDroppedByWatermark summed to 13)

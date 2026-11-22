@@ -48,3 +48,54 @@ def ui_api(path, port=None):
         app = json.load(r)[0]["id"]
     with urllib.request.urlopen(f"{base}/applications/{app}/{path}") as r:
         return json.load(r)
+
+
+# ---- Streaming (Part V) ------------------------------------------------------------------
+KAFKA_PACKAGE = "org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0"   # the Kafka connector for Spark 4.3
+KAFKA_BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "localhost:29055")
+ROCKSDB = "org.apache.spark.sql.execution.streaming.state.RocksDBStateStoreProvider"
+
+
+def work(name, clean=True):
+    """A scratch folder for one script's inboxes, checkpoints and sinks, under the repo's ignored data/."""
+    import shutil
+    p = ROOT / "data" / "work" / name
+    if clean and p.exists():
+        shutil.rmtree(p)
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def deliver(inbox, name, text, mtime=None):
+    """Put a file into a streaming inbox the safe way: write a hidden file, then rename it.
+
+    The file source ignores names that start with '.' or '_', so it never sees half a file.
+    mtime (seconds) fixes the order in which the file source picks the files up.
+    """
+    inbox = Path(inbox)
+    hidden = inbox / f".{name}.tmp"
+    hidden.write_text(text)
+    if mtime is not None:
+        os.utime(hidden, (mtime, mtime))
+    hidden.rename(inbox / name)
+    return inbox / name
+
+
+def tree(root, skip_crc=True):
+    """The files under root, one per line, relative to root (what `find` would show)."""
+    root = Path(root)
+    out = []
+    for p in sorted(root.rglob("*")):
+        if p.is_file() and not (skip_crc and p.name.endswith(".crc")):
+            out.append(f"{p.relative_to(root)}  ({p.stat().st_size} B)")
+    return "\n".join(out)
+
+
+def error_text(e, width=88, lines=3):
+    """The first lines of an exception's message, wrapped for a terminal clip."""
+    import textwrap
+    msg = " ".join(str(e).split("\n")[0].split())
+    if "terminated with exception: " in msg:              # a StreamingQueryException: keep the cause
+        msg = "[STREAM_FAILED] ... " + msg.split("terminated with exception: ", 1)[1]
+    wrapped = textwrap.wrap(f"{type(e).__name__}: {msg}", width)
+    return "\n".join("  " + w for w in wrapped[:lines]) + (" ..." if len(wrapped) > lines else "")
