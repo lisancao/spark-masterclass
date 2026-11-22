@@ -84,7 +84,7 @@ sequenceDiagram
   <figcaption><code>ansi.py</code> runs against Spark 4.3.0. One zero fare in 3.8 million trips stops the average under ANSI mode, and each error has its own condition.</figcaption>
 </figure>
 
-With ANSI mode off, each query succeeds. Seven queries return NULL, and two return a wrong number. `2147483647 + 1` becomes `-2147483648`, because the integer wraps. `CAST(3000000000 AS INT)` becomes `-1294967296`. A job with ANSI mode off completes, and its numbers are wrong.
+With ANSI mode off, each query succeeds. Eight queries return NULL, and two return a wrong number. `2147483647 + 1` becomes `-2147483648`, because the integer wraps. `CAST(3000000000 AS INT)` becomes `-1294967296`. A job with ANSI mode off completes, and its numbers are wrong.
 
 !!! warning "CAUTION"
     Do not set `spark.sql.ansi.enabled` to `false` to make a job complete. The job will complete with wrong values. Use a `try_` function on the expression that fails.

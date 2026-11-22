@@ -155,7 +155,7 @@ FROM trips t JOIN zones z ON t.PULocationID = z.LocationID GROUP BY z.Borough
 | Broadcast nested loop join | (no equality, one small side) | copy the small side, compare all pairs | any condition |
 | Cartesian product | `SHUFFLE_REPLICATE_NL` | copy blocks of both sides, compare all pairs | any condition |
 
-On these sizes, the broadcast hash join is the fastest, at 0.16 seconds. The shuffled hash join takes 0.56 seconds and the sort-merge join 0.73 seconds, because both shuffle the 3.8 million trips. The sort-merge join also sorts both sides. The Cartesian product takes 8.50 seconds, about 50 times as long as the broadcast join. It compares each trip with each of the 265 zones, about a billion pairs, and it evaluates the condition on each pair.
+On these sizes, the broadcast hash join is the fastest, at 0.17 seconds. The shuffled hash join takes 0.54 seconds and the sort-merge join 0.75 seconds, because both shuffle the 3.8 million trips. The sort-merge join also sorts both sides. The Cartesian product takes 8.61 seconds, about 50 times as long as the broadcast join. It compares each trip with each of the 265 zones, about a billion pairs, and it evaluates the condition on each pair.
 
 ## Step 4: A join with no equality
 
