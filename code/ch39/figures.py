@@ -75,5 +75,77 @@ def delay():
     f.save("ch39-delay")
 
 
+def outer_join():
+    # output/s10b_join_state.txt: per batch, watermark and the pickups of the NULL rows written
+    rows = [(4, "08:04", 8, "07:00", "07:04"), (5, "08:09", 3, "07:05", "07:07"), (6, "08:14", 10, "07:10", "07:14"),
+            (7, "08:19", 14, "07:15", "07:19"), (8, "08:24", 7, "07:20", "07:23"), (9, "08:29", 7, "07:25", "07:29"),
+            (10, "08:34", 12, "07:30", "07:34"), (11, "08:39", 12, "07:35", "07:39"), (12, "08:44", 24, "07:40", "07:44"),
+            (13, "08:49", 21, "07:44", "07:49")]
+    f = Fig(860, 330, "When a left outer stream-stream join writes its NULL rows")
+    f.text(20, 22, "Lost dropoffs: each pickup with no partner goes out when the watermark is 1 hour past it (s10b_join_state.txt)",
+           size=12.5, anchor="start", color="mute")
+    T0, T1, X0, X1 = mins("07:00"), mins("09:00"), 110, 830
+    x = lambda t: X0 + (t - T0) / (T1 - T0) * (X1 - X0)
+    base = 250
+    f.line(X0, base, X1, base, color="mute")
+    for t in range(T0, T1 + 1, 15):
+        f.line(x(t), base, x(t), base + 5, color="mute")
+        f.text(x(t), base + 18, f"{t // 60:02d}:{t % 60:02d}", size=11, color="mute")
+    f.text(X0 - 10, 70, "NULL rows", size=12, anchor="end", color="acc", weight=700)
+    f.text(X0 - 10, 190, "watermark", size=12, anchor="end", color="blue", weight=700)
+    for i, (b, wm, n, lo, hi) in enumerate(rows):
+        y = 52 + (i % 2) * 22
+        f.box(x(mins(lo)), y, max(6, x(mins(hi)) - x(mins(lo))), 16, kind="accent", rx=2)
+        f.text(x(mins(lo)), y + 30 if i % 2 else y - 6, f"b{b}: {n}", size=10.5, anchor="start", color="acc")
+        f.circle(x(mins(wm)), 190, 5, fill="blue")
+        f.path(f"M{x(mins(wm)):.1f},184 L{x(mins(lo)) + 3:.1f},{y + 18}", color="line", sw=1, dash="3 3")
+    f.box(x(mins("07:49")), 120, x(mins("08:59")) - x(mins("07:49")), 30, "left state at the end: 5,624 pickups (07:49 to 08:59)", kind="paper", size=11.5, rx=3)
+    f.box(x(mins("08:49")), 205, x(mins("08:59")) - x(mins("08:49")), 22, "right", kind="blue", size=10.5, rx=3)
+    f.text(x(mins("08:49")) - 6, 222, "right state: 1,115 dropoffs", size=11, anchor="end", color="blue")
+    f.note("118 NULL rows written; the other lost pickups (after 07:49) wait in state for a later watermark", y=318)
+    f.save("ch39-outer-join")
+
+
+def static_refresh():
+    # output/s12_stream_static.txt
+    f = Fig(860, 300, "A stream-static join on a folder that changes")
+    f.text(20, 22, "Labels found in each batch (s12_stream_static.txt)", size=12.5, anchor="start", color="mute")
+    cols = ["batch 0: v1 has two airport zones", "batch 1: new file v2 added", "batch 2: v1 rewritten"]
+    for j, c in enumerate(cols):
+        f.text(330 + j * 180, 56, c, size=11.5, color="mute")
+    rows = [("a) static DataFrame in the query", ["airport", "airport only", "FILE_NOT_EXIST"], ["ok", "warn", "red"]),
+            ("b) read again in foreachBatch", ["airport", "airport, midtown, uptown", "+ times-sq"], ["ok", "ok", "ok"])]
+    for i, (label, cells, kinds) in enumerate(rows):
+        y = 80 + i * 90
+        f.text(230, y + 28, label, size=13, anchor="end", weight=700)
+        for j, (cell, k) in enumerate(zip(cells, kinds)):
+            f.box(250 + j * 180, y, 165, 56, cell, "", kind=k, size=12, rx=6)
+    f.text(20, 268, "a) keeps the file list of the moment it was made. b) lists the folder again at the start of each batch.", size=12.5, anchor="start")
+    f.save("ch39-static-refresh")
+
+
+def async_tracking():
+    # output/s15_async.txt (medians, 3 runs each)
+    rows = [("sync", 32, 32, 96, 64, 8.6), ("async", 0, 0, 32, 4, 4.2)]
+    f = Fig(860, 260, "Synchronous and asynchronous progress tracking")
+    f.text(20, 22, "Kafka to Kafka, 64 batches of 100 records, medians of 3 runs (s15_async.txt)", size=12.5, anchor="start", color="mute")
+    X0, sc = 140, 5.0
+    f.text(X0, 50, "median batch (ms): walCommit + commitOffsets + the rest", size=12.5, anchor="start", weight=700)
+    for i, (m, wal, com, trig, files, wall) in enumerate(rows):
+        y = 66 + i * 50
+        f.text(X0 - 12, y + 18, m, size=14, anchor="end", weight=700, mono=True)
+        rest = trig - wal - com
+        xx = X0
+        for v, k, lab in ((wal, "warn", "walCommit"), (com, "red", "commit"), (rest, "blue", "")):
+            if v:
+                f.box(xx, y, v * sc, 32, f"{lab} {v}" if lab else "", "", kind=k, size=11, rx=3)
+                xx += v * sc
+        f.text(xx + 8, y + 18, f"{trig} ms", size=13, anchor="start", weight=700)
+        f.text(720, y + 18, f"{files} offset files, {wall} s", size=12.5, anchor="start", color="mute")
+    f.text(20, 200, "The two checkpoint writes leave the batch. The background thread writes one entry per second.", size=12.5, anchor="start")
+    f.text(20, 222, "Times from one laptop that other jobs also used; the ratio is the result.", size=12, anchor="start", color="mute")
+    f.save("ch39-async")
+
+
 if __name__ == "__main__":
-    windows(); lateness(); delay()
+    windows(); lateness(); delay(); outer_join(); static_refresh(); async_tracking()

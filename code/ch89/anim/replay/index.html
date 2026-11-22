@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="21" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Numbers from data.json (k7_sink.txt). Time between steps schematic.
+      A.mount();
+      const D = {"batches": [[0, 498], [1, 498], [2, 449]], "published": 1445, "topic_after": 1894, "distinct_keys": 1445};
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+
+      // beat write (0.0): title, the checkpoint lanes and the topic
+      A.title("The Kafka sink writes at least once", "a batch without its commit runs again");
+      const LX = 0.08;
+      A.text("offsets/", { x: LX, y: 0.30, size: 28, color: "var(--a-mute)", anchor: "left" });
+      A.text("commits/", { x: LX, y: 0.42, size: 28, color: "var(--a-mute)", anchor: "left" });
+      A.text("topic rides_out", { x: LX, y: 0.60, size: 28, color: "var(--a-mute)", anchor: "left" });
+      const slotX = (b) => 0.30 + b * 0.10;
+      const offs = [], coms = [];
+      for (let b = 0; b < 3; b++) {
+        offs.push(A.box({ x: slotX(b), y: 0.30, w: 120, h: 64, kind: "soft", title: String(b), size: 28, radius: 8 }));
+        coms.push(A.box({ x: slotX(b), y: 0.42, w: 120, h: 64, kind: "soft", title: String(b), size: 28, radius: 8 }));
+      }
+      [...offs, ...coms].forEach((e) => gsap.set(e, { opacity: 0 }));
+      // the topic as a bar that grows with each write (scaleX from the left)
+      const BAR0 = 0.30, BARW = 0.60, MAX = D.topic_after;
+      const bar = A.el("", { x: BAR0, y: 0.60, anchor: "left", css: { width: A.X(BARW) + "px", height: A.px(56) + "px",
+        background: "var(--a-soft)", border: "2px solid var(--a-line)", borderRadius: A.px(8) + "px", transformOrigin: "left center" } });
+      const segs = [];
+      let pos = 0;
+      const seg = (n, kind, t) => {
+        const w = n / MAX * BARW;
+        const e = A.box({ x: BAR0 + (pos + n / 2) / MAX * BARW, y: 0.60, w: A.X(w) / A.s - 4, h: 52, kind, title: String(n), size: 24, radius: 6 });
+        pos += n; gsap.set(e, { opacity: 0, scaleX: 0.2 }); A.tl.to(e, { opacity: 1, scaleX: 1, duration: 0.5 }, t); segs.push(e); return e;
+      };
+      const counter = A.text("records: 0", { x: 0.60, y: 0.70, size: 34, weight: 700, mono: true });
+      const setCount = (n, t) => { A.tl.call(() => { counter.textContent = "records: " + n.toLocaleString("en-US"); }, null, t); };
+
+      let total = 0;
+      D.batches.slice(0, 2).forEach(([b, n], i) => {
+        const t = 0.6 + i * 2.0;
+        A.tl.to(offs[b], { opacity: 1, duration: 0.3 }, t);
+        seg(n, "paper", t + 0.4); total += n; setCount(total, t + 0.6);
+        A.tl.to(coms[b], { opacity: 1, duration: 0.3 }, t + 1.1);
+      });
+      cap("Each batch writes its records, then Spark writes a commit", 0.2, 4.9);
+
+      // beat crash (5.0): batch 2 writes, no commit
+      A.tl.to(offs[2], { opacity: 1, duration: 0.3 }, 5.2);
+      const s2 = seg(D.batches[2][1], "paper", 5.6); total += D.batches[2][1]; setCount(total, 5.8);
+      const miss = A.box({ x: slotX(2), y: 0.42, w: 120, h: 64, kind: "accent", title: "crash", size: 24, radius: 8 });
+      gsap.set(miss, { opacity: 0 }); A.tl.to(miss, { opacity: 1, duration: 0.3 }, 6.6);
+      cap("A crash after the write leaves batch 2 without a commit", 5.0, 9.9);
+
+      // beat replay (10.0): batch 2 runs again with the same offsets
+      A.tl.to(offs[2], { scale: 1.15, duration: 0.25, yoyo: true, repeat: 1 }, 10.3);
+      seg(D.batches[2][1], "accent", 11.0); setCount(D.topic_after, 11.2);
+      A.tl.to(miss, { opacity: 0, duration: 0.3 }, 12.0);
+      A.tl.to(coms[2], { opacity: 1, duration: 0.3 }, 12.1);
+      const dup = A.text("449 records, two times", { x: BAR0 + (D.published + 449 / 2) / MAX * BARW, y: 0.52, size: 26, color: "var(--a-acc)", weight: 700 });
+      A.in(dup, 11.4);
+      cap("The restart runs batch 2 again and sends the same records", 10.0, 14.9);
+
+      // beat dedup (15.0): one record per key
+      const reader = A.text(`dropDuplicates(["key"])  ->  ${D.distinct_keys.toLocaleString("en-US")} records`, { x: 0.5, y: 0.78, size: 34, mono: true, weight: 700, color: "var(--a-acc)" });
+      A.in(reader, 15.6);
+      A.tl.to(segs[3], { opacity: 0.25, duration: 0.6 }, 15.6);
+      cap("A reader that keeps one record per key gets the input back", 15.0);
+      A.in(A.note("counts from k7_sink.txt; time between steps schematic"), 0.4);
+
+      A.finish(21);
+    </script>
+  </body>
+</html>

@@ -35,7 +35,7 @@ for label, make in cases:
         q.stop()
         print(f"   {label:<27} ok")
     except Exception as e:
-        print(f"   {label:<27}" + error_text(e, 86, 1).strip()[:110])
+        print(f"   {label:<27}refused:\n" + error_text(e, 86, 2))
 
 print("\n2. The physical plan of one micro-batch (stream LEFT OUTER static):")
 deliver(w / "inbox", files[0][0], files[0][1])
