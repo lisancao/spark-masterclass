@@ -42,3 +42,4 @@ attempt("persist(StorageLevel.DISK_ONLY)", lambda: trips.persist(StorageLevel.DI
 attempt("localCheckpoint()", lambda: trips.groupBy("PULocationID").count().localCheckpoint().count())
 attempt("repartition(8, col) partitions", lambda: trips.repartition(8, "PULocationID")
         .select(F.spark_partition_id().alias("p")).distinct().count())
+attempt("zipWithIndex() (DataFrame, 4.2+)", lambda: trips.limit(3).zipWithIndex("i").select("i").collect())

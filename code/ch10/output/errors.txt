@@ -57,6 +57,12 @@ Python: pyspark/errors/error-conditions.json: 223 conditions (client-side errors
 DIVIDE_BY_ZERO: sqlState=22012  message=Division by zero. Use `try_divide` to tolerate divisor being 0 and return NULL instead. 
 CAST_INVALID_INPUT: sqlState=22018  message=The value <expression> of the type <sourceType> cannot be cast to <targetType> because i
 22012 in error-states.json: {'description': 'division by zero', 'standard': 'Y'}
+  42703  class 42  An undefined column or parameter name was detected.
+  42601  class 42  A character, token, or clause is invalid or missing.
+  22012  class 22  division by zero
+  22018  class 22  invalid character value for cast
+  42P01  class 42  undefined table
+  42K09  class 42  Data type mismatch
 UNRESOLVED_COLUMN subconditions: ['WITHOUT_SUGGESTION', 'WITH_SUGGESTION']
 Python-side PySparkTypeError above: NOT_EXPECTED_TYPE -> Argument `<arg_name>` should be <expected_type>, got <arg_type>.
 

@@ -27,12 +27,12 @@ parallelize: 8 partitions, PipelinedRDD
 textFile:    2 partitions, first line: "LocationID","Borough","Zone","service_zone"
 
 == 2. transformations are lazy, actions run jobs
-filter + map defined in 0.05 ms, jobs run: 0
+filter + map defined in 0.06 ms, jobs run: 0
 count(): 500000  jobs run: 1
 take(3): [4, 16, 36]  reduce(add): 166667166667000000
 ```
 
-The definition took 0.05 ms and ran no job. `count()` ran the first job. The RDD API has two kinds of operations, and the difference is the same as for DataFrames:
+The definition took 0.06 ms and ran no job. `count()` ran the first job. The RDD API has two kinds of operations, and the difference is the same as for DataFrames:
 
 | Kind | Returns | Runs a job | Examples |
 |---|---|---|---|
@@ -116,9 +116,9 @@ It reads the shuffle metrics of each job from the REST API (`/stages`). It ran u
 same totals from all three: True   zones: 258
 
                    median       min-max  shuffle write  records out
-reduceByKey         0.46s  0.43- 0.55 s       0.02 MiB          128
-aggregateByKey      0.64s  0.52- 0.66 s       0.02 MiB          128
-groupByKey          0.96s  0.80- 1.01 s      11.76 MiB          128
+reduceByKey         0.59s  0.57- 0.74 s       0.02 MiB          128
+aggregateByKey      0.75s  0.65- 0.88 s       0.02 MiB          128
+groupByKey          1.01s  0.85- 1.08 s      11.76 MiB          128
 
 median of 5 runs after a warmup, local[*], 16 cores
 ```
@@ -126,7 +126,7 @@ median of 5 runs after a warmup, local[*], 16 cores
 <figure markdown>
   ![Pair costs](../media/figures/ch90-keyvalue-light.svg#only-light)
   ![Pair costs](../media/figures/ch90-keyvalue-dark.svg#only-dark)
-  <figcaption>The same totals three ways. <code>groupByKey</code> wrote about 600 times more shuffle data than <code>reduceByKey</code>, and it took twice as long. Numbers from <code>keyvalue.txt</code>.</figcaption>
+  <figcaption>The same totals three ways. The <code>groupByKey</code> call wrote about 600 times more shuffle data than <code>reduceByKey</code>, and it took 1.7 times as long. Numbers from <code>keyvalue.txt</code>.</figcaption>
 </figure>
 
 The three operations give the same totals. The difference is in the shuffle:
@@ -135,7 +135,7 @@ The three operations give the same totals. The difference is in the shuffle:
 - **`groupByKey` sends every value.** Each map task writes all of its fares, in lists for each zone. The shuffle wrote 11.76 MiB. The sum occurs only after the shuffle, in the reduce task.
 - **The JVM counted 128 records for each operation.** PySpark does not shuffle one record for each pair. It sends pickled batches, one or more for each target partition. Thus use the bytes, not the record count, to compare Python shuffles.
 
-On this laptop, the shuffle stays on a local disk, and `groupByKey` was only two times slower. On a cluster, the 11.76 MiB goes over the network. With more values for each key, the list for one key must also fit in the memory of one reduce task.
+On this laptop, the shuffle stays on a local disk, and `groupByKey` was only 1.7 times slower (1.01 s against 0.59 s). On a cluster, the 11.76 MiB goes over the network. With more values for each key, the list for one key must also fit in the memory of one reduce task.
 
 <figure markdown>
   <video autoplay loop muted playsinline width="1280" height="720" poster="../../media/clips/ch90-anim-combine.webp">
@@ -252,7 +252,7 @@ counter after foreach over 3,837,248 ids: 0
 pickled function with zone_names (265 entries):        6,127 bytes
 pickled function with big dict (200,000 entries):   20,678,098 bytes
 spark.broadcast.UDFCompressionThreshold: 1,048,576 bytes (above it, PySpark broadcasts the command)
-5 jobs, big dict in the closure: 0.65 s per job;  as one broadcast: 0.56 s per job
+5 jobs, big dict in the closure: 0.74 s per job;  as one broadcast: 0.64 s per job
 closure with a threading.Lock: PicklingError Could not serialize object: TypeError: cannot pickle '_thread.lock' ob
 closure that uses sc: PicklingError | Could not serialize object: PySparkRuntimeError: [CONTEXT_ONLY_VALID_ON_DRIVER
 ```
@@ -348,11 +348,11 @@ rdd.cache() uses: Memory Serialized 1x Replicated
 
 == 2. the same RDD at four levels (REST /storage/rdd)
   level                      memory       disk  cached    scan
-  no persist (from file)                                 2.31s
-  MEMORY_ONLY               29.8 MiB     0.0 MiB  16/16    0.57s
-  MEMORY_AND_DISK           29.8 MiB     0.0 MiB  16/16    0.55s
-  DISK_ONLY                  0.0 MiB    29.8 MiB  16/16    0.68s
-  MEMORY_ONLY_2             29.8 MiB     0.0 MiB  16/16    0.52s
+  no persist (from file)                                 4.48s
+  MEMORY_ONLY               29.8 MiB     0.0 MiB  16/16    0.44s
+  MEMORY_AND_DISK           29.8 MiB     0.0 MiB  16/16    0.44s
+  DISK_ONLY                  0.0 MiB    29.8 MiB  16/16    0.30s
+  MEMORY_ONLY_2             29.8 MiB     0.0 MiB  16/16    0.46s
   (local mode has one executor, so _2 cannot place a second copy)
 ```
 
@@ -360,7 +360,7 @@ Three facts are specific to Python:
 
 - **PySpark always keeps a Python RDD as pickled bytes.** The guide says this in its note on the storage levels. Thus `deserialized=False` for each level except `MEMORY_AND_DISK_DESER`, and the `_SER` levels of Scala and Java do not exist in PySpark. The JVM keeps pickled bytes that it cannot read.
 - **The size is the same at each level.** The 29.8 MiB of pickled batches go to memory or to disk with no change.
-- **Each scan still unpickles in Python.** A scan of the cache took 0.52 to 0.68 s, and a scan from the Parquet file took 2.31 s, under the benchmark lock. On this machine, the disk level was close to the memory levels. The files stayed in the page cache of the operating system, and the unpickle took most of the time.
+- **Each scan still unpickles in Python.** A scan of the cache took 0.30 to 0.46 s, and a scan from the Parquet file took 4.48 s, under the benchmark lock. On this machine, the disk level was as fast as the memory levels. The files stayed in the page cache of the operating system, and the unpickle took most of the time. Other work ran on the machine during the run, so read these times as an order of size.
 
 `rdd.cache()` is `persist(MEMORY_ONLY)`. A DataFrame `cache()` uses `MEMORY_AND_DISK_DESER` and a columnar format. [Chapter 33](ch33-partitions-caching-memory.md) measures the DataFrame storage levels.
 
@@ -385,7 +385,7 @@ before, lineage lines: 11
 isCheckpointed before an action: False
 isCheckpointed after count():   True
 (16) PythonRDD[41] at RDD at PythonRDD.scala:59 []
- |   ReliableCheckpointRDD[43] at count at persist.py:60 []
+ |   ReliableCheckpointRDD[43] at count at persist.py:61 []
 files: 16 part files, for example rdd-41/part-00000
 
 == 4. localCheckpoint() keeps the blocks on the executors instead
@@ -393,7 +393,7 @@ localCheckpoint(), then count():           isCheckpointed = False
 cache(), localCheckpoint(), then count():  isCheckpointed = True
 (16) PythonRDD[54] at RDD at PythonRDD.scala:59 [Disk Memory Serialized 1x Replicated]
  |        CachedPartitions: 16; MemorySize: 3.3 KiB; DiskSize: 0.0 B
- |   LocalCheckpointRDD[56] at count at persist.py:71 [Disk Memory Serialized 1x Replicated]
+ |   LocalCheckpointRDD[56] at count at persist.py:72 [Disk Memory Serialized 1x Replicated]
 ```
 
 After the action, the lineage of 11 lines became two lines over a `ReliableCheckpointRDD`. The checkpoint directory has one part file for each partition. If an executor stops, Spark reads the files and does not compute the three shuffles again.
@@ -424,6 +424,7 @@ session: pyspark.sql.connect.session  server: 4.3.0
   persist(StorageLevel.DISK_ONLY)    ok: Disk Serialized 1x Replicated
   localCheckpoint()                  ok: 258
   repartition(8, col) partitions     ok: 8
+  zipWithIndex() (DataFrame, 4.2+)   ok: [Row(i=0), Row(i=1), Row(i=2)]
 ```
 
 <figure markdown>
@@ -433,7 +434,7 @@ session: pyspark.sql.connect.session  server: 4.3.0
   <figcaption><code>basics.py</code> shows a lazy chain and its first job. <code>keyvalue.py</code> compares the three pair operations. <code>connect.py</code> shows the RDD entry points that fail over Connect. Then it runs the DataFrame equivalents. The film ran without the benchmark lock, so its times are different from the text.</figcaption>
 </figure>
 
-There is no `sparkContext` and no `df.rdd`. Thus there is no `sc.broadcast` and no `sc.accumulator`. But `foreachPartition` and `mapInPandas` work. Each of them sends a Python function to the server as part of a DataFrame plan, not as an RDD. The table in [Chapter 18](ch18-spark-connect.md) lists the Connect replacement for each `SparkContext` call.
+There is no `sparkContext` and no `df.rdd`. Thus there is no `sc.broadcast` and no `sc.accumulator`. But `foreachPartition` and `mapInPandas` work. Each of them sends a Python function to the server as part of a DataFrame plan, not as an RDD. `DataFrame.zipWithIndex` (since 4.2.0) also works, and it gives the consecutive IDs of `RDD.zipWithIndex`. The table in [Chapter 18](ch18-spark-connect.md) lists the Connect replacement for each `SparkContext` call.
 
 ## Step 10: When to drop to RDDs
 
@@ -457,14 +458,14 @@ flowchart TD
 | you must place each key in a partition that you choose | a custom `partitionBy` for a downstream system with one file for each key | `repartition(n, col)`, `repartitionByRange`, bucketed tables |
 | the elements are not rows | graphs of Python objects, binary blobs that only a Python library can parse | `binaryFile` source, `mapInPandas`, Python data sources ([Chapter 65](ch65-python-data-sources-readers.md)) |
 | an old library takes an RDD | `spark.mllib` (in maintenance mode), GraphX in Scala ([Chapter 4](ch04-one-engine-batch-and-streaming.md)) | `spark.ml`, GraphFrames |
-| you need exact consecutive IDs over all partitions | `zipWithIndex`, which runs one job to count each partition | `row_number()` over a window (one partition), `monotonically_increasing_id` (not consecutive) |
+| you need exact consecutive IDs over all partitions | `zipWithIndex`, which runs one job to count each partition | `DataFrame.zipWithIndex()` (since 4.2.0, also over Connect), `monotonically_increasing_id` (not consecutive) |
 
 Code that keeps an RDD stays on Spark Classic. It also pays the Python cost of [Chapter 3](ch03-rdds-to-a-sql-engine.md) for each element: a pickled object for each row, and Python functions that Spark cannot read.
 
 ## The whole chapter, on one page
 
 - **Transformations are lazy, actions run jobs.** PySpark joins narrow Python steps into one `PipelinedRDD`.
-- **Use `reduceByKey` or `aggregateByKey` for an aggregate, not `groupByKey`.** Measured: 0.02 MiB against 11.76 MiB of shuffle write, and 0.46 s against 0.96 s. The DataFrame planner always combines before the shuffle.
+- **Use `reduceByKey` or `aggregateByKey` for an aggregate, not `groupByKey`.** Measured: 0.02 MiB against 11.76 MiB of shuffle write, and 0.59 s against 1.01 s. The DataFrame planner always combines before the shuffle.
 - **A partitioner puts each key in a known partition.** `mapValues` keeps it, `map` drops it. Two RDDs with the same partitioner join with no new shuffle. Set `PYTHONHASHSEED` in the driver to use `lookup` or `partitionBy` there.
 - **A closure gets a copy of each variable that it uses.** It must be picklable, and it cannot use the `SparkContext`. Above 1 MiB, PySpark broadcasts the command for you.
 - **Broadcast variables send a value one time for each executor.** Accumulators count across tasks, but only updates in actions count exactly one time. The DataFrame equivalents are `F.broadcast`, map literals and `observe()`.

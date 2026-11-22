@@ -20,10 +20,10 @@ session: pyspark.sql.connect.session
   ps.sql(... {t} ...):            [[237, 177610], [161, 161198], [236, 157113]]
 
 == 3. functions: apply_batch and transform_batch, with and without type hints
-  no return hint:   defined in 1.34 s (runs the function on a sample to infer the schema)
-  with return hint: defined in 0.05 s, schema struct<PULocationID:bigint,pct:double>
+  no return hint:   defined in 1.63 s (runs the function on a sample to infer the schema)
+  with return hint: defined in 0.08 s, schema struct<PULocationID:bigint,pct:double>
   mean pct, both: 0.1738 0.1738
-  plan of the hinted version: ['MapInPandas <lambda>(__index_level_0__#228L, PULocationID#21']
+  plan of the hinted version: ['MapInPandas <lambda>(__index_level_0__#2341L, PULocationID#2']
 
 == 4. operations on two different DataFrames
   a.fare_amount + b.tip_amount: ok, the plan joins on the index: True
@@ -45,3 +45,4 @@ session: pyspark.sql.connect.session
 == 6. plotting (plotly)
   hist type: plotly.graph_objs._figure.Figure  bars: 40
   barh rows: 8
+  RatecodeID 2 (JFK) trips: 92,624, most common fare: [70.0]

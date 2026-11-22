@@ -92,6 +92,10 @@ for name in ("DIVIDE_BY_ZERO", "CAST_INVALID_INPUT"):
     c = conditions[name]
     print(f"{name}: sqlState={c['sqlState']}  message={' '.join(c['message'])[:88]}")
 print("22012 in error-states.json:", {k: states["22012"][k] for k in ("description", "standard") if k in states["22012"]})
+for label, e in caught.items():
+    st = e.getSqlState()
+    if st:
+        print(f"  {st}  class {st[:2]}  {states[st]['description']}")
 print("UNRESOLVED_COLUMN subconditions:", list(conditions["UNRESOLVED_COLUMN"]["subClass"]))
 print("Python-side PySparkTypeError above:", caught["Python-side check"].getCondition(), "->",
       " ".join(py_conditions[caught["Python-side check"].getCondition()]["message"])[:70])

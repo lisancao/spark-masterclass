@@ -8,9 +8,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "code" / "common"))
 from svgfig import Fig
 
 # 1. keyvalue.txt: median, min-max and shuffle write for the three operations
-ops = [("reduceByKey", 0.46, 0.43, 0.55, 0.02, "ok"),
-       ("aggregateByKey", 0.64, 0.52, 0.66, 0.02, "blue"),
-       ("groupByKey", 0.96, 0.80, 1.01, 11.76, "acc")]
+ops = [("reduceByKey", 0.59, 0.57, 0.74, 0.02, "ok"),
+       ("aggregateByKey", 0.75, 0.65, 0.88, 0.02, "blue"),
+       ("groupByKey", 1.01, 0.85, 1.08, 11.76, "acc")]
 f = Fig(800, 300, "Total fare per zone over 3,837,248 pairs, three ways")
 f.text(20, 28, "Total fare for each zone over 3,837,248 cached pairs", 15, 700, anchor="start")
 L, PW = 150, 230

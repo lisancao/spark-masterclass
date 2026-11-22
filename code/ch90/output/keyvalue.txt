@@ -1,0 +1,9 @@
+3,837,248 (zone, fare) pairs in 16 partitions, cached
+same totals from all three: True   zones: 258
+
+                   median       min-max  shuffle write  records out
+reduceByKey         0.59s  0.57- 0.74 s       0.02 MiB          128
+aggregateByKey      0.75s  0.65- 0.88 s       0.02 MiB          128
+groupByKey          1.01s  0.85- 1.08 s      11.76 MiB          128
+
+median of 5 runs after a warmup, local[*], 16 cores

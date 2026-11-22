@@ -1,0 +1,12 @@
+pandas read_parquet: 0.08 s, 3,837,248 rows, 102.5 MiB in the driver
+
+answers agree (filter + new column): True
+
+  operation                pandas  pandas on Spark   PySpark
+  groupby mean             0.052s           0.246s    0.170s
+  value_counts             0.016s           0.163s    0.176s
+  describe                 0.231s           1.508s    1.345s
+  nlargest(5)              0.076s           1.169s    0.263s
+  filter + new column      0.129s           0.202s    0.128s
+
+median of 5 runs after a warmup, local[*], 16 cores; pandas times exclude its read

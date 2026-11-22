@@ -13,3 +13,4 @@ session: pyspark.sql.connect.session  server: 4.3.0
   persist(StorageLevel.DISK_ONLY)    ok: Disk Serialized 1x Replicated
   localCheckpoint()                  ok: 258
   repartition(8, col) partitions     ok: 8
+  zipWithIndex() (DataFrame, 4.2+)   ok: [Row(i=0), Row(i=1), Row(i=2)]

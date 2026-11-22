@@ -39,7 +39,7 @@ session: pyspark.sql.session
 +--------------------+-----------+------------+
 
 the plan of summary() is one aggregate over the data:
-      +- ObjectHashAggregate(keys=[], functions=[count(passenger_count#3L), avg(passenger_count#3L), stddev(cast(passenger_count#3L as double)), min(passenger_count#3L), percentile_approx(passenger_count#3L, [0.25,0.5,0.75], 10000, 0, 0), max(passenger_count#3L), count(trip_distance#4), avg(trip_distance#4), stddev(trip_distance#4), min(trip_distance#4), percentile_approx(trip_distance#4, [0.25,0.
+      +- ObjectHashAggregate(keys=[], functions=[count(passenger_count#3L), avg(passenger_count#3L), stddev(cast(passenger_count#3L as double)), min(passenger_count#3L), percentile_approx(passenger_count#3L, [0.25,0.5,0.75], 10000 ...
 
 == 3. stat.corr and stat.cov (Pearson, two columns, one pass)
 corr(trip_distance, fare_amount) = 0.0074
@@ -62,10 +62,10 @@ corr(trip_distance, fare_amount) without outliers = 0.8858
 
 == 6. stat.approxQuantile: the error you allow sets the cost
   relativeError     25% / 50% / 75% of fare_amount    time
-            0.0               [10.0, 15.73, 26.21]   5.77s
-          0.001               [10.0, 15.85, 26.27]   0.67s
-           0.01                 [10.0, 16.3, 26.2]   0.64s
-            0.1                 [10.0, 14.2, 27.5]   0.81s
+            0.0               [10.0, 15.73, 26.21]   2.33s
+          0.001               [10.0, 15.85, 26.27]   0.40s
+           0.01                 [10.0, 16.3, 26.2]   0.44s
+            0.1                 [10.0, 14.2, 27.5]   0.49s
   several columns at once: [[16.3, 7045.0], [2.24, 333.33]]
 
 == 7. stat.sampleBy: a stratified sample with one fraction per key

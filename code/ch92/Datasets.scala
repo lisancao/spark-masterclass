@@ -1,5 +1,5 @@
 // Chapter 92: typed Datasets and Encoders in Scala, on Spark Classic.
-// Run from code/:  uv run spark-shell --master 'local[*]' -i ch92/Datasets.scala
+// Run from code/:  uv run spark-shell --master 'local[*]' --conf spark.ui.port=4157 -i ch92/Datasets.scala
 import org.apache.spark.sql.{Dataset, Encoder, Encoders, SparkSession}
 import org.apache.spark.sql.expressions.Aggregator
 import org.apache.spark.sql.functions._
@@ -13,7 +13,10 @@ val path = sys.env("BOOK_DATA") + "/nyc-taxi/yellow"
 object Model {
   case class Trip(PULocationID: Int, payment_type: Option[Long], passenger_count: Option[Long],
                   trip_distance: Double, fare_amount: Double, tip_amount: Double)
-      }
+  case class Missing(PULocationID: Int, surge_fee: Double)
+  case class NoOption(PULocationID: Int, passenger_count: Long)
+  case class SumCount(sum: Double, count: Long)
+}
 import Model._
 
 def section(s: String): Unit = println(s"\n== $s")
