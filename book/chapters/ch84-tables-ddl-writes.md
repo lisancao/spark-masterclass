@@ -158,7 +158,7 @@ To give each column a type, use a `CAST` in the query.
 > CREATE TABLE IF NOT EXISTS daily (x INT) USING parquet
 > CREATE TABLE daily (x INT) USING parquet
   AnalysisException: [TABLE_OR_VIEW_ALREADY_EXISTS] Cannot create table or view
-  `spark_catalog`.`taxi`.`daily` because it already exists.
+  `spark_catalog`.`taxi`.`daily` because it already exists. Choose a different name, ...
 ```
 
 `REPLACE TABLE` and `CREATE OR REPLACE TABLE` need a V2 catalog. The session catalog refuses them for a file source table:
@@ -770,11 +770,11 @@ The metadata folder has one JSON file for each commit:
 
 ```text
   Iceberg metadata files:
-    v1.metadata.json  (1947 B)
-    v2.metadata.json  (3113 B)
-    v3.metadata.json  (4348 B)
-    v4.metadata.json  (5554 B)
-    v5.metadata.json  (6665 B)
+    v1.metadata.json  (1952 B)
+    v2.metadata.json  (3117 B)
+    v3.metadata.json  (4352 B)
+    v4.metadata.json  (5558 B)
+    v5.metadata.json  (6674 B)
 ```
 
 ```mermaid

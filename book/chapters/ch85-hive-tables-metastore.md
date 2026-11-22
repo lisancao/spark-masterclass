@@ -44,10 +44,12 @@ The catalog is metadata only. The executors read and write the files of the ware
 `hive_session.py` starts a session with `enableHiveSupport()` in an empty folder. The helper `hive_session()` in `ch85/hive.py` sets the warehouse folder and makes the folder the working directory:
 
 ```python
-spark = (SparkSession.builder.master("local[2]").appName(name)
-         .config("spark.ui.port", ui_port())
-         .config("spark.sql.warehouse.dir", str(Path(folder) / "warehouse"))
-         .enableHiveSupport().getOrCreate())
+os.chdir(folder)
+b = (SparkSession.builder.master("local[2]").appName(name)
+     .config("spark.ui.port", ui_port())
+     .config("spark.sql.warehouse.dir", str(Path(folder) / "warehouse")))
+...
+spark = b.enableHiveSupport().getOrCreate()
 ```
 
 After the first statements, the folder has three things:
