@@ -61,4 +61,15 @@ latest = max(tws.glob("*.zip"), key=lambda p: int(p.stem))
 m = json.loads(zipfile.ZipFile(latest).read("metadata").decode().splitlines()[1])
 print(f"  {latest.name}: numKeys {m['numKeys']}")
 print("  columnFamilyMapping:", json.dumps(m["columnFamilyMapping"], sort_keys=True))
-print("  state schema files:", sorted(str(p.relative_to(tws.parents[1])) for p in (tws.parents[1]).glob("_stateSchema/**/*") if p.is_file() and not p.name.endswith(".crc")))
+print("  operator files outside the partitions:")
+for p in sorted(tws.parent.glob("_*/**/*")):
+    if p.is_file() and not p.name.endswith(".crc"):
+        print(f"    state/0/{p.relative_to(tws.parent)}  ({p.stat().st_size} B)")
+v2 = sorted((tws.parent / "_metadata" / "v2").glob("[0-9]*"))
+if v2:
+    md = json.loads(v2[-1].read_text().splitlines()[1])
+    props = json.loads(md["operatorPropertiesJson"])
+    print(f"  {v2[-1].relative_to(tws.parent)}: timeMode {props['timeMode']}, outputMode {props['outputMode']}")
+    for v in props["stateVariables"]:
+        print(f"    {v['stateName']:<30} {v['stateVariableType']:<11} ttl {v['ttlEnabled']}")
+    print("    schema file:", md["stateStoreInfo"][0]["stateSchemaFilePaths"][0].split("/state/")[-1])

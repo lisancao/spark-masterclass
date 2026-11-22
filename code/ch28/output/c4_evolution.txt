@@ -1,0 +1,7 @@
+change                 unsaferow                                    avro
+no change              read (1,)                                    read (1,)
+rename n to count      read (1,)                                    read (None,)
+add a field            STATE_STORE_VALUE_SCHEMA_NOT_COMPATIBLE      read (1, None)
+widen INT to BIGINT    STATE_STORE_VALUE_SCHEMA_NOT_COMPATIBLE      read (1,)
+drop a field           STATE_STORE_VALUE_SCHEMA_NOT_COMPATIBLE      read (1,)
+narrow BIGINT to INT   STATE_STORE_VALUE_SCHEMA_NOT_COMPATIBLE      STATE_STORE_INVALID_VALUE_SCHEMA_EVOLUTION

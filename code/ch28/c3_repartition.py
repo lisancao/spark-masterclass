@@ -28,26 +28,26 @@ def run():
 
 
 def state():
-    df = spark.read.format("statestore").option("operatorId", 1).load(str(ck))
+    df = spark.read.format("statestore").option("operatorId", 0).load(str(ck))
     rows = df.selectExpr("key.user", "value.count", "partition_id").orderBy("user").collect()
     return " ".join(f"{r.user}={r['count']}@p{r.partition_id}" for r in rows)
 
 
 def parts():
-    return sorted(p.name for p in (ck / "state" / "1").iterdir() if p.name.isdigit())
+    return sorted(p.name for p in (ck / "state" / "0").iterdir() if p.name.isdigit())
 
 
 for i in (1, 2):
     drop(inbox, i)
 print("1. two drops on 2 partitions. batches:", run())
 print("   state:", state())
-print("   state/1 folders:", parts())
+print("   state/0 folders:", parts())
 
 print("\n2. repartition the stopped query to 4 partitions")
 spark._streamingCheckpointManager.repartition(str(ck), 4)
 print("   offsets and commits now:", sorted(p.name for p in (ck / "offsets").iterdir() if p.name.isdigit()),
       sorted(p.name for p in (ck / "commits").iterdir() if p.name.isdigit()))
-print("   state/1 folders:", parts())
+print("   state/0 folders:", parts())
 print("   state:", state())
 
 print("\n3. restart with the last two drops; the session still says 2 partitions")
@@ -68,4 +68,6 @@ q.awaitTermination()
 try:
     spark._streamingCheckpointManager.repartition(str(w2 / "ck"), 4)
 except Exception as e:
-    print(error_text(e, lines=3))
+    import re, textwrap
+    m = re.search(r"\[STATE_REPARTITION[^\n]*", str(e))
+    print(textwrap.indent(textwrap.fill(re.sub(r"'file:[^']*'", "'.../ck'", m.group(0)), 90), "  ") if m else error_text(e))

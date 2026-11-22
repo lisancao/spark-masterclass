@@ -1,0 +1,66 @@
+1. spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled = false (default)
+1.zip  (3775 B)
+2.zip  (3870 B)
+3.zip  (3955 B)
+4.zip  (4040 B)
+SSTs/000008-ab134981-b61f-484f-92bf-4af45358119f.sst  (1249 B)
+SSTs/000009-064812c9-5ed5-4023-a753-72e1911b6fdc.sst  (1251 B)
+SSTs/000010-7903cd81-3309-4b2b-a795-d147eef862eb.sst  (1264 B)
+SSTs/000011-911119a6-60a3-4e53-9b2e-55aa15cf6498.sst  (1251 B)
+_metadata/schema  (195 B)
+
+4.zip holds: ['000004.log', 'CURRENT', 'MANIFEST-000005', 'OPTIONS-000007', 'metadata']
+its metadata file: v1
+{
+ "sstFiles": [
+  {
+   "localFileName": "000009.sst",
+   "dfsSstFileName": "000009-064812c9-5ed5-4023-a753-72e1911b6fdc.sst",
+   "sizeBytes": 1251
+  },
+  {
+   "localFileName": "000011.sst",
+   "dfsSstFileName": "000011-911119a6-60a3-4e53-9b2e-55aa15cf6498.sst",
+   "sizeBytes": 1251
+  },
+  {
+   "localFileName": "000008.sst",
+   "dfsSstFileName": "000008-ab134981-b61f-484f-92bf-4af45358119f.sst",
+   "sizeBytes": 1249
+  },
+  {
+   "localFileName": "000010.sst",
+   "dfsSstFileName": "000010-7903cd81-3309-4b2b-a795-d147eef862eb.sst",
+   "sizeBytes": 1264
+  }
+ ],
+ "numKeys": 4,
+ "columnFamilyMapping": {}
+}
+
+2. spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled = true
+1.changelog  (95 B)
+2.changelog  (95 B)
+3.changelog  (95 B)
+4.changelog  (96 B)
+_metadata/schema  (195 B)
+
+3. spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled = true and spark.sql.streaming.stateStore.checkpointFormatVersion = 2
+1_6ca51c31-2ef0-4768-9ca1-044a7e056726.changelog  (103 B)
+2_3f1b21ec-2807-4baa-9a70-90e9c22f6a70.changelog  (186 B)
+3_3df0ef1e-2820-4e49-9d49-c6a6c96d6b02.changelog  (225 B)
+4_965dd942-6ea7-48b3-bb80-f83e8bfc169c.changelog  (270 B)
+_metadata/schema  (195 B)
+commits/3: v2 | {"nextBatchWatermarkMs":0,"stateUniqueIds":{"0":[["965dd942-6ea7-48b3-bb80-f83e8bfc169c"],["1c087da2-9ab0-4404-8104-546de55085d8"]]}}
+
+4. The transformWithState checkpoint of Chapter 26 (t2_sessions.py), partition 0:
+  5.zip: numKeys 4
+  columnFamilyMapping: {"$eventTimers_keyToTimestamp": 4, "$eventTimers_timestampToKey": 5, "default": 1, "seen": 3, "session": 2}
+  operator files outside the partitions:
+    state/0/_metadata/v2/0  (713 B)
+    state/0/_stateSchema/default/0_4902d7e8-dcc3-4b55-9e1b-f72b606f6414  (2049 B)
+  _metadata/v2/0: timeMode EventTime, outputMode Append
+    session                        ValueState  ttl False
+    $eventTimers_keyToTimestamp    TimerState  ttl False
+    seen                           MapState    ttl False
+    schema file: 0/_stateSchema/default/0_4902d7e8-dcc3-4b55-9e1b-f72b606f6414

@@ -39,10 +39,11 @@ def processor(schema, initial):
 def run(ck, inbox, schema, initial):
     q = (spark.readStream.schema("k STRING").json(str(inbox)).groupBy("k")
          .transformWithState(processor(schema, initial), "k STRING, before STRING", "Update", "None")
-         .writeStream.format("memory").queryName("ev").outputMode("update")
+         .writeStream.foreachBatch(lambda df, _: seen.extend(df.collect())).outputMode("update")
          .option("checkpointLocation", str(ck)).trigger(availableNow=True).start())
+    seen = []
     q.awaitTermination()
-    return spark.table("ev").collect()[-1].before
+    return seen[-1].before
 
 
 CASES = [

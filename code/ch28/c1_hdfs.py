@@ -36,15 +36,15 @@ q.stop()
 print("batches (id, input rows):", [(p.batchId, p.numInputRows) for p in q.recentProgress][:6])
 print("operators:", [s.operatorName for s in q.lastProgress.stateOperators])
 
-print("\nThe state of operator 1 (the count), .crc files left out:")
-print(tree(ck / "state" / "1"))
+print("\nThe state of operator 0 (the count), .crc files left out:")
+print(tree(ck / "state" / "0"))
 
-d = ck / "state" / "1" / "0" / "1.delta"
+d = ck / "state" / "0" / "0" / "1.delta"
 print(f"\n$ xxd {d.relative_to(ck)}")
 print(subprocess.run(["xxd", str(d)], capture_output=True, text=True).stdout.rstrip())
 
 print("\nEach delta and snapshot of the count, decoded (key: user, value: count):")
-for f in sorted((ck / "state" / "1").glob("*/*.*"), key=lambda p: (p.parent.name, int(p.stem), p.suffix)):
+for f in sorted((ck / "state" / "0").glob("*/[0-9]*.*"), key=lambda p: (p.parent.name, int(p.stem), p.suffix)):
     if f.suffix not in (".delta", ".snapshot"):
         continue
     raw = lz4_java_stream(f.read_bytes())
@@ -52,19 +52,21 @@ for f in sorted((ck / "state" / "1").glob("*/*.*"), key=lambda p: (p.parent.name
     print(f"  {f.parent.name}/{f.name:<11} {len(raw):>4} bytes  {rows}")
 
 print("\nThe same store through the state data source:")
-spark.read.format("statestore").option("operatorId", 1).load(str(ck)) \
+spark.read.format("statestore").option("operatorId", 0).load(str(ck)) \
     .selectExpr("key.user", "value.count", "partition_id").orderBy("user").show()
 print("As of batch 1 (option batchId):")
-spark.read.format("statestore").option("operatorId", 1).option("batchId", 1).load(str(ck)) \
+spark.read.format("statestore").option("operatorId", 0).option("batchId", 1).load(str(ck)) \
     .selectExpr("key.user", "value.count").orderBy("user").show()
 print("The change feed of partition 0:")
-spark.read.format("statestore").option("operatorId", 1).option("readChangeFeed", "true") \
+spark.read.format("statestore").option("operatorId", 0).option("readChangeFeed", "true") \
     .option("changeStartBatchId", 0).load(str(ck)).where("partition_id = 0") \
     .selectExpr("batch_id", "change_type", "key.user", "value.count").orderBy("batch_id", "user").show()
 print("Operator metadata:")
 spark.read.format("state-metadata").load(str(ck)) \
     .select("operatorId", "operatorName", "numPartitions", "minBatchId", "maxBatchId").show(truncate=False)
-print("--- state/1/_metadata/metadata")
-print((ck / "state/1/_metadata/metadata").read_text())
-print("--- state/1/0/_metadata/schema (first 300 characters)")
-print((ck / "state/1/0/_metadata/schema").read_text()[:300])
+print("--- state/0/_metadata/metadata")
+print((ck / "state/0/_metadata/metadata").read_text())
+print("--- state/0/0/_metadata/schema (printable text only: a version, the key schema, the value schema)")
+import re
+for part in re.findall(r"[ -~]{2,}", (ck / "state/0/0/_metadata/schema").read_bytes().decode("latin-1")):
+    print(part.strip())

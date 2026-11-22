@@ -1,0 +1,18 @@
+1. two drops on 2 partitions. batches: [(0, 10), (1, 9)]
+   state: u1=3@p0 u2=4@p1 u3=5@p1 u4=3@p0 u5=2@p0
+   state/0 folders: ['0', '1']
+
+2. repartition the stopped query to 4 partitions
+   offsets and commits now: ['0', '1', '2'] ['0', '1', '2']
+   state/0 folders: ['0', '1', '2', '3']
+   state: u1=3@p2 u2=4@p3 u3=5@p1 u4=3@p2 u5=2@p2
+
+3. restart with the last two drops; the session still says 2 partitions
+   batches: [(3, 8), (4, 4)]
+   state: u1=6@p2 u2=5@p3 u3=5@p1 u4=4@p2 u5=4@p2 u6=3@p3 u7=1@p0
+
+4. the same call on the default (HDFS) state store
+  [STATE_REPARTITION_INVALID_CHECKPOINT.UNSUPPORTED_PROVIDER] The provided checkpoint
+  location '.../ck' is in an invalid state.
+  org.apache.spark.sql.execution.streaming.state.HDFSBackedStateStoreProvider is not
+  supported SQLSTATE: 55019
