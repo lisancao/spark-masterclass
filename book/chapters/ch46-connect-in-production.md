@@ -30,15 +30,24 @@ flowchart LR
 
 The three patterns have different costs:
 
-- **One shared server.** The cheapest pattern. A new client costs one session. All clients share the executors, the catalog and the failures of the driver.
-- **One server per application or team.** Each server has its own driver, executors, configs and resource limits. A failure stays inside one team. This pattern costs one driver JVM for each server, and the executors are not shared.
-- **One sandbox per agent.** A server for each agent, with its own storage, its own limits and a short life. This pattern is the most isolated and the most expensive. Step 9 measures it.
+| Pattern | What a new client costs | What the clients share | Isolation |
+|---|---|---|---|
+| **One shared server** | One session. The cheapest pattern. | The executors, the catalog and the failures of the driver | Session state only |
+| **One server per application or team** | One driver JVM for each server. The executors are not shared. | Nothing across teams. Each server has its own driver, executors, configs and resource limits. | A failure stays inside one team |
+| **One sandbox per agent** | A server for each agent, with its own storage, its own limits and a short life. Step 9 measures it. | Nothing | The most isolated and the most expensive pattern |
 
 The steps below show what each boundary protects, with the server code of 4.3.0 as the reference.
 
 ## Step 1: What a session is on the server
 
 When a client connects, the server makes a `SessionHolder` (`sql/connect/server/src/main/scala/org/apache/spark/sql/connect/service/SessionHolder.scala`). The key of a session is the pair `(userId, sessionId)`. The holder contains a new `SparkSession` that the server makes with `newSession()` from the server's own session. A `SparkSession` from `newSession()` shares the `SparkContext` and the `SharedState` (the catalog, the cache manager and the listeners). It has its own `SessionState` (SQL configs, temporary views, the function registry). The holder also has its own artifact manager (Chapter 44, Step 9), its own job tags and its own operations.
+
+The figure shows this division. The results on the right of the bottom box come from `isolation.py` in Step 2.
+
+<figure markdown>
+  ![Three sessions, each with its own state, above one shared SparkContext and SharedState](../media/figures/ch46-session-scope.svg)
+  <figcaption>One Connect server is one Spark application. Each session has its own state (top). All sessions share the SparkContext and the SharedState (bottom).</figcaption>
+</figure>
 
 ## Step 2: What a session isolates, and what sessions share
 
@@ -98,6 +107,20 @@ server local[2]; session A: 16 tasks of 1 s; session B: a small group-by, 2 s af
 ```
 
 Under FIFO, the small query waited until A's tasks finished, about 8 to 10 seconds. Under FAIR, the scheduler gave B a task slot when one of A's tasks finished. B's query took about 1.7 seconds after the first run. A's query took about the same time in the two modes.
+
+<figure markdown>
+  ![Bar chart of the query times of sessions A and B in three FIFO runs and three FAIR runs](../media/figures/ch46-fifo-fair.svg)
+  <figcaption>The six runs of <code>contention.py</code>. Under FAIR, the time of B fell from about 9 seconds to about 2 seconds. The time of A did not change much.</figcaption>
+</figure>
+
+The animation shows why. The schedule in it is schematic, and the times at the end come from the output above.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch46-anim-fifo-fair.webp">
+    <source src="../../media/clips/ch46-anim-fifo-fair.mp4" type="video/mp4">
+  </video>
+  <figcaption>Two task slots and two sessions (schematic). FIFO keeps the slots for the job of A. FAIR gives the next free slot to B.</figcaption>
+</figure>
 
 The pool file is necessary. `spark.scheduler.mode=FAIR` alone sends all jobs to the `default` pool, and the mode inside that pool is `FIFO` unless the allocation file changes it. The [operator example for a Connect server](ch47-kubernetes-operator.md) sets `spark.scheduler.mode: "FAIR"` for the same reason. The FAIR mode shares task slots, not memory. A session that caches a large table or runs a large broadcast can still take memory from the other sessions.
 
@@ -189,6 +212,9 @@ Reattachable execution, which keeps a result stream alive across a cut connectio
 
 ## Step 7: A persistent local server (new in 4.3)
 
+!!! info "New in 4.3"
+    `spark.local.connect.reuse` and `SPARK_LOCAL_CONNECT_REUSE` are new in Spark 4.3. The source calls the persistent local server experimental.
+
 On a laptop, `SparkSession.builder.remote("local[2]")` starts a Connect server inside the Python process. Each new process pays for a new JVM. Spark 4.3 adds an option to reuse one server across processes: `spark.local.connect.reuse=true`, or `SPARK_LOCAL_CONNECT_REUSE=1` (`python/pyspark/sql/connect/local_server.py`, which the source calls experimental). `local_reuse.py` runs three short processes in each mode:
 
 ```text
@@ -210,6 +236,9 @@ With reuse, the first process started the server, and the next processes connect
 This option fits a developer, a test suite, or a local agent that starts many short Python processes. It does not change the isolation of Step 2: the processes share one application.
 
 ## Step 8: Project Feather on the server (new in 4.3)
+
+!!! info "New in 4.3"
+    `spark.sql.optimizer.singleTaskExecution.enabled` is new in Spark 4.3. It is a SQL config, so each session can set it.
 
 [Chapter 23](ch23-project-feather.md) explains single-task execution (`spark.sql.optimizer.singleTaskExecution.enabled`), the part of Project Feather in 4.3. On a Connect server, it is a SQL config, so each session can set it for itself. `feather_server.py` runs the same small query 20 times in a session with the flag off and in a session with the flag on. It builds a new DataFrame for each run, and it counts jobs and tasks from the 4.3 Connect REST endpoints:
 
@@ -250,6 +279,13 @@ a new session on a running shared server answered in 1.64 s
 ```
 
 Each sandbox cost one JVM of about 480 MB and 4.9 seconds before its first answer. A new session on a shared server that already ran answered its first query in 1.64 seconds, and it cost no new JVM. Agent A's client got no answer after its server stopped. It retried until the script stopped the try after 20 seconds. The isolation came with the cost: agent B did not see the table of agent A, because each server has its own warehouse. When agent A's server stopped, agent B's server continued.
+
+The figure puts the start times of this chapter side by side.
+
+<figure markdown>
+  ![Bar chart of the seconds to the first answer for four ways to get a server](../media/figures/ch46-first-answer.svg)
+  <figcaption>Seconds to the first answer. A new server costs a JVM start. A new session on a server that runs costs much less.</figcaption>
+</figure>
 
 A sandbox for each agent combines the pieces of this chapter:
 
