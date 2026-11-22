@@ -41,3 +41,11 @@ if ARROW:
     c = z.cache()
     attempt("cached rows, then st_srid(g)", lambda: (c.count(), c.selectExpr("max(st_srid(g))").first()[0]), 30)
     attempt("cached plan has InMemoryRelation", lambda: "InMemoryRelation" in c._jdf.queryExecution().optimizedPlan().toString(), 30)
+
+if not ARROW:
+    print("\n== 3. printing and JSON")
+    spark.sql("SELECT location_id, g FROM z WHERE location_id = 161").show(truncate=False)
+    attempt("to_json(named_struct('g', g))", lambda: spark.sql(
+        "SELECT to_json(named_struct('g', g)) FROM z").first()[0], 30)
+    attempt("to_json of st_asbinary(g)", lambda: spark.sql(
+        "SELECT to_json(named_struct('g', st_asbinary(g))) FROM z WHERE location_id = 161").first()[0][:60], 30)

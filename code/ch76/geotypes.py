@@ -36,6 +36,7 @@ for label, sql in [
     ("GEOGRAPHY(4326) -> GEOMETRY(4326)", f"SELECT typeof(CAST(st_geogfromwkb({PT}) AS GEOMETRY(4326)))"),
     ("GEOMETRY(4326) -> GEOGRAPHY(4326)",
      f"SELECT typeof(CAST(st_setsrid(st_geomfromwkb({PT}), 4326) AS GEOGRAPHY(4326)))"),
+    ("GEOMETRY(0) -> GEOGRAPHY(4326)", f"SELECT typeof(CAST(st_geomfromwkb({PT}) AS GEOGRAPHY(4326)))"),
     ("GEOMETRY(3857) -> GEOMETRY(ANY)", f"SELECT typeof(CAST(st_geomfromwkb({PT}, 3857) AS GEOMETRY(ANY)))"),
     ("GEOMETRY(3857) -> GEOMETRY(4326)", f"SELECT typeof(CAST(st_geomfromwkb({PT}, 3857) AS GEOMETRY(4326)))"),
     ("GEOMETRY(0) -> BINARY", f"SELECT typeof(CAST(st_geomfromwkb({PT}) AS BINARY))"),
