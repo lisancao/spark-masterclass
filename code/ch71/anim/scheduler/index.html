@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <script src="data.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="17" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      // Storyboard: storyboard.md. Task placement and locality come from data.js (scheduler_log.txt).
+      // Timing on screen is schematic.
+      A.mount();
+      const D = window.DATA;
+      const [title, sub] = A.title("One job, from the driver to the executors", "local-cluster with two executors, Spark 4.3");
+      const cap = (s, a, b) => { const c = A.text(s, { y: 0.9, size: 38 }); A.in(c, a); if (b) A.out(c, b); return c; };
+
+      // driver side
+      const drv = A.text("driver", { x: 0.2, y: 0.24, size: 34, weight: 700, color: "var(--a-mute)" });
+      const dag = A.box({ x: 0.2, y: 0.36, w: 420, h: 90, kind: "soft", title: "DAGScheduler", sub: "job to stages", size: 30 });
+      const ts = A.box({ x: 0.2, y: 0.68, w: 420, h: 90, kind: "soft", title: "TaskScheduler", sub: "tasks to free cores", size: 30 });
+      // executors
+      const exY = { "0": 0.40, "1": 0.70 };
+      const exB = {};
+      for (const e of ["0", "1"]) {
+        exB[e] = A.box({ x: 0.82, y: exY[e], w: 420, h: 170, kind: "paper", title: "", size: 26 });
+        A.text(`executor ${e}`, { x: 0.82, y: exY[e] - A.dy(100), size: 30, weight: 700, color: "var(--a-acc)" });
+      }
+
+      // beat job (0.8): the action arrives
+      const job = A.box({ x: 0.2, y: 0.36 - A.dy(150), w: 220, h: 60, kind: "accent", title: "collect()", size: 28 });
+      A.in(job, 0.4);
+      A.tl.to(job, { y: A.px(150), opacity: 0, duration: 0.8, ease: "power2.in" }, 1.6);
+      A.tl.fromTo(dag, { scale: 1.08 }, { scale: 1, duration: 0.4 }, 2.4);
+      cap("One action becomes one job in the DAGScheduler", 0.6, 3.0);
+
+      // beat stages (3.2): two stages, cut at the shuffle
+      const s1 = A.box({ x: 0.5, y: 0.36, w: 300, h: 80, kind: "accent", title: "ShuffleMapStage 1", sub: "4 tasks", size: 24 });
+      const s2 = A.box({ x: 0.5, y: 0.56, w: 300, h: 80, kind: "ghost", title: "ResultStage 2", sub: "6 tasks, waits", size: 24 });
+      const cut = A.text("shuffle", { x: 0.5, y: 0.46, size: 24, color: "var(--a-mute)" });
+      A.in([s1, cut, s2], 3.2, { stagger: 0.35 });
+      cap("The shuffle cuts the job into two stages", 3.4, 6.0);
+
+      // beat offers (6.2): stage 1 tasks go to executors through the TaskScheduler
+      const chip = (label, kind, sy) => A.box({ x: 0.5, y: sy, w: 64, h: 44, kind, title: label, size: 22, radius: 8 });
+      const slots = { "0": 0, "1": 0 };
+      // a chip leaves its stage box, passes through the TaskScheduler, and lands on its executor
+      const place = (t, at, kind, sy) => {
+        const c = chip(String(t.index), kind, sy);
+        const k = slots[t.executor]++;
+        const tx = 0.82 - A.dx(150) + (k % 4) * A.dx(100), ty = exY[t.executor] + (k < 4 ? A.dy(20) : A.dy(75));
+        A.tl.set(c, { opacity: 0 }, 0);
+        A.tl.to(c, { opacity: 1, duration: 0.2 }, at);
+        A.tl.to(c, { x: A.X(0.2 - 0.5) + A.px(60 * (t.index % 3) - 60), y: A.Y(0.68 - sy), duration: 0.6, ease: "power2.inOut" }, at + 0.2);
+        A.tl.to(c, { x: A.X(tx - 0.5), y: A.Y(ty - sy), duration: 0.8, ease: "power2.inOut" }, at + 0.9);
+        return c;
+      };
+      const st1 = D.tasks.filter(t => t.stage === 1), st2 = D.tasks.filter(t => t.stage === 2);
+      const c1 = st1.map((t, i) => place(t, 6.2 + i * 0.35, "accent", 0.36));
+      A.tl.fromTo(ts, { scale: 1.08 }, { scale: 1, duration: 0.4 }, 6.5);
+      A.tl.fromTo(ts, { scale: 1.08 }, { scale: 1, duration: 0.4 }, 10.5);
+      const loc1 = A.text(`stage 1: ${st1[0].locality}`, { x: 0.5, y: 0.78, size: 26, color: "var(--a-acc)", mono: true });
+      A.in(loc1, 7.2);
+      cap("The TaskScheduler gives each task to a free core", 6.4, 9.6);
+
+      // beat stage2 (9.8): stage 1 finishes, its chips leave, stage 2 runs
+      A.out([...c1, loc1], 9.8);
+      A.tl.to(s1, { opacity: 0.35, duration: 0.4 }, 9.8);
+      A.tl.to(s2, { opacity: 1, duration: 0.2 }, 10.0);
+      for (const e of ["0", "1"]) slots[e] = 0;
+      st2.forEach((t, i) => place(t, 10.2 + i * 0.3, "ok", 0.56));
+      const loc2 = A.text(`stage 2: ${st2[0].locality}, reads shuffle output`, { x: 0.5, y: 0.78, size: 26, color: "var(--a-ok)", mono: true });
+      A.in(loc2, 11.2);
+      cap("When stage 1 ends, the DAGScheduler submits stage 2", 10.0, 13.4);
+
+      // beat result (13.6)
+      cap(`Job done in ${(D.job_ms / 1000).toFixed(1)} s: the results go back to the driver`, 13.6);
+      A.in(A.note("task placement and locality from the driver log, timing schematic"), 0.5);
+      A.finish(17);
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+FutureWarning: DStream is deprecated as of Spark 3.4.0. Migrate to Structured Streaming.
+10:26:58 [(161, 2), (236, 1), (237, 1)]
+10:26:59 [(237, 2)]
+10:27:00 [(161, 1)]
+10:27:01 []

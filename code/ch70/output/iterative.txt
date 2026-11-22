@@ -1,0 +1,44 @@
+input: 16 text files, 40,062,050 bytes, 10 passes, 16 cores
+
+pass  mapreduce s   input bytes   rdd s   input bytes
+   1         2.61    40,375,293    0.79    40,375,266
+   2         1.33    40,375,324    0.24    17,393,058
+   3         1.30    40,375,322    0.23    17,393,058
+   4         0.96    40,375,322    0.26    17,393,058
+   5         1.14    40,375,322    0.24    17,393,058
+   6         0.97    40,375,323    0.26    17,393,058
+   7         1.02    40,375,322    0.33    17,393,058
+   8         0.90    40,375,322    0.32    17,393,058
+   9         1.03    40,375,322    0.32    17,393,058
+  10         0.96    40,375,321    0.37    17,393,058
+ sum        12.20   403,753,193    3.37   196,912,788
+
+mapreduce: shuffle write 14,720 B, output files written 11
+rdd:       shuffle write 0 B
+
+mapreduce weights: a=1.030601 b=4.496045
+rdd weights:       a=1.030601 b=4.496045
+
+median of passes 2..10: mapreduce 1.02 s, rdd 0.26 s (3.9x)
+
+cached RDD 155: 16/16 partitions, 17,393,058 B in memory, 0 B on disk
+
+lineage of the cached points (toDebugString):
+(16) PythonRDD[155] at RDD at PythonRDD.scala:59 [Memory Serialized 1x Replicated]
+ |        CachedPartitions: 16; MemorySize: 16.6 MiB; DiskSize: 0.0 B
+ |   data/work/ch70/points MapPartitionsRDD[154] at textFile at <unknown>:0 [Memory Serialized 1x Replicated]
+ |   data/work/ch70/points HadoopRDD[153] at textFile at <unknown>:0 [Memory Serialized 1x Replicated]
+
+what the mapreduce passes left on disk (first two of the state folders):
+weights/pass-0/
+  _SUCCESS  (0 B)
+  part-00000  (11 B)
+weights/pass-1/
+  _SUCCESS  (0 B)
+  part-00000  (42 B)
+
+the input folder:
+  _SUCCESS  (0 B)
+  part-00000-712306a0-dfdd-491e-b338-9696681d9eb1-c000.txt  (2503835 B)
+  part-00001-712306a0-dfdd-491e-b338-9696681d9eb1-c000.txt  (2503723 B)
+  ...

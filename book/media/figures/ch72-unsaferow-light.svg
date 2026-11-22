@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 220" width="1000" height="220">
+<text x="20" y="26" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2328" text-anchor="start">One taxi row as an UnsafeRow: 48 bytes, six 8-byte words (tungsten.txt)</text>
+<rect x="20" y="50" width="150" height="70" rx="4" fill="#e5e7eb" stroke="#9aa1ab" stroke-width="1.5"/>
+<text x="95" y="72" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">bytes 0-7</text>
+<text x="95" y="98" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">0x0</text>
+<text x="95" y="142" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">null bitset</text>
+<text x="95" y="160" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">4 fields, no nulls</text>
+<rect x="180" y="50" width="150" height="70" rx="4" fill="#dbe5f3" stroke="#9aa1ab" stroke-width="1.5"/>
+<text x="255" y="72" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">bytes 8-15</text>
+<text x="255" y="98" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">0x1</text>
+<text x="255" y="142" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">VendorID = 1</text>
+<text x="255" y="160" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">int in an 8-byte slot</text>
+<rect x="340" y="50" width="150" height="70" rx="4" fill="#dbe5f3" stroke="#9aa1ab" stroke-width="1.5"/>
+<text x="415" y="72" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">bytes 16-23</text>
+<text x="415" y="98" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">0x4007333333333333</text>
+<text x="415" y="142" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">trip_distance = 2.9</text>
+<text x="415" y="160" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">IEEE 754 double</text>
+<rect x="500" y="50" width="150" height="70" rx="4" fill="#f6e3d3" stroke="#9aa1ab" stroke-width="1.5"/>
+<text x="575" y="72" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">bytes 24-31</text>
+<text x="575" y="98" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">0x2800000001</text>
+<text x="575" y="142" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">offset 40, length 1</text>
+<text x="575" y="160" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">store_and_fwd_flag</text>
+<rect x="660" y="50" width="150" height="70" rx="4" fill="#dbe5f3" stroke="#9aa1ab" stroke-width="1.5"/>
+<text x="735" y="72" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">bytes 32-39</text>
+<text x="735" y="98" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">0x40304ccccccccccd</text>
+<text x="735" y="142" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">fare_amount = 16.3</text>
+<text x="735" y="160" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">IEEE 754 double</text>
+<rect x="820" y="50" width="150" height="70" rx="4" fill="#d9efe1" stroke="#9aa1ab" stroke-width="1.5"/>
+<text x="895" y="72" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">bytes 40-47</text>
+<text x="895" y="98" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">0x4e</text>
+<text x="895" y="142" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">"N" (variable part)</text>
+<text x="895" y="160" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">padded to 8 bytes</text>
+<path d="M575,168 C575,200 895,200 895,168" fill="none" stroke="#c0661a" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text x="735" y="214" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#c0661a" text-anchor="middle">the slot of a string holds (offset &lt;&lt; 32) | length</text>
+</svg>

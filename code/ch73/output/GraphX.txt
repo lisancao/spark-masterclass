@@ -1,0 +1,3 @@
+GraphX: vertices 249, edges 11636
+staticPageRank, 10 iterations, top five vertex ids: 14 (3.752), 265 (3.638), 132 (3.524), 130 (2.818), 244 (2.732)
+connected components: 1, largest has 249 vertices
