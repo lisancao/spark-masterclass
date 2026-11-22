@@ -1,0 +1,3 @@
+cache entries after fit:           6
+cache entries after model.params:  6
+cache entries after del + gc:      0

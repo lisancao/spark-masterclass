@@ -1,44 +1,44 @@
-== 269,381 events over 7 days; exact distinct users: week 33,233, daily [9000, 12125, 13231, 13547, 13776, 13773, 13686]
-   sum of daily distinct counts: 89,145  (the week has 33,233)
+== 270,453 events over 7 days; exact distinct users: week 33,233, daily [9000, 12140, 13207, 13675, 13892, 13768, 13805]
+   sum of daily distinct counts: 89,494  (the week has 33,233)
 
 == the same person, three spellings
-   distinct raw ids 56,798, after lower(trim()) 33,234 (the empty string still counts as one id)
+   distinct raw ids 56,904, after lower(trim()) 33,234 (the empty string still counts as one id)
    hll_sketch_agg over 'a', '', NULL, 'A': 2 | count(DISTINCT u): 3
    one sketch over BIGINT 1, 2 and STRING '1', '2': 4
 
 == approx_count_distinct (HyperLogLog++)
-   rsd 0.05: p = 9, m = 2^9 = 512 registers, true rsd 1.04/sqrt(m) = 0.0460; estimate 33,469 (error +0.710%)
-   rsd 0.01: p = 14, m = 2^14 = 16,384 registers, true rsd 1.04/sqrt(m) = 0.0081; estimate 33,511 (error +0.837%)
+   rsd 0.05: p = 9, m = 2^9 = 512 registers, true rsd 1.04/sqrt(m) = 0.0460; estimate 34,279 (error +3.147%)
+   rsd 0.01: p = 14, m = 2^14 = 16,384 registers, true rsd 1.04/sqrt(m) = 0.0081; estimate 33,235 (error +0.006%)
    plan: ['+- HashAggregate(keys=[day#3], functions=[approx_count_distinct(lower(trim(user#0, None)),', '+- HashAggregate(keys=[day#3], functions=[partial_approx_count_distinct(lower(trim(user#0,']
    200 groups of 20,000 distinct values, rsd 0.05: measured rsd 0.0477, worst 12.100%
    200 groups of 20,000 distinct values, rsd 0.01: measured rsd 0.0076, worst 2.065%
 
-== sketch table: 35 rows; raw JSON 15.4 MB, sketches 0.88 MB
+== sketch table: 35 rows; raw JSON 15.5 MB, sketches 0.88 MB
    schema: day int, country string, users_hll binary, users_theta binary, latency_kll binary, events bigint
-   raw events deleted; the rollups read only: ['part-00000-c2ee5b65-'] ...
+   raw events deleted; the rollups read only: ['part-00000-c0803ac8-'] ...
 
 == distinct users from merged HLL sketches
-   week: estimate 32,865, exact 33,233, error -1.107%
-   CA: estimate  6,498  exact  6,537  error -0.597%
-   US: estimate  6,533  exact  6,563  error -0.457%
-   VN: estimate  6,629  exact  6,720  error -1.354%
-   FR: estimate  6,786  exact  6,781  error +0.074%
-   BR: estimate  6,587  exact  6,632  error -0.679%
+   week: estimate 32,950, exact 33,233, error -0.852%
+   CA: estimate  6,514  exact  6,546  error -0.489%
+   US: estimate  6,596  exact  6,599  error -0.045%
+   VN: estimate  6,611  exact  6,707  error -1.431%
+   FR: estimate  6,718  exact  6,724  error -0.089%
+   BR: estimate  6,662  exact  6,657  error +0.075%
    plan of the rollup: ['+- ObjectHashAggregate(keys=[], functions=[hll_union_agg(users_hll#246204, false', '+- ObjectHashAggregate(keys=[], functions=[partial_hll_union_agg(users_hll#24620']
    hll_union of lgConfigK 12 and 14: [HLL_UNION_DIFFERENT_LG_K]
    with allowDifferentLgConfigK=True: 1
 
 == theta: users seen on two days (intersection)
-   days 0 and 1: intersection estimate  5,181 exact  5,160 error   +21 (+0.4%) | union 16,089 exact 15,965 | intersection is 32.3% of the union
-   days 0 and 6: intersection estimate  3,147 exact  3,168 error   -21 (-0.7%) | union 19,481 exact 19,518 | intersection is 16.2% of the union
+   days 0 and 1: intersection estimate  5,229 exact  5,175 error   +54 (+1.0%) | union 16,089 exact 15,965 | intersection is 32.4% of the union
+   days 0 and 6: intersection estimate  3,076 exact  3,111 error   -35 (-1.1%) | union 19,903 exact 19,694 | intersection is 15.8% of the union
 
 == KLL: latency quantiles for the week from 35 daily sketches
-   n = 269,381 values (exact 269,381)
+   n = 270,453 values (exact 270,453)
    rank    estimate     exact   rank of the estimate
-   0.5        54.62     54.46   0.5015
-   0.9       153.30    152.34   0.9013
-   0.99      370.27    352.25   0.9914
-   0.999     524.93    654.82   0.9975
+   0.5        54.58     54.49   0.5009
+   0.9       153.88    152.40   0.9021
+   0.99      334.48    352.74   0.9881
+   0.999     790.66    655.78   0.9995
    percentile_approx is deterministic: True
 
 == count-min sketch

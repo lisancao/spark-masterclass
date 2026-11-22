@@ -1,0 +1,48 @@
+training table: 366,249 rows
+
+== estimator and transformer
+StringIndexer is an Estimator: True, a Transformer: False
+fit() returned StringIndexerModel, a Transformer: True
+
+== StringIndexer: labels by frequency
+  index 0  rate_code 1     263,438 rows
+  index 1  rate_code 2       8,927 rows
+  index 2  rate_code 5       1,772 rows
+  index 3  rate_code 3       1,098 rows
+  index 4  rate_code 4         849 rows
+  index 5  rate_code 99         98 rows
+  NULL rate_code: 90,067 rows, not in labels
+  handleInvalid=error -> error: Unseen label: 7. To handle unseen labels, set Param handleIn
+  handleInvalid=skip  -> [('1', 0.0), ('2', 1.0)]
+  handleInvalid=keep  -> [('1', 0.0), ('2', 1.0), ('7', 6.0), (None, 6.0)]
+
+== OneHotEncoder
+  dropLast=True  size 6, rate_code '2' -> (6,[1],[1.0])
+  dropLast=False size 7, rate_code '2' -> (7,[1],[1.0])
+
+== slots of an assembled vector
+  2 input columns -> 7 slots: ['trip_distance', 'rate_vec_1', 'rate_vec_2', 'rate_vec_5', 'rate_vec_3', 'rate_vec_4', 'rate_vec_99']
+
+== what fit() runs
+  LinearRegression normal    2 jobs in 1.6 s, iterations   0, by kind {'treeAggregate': 2}
+  LinearRegression l-bfgs   11 jobs in 3.5 s, iterations   6, by kind {'treeAggregate': 11}
+
+== the same fit, input cached or not (median of 3 after a warmup)
+  cached      median 1.28 s  [1.32, 1.28, 1.25]
+  not cached  median 1.98 s  [1.98, 2.31, 1.45]
+
+== classification: tip or no tip (card trips)
+  120,500 card trips, 94.9% with a tip
+  LogisticRegression       AUC 0.557  accuracy 0.947
+  RandomForestClassifier   AUC 0.597  accuracy 0.947
+  columns a classifier adds: ['rawPrediction', 'probability', 'prediction']
+
+== pruneTree (new in 4.3)
+  pruneTree=True   3,334 nodes in 20 trees, AUC 0.597
+  pruneTree=False  7,202 nodes in 20 trees, AUC 0.605
+
+== CrossValidator: 4 settings x 3 folds
+  grid keys from the class attribute: 13 fits, settings seen by _fit [(0.0, 0.0)]
+     avgMetrics (rmse): [8.318, 8.318, 8.318, 8.318]
+  grid keys from the instance: 13 fits, settings seen by _fit [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
+     avgMetrics (rmse): [8.318, 8.318, 8.359, 8.382]

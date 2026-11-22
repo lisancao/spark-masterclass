@@ -179,7 +179,7 @@ import numpy as np
 def make_predict():
     m = pickle.loads(MODEL_FILE.read_bytes())
     mark("load")
-    labels = sorted(m["prior"])
+    labels = sorted(m["prior"]) + ["other"]
     def predict(texts: np.ndarray) -> np.ndarray:
         return np.array([labels.index(predict_one(m, t)) for t in texts], dtype=np.float32)
     return predict

@@ -23,7 +23,7 @@ pool = [f"u{n:05d}" for n in range(40000)]
 home = {u: rng.choice(COUNTRIES) for u in pool}
 users_by_day, latencies, prev = {}, [], set()
 for day in range(7):
-    active = {u for u in prev if rng.random() < 0.45} | set(rng.sample(pool, 9000))
+    active = {u for u in sorted(prev) if rng.random() < 0.45} | set(rng.sample(pool, 9000))
     (RAW / f"day={day}").mkdir(parents=True)
     with open(RAW / f"day={day}" / "events.jsonl", "w") as f:
         for u in sorted(active):
