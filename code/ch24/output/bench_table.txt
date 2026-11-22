@@ -13,11 +13,11 @@ gluten 4.1.1       0.47/0.51 1.2/0.9x      0.62/0.68 1.2/1.0x      0.34/0.40 1.6
 ! = the rows differ from the CPU rows on the same Spark version (see compare-*.txt)
 
 peak memory in pass 2 (MiB)
-engine spark   JVM RSS  JVM heap  GPU pool
-cpu    4.3.0      6849      4602         0
-cpu    4.2.0      6984      3906         0
-comet  4.2.0      2939      1553         0
-rapids 4.2.0      2578       885      9356
-auron  4.2.0      3220       750         0
-cpu    4.1.1      6437      3217         0
-gluten 4.1.1      1809       583         0
+engine spark   JVM RSS  JVM heap  off-heap exec  GPU pool
+cpu    4.3.0      6849      4602              0         0
+cpu    4.2.0      6984      3906              0         0
+comet  4.2.0      2939      1553            243         0
+rapids 4.2.0      2578       885              0      9356
+auron  4.2.0      3220       750              0         0
+cpu    4.1.1      6437      3217              0         0
+gluten 4.1.1      1809       583            440         0

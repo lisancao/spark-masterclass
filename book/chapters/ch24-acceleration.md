@@ -809,7 +809,7 @@ The chapter does not say which project has the bug. The Spark code expects Arrow
 
 The JVM engine keeps its data in the heap, and Spark's memory manager gives execution memory to each task. A native engine cannot use the heap for its data. Velox and DataFusion allocate memory outside the JVM, and cuDF allocates memory on the GPU. Each engine has a different model:
 
-- **Gluten** needs Spark's off-heap memory. Velox reserves memory from Spark's off-heap pool through the task memory manager, so Spark knows how much native memory each task holds. If a task needs more memory, Gluten can ask Velox operators to spill. Without `spark.memory.offHeap.enabled`, the plugin refuses to start (see the output below).
+- **Gluten** needs Spark's off-heap memory. Without `spark.memory.offHeap.enabled`, the plugin refuses to start (see the output below). Velox takes its memory from this off-heap budget, so `spark.memory.offHeap.size` limits the native work of each executor. Spark counts this use as off-heap execution memory: in pass 2 of Step 7, the peak was 440 MiB. This chapter did not measure how Gluten divides the budget among tasks.
 - **Comet** also uses Spark's off-heap pool. Its default pool (`fair_unified`) divides the pool among tasks. The Comet documentation says that the pool counts only the memory that operators reserve. Batch buffers and allocator overhead are not counted, so they must fit in `spark.executor.memoryOverhead`.
 - **The RAPIDS Accelerator** keeps its data in GPU memory. It reserves a large part of the GPU memory as one pool, through RMM (the RAPIDS Memory Manager). It uses pinned host memory for fast copies to and from the GPU. When the GPU pool is full, it spills batches to host memory, and then to disk. `spark.rapids.sql.concurrentGpuTasks` sets how many tasks can use the GPU at the same time. The other tasks wait, also if CPU cores are free.
 
@@ -903,14 +903,14 @@ gluten 4.1.1       0.47/0.51 1.2/0.9x      0.62/0.68 1.2/1.0x      0.34/0.40 1.6
 ! = the rows differ from the CPU rows on the same Spark version (see compare-*.txt)
 
 peak memory in pass 2 (MiB)
-engine spark   JVM RSS  JVM heap  GPU pool
-cpu    4.3.0      6849      4602         0
-cpu    4.2.0      6984      3906         0
-comet  4.2.0      2939      1553         0
-rapids 4.2.0      2578       885      9356
-auron  4.2.0      3220       750         0
-cpu    4.1.1      6437      3217         0
-gluten 4.1.1      1809       583         0
+engine spark   JVM RSS  JVM heap  off-heap exec  GPU pool
+cpu    4.3.0      6849      4602              0         0
+cpu    4.2.0      6984      3906              0         0
+comet  4.2.0      2939      1553            243         0
+rapids 4.2.0      2578       885              0      9356
+auron  4.2.0      3220       750              0         0
+cpu    4.1.1      6437      3217              0         0
+gluten 4.1.1      1809       583            440         0
 ```
 
 Read the table in this sequence:
@@ -943,7 +943,7 @@ rapids on Spark 4.2.0, boroughs:
 
 The CPU gives `2.506` for the average tip in Manhattan, and the GPU gives `2.5060000000000002`. The two values are the nearest doubles to two slightly different results of `round`. If your tests compare `DOUBLE` values exactly, they will find differences like this one.
 
-The memory columns show where each engine keeps its data. With the CPU, the JVM heap grew to 3.2 to 4.6 GB. With each engine, the heap stayed below 1.6 GB, because the engine keeps its batches outside the heap. The RSS (the memory of the whole process, also native memory) was lower too.
+The memory columns show where each engine keeps its data. With the CPU, the peak of the JVM heap was 3,217 to 4,602 MiB. With each engine, the peak of the heap was 1,553 MiB or less, because the engine keeps its batches outside the heap. Spark counted 440 MiB of off-heap execution memory for Gluten and 243 MiB for Comet. Auron does not use Spark's off-heap pool, so its column shows 0. The RSS (the memory of the whole process, also native memory) was lower too.
 
 But the JVM heap grows only when it must. These numbers show where the data was, not the minimum memory that each engine needs. The GPU pool of the RAPIDS Accelerator was 9,356 MiB in pass 2, because the other program used part of the GPU.
 

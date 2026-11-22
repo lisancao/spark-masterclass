@@ -49,8 +49,9 @@ for engine, spark in order:
     print(f"{engine:<7}{spark:<6}" + "".join(cells))
 print("\n! = the rows differ from the CPU rows on the same Spark version (see compare-*.txt)")
 print("\npeak memory in pass 2 (MiB)")
-print(f"{'engine':<7}{'spark':<6}{'JVM RSS':>9}{'JVM heap':>10}{'GPU pool':>10}")
+print(f"{'engine':<7}{'spark':<6}{'JVM RSS':>9}{'JVM heap':>10}{'off-heap exec':>15}{'GPU pool':>10}")
 for engine, spark in order:
     m = passes[1][(engine, spark)]["memory"]
     gpu = m["gpu_peak_mib"] - m["gpu_idle_mib"] if engine == "rapids" else 0
-    print(f"{engine:<7}{spark:<6}{m['jvm_peak_rss_mib']:>9}{m['jvm_heap_peak_mib']:>10}{gpu:>10}")
+    print(f"{engine:<7}{spark:<6}{m['jvm_peak_rss_mib']:>9}{m['jvm_heap_peak_mib']:>10}"
+          f"{m['offheap_execution_peak_mib']:>15}{gpu:>10}")
