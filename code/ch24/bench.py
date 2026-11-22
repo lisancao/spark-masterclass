@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from common.book import ui_api
 from ch24.engines import start, queries, walk, native_share, OFFLOAD_FRIENDLY, YEAR
 
-WARMUP, RUNS = int(os.environ.get("WARMUP", 2)), int(os.environ.get("RUNS", 7))
+WARMUP, RUNS = int(os.environ.get("WARMUP", 1)), int(os.environ.get("RUNS", 5))
 engine = sys.argv[1]
 
 
@@ -56,11 +56,14 @@ sampler.start()
 rows_total = spark.read.parquet(str(YEAR)).count()
 result = {"engine": engine, "spark": spark.version, "rows": rows_total,
           "warmup": WARMUP, "runs": RUNS, "queries": {}}
-for name, df in queries(spark).items():
+for name in queries(spark):
+    # A new DataFrame for each run. A second collect() of the same DataFrame reuses its
+    # shuffle files and skips every stage but the last, so it would time almost nothing.
     for _ in range(WARMUP):
-        rows = df.collect()
+        rows = queries(spark)[name].collect()
     times = []
     for _ in range(RUNS):
+        df = queries(spark)[name]
         t0 = time.perf_counter()
         rows = df.collect()
         times.append(time.perf_counter() - t0)
