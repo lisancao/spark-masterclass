@@ -73,7 +73,7 @@ root {
                   read {
                     data_source {
                       format: "parquet"
-                      paths: "/home/lnc/spark-masterclass/data/nyc-taxi/yellow"
+                      paths: "~/spark-masterclass/data/nyc-taxi/yellow"
                     }
                   }
                 }

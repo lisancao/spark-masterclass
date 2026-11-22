@@ -115,7 +115,7 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 ## Part X: Internals
 | # | Chapter | Covers |
 |---|---|---|
-| 59 | How Catalyst plans Python | **4.3:** transpilation as the closing section |
-| 60 | The Python worker protocol | Wire format, failure modes, memory limits |
-| 61 | The VARIANT binary format | The bytes, the metadata dictionary and shredding |
-| 62 | From wrong results to a fix: an upstream case study | Reproducing, minimizing and reporting a Spark bug |
+| 59 | [How Catalyst plans Python](chapters/ch59-catalyst-plans-python.md) | **4.3:** transpilation as the closing section |
+| 60 | [The Python worker protocol](chapters/ch60-python-worker-protocol.md) | Wire format, failure modes, memory limits |
+| 61 | [The VARIANT binary format](chapters/ch61-variant-binary-format.md) | The bytes, the metadata dictionary and shredding |
+| 62 | [From wrong results to a fix: an upstream case study](chapters/ch62-upstream-case-study.md) | Reproducing, minimizing and reporting a Spark bug |

@@ -77,5 +77,10 @@ nav:
       - "4. Spark Connect": chapters/ch04-spark-connect.md
   - "Part VI: Pipelines and tables":
       - "31. Apache Iceberg with Spark": chapters/ch31-iceberg.md
+  - "Part X: Internals":
+      - "59. How Catalyst plans Python": chapters/ch59-catalyst-plans-python.md
+      - "60. The Python worker protocol": chapters/ch60-python-worker-protocol.md
+      - "61. The VARIANT binary format": chapters/ch61-variant-binary-format.md
+      - "62. From wrong results to a fix": chapters/ch62-upstream-case-study.md
   - Roadmap: roadmap.md
   - Coverage: coverage.md
