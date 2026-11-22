@@ -1,0 +1,16 @@
+SHOW TABLES IN spark_catalog.shared:
+  zones_default  Provider=parquet  265 rows  Location=file:$WORK/hive/shared.db/zones_default
+  zones_iceberg  Provider=iceberg  265 rows  Location=file:$WORK/hive/shared.db/zones_iceberg
+  zones_parquet  Provider=parquet  265 rows  Location=file:$WORK/hive/shared.db/zones_parquet
+
+The same Iceberg table through the Iceberg catalog `hive`, on the same metastore:
+  SELECT count(*) FROM hive.shared.zones_iceberg -> 265
+  hive.shared.zones_parquet -> [TABLE_OR_VIEW_NOT_FOUND] The table or view `hive`.`shared`.`zones_par
+
+system procedures through spark_catalog:
++--------------------------+----------------------+
+|rewritten_data_files_count|added_data_files_count|
++--------------------------+----------------------+
+|                         2|                     1|
++--------------------------+----------------------+
+

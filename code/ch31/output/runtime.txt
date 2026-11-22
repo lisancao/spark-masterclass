@@ -1,0 +1,30 @@
+iceberg-spark-runtime-4.3_2.13-b1eab64.jar: 36,334,077 bytes, 18,836 classes
+
+  12,587  org.apache.iceberg.shaded.*  (Parquet, Avro, ORC, Arrow, ...)
+   3,194  org.apache.iceberg.*  (Iceberg itself)
+   1,103  org.apache.iceberg.relocated.*  (Guava)
+     762  org.projectnessie.*  (Nessie client)
+     732  org.locationtech.jts.*  (geometry, not relocated)
+     269  other
+     189  org.apache.spark.*  (extension rules)
+       0  software.amazon.*  (AWS SDK)
+      57  org.apache.iceberg.aws.*  (S3FileIO, GlueCatalog)
+
+shaded org.apache libraries: apache.parquet 4,500, apache.hc 1,434, apache.orc 1,400, apache.arrow 971, apache.datasketches 493
+
+META-INF/services/org.apache.spark.sql.sources.DataSourceRegister:
+  org.apache.iceberg.spark.source.IcebergSource
+
+iceberg-build.properties:
+  git.branch = pr-18749
+  git.closest.tag.name = apache-iceberg-1.12.0
+  git.commit.id.abbrev = b1eab64
+  git.commit.message.short = Spark\: Initial support for 4.3.0
+  git.build.version = unspecified
+
+Spark 4.3.0
+SELECT lake.system.iceberg_version(): unspecified
+
+for comparison, iceberg-spark-runtime-4.1_2.13-1.12.0.jar: 48,309,426 bytes, 24,164 classes
+  1.12.0 for 4.1   org.eclipse.collections.*: 5,480   software.amazon.*: 0
+  b1eab64 for 4.3  org.eclipse.collections.*:     0   software.amazon.*: 0
