@@ -303,7 +303,7 @@ mine = next(o for o in ops if o["operationId"] == failed)
 The record contains these items:
 
 - The session and the user of the operation.
-- The time that the operation took (183 ms, all of it for analysis). This run was the first query on a new server, so the analyzer also read the Parquet footers. A second run on a server that knows the file takes a few milliseconds.
+- The time that the operation took (183 ms, all of it for analysis). This time changes from run to run. In an earlier run of the same script, it was 6 ms.
 - The SQL execution that the operation created. This execution links to the SQL tab of the UI and to its own REST endpoint.
 - No job IDs, because the operation failed before Spark scheduled any work.
 - The full error, with the unresolved plan as the server sees it.

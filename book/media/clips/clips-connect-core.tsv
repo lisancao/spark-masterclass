@@ -1,0 +1,8 @@
+clip	source	start	end	poster_at	chapter
+ch04-connect	ch04-chapter/01-connect.mp4	0	25.0	23.0	ch04
+ch04-rest	ch04-chapter/02-rest.mp4	0	19.4	17.4	ch04
+ch04-thin	ch04-chapter/03-thin.mp4	0	17.6	15.6	ch04
+ch80-proxy	ch80-chapter/01-proxy.mp4	0	29.5	27	ch80
+ch80-arrow	ch80-chapter/02-arrow.mp4	0	18.0	16	ch80
+ch81-stop	ch81-chapter/01-stop.mp4	0	37.6	35	ch81
+ch80-anim-round-trip	code/ch80/anim/round-trip (anim render, landscape, paper)	0	32.0	30	ch80
