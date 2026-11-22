@@ -1,0 +1,72 @@
+rows: 366,249 (train 293,200, test 73,049)
+
+assembler over rate_code_raw -> Encountered null while assembling a row with handleInvalid = "error". Consider
+
+GBT with default maxBins -> DecisionTree requires maxBins (= 32) to be at least as large as the number of values in each categorical feature, but categorical feature 4 has 256 values. Consider removing this and other categorical features with a lar
+
+model                   fit s    rmse     mae      r2
+mean of train             0.0   17.36   11.97  -0.000
+linear regression         4.2    6.99    4.14   0.838
+gradient-boosted trees   34.3    8.12    3.49   0.781
+
+feature importances:
+  trip_distance     0.590
+  dropoff_zone_idx  0.144
+  pickup_zone_idx   0.117
+  rate_code_idx     0.075
+  hour              0.049
+  weekday           0.026
+
+mean absolute error by rate code (test set):
++---------+-----+------+-----+
+|rate_code|trips|linear|  gbt|
++---------+-----+------+-----+
+|        1|52463|   3.0| 2.33|
+|     NULL|18106|  6.81| 6.29|
+|        2| 1732|  5.91| 1.38|
+|        5|  346| 19.79|24.19|
+|        3|  225|  6.16|16.31|
+|        4|  161| 22.29|25.46|
+|       99|   16|  4.04| 4.73|
++---------+-----+------+-----+
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- Project [UDF(features#7641) AS prediction#7645]
+   +- Project [UDF(struct(trip_distance, trip_distance#4, hour, hour#22, weekday, weekday#23, pickup_zone_idx, pickup_zone_idx#7622, dropoff_zone_idx, dropoff_zone_idx#7629, rate_code_idx, rate_code_idx#7636)) AS features#7641]
+      +- Project [trip_distance#4, hour#22, weekday#23, pickup_zone_idx#7622, dropoff_zone_idx#7629, UDF(rate_code#26) AS rate_code_idx#7636]
+         +- Project [trip_distance#4, hour#22, weekday#23, rate_code#26, pickup_zone_idx#7622, UDF(dropoff_zone#25) AS dropoff_zone_idx#7629]
+            +- Project [trip_distance#4, hour#22, weekday#23, dropoff_zone#25, rate_code#26, UDF(pickup_zone#24) AS pickup_zone_idx#7622]
+               +- GlobalLimit 5, 0
+                  +- Exchange SinglePartition, ENSURE_REQUIREMENTS, [plan_id=3467]
+                     +- LocalLimit 5
+                        +- Sample 0.8, 1.0, false, 42
+                           +- Project [trip_distance#4, hour#22, weekday#23, pickup_zone#24, dropoff_zone#25, rate_code#26]
+                              +- Sort [trip_distance#4 ASC NULLS FIRST, hour#22 ASC NULLS FIRST, weekday#23 ASC NULLS FIRST, pickup_zone#24 ASC NULLS FIRST, dropoff_zone#25 ASC NULLS FIRST, rate_code#26 ASC NULLS FIRST, rate_code_raw#27L ASC NULLS FIRST, fare_amount#10 ASC NULLS FIRST, trip_id#28L ASC NULLS FIRST], false, 0
+                                 +- InMemoryTableScan [trip_distance#4, hour#22, weekday#23, pickup_zone#24, dropoff_zone#25, rate_code#26, rate_code_raw#27L, fare_amount#10, trip_id#28L]
+                                       +- InMemoryRelation [trip_distance#4, hour#22, weekday#23, pickup_zone#24, dropoff_zone#25, rate_code#26, rate_code_raw#27L, fare_amount#10, trip_id#28L], StorageLevel(disk, memory, deserialized, 1 replicas)
+                                             +- *(1) Project [trip_distance#4, cast(hour(tpep_pickup_datetime#1, Some(America/Los_Angeles)) as double) AS hour#22, cast(dayofweek(cast(tpep_pickup_datetime#1 as date)) as double) AS weekday#23, cast(PULocationID#7 as string) AS pickup_zone#24, cast(DOLocationID#8 as string) AS dropoff_zone#25, cast(RatecodeID#5L as string) AS rate_code#26, RatecodeID#5L AS rate_code_raw#27L, fare_amount#10, monotonically_increasing_id() AS trip_id#28L]
+                                                +- *(1) Sample 0.0, 0.1, false, 7
+                                                   +- *(1) Filter ((((((((isnotnull(tpep_pickup_datetime#1) AND isnotnull(fare_amount#10)) AND isnotnull(trip_distance#4)) AND (tpep_pickup_datetime#1 >= 2026-06-01 00:00:00)) AND (tpep_pickup_datetime#1 < 2026-07-01 00:00:00)) AND (fare_amount#10 >= 0.01)) AND (fare_amount#10 <= 500.0)) AND (trip_distance#4 >= 0.1)) AND (trip_distance#4 <= 100.0))
+                                                      +- *(1) ColumnarToRow
+                                                         +- FileScan parquet [tpep_pickup_datetime#1,trip_distance#4,RatecodeID#5L,PULocationID#7,DOLocationID#8,fare_amount#10] Batched: true, DataFilters: [isnotnull(tpep_pickup_datetime#1), isnotnull(fare_amount#10), isnotnull(trip_distance#4), (tpep_..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [IsNotNull(tpep_pickup_datetime), IsNotNull(fare_amount), IsNotNull(trip_distance), GreaterThanOr..., ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,trip_distance:double,RatecodeID:bigint,PULocationID:int...
+
+
+
+unseen zone '999' -> Row(pickup_zone_idx=251.0, round(prediction, 2)=43.38)
+
+saved model:
+   metadata
+   stages/0_StringIndexer_95f6bfe3b067
+   stages/1_StringIndexer_25e503ed8817
+   stages/2_StringIndexer_c24e2619f1bf
+   stages/3_VectorAssembler_d784aaba5372
+   stages/4_GBTRegressor_18be136a3c4b
+loaded model predicts the same: True (73,049 rows)
+
+TrainValidationSplit: 4 settings, 89 s
+   {'maxDepth': 4, 'maxIter': 20} validation rmse 8.767
+   {'maxDepth': 4, 'maxIter': 40} validation rmse 8.548
+   {'maxDepth': 6, 'maxIter': 20} validation rmse 8.937
+   {'maxDepth': 6, 'maxIter': 40} validation rmse 9.023
+best: {'maxDepth': 4, 'maxIter': 40} test rmse 8.062

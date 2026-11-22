@@ -1,0 +1,38 @@
+27 parts from 26 files
+
++-----+-----+-----+
+| kind|files|parts|
++-----+-----+-----+
+|audio|    3|    3|
+|email|    4|    4|
+|image|    5|    5|
+| json|    3|    3|
+|  log|    2|    2|
+|  pdf|    2|    3|
+| text|    6|    6|
+|  xml|    1|    1|
++-----+-----+-----+
+
++-------------------+-----+----+-----+-------+------------------+------------------------------+
+|file_name          |kind |part|width|seconds|title             |text                          |
++-------------------+-----+----+-----+-------+------------------+------------------------------+
+|silence.wav        |audio|0   |NULL |0.5    |                  |NULL                          |
+|tone_440.wav       |audio|0   |NULL |0.25   |                  |NULL                          |
+|tone_880_quiet.wav |audio|0   |NULL |0.25   |                  |NULL                          |
+|ticket_0.eml       |email|0   |NULL |NULL   |Broken item       |Hello, order 1000 has a proble|
+|ticket_1.eml       |email|0   |NULL |NULL   |Broken item       |Hello, order 1001 has a proble|
+|ticket_2.eml       |email|0   |NULL |NULL   |Where is my order?|Hello, order 1002 has a proble|
+|ticket_3.eml       |email|0   |NULL |NULL   |Broken item       |Hello, order 1003 has a proble|
+|corrupt.png        |image|0   |NULL |NULL   |                  |NULL                          |
+|gradient_32x32.png |image|0   |32   |NULL   |                  |NULL                          |
+|gray_20x10.png     |image|0   |20   |NULL   |                  |NULL                          |
+|logo_rgba_12x12.png|image|0   |12   |NULL   |                  |NULL                          |
+|red_16x8.png       |image|0   |16   |NULL   |                  |NULL                          |
+|invoice_1001.pdf   |pdf  |1   |NULL |NULL   |                  |Invoice 1001 total 42.50 CAD  |
+|invoice_1001.pdf   |pdf  |2   |NULL |NULL   |                  |Thank you for shopping        |
+|invoice_1002.pdf   |pdf  |1   |NULL |NULL   |                  |Invoice 1002 total 17.00 CAD  |
++-------------------+-----+----+-----+-------+------------------+------------------------------+
+
+Café crème, résumé: déjà vu.
+
+FileScan binaryFile [path#1366,length#1368L] Batched: false, DataFilters: [], Format: BINARYFILE, Location: In
