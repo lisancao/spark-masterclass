@@ -277,6 +277,15 @@ There are four different failures, and each one has a cause in the 4.3.0 source:
 - **Comet and Auron stop at start, because of their shuffle managers.** In 4.3.0, `spark.shuffle.manager` must be a `BlockingShuffleManager`. This trait is new in 4.3.0 (SPARK-58185), and it separates the regular shuffle from the pipelined shuffle that Real-time Mode uses. The Comet and Auron builds are older than the trait, so `SparkEnv.initializeShuffleManager` refuses `CometShuffleManager` and `AuronShuffleManager`. The same check applies to each shuffle manager that is not part of Spark, for example Gluten's `ColumnarShuffleManager`.
 - **Comet without its shuffle manager starts, but it does nothing.** Comet disables itself and writes a log message. If you then set `spark.comet.shuffle.enabled=false`, Comet tries to change a scan and stops with `NoSuchMethodError` on `FileSourceScanExec.copy`. In 4.3.0, `FileSourceScanExec` has a new constructor parameter, `markedForSingleTaskExecution`, for Project Feather (SPARK-57851, [Chapter 23](../roadmap.md)). The `copy` method of a case class changes with its constructor.
 
+!!! note "New in 4.3: changes that engines must follow"
+    Three changes in Spark 4.3.0 stop the engine releases in this chapter:
+
+    - `spark.shuffle.manager` must extend `BlockingShuffleManager` (SPARK-58185).
+    - Some SQL configs come from text files and have the type `ProtoBackedConfigEntry` (SPARK-56460).
+    - `FileSourceScanExec` has the parameter `markedForSingleTaskExecution` (SPARK-57851).
+
+    Spark 4.3.0 also adds `ArrowCachedBatchSerializer`, which Step 1 uses. It keeps cached data as Arrow batches, so a cache scan can give columnar batches.
+
 These are not bugs in Spark. Spark does not promise a stable API for these classes. But the result is clear: each engine needs a new release, compiled against 4.3.0, before it can run on 4.3.0.
 
 !!! warning "Use the shim for your exact Spark version"
@@ -842,7 +851,103 @@ flowchart LR
 
 ## Step 7: The measurements
 
-<<BENCH>>
+`bench.py` times the three taxi queries on one engine. Each engine runs on its own Spark version, so `run_bench.sh` also times the CPU on 4.1.1 and 4.2.0. Each engine has a baseline on the same Spark version. Each run reads the full year: 47,475,748 rows in 12 Parquet files, about 830 MB. The session is `local[16]` with a 12 GB driver. Gluten and Comet get 8 GB of off-heap memory, and Auron gets 8 GB of memory overhead.
+
+The core of the script is short:
+
+```python
+for name in queries(spark):
+    # A new DataFrame for each run. A second collect() of the same DataFrame reuses its
+    # shuffle files and skips every stage but the last, so it would time almost nothing.
+    for _ in range(WARMUP):
+        rows = queries(spark)[name].collect()
+    times = []
+    for _ in range(RUNS):
+        df = queries(spark)[name]
+        t0 = time.perf_counter()
+        rows = df.collect()
+        times.append(time.perf_counter() - t0)
+    fingerprint = hashlib.sha1(repr([tuple(r) for r in rows]).encode()).hexdigest()[:10]
+```
+
+!!! warning "Use a new DataFrame for each timed run"
+    Do not call `collect()` on the same DataFrame in a loop to time a query. If you do, the second run and each run after it skip most of the work, and the times are too short.
+
+The first version of `bench.py` made this mistake, and its results were too fast. `reuse.py` shows the cause:
+
+```text
+Spark 4.3.0, the boroughs query
+
+  first collect()             stages run  5, skipped  4, input rows  47,476,013
+  same DataFrame again        stages run  1, skipped  2, input rows           0
+  new DataFrame, same query   stages run  5, skipped  4, input rows  47,476,013
+```
+
+A DataFrame keeps its executed plan. When you run it again, Spark finds the shuffle files of the first run and skips the stages that wrote them. The second `collect()` read no input rows. A new DataFrame with the same query gets a new plan and reads all the data again.
+
+Each locked run did one warmup run and five timed runs of each query, and kept the median. The bench ran two times (two passes), one engine at a time under the bench lock. The lock stops other timed runs, but other jobs (films and scripts) ran on the machine at the same time. Also, a different program used about 5.5 GB of the GPU memory during the second pass. `bench_table.py` puts the two passes side by side:
+
+```text
+47,475,748 rows; each cell: median of pass 1 / median of pass 2, in seconds
+(5 timed runs after 1 warmup run in each pass); x = speed-up against the CPU on the same Spark, pass 1/pass 2
+
+engine spark                   hourly                boroughs                  routes
+cpu    4.3.0      1.01/0.60               1.22/0.75               0.95/0.62          
+cpu    4.2.0      1.30/0.42               1.93/0.69               1.79/0.53          
+comet  4.2.0       0.85/0.33 1.5/1.3x      1.12/0.81 1.7/0.9x      0.58/0.36 3.1/1.5x
+rapids 4.2.0       0.74/0.66 1.8/0.6x     0.90/0.80 2.1/0.9x!      0.89/0.70 2.0/0.8x
+auron  4.2.0       1.02/0.78 1.3/0.5x      0.62/0.52 3.1/1.3x      0.40/0.33 4.5/1.6x
+cpu    4.1.1      0.54/0.45               0.74/0.68               0.57/0.51          
+gluten 4.1.1       0.47/0.51 1.2/0.9x      0.62/0.68 1.2/1.0x      0.34/0.40 1.6/1.3x
+
+! = the rows differ from the CPU rows on the same Spark version (see compare-*.txt)
+
+peak memory in pass 2 (MiB)
+engine spark   JVM RSS  JVM heap  GPU pool
+cpu    4.3.0      6849      4602         0
+cpu    4.2.0      6984      3906         0
+comet  4.2.0      2939      1553         0
+rapids 4.2.0      2578       885      9356
+auron  4.2.0      3220       750         0
+cpu    4.1.1      6437      3217         0
+gluten 4.1.1      1809       583         0
+```
+
+Read the table in this sequence:
+
+1. **Compare the two passes of the CPU first.** On Spark 4.2.0, `hourly` took 1.30 seconds in pass 1 and 0.42 seconds in pass 2. This difference comes from the load of the machine, not from Spark. It is larger than most of the differences between engines.
+2. **Then look for the results that are the same in the two passes.** In the two passes, `routes` was faster on each of the three native CPU engines. The speed-ups were 3.1x and 1.5x for Comet, 4.5x and 1.6x for Auron, and 1.6x and 1.3x for Gluten. Auron was also faster on `boroughs` in the two passes. These are the only speed-ups that the noise does not explain.
+3. **The GPU was not faster in pass 2.** The RAPIDS Accelerator took 0.66 seconds for `hourly`, and the CPU took 0.42 seconds. Each query here takes less than a second. A GPU adds two costs that do not change with the work. One is the copy of each batch to the GPU and back. The other is the start of each operation. On a query of this size, these costs are a large part of the time.
+4. **The rows are the same, with one exception.** The `!` on the RAPIDS `boroughs` result is a difference in one `DOUBLE` value, not a wrong answer. `compare_rows.py` prints the two results:
+
+```text
+cpu on Spark 4.2.0, boroughs:
+           Bronx          401355      12157837.0           0.192
+        Brooklyn         1836951      50023594.0           0.543
+             EWR            6471        584744.0          10.818
+       Manhattan        40709887     681852836.0           2.506
+             N/A           22548       1975019.0           8.672
+          Queens         4431719     204972992.0           7.038
+   Staten Island            4679        156761.0           1.197
+         Unknown           62118       1415140.0           4.149
+rapids on Spark 4.2.0, boroughs:
+           Bronx          401355      12157837.0           0.192
+        Brooklyn         1836951      50023594.0           0.543
+             EWR            6471        584744.0          10.818
+       Manhattan        40709887     681852836.0  2.5060000000000002
+             N/A           22548       1975019.0           8.672
+          Queens         4431719     204972992.0           7.038
+   Staten Island            4679        156761.0           1.197
+         Unknown           62118       1415140.0           4.149
+```
+
+The CPU gives `2.506` for the average tip in Manhattan, and the GPU gives `2.5060000000000002`. The two values are the nearest doubles to two slightly different results of `round`. If your tests compare `DOUBLE` values exactly, they will find differences like this one.
+
+The memory columns show where each engine keeps its data. With the CPU, the JVM heap grew to 3.2 to 4.6 GB. With each engine, the heap stayed below 1.6 GB, because the engine keeps its batches outside the heap. The RSS (the memory of the whole process, also native memory) was lower too.
+
+But the JVM heap grows only when it must. These numbers show where the data was, not the minimum memory that each engine needs. The GPU pool of the RAPIDS Accelerator was 9,356 MiB in pass 2, because the other program used part of the GPU.
+
+The result for this chapter is clear, but it is not the result in the projects' own benchmarks. A year of taxi trips is small for a 16-thread machine, and each query took less than two seconds on the CPU. The engines show their advantage on larger scans, wider rows and more expensive expressions. There, the work of each operator is larger than the fixed costs. This chapter did not measure those cases. Before you choose an engine, measure your own jobs with the procedure in the next section.
 
 ## Step 8: Apache Auron and the ClickHouse backend
 

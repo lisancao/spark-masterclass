@@ -15,3 +15,7 @@ CH24_LOG=WARN $P42 ch24/plans.py comet --conf=spark.comet.convert.csv.enabled=tr
     boroughs 2>/dev/null | clean > $O/plans-comet-csv.txt
 $P42 ch24/plans.py comet --conf=spark.sql.execution.arrow.pythonUDF.columnarInput.enabled=false \
     udf 2>/dev/null | clean > $O/plans-comet-udf-rowinput.txt
+# Why bench.py builds a new DataFrame for each run, and the one row that differs on the GPU.
+.venv/bin/python ch24/reuse.py 2>/dev/null | clean > $O/reuse.txt
+{ $P42 ch24/compare_rows.py cpu boroughs; $P42 ch24/compare_rows.py rapids boroughs; } \
+  2>/dev/null | clean > $O/compare-boroughs.txt

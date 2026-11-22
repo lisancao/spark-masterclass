@@ -2,7 +2,7 @@
 
 The bench ran two times (output/pass1/ and output/), on a machine that other jobs also
 used. The table gives the median of each pass, and the speed-up of each engine against
-the CPU on its own Spark version, from the mean of the two medians. A row hash that
+the CPU on its own Spark version, for each pass. A row hash that
 differs from that CPU run is marked, so a fast wrong answer cannot hide in the table.
 Run from code/:  uv run python ch24/bench_table.py
 """
@@ -25,8 +25,8 @@ first = passes[0][order[0]]
 queries = list(first["queries"])
 print(f"{first['rows']:,} rows; each cell: median of pass 1 / median of pass 2, in seconds")
 print(f"({first['runs']} timed runs after {first['warmup']} warmup run in each pass);"
-      " x = speed-up against the CPU on the same Spark\n")
-print(f"{'engine':<7}{'spark':<6}" + "".join(f"{q:>21}" for q in queries))
+      " x = speed-up against the CPU on the same Spark, pass 1/pass 2\n")
+print(f"{'engine':<7}{'spark':<6}" + "".join(f"{q:>24}" for q in queries))
 
 
 def med(k, q):
@@ -40,13 +40,12 @@ for engine, spark in order:
         cell = f"{a:.2f}/{b:.2f}"
         if engine != "cpu" and ("cpu", spark) in passes[0]:
             ca, cb = med(("cpu", spark), q)
-            x = (ca + cb) / (a + b)
             same = all(p[(engine, spark)]["queries"][q]["rows_hash"] ==
                        p[("cpu", spark)]["queries"][q]["rows_hash"] for p in passes)
-            cell += f" {x:.1f}x{'' if same else '!'}"
+            cell += f" {ca / a:.1f}/{cb / b:.1f}x{'' if same else '!'}"
         else:
-            cell += "      "
-        cells.append(f"{cell:>21}")
+            cell += " " * 10
+        cells.append(f"{cell:>24}")
     print(f"{engine:<7}{spark:<6}" + "".join(cells))
 print("\n! = the rows differ from the CPU rows on the same Spark version (see compare-*.txt)")
 print("\npeak memory in pass 2 (MiB)")
