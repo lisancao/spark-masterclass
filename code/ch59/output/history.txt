@@ -1,0 +1,16 @@
+lines that mention MetricView in SessionCatalog.scala, per release tag:
+  v4.0.0  0
+  v4.1.0  0
+  v4.2.0  5
+  v4.3.0  5
+
+is the clone shallow? true
+the oldest commit it has: 9ca391927d1 2026-04-25 [SPARK-56615][SQL] Clarify `KeyedPartitioning` `satisfies0()` and `nonGroupedSatisfies()`/`groupedSatisfies()` contract
+
+git log -S 'parseMetricViewDefinition' v4.3.0 (oldest first):
+  9ca391927d1 2026-04-25 [SPARK-56615][SQL] Clarify `KeyedPartitioning` `satisfies0()` and `nonGroupedSatisfies()`/`groupedSatisfies()` contract
+
+commits between v4.1.0 and v4.2.0 that name metric views:
+  b6bd005ac75 [SPARK-56920][SQL][FOLLOWUP] Add CreateMetricView logical plan and pre-parse inputColumns
+  33bfb52f349 [SPARK-54119][SQL][FOLLOWUP] Format METRIC_VIEW DESCRIBE output distinctly from VIEW
+  4857ab1e5f8 [SPARK-54119] Support METRIC_VIEW creation on V2 catalogs

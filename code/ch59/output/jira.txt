@@ -1,0 +1,12 @@
+snapshot taken 2026-11-22
+
+SPARK-60206: Metric views resolve unqualified names in the reader's current namespace instead of the creation namespace
+  type Bug, priority Major, status Open, created 2026-10-12
+  affects ['4.2.0'], fix [], components ['SQL'], labels ['pull-request-available']
+
+SPARK-54119: Metrics & semantic modeling in Spark
+  type Umbrella, priority Major, status Resolved, created 2025-10-31
+  affects ['4.2.0'], fix ['4.2.0'], components ['SQL'], labels ['pull-request-available']
+
+apache/spark#59416: [SPARK-60206][SQL] Resolve metric view sources in the namespace they were created in
+  state open, merged False, 6 files, +252 -15, base master
