@@ -139,6 +139,11 @@ This is the `Any`, byte by byte:
 | `\n` `\x02` `ab` | field 1 (`input`), length 2, the bytes `ab` |
 | `\x12` `\x08` `physical` | field 2 (`stage`), length 8, the string `physical` |
 
+<figure markdown>
+  ![The bytes of the Any message, with the nested PlanNodes message](../media/figures/ch57-any-bytes.svg)
+  <figcaption>The same bytes as the table above. The orange frame is the <code>PlanNodes</code> message inside the <code>value</code> field of the <code>Any</code>.</figcaption>
+</figure>
+
 `Wire.java` in `jplug` does this decode in about forty lines. `Wire.fields(byte[])` returns a map from the field number to the value. It skips the fixed-width wire types 1 and 5.
 
 On the wire, a `bytes input = 1` field and an embedded message field `spark.connect.Relation input = 1` are **the same**. Both use wire type 2 with a length. Thus, the client can declare `input` as `bytes` and put a serialized `Relation` in it. The server can parse the bytes as a `Relation` with `ConnectProtoUtils.parseRelationWithRecursionLimit(bytes, 1024)`. That method is a `@DeveloperApi` in `sql/connect/common/src/main/scala/org/apache/spark/sql/connect/ConnectProtoUtils.scala`. The recursion limit is a guard against plans with too many levels.
@@ -345,6 +350,20 @@ stage 'parsed' -> IllegalArgumentException: stage must be analyzed, optimized or
 </figure>
 
 The result is a usual DataFrame. You can filter it, join it and make assertions on it. The `explain()` text gives the same facts, but a test must parse that text. `plugins.py` makes three assertions that a Connect test can make now:
+
+<figure markdown>
+  ![The rows of plan_nodes(df) and the tree that they describe](../media/figures/ch57-plan-rows.svg)
+  <figcaption>The first table above as a tree. The <code>parent</code> column of each row points to the node above it.</figcaption>
+</figure>
+
+The animation shows the round trip of one `plan_nodes` call, and the call with a message that no plugin knows (Step 8).
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch57-anim-plugin.webp">
+    <source src="../../media/clips/ch57-anim-plugin.mp4" type="video/mp4">
+  </video>
+  <figcaption>The client sends a <code>jplug.PlanNodes</code> message. The planner gives it to <code>PlanNodesPlugin</code>, and the rows come back. The type URLs, the rows and the error come from <code>plugins.py</code>.</figcaption>
+</figure>
 
 ```python
 scan = plan_nodes(t, "physical").filter(F.col("node").startswith("Scan parquet"))
