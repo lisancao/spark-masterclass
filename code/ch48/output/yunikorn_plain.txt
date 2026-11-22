@@ -1,0 +1,15 @@
+t+   0s  etl-a driver                   Pending
+t+   0s  etl-b driver                   Pending
+t+   3s  etl-a driver                   Running
+t+   3s  etl-b driver                   Running
+t+   8s  etl-a exec-1                   Pending
+t+   8s  etl-a exec-2                   Pending
+t+   8s  etl-b exec-1                   Pending
+t+   8s  etl-b exec-2                   Pending
+yunikorn  etl-b  Running    cores used 1, cores waiting 2
+yunikorn  etl-a  Running    cores used 1, cores waiting 2
+yunikorn  queue root.etl  cores used 2 of max 2
+Request <exec-1> does not fit in queue 'root.etl' (requested map[memory:1502609408 pods:1 
+vcore:1000], available map[memory:5584715776 pods:328 vcore:0])
+WARN TaskSchedulerImpl: Initial job has not accepted any resources; check your cluster UI 
+to ensure that workers are registered and have sufficient resources

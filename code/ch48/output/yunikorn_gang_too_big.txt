@@ -1,0 +1,7 @@
+NAME                            READY   STATUS                RESTARTS   AGE
+etl-a-5b732fa2029e077b-driver   0/1     ApplicationRejected   0          16s
+etl-b-017c7ca2029e074c-driver   0/1     ApplicationRejected   0          16s
+Application spark-a1a560331adf4c95bb186d8baa5f5a8b scheduling failed, reason: 
+ApplicationRejected: queue root.etl cannot fit application 
+spark-a1a560331adf4c95bb186d8baa5f5a8b: task group request map[memory:4507828224 pods:3 
+vcore:3000] larger than max queue allocation map[memory:8589934592 vcore:2000]

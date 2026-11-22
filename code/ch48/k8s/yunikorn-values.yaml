@@ -9,13 +9,15 @@ yunikornDefaults:
     partitions:
       - name: default
         placementrules:
-          - name: provided       # use the queue that the pod names in its "queue" label
+          - name: provided       # the queue that the pod names in its "queue" label
             create: false
+          - name: fixed          # all other pods
+            value: root.default
         queues:
           - name: root
             submitacl: "*"
             queues:
               - name: default
-              - name: etl        # a small queue: 3 cores in total, for driver and executor pods
+              - name: etl        # a small queue: 2 cores in total, for driver and executor pods
                 resources:
-                  max: {vcore: "3", memory: 6Gi}
+                  max: {vcore: "2", memory: 8Gi}

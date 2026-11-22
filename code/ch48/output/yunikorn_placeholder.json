@@ -1,0 +1,18 @@
+{
+  "name": "tg-spark-343e825281784c7f83ad25-executor-q22bhqpa3e",
+  "labels": {
+    "yunikorn.apache.org/app-id": "spark-343e825281784c7f83ad2582d24eccd2",
+    "yunikorn.apache.org/queue": "root.etl"
+  },
+  "scheduler": "yunikorn",
+  "annotations": {
+    "internal.yunikorn.apache.org/placeholder": "true",
+    "yunikorn.apache.org/schedulingPolicyParameters": "placeholderTimeoutInSeconds=120 gangSchedulingStyle=Hard",
+    "yunikorn.apache.org/task-group-name": "executor"
+  },
+  "image": "registry.k8s.io/pause:3.7",
+  "requests": {
+    "cpu": "1",
+    "memory": "1433Mi"
+  }
+}

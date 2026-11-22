@@ -1,8 +1,10 @@
 """A batch job for Chapter 48: June 2026 revenue by pickup borough, written as Parquet.
 
-    spark-submit jobs/zone_revenue.py <taxi dir> <output dir> [run id]
+    spark-submit jobs/zone_revenue.py <taxi dir> <output dir | -> [run id]
 
 The same file runs from a shell, from Airflow's SparkSubmitOperator and inside a Kubernetes driver pod.
+With "-" as the output, the job writes nothing and only prints the result: on Kubernetes, the executor
+pods have no shared disk to write to.
 """
 import sys
 import time
@@ -26,10 +28,14 @@ by_borough = (trips
               .agg(F.count("*").alias("trips"), F.round(F.sum("total_amount"), 0).alias("revenue"))
               .orderBy(F.desc("revenue")))
 
-by_borough.write.mode("overwrite").parquet(out)
-rows = spark.read.parquet(out).orderBy(F.desc("revenue")).collect()
+if out == "-":
+    rows = by_borough.collect()
+else:
+    by_borough.write.mode("overwrite").parquet(out)
+    rows = spark.read.parquet(out).orderBy(F.desc("revenue")).collect()
 print(f"ZONE_REVENUE run={run_id} spark={spark.version} master={spark.sparkContext.master}")
 for r in rows:
     print(f"ZONE_REVENUE {r.Borough:<15} {r.trips:>9,} trips  ${r.revenue:>14,.0f}")
-print(f"ZONE_REVENUE wrote {len(rows)} rows to {out} in {time.time() - t0:.1f} s")
+print(f"ZONE_REVENUE {len(rows)} rows" + ("" if out == "-" else f" written to {out}") +
+      f" in {time.time() - t0:.1f} s")
 spark.stop()

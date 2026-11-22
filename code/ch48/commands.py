@@ -1,7 +1,9 @@
 """Chapter 48: print what the Apache Spark provider's hooks build, without running Spark.
 
-    ch48/af.sh is not needed: run it with the Airflow venv's python and the connections below.
     $CH48_WORK/airflow-venv/bin/python ch48/commands.py
+
+It needs no Airflow database and no Spark: the connections are environment variables (set below),
+and the script only calls the methods that build a command line or a URL.
 """
 import json
 import os
@@ -9,6 +11,7 @@ import warnings
 
 warnings.simplefilter("ignore")
 os.environ.update({
+    "AIRFLOW__LOGGING__LOGGING_LEVEL": "WARNING",   # the hooks also log each command: print it once
     "AIRFLOW_CONN_SPARK_LOCAL": json.dumps({"conn_type": "spark", "host": "local[2]"}),
     "AIRFLOW_CONN_SPARK_SQL_LOCAL": json.dumps({"conn_type": "spark_sql", "host": "local[2]"}),
     "AIRFLOW_CONN_SPARK_K8S": json.dumps({
@@ -40,11 +43,11 @@ def show(title, cmd):
 
 
 local = SparkSubmitHook(conn_id="spark_local", name="ch48-zone-revenue", driver_memory="1g",
-                        conf={"spark.sql.shuffle.partitions": "8"})
+                              conf={"spark.sql.shuffle.partitions": "8"})
 show("SparkSubmitOperator, conn spark_local", local._build_spark_submit_command("jobs/zone_revenue.py"))
 
 k8s = SparkSubmitHook(conn_id="spark_k8s", name="ch48-zone-revenue", track_driver_via_k8s_api=True,
-                      conf={"spark.kubernetes.scheduler.name": "yunikorn"})
+                            conf={"spark.kubernetes.scheduler.name": "yunikorn"})
 show("SparkSubmitOperator, conn spark_k8s, track_driver_via_k8s_api=True",
      k8s._build_spark_submit_command("local:///opt/ch48/jobs/zone_revenue.py"))
 
