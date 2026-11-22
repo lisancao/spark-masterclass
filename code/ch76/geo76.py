@@ -28,6 +28,9 @@ def err(e, width=70):
     cause = re.findall(r"Caused by: ([\w.$]+(?:: [^\n]{0,60})?)", str(e))
     if cause:
         return f"{type(e).__name__}, caused by {cause[-1]}"
+    java = re.search(r"(?m)^(?:: )?(?:[\w$]+\.)*([\w$]+(?:Exception|Error)): ([^\n]*(?::\n[^\n]*)?)", str(e))
+    if java:
+        return f"{java.group(1)}: {' '.join(java.group(2).split())[:width]}"
     return f"{type(e).__name__}: {str(e).splitlines()[0][:width]}"
 
 

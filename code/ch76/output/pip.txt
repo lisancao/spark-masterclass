@@ -1,0 +1,46 @@
+== 1. the points
+Row(trips=5384468, no_start_coords=3154, first=datetime.datetime(2026, 5, 30, 23, 42, 34, 9000), last=datetime.datetime(2026, 6, 30, 23, 57, 43, 182000))
+distinct start coordinates: 2279
+Times Square, Spark : Row(x=988369.5233640209, y=215763.33774841955)
+Times Square, Python: (988369.5233640209, 215763.33774841344)
+
+== 2. the zones as grid cells
+Row(zone_cells=1678, cells=475, most_zones_in_a_cell=13)
+
+== 3. how many point-zone pairs each method tests
+  candidates                           pairs        edge tests
+  all pairs                          599,377       222,972,802
+  same grid cell                      14,686         2,979,104
+  same cell and inside bbox            4,624         1,066,168
+
+== 4. the plan of the grid method
+  AdaptiveSparkPlan <- Project <- BroadcastHashJoin <- BroadcastExchange <- Filter <- FileScan <- Project <- Generate <- Generate <- Filter <- FileScan
+
+== 5. the answer
+Row(trips=5381314, in_one_zone=5381314, in_two_or_more=0, in_no_zone=0)
+== 6. trips per zone, June 2026
++-----------+-------------------------+---------+-----------+------------+--------------+
+|location_id|zone                     |borough  |bike_starts|taxi_pickups|bikes_per_taxi|
++-----------+-------------------------+---------+-----------+------------+--------------+
+|79         |East Village             |Manhattan|222013     |99792       |2.22          |
+|68         |East Chelsea             |Manhattan|167498     |100657      |1.66          |
+|255        |Williamsburg (North Side)|Brooklyn |152080     |9945        |15.29         |
+|246        |West Chelsea/Hudson Yards|Manhattan|117378     |76799       |1.53          |
+|234        |Union Sq                 |Manhattan|114209     |98290       |1.16          |
+|112        |Greenpoint               |Brooklyn |112277     |6527        |17.2          |
+|48         |Clinton East             |Manhattan|111075     |91819       |1.21          |
+|231        |TriBeCa/Civic Center     |Manhattan|108228     |55676       |1.94          |
++-----------+-------------------------+---------+-----------+------------+--------------+
+
++-------------+-----------+------------+----------------+-----+
+|      borough|bike_starts|taxi_pickups|zones_with_bikes|zones|
++-------------+-----------+------------+----------------+-----+
+|    Manhattan|    3303273|     3385932|              67|   69|
+|     Brooklyn|    1540459|      106868|              40|   61|
+|       Queens|     375489|      322050|              23|   69|
+|        Bronx|     162093|       15006|              24|   43|
+|Staten Island|          0|         237|               0|   20|
+|          EWR|          0|         569|               0|    1|
++-------------+-----------+------------+----------------+-----+
+
+wrote output/trips_per_zone.csv

@@ -1,0 +1,16 @@
+local[*] on 16 cores, Spark 4.3.0, median of 3 runs after 1 warmup
+trip rows in June: 5381314
+trip rows on 2026-06-10: 197988 | distinct coordinates: 2224
+
+  method                                  rows out  median s   runs
+  distinct points, all pairs                 2,279      2.94   2.87 3.14 2.94
+  distinct points, bbox + edges              2,279      0.26   0.27 0.26 0.20
+  distinct points, grid + bbox + edges       2,279      0.24   0.39 0.24 0.21
+  one day of rows, bbox + edges            197,988      0.53   0.72 0.53 0.53
+  one day of rows, grid + bbox + edges     197,988      0.64   0.63 0.64 0.73
+  all June rows, grid + bbox + edges     5,381,314      7.09   6.99 7.65 7.09
+
+join operator in each plan:
+  distinct points, all pairs            BroadcastNestedLoopJoin
+  distinct points, bbox + edges         BroadcastNestedLoopJoin
+  distinct points, grid + bbox + edges  BroadcastHashJoin
