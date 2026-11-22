@@ -76,7 +76,7 @@ Before 4.0, `cast` changed the bad value to null without an error. Since 4.0, `s
 
 ## Step 3: Declare, and let the dry-run check the graph
 
-In SDP, the agent declares tables as functions, and Spark finds the run order from the dependencies. [Chapter 32](ch32-declarative-pipelines.md) teaches the model and the CLI. For agents, the important command is `spark-pipelines dry-run`.
+In SDP, the agent declares tables as functions, and Spark finds the run order from the dependencies. [Chapter 32](ch32-declarative-pipelines.md) teaches the model, and [Chapter 78](ch78-pipelines-cli-project.md) teaches the CLI. For agents, the important command is `spark-pipelines dry-run`.
 
 It loads the spec, imports the Python files and registers each flow. Then it resolves and validates the whole graph. It does not read the source data, and it writes no table.
 

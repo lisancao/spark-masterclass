@@ -4,7 +4,7 @@ The `taxi_etl` project of [Chapter 77](ch77-first-etl-pipeline.md) writes to `sp
 
 **A pipeline gets its configuration from four layers. The Connect server gets static configurations and jars when it starts. The CLI can send `spark.sql.*` configurations to the session. The spec sets the catalog, the database, the storage and a `configuration` map that applies to the session and to each flow. A decorator can change a configuration for one flow. If each configuration is in the layer that owns it, one project runs in each environment with only a different spec.**
 
-This chapter shows where each value goes, with real runs. It uses the session configuration rules of Chapter 74 and adds what is different for a pipeline.
+This chapter shows where each value goes, with real runs. It uses the session configuration rules of [Chapter 74](ch74-setting-configurations.md) and adds what is different for a pipeline.
 
 The code is in [`code/ch79`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch79). `config.sh` and `iceberg.sh` run the taxi project with different specs against a Connect server on port 15104. Each output block comes from `code/ch79/output/`.
 
@@ -522,7 +522,7 @@ Delta Lake is the other common table format. In November 2026, no Delta release 
 | One flow that needs a different value | decorator `spark_conf` | It did not reach the write of a materialized view in 4.3.0 (Step 2). |
 | Passwords and tokens | server or catalog credentials | Not in the spec. Session configurations are readable in the session (Step 8). |
 
-Pipeline configuration differs from session configuration in three ways. Chapter 74 explains the session layers in detail.
+Pipeline configuration differs from session configuration in three ways. [Chapter 74](ch74-setting-configurations.md) explains the session layers in detail.
 
 - **SDP sets the values for you.** Pipeline code must not call `spark.conf.set` ([Chapter 32](ch32-declarative-pipelines.md)). The spec is the only place for a pipeline-wide value.
 - **A value goes to two places.** The spec applies to the session that loads the code and to each flow while it runs. A static key fails in the second place only.
