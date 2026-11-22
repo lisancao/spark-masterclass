@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="22" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Batch rows from data.json (s6_watermark.txt, delay 15 minutes). The time between batches is schematic.
+      const B = [{"batch": 0, "file": "0800", "rows": 487, "max": "08:04", "wm": "00:00", "dropped": 0, "out": 0, "state": 9}, {"batch": 1, "file": "0805", "rows": 508, "max": "08:09", "wm": "07:49", "dropped": 0, "out": 6, "state": 3}, {"batch": 2, "file": "0810", "rows": 450, "max": "08:14", "wm": "07:54", "dropped": 5, "out": 1, "state": 3}, {"batch": 3, "file": "0815", "rows": 461, "max": "08:19", "wm": "07:59", "dropped": 5, "out": 0, "state": 3}, {"batch": 4, "file": "0820", "rows": 518, "max": "08:24", "wm": "08:04", "dropped": 5, "out": 1, "state": 3}, {"batch": 5, "file": "0825", "rows": 500, "max": "08:29", "wm": "08:09", "dropped": 4, "out": 0, "state": 3}, {"batch": 6, "file": "0830", "rows": 547, "max": "08:34", "wm": "08:14", "dropped": 5, "out": 1, "state": 3}, {"batch": 7, "file": "0835", "rows": 542, "max": "08:39", "wm": "08:19", "dropped": 6, "out": 0, "state": 3}, {"batch": 8, "file": "0840", "rows": 509, "max": "08:44", "wm": "08:24", "dropped": 6, "out": 1, "state": 3}, {"batch": 9, "file": "0845", "rows": 517, "max": "08:49", "wm": "08:29", "dropped": 7, "out": 0, "state": 3}, {"batch": 10, "file": "0850", "rows": 602, "max": "08:54", "wm": "08:34", "dropped": 4, "out": 1, "state": 3}, {"batch": 11, "file": "0855", "rows": 628, "max": "08:59", "wm": "08:39", "dropped": 8, "out": 0, "state": 3}, {"batch": 12, "file": null, "rows": 0, "max": null, "wm": "08:44", "dropped": 0, "out": 1, "state": 2}];
+      const m = (s) => { const [h, mm] = s.split(":").map(Number); return h * 60 + mm; };
+      const T0 = m("06:30"), T1 = m("09:00"), XL = 0.05, XR = 0.95;
+      const X = (t) => XL + (t - T0) / (T1 - T0) * (XR - XL);
+      // beat open (0.0): the event-time axis and the windows of batch 0
+      A.title("A watermark that advances", "trips per 10-minute pickup window, watermark delay 15 minutes");
+      const AX = 0.62;
+      A.line({ x1: XL, y1: AX, x2: XR, y2: AX, color: "var(--a-mute)" });
+      for (let t = T0; t <= T1; t += 30) {
+        const hh = String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0");
+        A.text(hh, { x: X(t), y: AX + A.dy(30), size: 22, color: "var(--a-mute)" });
+      }
+      A.text("event time (pickup)", { x: 0.5, y: AX + A.dy(64), size: 22, color: "var(--a-mute)" });
+      A.text("written", { x: XL, y: 0.27, size: 24, color: "var(--a-mute)", anchor: "left" });
+      A.text("in state", { x: XL, y: AX - A.dy(110), size: 24, color: "var(--a-mute)", anchor: "left" });
+      const W = (A.X(X(T0 + 10)) - A.X(X(T0))) / A.s - 6;
+      const tB = (b) => 2.4 + b * 1.35;          // schematic time of batch b
+      const win = {};
+      const addWin = (s, t) => {
+        const el = A.box({ x: X(m(s) + 5), y: AX - A.dy(48), w: W, h: 70, kind: "soft", title: s, size: 17, radius: 6 });
+        gsap.set(el, { opacity: 0 }); A.tl.to(el, { opacity: 1, duration: 0.3 }, t); win[s] = el;
+      };
+      ["06:30","06:50","07:00","07:10","07:20","07:30","07:40","07:50","08:00"].forEach((s) => addWin(s, 0.0));
+      // markers: newest pickup and watermark
+      const mk = (col, label, dy) => {
+        const g = A.el(`<div style="width:${A.px(4)}px;height:${A.px(260)}px;background:${col};margin:auto"></div><div style="font-size:${A.px(22)}px;color:${col};font-weight:700;white-space:nowrap;text-align:center">${label}</div>`,
+          { x: X(T0), y: AX - A.dy(dy), css: { width: A.px(160) + "px" } });
+        gsap.set(g, { opacity: 0 }); return g;
+      };
+      const mx = mk("var(--a-fg)", "newest pickup", 60), wmk = mk("var(--a-acc)", "watermark", 20);
+      const hud = [];
+      // beats batch b: move markers, write windows, add new windows
+      const order = Object.keys(win);
+      let nextWin = ["08:10", "08:20", "08:30", "08:40", "08:50"];
+      let outIdx = 0;
+      const outList = ["06:30","06:50","07:00","07:10","07:20","07:30","07:40","07:50","08:00","08:10","08:20","08:30"];
+      B.forEach((r) => {
+        const t = tB(r.batch);
+        if (r.max) {
+          if (r.batch === 0) A.tl.set(mx, { opacity: 1 }, t);
+          A.tl.to(mx, { x: A.X(X(m(r.max)) - X(T0)), duration: 0.5, ease: "power2.out" }, t);
+          while (nextWin.length && m(nextWin[0]) <= m(r.max)) addWin(nextWin.shift(), t + 0.2);
+        }
+        if (r.wm !== "00:00") {
+          if (r.batch === 1) A.tl.set(wmk, { opacity: 1 }, t);
+          A.tl.to(wmk, { x: A.X(X(m(r.wm)) - X(T0)), duration: 0.5, ease: "power2.out" }, t);
+        }
+        for (let k = 0; k < r.out; k++) {
+          const s = outList[outIdx++], el = win[s];
+          A.tl.to(el, { y: -A.Y(AX - A.dy(48) - 0.33), duration: 0.6, ease: "power2.inOut" }, t + 0.5 + k * 0.05);
+          A.tl.to(el.firstChild, { color: "var(--a-acc)" }, t + 0.5);
+        }
+        const h = A.text(`batch ${r.batch}${r.file ? ", file " + r.file : ", no data"}  |  watermark ${r.wm === "00:00" ? "none" : r.wm}  |  windows out ${r.out}  |  state rows ${r.state}`,
+          { x: 0.5, y: 0.79, size: 28, mono: true });
+        gsap.set(h, { opacity: 0 }); A.tl.to(h, { opacity: 1, duration: 0.15 }, t);
+        if (r.batch < 12) A.tl.to(h, { opacity: 0, duration: 0.15 }, tB(r.batch + 1) - 0.05);
+      });
+      cap("Each batch reads one file: trips that ended in five minutes", 0.2, 4.7);
+      cap("The watermark is the newest pickup minus 15 minutes", 4.8, 9.5);
+      cap("A window goes out when the watermark passes its end", 9.6, 14.3);
+      cap("A no-data batch writes the last window; state stays small", 14.4);
+      A.in(A.note("batch values from s6_watermark.txt; time between batches schematic"), 0.4);
+
+      A.finish(22);
+    </script>
+  </body>
+</html>

@@ -330,6 +330,14 @@ One trip with a pickup at 07:52:00, in three kinds of window:
 +----------+------------------------------------------+
 ```
 
+The figure puts the three results on one time line:
+
+<figure markdown>
+  ![Windows of one trip](../media/figures/ch25-windows-light.svg#only-light)
+  ![Windows of one trip](../media/figures/ch25-windows-dark.svg#only-dark)
+  <figcaption markdown="span">The windows of the trip at 07:52 from `s5_windows.txt`. The trip is in one window of each kind, except the kind with a slide. With a slide of 5 minutes, the trip is in two windows.</figcaption>
+</figure>
+
 - **A tumbling window** (`window("pickup_ts", "10 minutes")`) divides time into windows that do not overlap. Each row goes into exactly one window. The windows start at multiples of the duration, counted from the Unix epoch in UTC, so 07:52 goes into 07:50 to 08:00.
 - **A sliding window** (`window("pickup_ts", "10 minutes", "5 minutes")`) starts a new window each slide interval. The windows overlap, so each row goes into duration ÷ slide windows. Here, that is two windows. The function returns one row for each window, so a sliding window multiplies the rows.
 - **An offset** (`startTime="3 minutes"`) moves all the windows. Use it when your periods do not start on the hour, for example a business day that starts at 06:00.
@@ -352,6 +360,12 @@ The counts by tumbling window over the first three files show the lateness of th
 |08:10|08:20|   26|
 +-----+-----+-----+
 ```
+
+<figure markdown>
+  ![Pickup windows of the first three files](../media/figures/ch25-lateness-light.svg#only-light)
+  ![Pickup windows of the first three files](../media/figures/ch25-lateness-dark.svg#only-dark)
+  <figcaption markdown="span">The counts from `s5_windows.txt`. The files hold trips that ended from 08:00 to 08:15, but most of the trips started before 08:00.</figcaption>
+</figure>
 
 Trips that ended after 08:00 started as early as 06:30. Most of them started in the 30 minutes before 08:00. Thus, the count for the window 07:50 to 08:00 will increase when the next files arrive. Trips that started at 07:55 continue to end until about 08:30.
 
@@ -432,6 +446,13 @@ Read the table one row at a time:
 - **Batch 12 is a no-data batch.** No file arrived, but the watermark moved after batch 11, and a window became complete. Spark runs a batch with no input when the new watermark lets it write output or remove state. The configuration is `spark.sql.streaming.noDataMicroBatches.enabled`, and it is `true` by default. `availableNow` runs this batch before it stops.
 - **The state stays at three rows.** Without the watermark, it grows with each new window (Step 3).
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch25-anim-watermark.webp">
+    <source src="../../media/clips/ch25-anim-watermark.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the batches of `s6_watermark.py` on an event-time line. The watermark follows the newest pickup 15 minutes behind it. A window moves to the written row when the watermark passes its end. The values of each batch come from `s6_watermark.txt`. The time between the batches is schematic.</figcaption>
+</figure>
+
 The `dropped` column needs care. It is `numRowsDroppedByWatermark` of the stateful operator, and the total is 55. But the script also compares the written windows with a batch count of all the trips:
 
 ```text
@@ -474,6 +495,12 @@ delay 60 minutes: 7 windows written, holding 627 trips; 20 trips in them arrived
 | 15 minutes | 12 | 513 |
 | 30 minutes | 10 | 166 |
 | 60 minutes | 7 | 20 |
+
+<figure markdown>
+  ![The watermark delay trade-off](../media/figures/ch25-delay-light.svg#only-light)
+  ![The watermark delay trade-off](../media/figures/ch25-delay-dark.svg#only-dark)
+  <figcaption markdown="span">The results of the four delays from `s6_watermark.txt` and `s6_delays.txt`.</figcaption>
+</figure>
 
 A short delay writes results early and drops many trips. A long delay drops almost nothing, but the results come out later, and the state holds more windows. No delay is correct for all uses. Choose it from the lateness of your data: here, most trips last less than 30 minutes, so a 30-minute delay drops few trips.
 
