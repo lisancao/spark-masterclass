@@ -6,13 +6,15 @@ All of these problems have the same cause: Spark never runs the code that you wr
 
 **Spark changes every query into a plan, and then it changes the plan into jobs, stages and tasks. The shape of that plan sets the cost of a query, not the lines of code that describe it. The shape is how the input splits into tasks, where a shuffle cuts one stage from the next, and which processes do the work.** Most of what it means to understand Spark is to read that shape. The rest of this book uses this skill frequently. Thus, this chapter takes one question about New York taxi trips and follows it through all the levels.
 
-All the code in this chapter runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch01`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch01). Each number in the chapter comes from their saved output in `code/ch01/output/`. If you did not install Spark yet, [Chapter 2](ch02-installing.md) shows how. You can read this chapter first and install Spark later.
+All the code in this chapter runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch01`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch01). Each number in the chapter comes from their saved output in `code/ch01/output/`. If you did not install Spark yet, [Chapter 2](ch02-installing.md) shows how. You can read this chapter first and install Spark later. For the history of Spark and the reasons for its design, read the Background part, which starts with [Chapter 70](ch70-mapreduce-to-spark.md).
 
 ## The pieces of a Spark application
 
 A Spark application has one **driver** and a number of **executors**. The driver is the process that holds your `SparkSession`. It parses and analyzes your queries, and it optimizes them. Then it makes a plan to run them, and it gives small units of work (tasks) to the executors. The executors are the processes that read the data and compute the results.
 
 A **cluster manager** (Kubernetes, YARN or the standalone manager of Spark) starts the executors and gives them CPU and memory. Then the driver communicates with the executors directly.
+
+This chapter uses these parts as boxes. [Chapter 71](ch71-inside-a-spark-application.md), in the Background part, opens each box. It shows the scheduler classes, the block manager, the shuffle files on disk and the memory model.
 
 ```mermaid
 flowchart LR
