@@ -1,0 +1,5 @@
+cost of grouping 20,000,000 cached rows (median of 5 after a warmup)
+  UTF8_BINARY    8 groups  0.35 s
+  UTF8_LCASE     5 groups  9.54 s
+  UNICODE        8 groups  17.74 s
+  UNICODE_CI_AI  3 groups  13.47 s

@@ -556,11 +556,31 @@ matched: 160 of 166
 
 The `Exchange` partitions both sides by the collated value. In the 4.3.0 source, `HashPartitioning` builds its partition ID with `CollationAwareMurmur3Hash` (`partitioning.scala`). This hash uses the collation key, so `Montréal` and `MONTREAL` go to the same partition. The `hash()` function from the last step does not do this. 160 of the 166 deliveries find a store city.
 
-The cost is in each comparison and each hash. `strings.py` groups 2,000,000 cached rows of 8 city spellings under four collations:
+The cost is in each comparison and each hash. `collation_cost.py` groups 20,000,000 cached rows of 8 city spellings under four collations. It builds a new DataFrame for each run, because a second `collect()` on the same DataFrame reuses its shuffle files:
 
-COST_TABLE
+```text
+cost of grouping 20,000,000 cached rows (median of 5 after a warmup)
+  UTF8_BINARY    8 groups  0.35 s
+  UTF8_LCASE     5 groups  9.54 s
+  UNICODE        8 groups  17.74 s
+  UNICODE_CI_AI  3 groups  13.47 s
+```
 
-A non-binary collation calculates a collation key for each value, and the binary collation uses the bytes. For a cleaning step or a small dimension table, this cost is small. For a join key on billions of rows, calculate a normalized key one time, store it, and join on the stored key.
+The binary collation took 0.35 seconds. Each other collation took between 27 and 50 times as long. The plans show one reason:
+
+```text
+aggregate operators of groupBy(collate(city, c)).count():
+  UTF8_BINARY    ['HashAggregate', 'HashAggregate']
+  UTF8_LCASE     ['SortAggregate', 'SortAggregate']
+  UNICODE        ['SortAggregate', 'SortAggregate']
+  UNICODE_CI_AI  ['SortAggregate', 'SortAggregate']
+```
+
+A hash aggregate needs keys that are equal only when their bytes are equal. In the 4.3.0 source, `Aggregate.supportsHashAggregate` checks `UnsafeRowUtils.isBinaryStable` for each grouping key. A non-binary collation is not binary stable, because two different byte sequences can be equal. Thus Spark uses a `SortAggregate`. It sorts all rows by the key, with a collation comparison for each pair of rows, and then it counts each run of equal keys.
+
+`UNICODE` is case-sensitive, but it is not binary stable either. Its comparison uses the ICU rules, not the bytes.
+
+For a cleaning step or a small dimension table, this cost is small. For a join key or a group key on billions of rows, calculate a normalized key one time, for example with `lower` and the accent removal of Step 7. Store it, and group or join on the stored key with the binary collation.
 
 ## Step 10: Invalid UTF-8
 
