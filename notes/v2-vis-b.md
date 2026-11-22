@@ -24,3 +24,22 @@ Scope: figures, animations, tables and admonitions added to the existing chapter
 - ch29: figures ch29-deltabytes (c1_hdfs.txt sizes, lz4delta.py layout), ch29-versions (c1_hdfs.txt decoded files), ch29-repartition (c3_repartition.txt); animation ch29-anim-state-commit (c1_hdfs.txt records; time scale schematic). STE 0 (part05 ch29 allow list).
 - ch30: figures ch30-deltalog (delta_log.txt), ch30-cow-mor (iceberg_log.txt); animation ch30-anim-delta-commits (delta_log.txt; time scale schematic). STE 0.
 - ch31: figures ch31-schemas (evolve.txt), ch31-pruning (evolve.txt, tables.txt), ch31-maintenance (maintenance.txt); animation ch31-anim-snapshot-commit (tables.txt files, sizes and rows; time scale schematic). STE 0.
+- ch21 (second commit): the DataFrame and SQL forms of the lateral call in Step 5 are now `=== "DataFrame"` / `=== "SQL"` tabs; the SQL tab shows the `spark.udtf.register("pairs", Pairs)` line from `udtf_core.py`.
+
+## Totals
+
+- 39 figures (78 SVG files, light and dark), about 0.64 MB.
+- 14 animations (mp4 1280x720 plus webp poster), about 3.6 MB together; the largest mp4 is about 320 KB.
+- Each chapter commit passed `mkdocs build --strict`.
+
+## Conventions for the integrator
+
+- Captions use `<figcaption markdown="span">` so that backticks render as code. `ste_prep.py` strips HTML tags, so a word inside `<code>` is checked as prose; backticks avoid that.
+- Figure alt text counts toward the sentence length in `ste-check` (the alt is in both images), so alt texts are short.
+- The part05 allow lists work only when each word is a separate argument. A shell variable that holds the list is one argument in zsh, and then the counts look higher than they are.
+- No nav or roadmap changes: no new pages.
+- Each animation directory (`code/chNN/anim/<name>/`) has `storyboard.md` (beats, captions as the narration script) and `data.json` (the source file of each number). `theme.*` and `renders/` are ignored by the kit's `.gitignore`. Rebuild: `anim render code/chNN/anim/<name> --formats landscape --themes paper`, then scale to 1280x720 with ffmpeg (libx264, crf 28, no audio) and take a webp poster from a late frame.
+
+## Open findings
+
+- None about Spark. Nothing was rerun; every number comes from the existing `code/chNN/output/` files.
