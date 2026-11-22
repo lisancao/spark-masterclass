@@ -1,0 +1,29 @@
+== 1. one query, two APIs, compared at each phase
+  parsed    same node names: False
+      Aggregate                            Aggregate
+      Filter                               Filter
+      UnresolvedRelation                   SubqueryAlias
+                                           Relation
+  analyzed  same node names: True
+  optimized same node names: True
+  sameSemantics (analyzed): True
+  sameResult (optimized):   True
+
+== 2. a command in SQL and in the DataFrame API
+  CREATE TABLE ... AS SELECT  -> CreateDataSourceTableAsSelectCommand, InsertIntoHadoopFsRelationCommand
+  df.write.saveAsTable(...)   -> SaveAsV1TableCommand, CreateDataSourceTableAsSelectCommand, InsertIntoHadoopFsRelationCommand
+  INSERT INTO ... SELECT      -> InsertIntoHadoopFsRelationCommand, InsertIntoHadoopFsRelationCommand
+  df.write.insertInto(...)    -> InsertIntoHadoopFsRelationCommand, InsertIntoHadoopFsRelationCommand
+
+== 3. the Catalog API and the SQL commands read one catalog
+  SHOW TABLES IN taxi:           ['june_df', 'june_sql', 'trips']
+  spark.catalog.listTables:      ['june_df', 'june_sql', 'trips']
+  after spark.catalog.createTable('taxi.notes'):
++-------------------------------------------------------------------------------------------------------+
+|createtab_stmt                                                                                         |
++-------------------------------------------------------------------------------------------------------+
+|CREATE TABLE spark_catalog.taxi.notes (\n  id INT,\n  note STRING COLLATE UTF8_BINARY)\nUSING parquet\n|
++-------------------------------------------------------------------------------------------------------+
+
+  spark.catalog.tableExists('taxi.notes'): True
+  after DROP TABLE in SQL:                 False
