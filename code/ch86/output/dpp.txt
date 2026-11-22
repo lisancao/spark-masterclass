@@ -7,21 +7,21 @@ trips_by_day: 22,131,665 rows in 181 partitions; days: 181 rows
   result: 261 pickup zones, 2,885,119 Sunday trips
 
 === 2. what the fact scan read, and the time (median of 7 after a warmup)
-  DPP on (default)         partitions read   26  files   26  rows out of scan   2,885,119  0.76 s
-  DPP off                  partitions read  181  files  181  rows out of scan  22,131,665  0.92 s
+  DPP on (default)         partitions read   26  files   26  rows out of scan   2,885,119  0.63 s
+  DPP off                  partitions read  181  files  181  rows out of scan  22,131,665  0.51 s
                            no broadcast: PartitionFilters [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
-  DPP on, broadcast off    partitions read  181  files  181  rows out of scan  22,131,665  2.66 s
-  DPP off / DPP on: 1.2x
+  DPP on, broadcast off    partitions read  181  files  181  rows out of scan  22,131,665  1.55 s
+  DPP off / DPP on: 0.8x
 
 === 3. holidays: 'holiday IS NOT NULL' is not a selective predicate
   PartitionFilters: [isnotnull(pickup_date)]
-  no column statistics     partitions read  181  files  181  rows out of scan  22,131,665  0.65 s
+  no column statistics     partitions read  181  files  181  rows out of scan  22,131,665  0.38 s
   after ANALYZE ... FOR COLUMNS on both tables, and spark.sql.cbo.enabled=true:
   PartitionFilters: [isnotnull(pickup_date)]
-  statistics and CBO       partitions read  181  files  181  rows out of scan  22,131,665  0.64 s
+  statistics and CBO       partitions read  181  files  181  rows out of scan  22,131,665  0.45 s
   the same filter written as "d.holiday <> ''", a comparison:
   PartitionFilters: [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
-  holiday <> ''            partitions read    5  files    5  rows out of scan     479,694  0.23 s
+  holiday <> ''            partitions read    5  files    5  rows out of scan     479,694  0.15 s
     Juneteenth                    116,083  2.87
     Martin Luther King Jr. Day     95,810  2.95
     Memorial Day                   75,497  3.25
@@ -32,8 +32,9 @@ trips_by_day: 22,131,665 rows in 181 partitions; days: 181 rows
   PartitionFilters: [pickup_date IN (2026-01-01,2026-01-19,2026-02-16,2026-05-25,2026-06-19)]
   partitions read 5, files read 5
 
-=== 5. new in 4.3: a small local DataFrame as the filtering side, with no filter at all (SPARK-54593)
-  spark.sql.cbo.enabled=false: PartitionFilters [isnotnull(pickup_date)]
-    partitions read 181, rows out of scan 22,131,665
-  spark.sql.cbo.enabled=true: PartitionFilters [isnotnull(pickup_date)]
-    partitions read 181, rows out of scan 22,131,665
+=== 5. new in 4.3: a small local relation as the filtering side, with no filter at all (SPARK-54593)
+  the filtering side: LocalRelation [pickup_date#112002]
+  spark.sql.cbo.enabled=false: PartitionFilters [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+    partitions read 5, rows out of scan 479,694
+  spark.sql.cbo.enabled=true: PartitionFilters [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+    partitions read 5, rows out of scan 479,694

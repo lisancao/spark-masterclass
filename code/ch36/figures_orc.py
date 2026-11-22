@@ -46,3 +46,33 @@ def orc_bytemap():
 
 if __name__ == "__main__":
     orc_bytemap()
+
+
+def orc_compare():
+    txt = (OUT / "orc_compare.txt").read_text()
+    rows = []
+    for l in txt.splitlines():
+        m = re.match(r"\s+(parquet|orc), (.+?)\s{2,}([\d,]+)\s+([\d.]+) s\s+([\d,]+)\s+([\d.]+) s\s+([\d,]+)\s+([\d.]+) s", l)
+        if m:
+            rows.append((f"{m.group(1)}, {m.group(2)}", int(m.group(5).replace(",", "")), float(m.group(8))))
+    W, H = 920, 70 + len(rows) * 40 + 50
+    f = Fig(W, H, "Parquet against ORC on the June trips")
+    f.text(20, 22, "Left: rows from the scan for tip_amount > 50, of 3,837,248. Right: median time of the full scan (orc_compare.txt)",
+           size=12.5, anchor="start", color="mute")
+    lx0, lx1, rx0, rx1 = 230, 510, 610, 860
+    rmax = max(r[1] for r in rows); tmax = max(r[2] for r in rows)
+    f.text(lx0, 50, "rows from the scan", size=12, anchor="start", weight=600)
+    f.text(rx0, 50, "full scan, seconds", size=12, anchor="start", weight=600)
+    for i, (lab, r, t) in enumerate(rows):
+        y = 64 + i * 40
+        f.text(lx0 - 10, y + 13, lab, size=12.5, anchor="end")
+        k = "blue" if lab.startswith("parquet") else "accent"
+        f.box(lx0, y, (lx1 - lx0) * r / rmax, 26, kind=k, rx=3)
+        f.text(lx0 + (lx1 - lx0) * r / rmax + 6, y + 13, f"{r:,}", size=11.5, anchor="start", color="mute")
+        f.box(rx0, y, (rx1 - rx0) * t / tmax, 26, kind=k, rx=3)
+        f.text(rx0 + (rx1 - rx0) * t / tmax + 6, y + 13, f"{t:.2f}", size=11.5, anchor="start", color="mute")
+    f.note("timings: median of 5 runs after a warmup, under the bench lock, on a shared machine", y=H - 16)
+    f.save("ch36-orc-compare")
+
+
+orc_compare()

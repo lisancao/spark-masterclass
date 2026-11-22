@@ -1,10 +1,17 @@
 # Chapter 86: Statistics, the cost-based optimizer and partition pruning
 
-[Chapter 32](ch32-query-plans.md) showed that Spark makes most plan decisions before it reads any data. It selects a join strategy, a join order and the files to read from estimates. [Chapter 11](ch11-joins.md) showed what happens when an estimate is wrong: a broadcast that does not fit, or a shuffle that was not necessary. This chapter is about the inputs to those estimates, and about the layouts that let Spark skip work completely.
+[Chapter 32](ch32-query-plans.md) showed that Spark makes most plan decisions before it reads any data. It selects a join strategy, a join order and the files to read from estimates. In [Chapter 11](ch11-joins.md), some estimates were wrong. The result was a broadcast that did not fit, or a shuffle that was not necessary. This chapter is about the inputs to those estimates, and about the layouts that let Spark skip work completely.
 
 **The optimizer knows only what the catalog and the files tell it. Without statistics, it knows the size of each table and nothing about its rows, so a filter does not change any estimate. `ANALYZE TABLE` stores row counts, column statistics and histograms, and the cost-based optimizer uses them to select a broadcast and to reorder joins. Partitioned, bucketed and storage-partitioned tables carry their layout into the plan, and Spark uses that layout to skip partitions and to remove shuffles. Hints are for the cases where you know more than all of these.**
 
-The scripts are in [`code/ch86`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch86), and each output block comes from `code/ch86/output/`. The tables are the June 2026 taxi trips (3,709,141 rows after the cleaning in `c86.py`), a second table `fares` with the money columns of the same trips, the 265 zones, and six months of trips partitioned by day. The tables are in a Hive metastore in Derby under `data/work/`, so that their statistics stay between scripts. All runs use Spark 4.3.0 in `local[*]` mode on 16 cores. Each timing is a median after a warm-up run, measured under the bench lock while no other benchmark of the book ran. Other processes ran on the machine at the same time, so compare timings only inside one output block.
+The scripts are in [`code/ch86`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch86), and each output block comes from `code/ch86/output/`. The tables are these:
+
+- `trips`: the June 2026 taxi trips, 3,709,141 rows after the cleaning in `c86.py`.
+- `fares`: the money columns of the same trips, with the same `trip_id`.
+- `zones`: the 265 taxi zones.
+- `trips_by_day`: six months of trips, with one partition for each day.
+
+The tables are in a Hive metastore in Derby under `data/work/`, so that their statistics stay between scripts. All runs use Spark 4.3.0 in `local[*]` mode on 16 cores. Each timing is a median after a warm-up run, measured under the bench lock while no other benchmark of the book ran. Other processes ran on the machine at the same time, so compare timings only inside one output block.
 
 | Script | Steps | What it shows |
 |---|---|---|
@@ -84,7 +91,9 @@ The distinct count is an estimate from HyperLogLog++. `spark.sql.statistics.ndv.
   trips.trip_distance: min 0.01, max 311565.39, num_nulls 0, distinct_count 5036
 ```
 
-The catalog keeps these values as table properties with the prefix `spark.sql.statistics.`. Statistics do not follow the data. If you append rows, the row count and the column statistics stay old. With `spark.sql.statistics.size.autoUpdate.enabled=true`, Spark updates the size after each write, but not the other values. Run `ANALYZE` again after large changes.
+The catalog keeps these values as table properties with the prefix `spark.sql.statistics.`.
+
+Statistics do not follow the data. If you append rows, the row count and the column statistics stay old. With `spark.sql.statistics.size.autoUpdate.enabled=true`, Spark updates the size after each write, but not the other values. Run `ANALYZE` again after large changes.
 
 !!! caution "Statistics that are out of date are worse than none"
     Run `ANALYZE TABLE` again after a large write. The optimizer trusts the stored row count and column ranges. If they are old, its estimates can be wrong by orders of magnitude, and it can broadcast a table that is now large.
@@ -105,7 +114,7 @@ Statistics in the catalog are not enough. The plan uses only the size until you 
 
 Two things changed:
 
-- **The `Relation` has a row count, and a larger size.** With CBO, Spark calculates the size as the row count multiplied by the size of one row in memory, from `avg_col_len` of each column and a row overhead. Thus 30.6 MiB of compressed Parquet becomes 169.8 MiB. This is closer to what a broadcast must hold in memory ([Chapter 11](ch11-joins.md), Step 6 showed a broadcast that did not fit).
+- **The `Relation` has a row count, and a larger size.** With CBO, the size is the row count multiplied by the size of one row in memory. Spark calculates the row size from `avg_col_len` of each column and a row overhead. Thus 30.6 MiB of compressed Parquet becomes 169.8 MiB. This is closer to what a broadcast must hold in memory ([Chapter 11](ch11-joins.md), Step 6 showed a broadcast that did not fit).
 - **The `Filter` has its own estimate.** `FilterEstimation` uses the column statistics. Without a histogram, it assumes that the values spread evenly between the minimum and the maximum. The range of `total_amount` is -1815.18 to 7053.5, and 500 is near the bottom of it. So the estimate is that 74% of the rows pass: 2.74 million rows. The real answer is 82 rows.
 
 A histogram fixes this. `stats.py` estimates six filters without and with a histogram, and counts the real rows:
@@ -172,11 +181,13 @@ flowchart LR
 
 - **CBO off.** The filtered `fares` is 30.6 MiB to the planner, above the 10 MB threshold. It plans a sort-merge join with two hash exchanges, so it shuffles all 3.7 million trips.
 - **CBO on.** The histogram estimate is 13,800 rows, 647.7 KiB. The planner selects a broadcast hash join and plans no exchange for the join.
-- **AQE did not fix the plan without CBO.** After the shuffle, AQE knows that the filtered side is small. But the 82 rows fill only a few of the 200 shuffle partitions, and the rule `DemoteBroadcastHashJoin` keeps the sort-merge join for this case ([Chapter 32](ch32-query-plans.md), Step 7 explains the rule). AQE can only correct a plan after a stage ran, and here the expensive stage was the shuffle itself.
+- **AQE did not fix the plan without CBO.** After the shuffle, AQE knows that the filtered side is small. But the 82 rows fill only a few of the 200 shuffle partitions. For this case, the rule `DemoteBroadcastHashJoin` keeps the sort-merge join ([Chapter 32](ch32-query-plans.md), Step 7). AQE can only correct a plan after a stage ran, and here the expensive stage was the shuffle itself.
 
 ## Step 5: Join reorder
 
-The order of the joins in a query is the order that you wrote, unless CBO reorders them. With `spark.sql.cbo.joinReorder.enabled`, the rule `CostBasedJoinReorder` lists the inner joins of a query and searches the join orders with dynamic programming. The cost of a plan is a weighted sum of the rows and the bytes of all intermediate results (`spark.sql.cbo.joinReorder.card.weight`, 0.7 for rows).
+The order of the joins in a query is the order that you wrote, unless CBO reorders them. With `spark.sql.cbo.joinReorder.enabled`, the rule `CostBasedJoinReorder` lists the inner joins of a query. Then it searches the join orders, from small groups of tables to large groups.
+
+The cost of a plan is a weighted sum of the rows and the bytes of all intermediate results (`spark.sql.cbo.joinReorder.card.weight`, 0.7 for rows).
 
 `cbo_join.py` turns the broadcast off, so that each join is a sort-merge join and the order decides how much data moves. The query joins trips to fares, and then to the zones of Staten Island:
 
@@ -229,7 +240,11 @@ The cost model is only as good as its estimates. The third block of `cbo_join.tx
     real rows of trips JOIN zones (Staten Island): 210
 ```
 
-With histograms on `PULocationID` and `LocationID`, the estimate for the join with the 38 zones of Staten Island is 7.63 million rows, more than the 3.7 million trips. The real join has 210 rows. With this estimate, the written order looks cheaper, and CBO keeps it. The join estimate uses the histograms of both keys. The filter `Borough = 'Staten Island'` is on another column, and the histogram of `LocationID` still describes all 265 zones. This book does not say that this is a defect. It is a limit of the estimate that you can see in `explain("cost")`, so read the estimates before you trust a reorder.
+With histograms on `PULocationID` and `LocationID`, the estimate for the join with the 38 zones of Staten Island is 7.63 million rows. That is more than the 3.7 million trips. The real join has 210 rows.
+
+With this estimate, the written order looks cheaper, and CBO keeps it. The join estimate uses the histograms of both keys. The filter `Borough = 'Staten Island'` is on another column, and the histogram of `LocationID` still describes all 265 zones. It is a limit of the estimate, and `explain("cost")` shows it.
+
+Read the estimates before you trust a reorder.
 
 The CBO settings in Spark 4.3.0:
 
@@ -257,7 +272,7 @@ Bucketing is a feature of Spark's own file tables. A table format such as Apache
 !!! note "The Iceberg runtime in this step is not a release"
     No released Iceberg runtime supports Spark 4.3 yet ([Chapter 45](ch45-iceberg.md), Step 1). `spj.py` uses the same jar as Chapter 45: `iceberg-spark-runtime-4.3_2.13`, built from apache/iceberg pull request 18749 (commit `b1eab64`). The Spark side of SPJ is in Spark 4.3.0. The Iceberg side can change before a release.
 
-`spj.py` makes three Iceberg tables in a Hadoop catalog. `trips` and `zstats` are partitioned by `bucket(16, PULocationID)`, and `zstats8` by `bucket(8, PULocationID)`. Then it runs one join with five sets of settings:
+`spj.py` makes three Iceberg tables in a Hadoop catalog. The partition transform of `trips` and `zstats` is `bucket(16, PULocationID)`, and of `zstats8` it is `bucket(8, PULocationID)`. Then it runs one join with five sets of settings:
 
 ```sql
 CREATE TABLE lake.db.trips (PULocationID INT, DOLocationID INT, total_amount DOUBLE, tip_amount DOUBLE)
@@ -294,7 +309,7 @@ Spark 4.3.0, Iceberg jar iceberg-spark-runtime-4.3_2.13-b1eab64.jar
 
 - **With the defaults, the plan has two `Exchange` nodes.** Spark's side of SPJ (`spark.sql.sources.v2.bucketing.enabled`) is on by default since Spark 3.3. But Iceberg reports its partitioning only if `spark.sql.iceberg.planning.preserve-data-grouping` is true, and that setting is false by default.
 - **With `preserve-data-grouping`, the `Exchange` nodes are gone.** Each `BatchScan` delivers the rows of one bucket to one task, and the sort-merge join reads them in place. The join took 0.28 s against 0.53 s.
-- **16 buckets against 8 buckets needs one more setting.** `bucket(16, x)` and `bucket(8, x)` are different transforms, so Spark shuffled both sides. With `spark.sql.sources.v2.bucketing.allowCompatibleTransforms.enabled`, Spark asks the bucket function for a reducer. Iceberg's `BucketFunction` (a `ReducibleFunction`) returns one that maps 16 buckets to their greatest common divisor with 8, so Spark groups the 16 buckets into 8, and the join has no `Exchange` again.
+- **16 buckets against 8 buckets needs one more setting.** `bucket(16, x)` and `bucket(8, x)` are different transforms, so Spark shuffled both sides. With `spark.sql.sources.v2.bucketing.allowCompatibleTransforms.enabled`, Spark asks the bucket function for a reducer. Iceberg's `BucketFunction` is a `ReducibleFunction`. It returns a reducer to the greatest common divisor of the two counts, which is 8. Spark groups the 16 buckets into 8, and the join has no `Exchange` again.
 - **With `spark.sql.sources.v2.bucketing.enabled=false`**, Spark ignores the reported partitioning.
 
 The settings for SPJ in Spark 4.3.0, from the tuning guide and `SQLConf.scala`:
@@ -314,7 +329,7 @@ In 4.3.0, the main name of the subset setting is `spark.sql.sources.v2.bucketing
 
 ## Step 9: Hints
 
-A hint tells the planner what you know and the statistics do not. Spark has two kinds: join hints select the strategy of one join, and partitioning hints add or change an exchange. [Chapter 11](ch11-joins.md), Step 4 measured each join strategy on the same query. This step shows what each hint puts in the plan, which hint wins, and what happens to a hint that cannot apply. `hints.py` reads the Parquet folders of the tables as temporary views.
+A hint tells the planner what you know and the statistics do not. Spark has two kinds of hints. Join hints select the strategy of one join, and partitioning hints add or change an exchange. Step 4 of [Chapter 11](ch11-joins.md) measured each join strategy on the same query. This step shows what each hint puts in the plan, which hint wins, and what happens to a hint that cannot apply. `hints.py` reads the Parquet folders of the tables as temporary views.
 
 ### Join hints
 
@@ -373,7 +388,7 @@ A hint names a table or an alias, not a side. `BROADCAST(t)` on the trips made S
   SHUFFLE_HASH(t), SHUFFLE_HASH(z)           ShuffledHashJoin BuildRight
 ```
 
-When the two sides have different hints, the order of precedence is `BROADCAST`, then `MERGE`, then `SHUFFLE_HASH`, then `SHUFFLE_REPLICATE_NL`. When both sides have the same `BROADCAST` or `SHUFFLE_HASH` hint, the planner selects the build side from the join type and the sizes: here the zones (`BuildRight`).
+When the two sides have different hints, the order of precedence is `BROADCAST`, then `MERGE`, then `SHUFFLE_HASH`, then `SHUFFLE_REPLICATE_NL`. Sometimes both sides have the same `BROADCAST` or `SHUFFLE_HASH` hint. Then the planner selects the build side from the join type and the sizes, here the zones (`BuildRight`).
 
 ```text
 === 4. hints that the planner cannot use (it ignores them and logs a warning)
@@ -394,7 +409,7 @@ The planner never fails a query because of a hint. It ignores a hint that cannot
 - **A hash join needs an equality.** For `t.PULocationID < z.LocationID`, the planner used its default for a non-equi join, a broadcast nested loop join.
 - **A hint on a name that is not in the query, and a misspelled hint, have no effect.** The plan is the default plan.
 
-These warnings go to the driver log at level WARN. A typing error in a hint is silent at the default log level of the book's scripts (ERROR). Read `explain()` after you add a hint, and make sure that the plan changed.
+These warnings go to the driver log at level WARN. At the log level of the book's scripts (ERROR), a hint with a wrong name gives no message. Read `explain()` after you add a hint, and make sure that the plan changed.
 
 ### Partitioning hints
 
@@ -444,5 +459,5 @@ Partitioning hints are the SQL form of `repartition`, `coalesce` and `repartitio
 
 - **A number fixes the result.** `REPARTITION(4)` made four files of 14.2 MB each. AQE does not change a partition count that you gave.
 - **Without a number, AQE decides.** `REPARTITION(PULocationID)` and `REBALANCE(PULocationID)` both started with 200 shuffle partitions, and AQE coalesced them to 21.
-- **`REBALANCE` follows the advisory size only if parallelism comes second.** With the default `spark.sql.adaptive.coalescePartitions.parallelismFirst=true`, AQE keeps at least as many partitions as the default parallelism (16 here), so `REBALANCE` made 17 files of about 3 MB. With `parallelismFirst=false`, AQE coalesced to the 64 MB advisory size (`spark.sql.adaptive.advisoryPartitionSizeInBytes`), and made 2 files. With an advisory size of 16 MB, it made 7 files. The advisory size counts shuffle bytes, not Parquet bytes, so the files are smaller than the advisory size.
+- **`REBALANCE` follows the advisory size only if parallelism comes second.** The default is `spark.sql.adaptive.coalescePartitions.parallelismFirst=true`. Then AQE keeps at least as many partitions as the default parallelism (16 here), so `REBALANCE` made 17 files of about 3 MB. With `parallelismFirst=false`, AQE coalesced to the 64 MB advisory size (`spark.sql.adaptive.advisoryPartitionSizeInBytes`), and made 2 files. With an advisory size of 16 MB, it made 7 files. The advisory size counts shuffle bytes, not Parquet bytes, so the files are smaller than the advisory size.
 - **`REBALANCE` is the hint for the last step before a write.** It gives files of a useful size, and AQE splits a skewed partition into several files. It does not guarantee that all rows of one key are in one file.

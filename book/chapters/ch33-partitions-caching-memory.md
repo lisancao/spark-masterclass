@@ -575,7 +575,14 @@ SQL execution 2 ('3. tips by pickup zone, from the cache'), jobs [7, 8]
 `ui_tabs.py` runs one application that fills every tab: a batch query, a cache, a sort that spills, a streaming query, and a Spark Connect session. The Connect server runs as a plugin in the same application (`spark.plugins=org.apache.spark.sql.connect.SparkConnectPlugin`), and a client in another process connects to it. `film/ch33_ui_tabs.py` takes a screenshot of each tab with a headless browser. The orange boxes mark the parts that the text explains. What the REST API reported for the same run:
 
 ```text
-<<UITABS>>
+connect: 499999500000 3837248
+UI on port 4154 (default 1g heap, so that the sort spills)
+  jobs 23, stages 37
+  storage: *(1) Project [PULocationID#7, tip_amount#13, fare_amount#10], 16/16 partitions, 64.5 MiB
+  executors: 1 (driver), cores 16, max memory 434.4 MiB
+  environment: 21 Spark properties, Java 17.0.21.1 (U
+  SQL executions: 26
+  streaming query: rate_windows, id d6d98093-4ae0-4d58-ad7c-ea5c1a016d7f, batches so far 9
 ```
 
 | Tab | URL | REST endpoint | Use it to find |
@@ -593,7 +600,7 @@ SQL execution 2 ('3. tips by pickup zone, from the cache'), jobs [7, 8]
 
 <figure markdown>
   ![The Jobs tab](../media/figures/ch33-ui-jobs.png)
-  <figcaption markdown="span">The Jobs tab. The first job of `ui_tabs.py` has the description `1. trips by pickup zone`.</figcaption>
+  <figcaption markdown="span">The Jobs tab. The streaming query adds one job for each micro-batch, with the query name as the description.</figcaption>
 </figure>
 
 **Stages.** The list shows each stage with its input, output, shuffle read and shuffle write. The detail page of one stage has the numbers of Steps 7 and 12.
@@ -602,7 +609,7 @@ It shows the **Locality Level Summary**, the spill totals and the **Summary Metr
 
 <figure markdown>
   ![The detail page of the sort stage](../media/figures/ch33-ui-stage-detail.png)
-  <figcaption markdown="span">The detail page of the sort stage, with the summary metrics of its tasks.</figcaption>
+  <figcaption markdown="span">The detail page of the sort stage. Its 2 tasks spilled 608 MiB in memory, 161.7 MiB on the disk.</figcaption>
 </figure>
 
 **Storage.** The tab has one row for each cached RDD or DataFrame. Each row shows the storage level, the cached partitions against all partitions, and the size in memory and on the disk. The name of a DataFrame cache is its plan. A fraction below 100% means that Spark must calculate the partitions that are not in the cache again.
@@ -612,11 +619,11 @@ It shows the **Locality Level Summary**, the spill totals and the **Summary Metr
   <figcaption markdown="span">The Storage tab with the cached June tips at the level `Disk Memory Deserialized 1x Replicated`.</figcaption>
 </figure>
 
-**Environment.** The runtime (Java and Scala versions), every Spark property, the Hadoop properties, the system properties and the class path. This is the only place that shows the value that the application really used, after all the sources of [Chapter 8](ch08-setting-configurations.md). Spark redacts values whose keys match `spark.redaction.regex`, for example passwords.
+**Environment.** The runtime (Java and Scala versions), every Spark property, the Hadoop properties, the system properties and the class path. This is the only place that shows the value that the application really used, after all the sources of [Chapter 8](ch08-setting-configurations.md). The **Spark Properties** table has a **Default Value** column, and it marks each property that is not at its default value. Spark redacts values whose keys match `spark.redaction.regex`, for example passwords.
 
 <figure markdown>
   ![The Environment tab](../media/figures/ch33-ui-environment.png)
-  <figcaption markdown="span">The Environment tab: the runtime information, then the Spark properties.</figcaption>
+  <figcaption markdown="span">The Spark properties. The Connect port 15114 is not the default 15002, so the page marks its row.</figcaption>
 </figure>
 
 **Executors.** The tab has one row for each executor and for the driver. Each row shows the storage memory in use against the storage pool of Step 6, the disk in use, the cores and the tasks. It also shows **Task Time (GC Time)**, the input bytes and the shuffle bytes. A GC time that is a large part of the task time is the sign of Step 11. On a cluster, **Thread Dump** shows what each thread of a slow executor does now, and **Heap Histogram** counts the objects in its heap.

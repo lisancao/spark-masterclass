@@ -3,11 +3,12 @@
 Run from code/:  uv run python ch86/dpp.py   (timings under the bench lock)
 """
 import datetime as dt
+import time
 import re
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from c86 import start, trips_clean, plan, median_s, noop, last_sql_metrics, TAXI, F
+from c86 import start, trips_clean, plan, median_s, noop, last_sql_metrics, last_query_work, TAXI, F
 
 spark = start("ch86-dpp", spark_driver_memory="8g")
 tables = {r.tableName for r in spark.sql("SHOW TABLES").collect()}
@@ -58,9 +59,11 @@ def scan_metrics():
 def run(sql, label):
     t = median_s(lambda: spark.sql(sql).collect(), runs=7)
     spark.sql(sql).collect()
+    time.sleep(1)
     m = scan_metrics()
-    print(f"  {label:24} partitions read {m.get('number of partitions read', '?'):>4}  files {m.get('number of files read', '?'):>4}"
-          f"  rows out of scan {m.get('number of output rows', '?'):>11}  {t:.2f} s")
+    work, inb = last_query_work()
+    print(f"  {label:24} partitions read {m.get('number of partitions read', '?'):>4}  rows out of scan {m.get('number of output rows', '?'):>11}"
+          f"  input {inb / 2**20:6.1f} MiB  task time {work:5.1f} s  wall {t:.2f} s")
     return t
 
 
@@ -110,12 +113,13 @@ static.collect()
 m = scan_metrics()
 print(f"  partitions read {m.get('number of partitions read', '?')}, files read {m.get('number of files read', '?')}")
 
-print("\n=== 5. new in 4.3: a small local DataFrame as the filtering side, with no filter at all (SPARK-54593)")
-hol = spark.createDataFrame([(dt.date(2026, 1, 1),), (dt.date(2026, 1, 19),), (dt.date(2026, 2, 16),),
-                             (dt.date(2026, 5, 25),), (dt.date(2026, 6, 19),)], "pickup_date date")
+print("\n=== 5. new in 4.3: a small local relation as the filtering side, with no filter at all (SPARK-54593)")
+hol = spark.sql("""SELECT * FROM VALUES (DATE'2026-01-01'), (DATE'2026-01-19'), (DATE'2026-02-16'),
+                   (DATE'2026-05-25'), (DATE'2026-06-19') AS h(pickup_date)""")
+print("  the filtering side: " + plan(hol, "extended").split("== Optimized Logical Plan ==")[1].strip().splitlines()[0][:60])
 for cbo in ("false", "true"):
     spark.conf.set("spark.sql.cbo.enabled", cbo)
-    q = spark.table("trips_by_day").join(hol, "pickup_date").groupBy("pickup_date").count()
+    q = spark.table("trips_by_day").join(hol, "pickup_date").groupBy("pickup_date").agg(F.avg("tip_amount"))
     print(f"  spark.sql.cbo.enabled={cbo}: PartitionFilters [{scan_filters(q)[:100]}]")
     q.collect()
     m = scan_metrics()

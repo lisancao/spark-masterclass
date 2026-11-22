@@ -2,21 +2,21 @@
   trips_b16_many   272 files, bucket ids in the names: 16 distinct (00000 to 00015)
   trips_b16         16 files, bucket ids in the names: 16 distinct (00000 to 00015)
   trips_plain       17 files, bucket ids in the names: 0 distinct
-  one file name: part-00003-6007dc6b-acbd-45c5-8b95-abb1ab8d0533_00003.c000.snappy.parquet
+  one file name: part-00003-4211af59-6479-49ed-873e-c421de208d6e_00003.c000.snappy.parquet
   DESC EXTENDED: Num Buckets 16, Bucket Columns [`PULocationID`], Sort Columns [`PULocationID`]
 
 === 2. the same join on four pairs of tables (broadcast off)
-  plain   x plain                  SortMergeJoin  exchanges 2  0.99 s
+  plain   x plain                  SortMergeJoin  exchanges 2  0.37 s
                                      Exchange hashpartitioning(PULocationID, 200)
                                      Exchange hashpartitioning(PULocationID, 200)
-  b16     x b16                    SortMergeJoin  exchanges 0  0.29 s
-  b16     x b8                     SortMergeJoin  exchanges 1  0.21 s
+  b16     x b16                    SortMergeJoin  exchanges 0  0.19 s
+  b16     x b8                     SortMergeJoin  exchanges 1  0.16 s
                                      Exchange hashpartitioning(PULocationID, 16)
-  b16     x b8, coalesce buckets   SortMergeJoin  exchanges 0  0.23 s
-  b16     x b16, bucketing off     SortMergeJoin  exchanges 2  0.32 s
+  b16     x b8, coalesce buckets   SortMergeJoin  exchanges 0  0.16 s
+  b16     x b16, bucketing off     SortMergeJoin  exchanges 2  0.35 s
                                      Exchange hashpartitioning(PULocationID, 200)
                                      Exchange hashpartitioning(PULocationID, 200)
-  plain / b16 x b16: 3.5x
+  plain / b16 x b16: 1.9x
 
 === 3. an aggregate on the bucket key
   trips_plain  exchanges 1 ['hashpartitioning(PULocationID, 200)']
@@ -25,10 +25,10 @@
 === 4. bucket pruning: a filter on the bucket column
   autoBucketedScan.enabled=true: Bucketed: false (disabled by query planner)
     metric 'number of files read' 16, rows out of scan 180,000
-    scan tasks 0, tasks that read bytes 0, bytes read 0
+    tasks of the query 2, tasks that read input 1, input bytes 90,940
   autoBucketedScan.enabled=false: Bucketed: true | SelectedBucketsCount: 1 out of 16
     metric 'number of files read' 16, rows out of scan 180,000
-    scan tasks 0, tasks that read bytes 0, bytes read 0
+    tasks of the query 17, tasks that read input 1, input bytes 90,940
 
 === 5. a query that gains nothing from buckets: the planner turns the bucketed scan off
   Bucketed: false (bucket column(s) not read)

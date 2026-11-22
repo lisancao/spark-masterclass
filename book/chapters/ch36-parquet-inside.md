@@ -1,10 +1,12 @@
-# Chapter 36: Parquet from the inside
+# Chapter 36: Parquet and ORC from the inside
 
-Most Spark data lives in Parquet files, and most Spark performance advice is about Parquet in disguise. "Sort before you write" and "do not write small files" are two examples. "Use `TIMESTAMP_MICROS`" and "partition pruning is not the same as row group skipping" are two more. Each of these rules follows from a few bytes at the end of each file. This chapter reads those bytes.
+Most Spark data lives in Parquet files, and most Spark performance advice is about Parquet in disguise. ORC, the columnar format from the Hive project, follows the same ideas with different names. "Sort before you write" and "do not write small files" are two examples. "Use `TIMESTAMP_MICROS`" and "partition pruning is not the same as row group skipping" are two more. Each of these rules follows from a few bytes at the end of each file. This chapter reads those bytes, first in Parquet and then in ORC.
 
 **A Parquet file is a sequence of column chunks with a footer that describes them. The footer holds the schema, and for each row group and each column, the encodings, the offsets and the minimum and maximum values. Spark gives its filters to the Parquet reader. The reader skips data with the footer statistics, the dictionaries, the bloom filters and the page indexes. Each of these mechanisms works only if the layout of the data lets it. The writer decides that layout, so a fast read is a decision that you make at write time.**
 
-The scripts are in [`code/ch36`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch36), and each output block comes from `code/ch36/output/`. `thrift_compact.py` is a reader for the Thrift compact protocol, adapted from SparkTutor. All runs use Spark 4.3.0 in `local[*]` mode on 16 cores. Spark 4.3.0 writes Parquet with parquet-mr (parquet-java) 1.17.0.
+ORC files have the same parts and follow the same rules. The writer also decides two more things: the columns that it encrypts, and the calendar of old dates.
+
+The scripts are in [`code/ch36`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch36), and each output block comes from `code/ch36/output/`. `thrift_compact.py` is a reader for the Thrift compact protocol, adapted from SparkTutor. `orc.py` (Steps 9 to 11) and `crypto_rebase.py` (Steps 12 and 13) are the scripts for ORC, encryption and old dates. All runs use Spark 4.3.0 in `local[*]` mode on 16 cores. Spark 4.3.0 writes Parquet with parquet-mr (parquet-java) 1.17.0, and ORC with ORC 2.3.0.
 
 ## Step 1: The bytes at the two ends of a file
 
@@ -297,7 +299,7 @@ This is a trap because the plan does not show it. `PushedFilters` is the list of
   <figcaption markdown="span">The sizes and times from `skipping_codecs.txt`. `zstd` and `gzip` make the smallest files.</figcaption>
 </figure>
 
-- **`snappy` is the default.** It made the file 29% smaller than no compression, and it wrote and read faster than no compression, because there were fewer bytes to move.
+- **`snappy` is the default.** Since Spark 4.0, the codec name `lz4raw` is gone. Use `lz4_raw`. It made the file 29% smaller than no compression, and it wrote and read faster than no compression, because there were fewer bytes to move.
 - **`lz4_raw` gave almost the same result as `snappy`.**
 - **`zstd` and `gzip` made the smallest files**, 58.2 and 59.2 MB, about 46% smaller than no compression. `gzip` took the longest to write. `zstd` wrote faster than `gzip` and read in about the same time as the others.
 
@@ -321,7 +323,272 @@ Spark 4.3 adds `TIMESTAMP_NTZ(p)` and `TIMESTAMP_LTZ(p)` with 7 to 9 digits of f
 
 Thus, a nanosecond column is usable from SQL and from the JVM in 4.3.0, but not yet from all of the Python API.
 
-## Step 9: Rules for a Parquet layout
+## Step 9: ORC from the inside
+
+ORC is the other columnar format that Spark reads and writes without a package. It comes from the Hive project, and Spark 4.3.0 uses ORC 2.3.0. The ideas are the same as in Parquet, with different names:
+
+- A **stripe** is like a row group.
+- A **stream** is like a column chunk.
+- The **row index** keeps the minimum and maximum of each column for each 10,000 rows.
+
+ The metadata is in protocol buffers, not Thrift.
+
+`orc.py dump` writes the zones as one ORC file, prints its two ends, and decodes the last bytes by hand. Then it asks `orc-tools` (version 2.3.0, the same ORC version as Spark) for the rest:
+
+```text
+=== 1. the bytes at the two ends of an ORC file (the 265 zones)
+  part-00000-f75bba8c-5835...: 3,328 bytes
+  the first 16 bytes:
+  00000000  4f 52 43 13 00 00 0a 07 12 05 08 89 02 50 00 33  ORC..........P.3
+  the last 32 bytes:
+  00000ce0  0c 55 5e 85 aa 28 08 cd 02 10 05 18 80 80 10 22  .U^..(........."
+  00000cf0  02 00 0c 28 9e 01 30 09 82 f4 03 03 4f 52 43 19  ...(..0.....ORC.
+  last byte: postscript length 25; postscript is bytes 3,302 to 3,326
+  the postscript, decoded by hand (protobuf field: value): {1: 333, 2: 5, 3: 262144, 4: [0, 12], 5: 158, 6: 9, 8000: 'ORC'}
+  the layout: 'ORC' 0-2 | stripe 3-2810 | metadata 158 B | footer 333 B | postscript 25 B | 1 length byte -> 3,328 bytes
+  orc-tools meta -j: fileVersion 0.12, writerVersion ORC_14, softwareVersion ORC Java 2.3.0, compression ZSTD, calendar Julian/Gregorian
+    schema struct<LocationID:int,Borough:string,Zone:string,service_zone:string>
+    userMetadata {'org.apache.spark.version': '4.3.0'}
+    stripe 1: offset 3, index 188, data 2508, footer 112, rows 265
+      stream column 0 ROW_INDEX        start     3 length 12
+      stream column 1 ROW_INDEX        start    15 length 28
+      stream column 2 ROW_INDEX        start    43 length 38
+      stream column 3 ROW_INDEX        start    81 length 65
+      stream column 4 ROW_INDEX        start   146 length 45
+      stream column 1 DATA             start   191 length 7
+      stream column 2 DATA             start   198 length 159
+      stream column 2 LENGTH           start   357 length 9
+      stream column 2 DICTIONARY_DATA  start   366 length 57
+      stream column 3 DATA             start   423 length 1902
+      stream column 3 LENGTH           start  2325 length 213
+      stream column 4 DATA             start  2538 length 116
+      stream column 4 LENGTH           start  2654 length 8
+      stream column 4 DICTIONARY_DATA  start  2662 length 37
+      encodings: col 0 DIRECT, col 1 DIRECT_V2, col 2 DICTIONARY_V2[8], col 3 DIRECT_V2, col 4 DICTIONARY_V2[5]
+    file statistics column 0: count 265 hasNull False
+    file statistics column 1: count 265 hasNull False min 1 max 265
+    file statistics column 2: count 265 hasNull False min 'Bronx' max 'Unknown'
+    file statistics column 3: count 265 hasNull False min 'Allerton/Pelham Gardens' max 'Yorkville West'
+    file statistics column 4: count 265 hasNull False min 'Airports' max 'Yellow Zone'
+```
+
+<figure markdown>
+  ![Byte map of the zones ORC file](../media/figures/ch36-orc-bytemap-light.svg#only-light)
+  ![Byte map of the zones ORC file](../media/figures/ch36-orc-bytemap-dark.svg#only-dark)
+  <figcaption markdown="span">The zones file as ORC, to scale, from `orc_dump.txt`. Step 1 shows the Parquet file of the same rows.</figcaption>
+</figure>
+
+A reader opens an ORC file from the end, as for Parquet, but the tail has more parts:
+
+- **The last byte is the length of the postscript**: `19` is 25 bytes.
+- **The postscript** is a small protobuf message, never compressed. `orc.py` decodes it with a 20-line varint reader. Its fields:
+    - field 1: the footer length (333)
+    - field 2: the codec (5 is ZSTD, the ORC default since Spark 4.0)
+    - field 3: the compression block size (256 KiB)
+    - field 4: the format version (0.12)
+    - field 5: the length of the metadata (158)
+    - field 6: the writer version
+    - field 8000: the magic `ORC`
+- **The footer** (333 bytes, compressed) has the schema, the list of stripes with their offsets, the statistics of the whole file, and the user metadata. Spark writes its version there (`org.apache.spark.version`), and the type of each string column (`spark.sql.catalyst.type`).
+- **The metadata section** (158 bytes) has the statistics of each stripe. A reader can skip a stripe with it before it reads the stripe.
+- **The file starts with `ORC`** (`4f 52 43`), then the first stripe.
+
+Each stripe has three parts: the index streams (188 bytes), the data streams (2,508 bytes) and a stripe footer (112 bytes). The stripe footer lists the streams and their encodings. A string column with few distinct values is `DICTIONARY_V2` with three streams: `DATA` (the indexes), `LENGTH` and `DICTIONARY_DATA`. `Borough` has a dictionary of 8 values, and `service_zone` has 5. `Zone` has 260 distinct values in 265 rows, so the writer used `DIRECT_V2`, as the Parquet writer used `PLAIN` in Step 2.
+
+The June trips show the stripes and the row index of a larger file:
+
+```text
+=== 2. the June trips as ORC: stripes and the row index
+  72.6 MB, rows 3,837,248, compression ZSTD, 2 stripes
+    stripe  1: rows 2,032,640  index  59,359 B  data  40,633,589 B  footer   361 B
+    stripe  2: rows 1,804,608  index  51,727 B  data  35,387,422 B  footer   363 B
+    stripe  2: rows 1,804,608  index  51,727 B  data  35,387,422 B  footer   363 B
+  row index of PULocationID (column 8), stripe 0, first entries:
+    Entry 0: count: 10000 hasNull: false min: 1 max: 4 sum: 38171 positions: 0,0,0
+    Entry 1: count: 10000 hasNull: false min: 4 max: 7 sum: 50186 positions: 0,87,94
+    Entry 2: count: 10000 hasNull: false min: 7 max: 13 sum: 97932 positions: 0,174,289
+    Entry 3: count: 10000 hasNull: false min: 13 max: 13 sum: 130000 positions: 0,270,363
+```
+
+- **The writer made 2 stripes for 3,837,248 rows.** The stripe size (`orc.stripe.size`, 64 MiB by default) is the target size before compression. Parquet made one row group for the same rows in Step 7, because its limit is 128 MiB (`parquet.block.size`).
+- **The row index has one entry for each 10,000 rows** (`orc.row.index.stride`). The script sorted the data by `PULocationID`, so each entry has a narrow range: rows 30,000 to 39,999 all have `PULocationID` 13. A filter can skip a group of 10,000 rows with these entries. The `positions` tell the reader where the group starts in each stream.
+- **ORC has finer statistics by default than Parquet's row groups**, because each stripe has many index entries. Parquet gets a similar effect from its column index for each page (Step 4).
+
+## Step 10: Two ORC readers
+
+Spark has two implementations of ORC, selected with `spark.sql.orc.impl`:
+
+- **`native`** (the default since Spark 2.3) is Spark's own `OrcFileFormat` in `org.apache.spark.sql.execution.datasources.orc`. It follows the behavior of Spark's other file sources, and it has a vectorized reader.
+- **`hive`** is `org.apache.spark.sql.hive.orc.OrcFileFormat`. It reads through the Hive SerDe and follows Hive's behavior. It reads row by row.
+
+`orc.py readers` reads the same file with each implementation, with the vectorized reader on and off, and prints the class that Spark used:
+
+```text
+=== 3. two ORC readers: spark.sql.orc.impl
+  impl=native vectorized=true  -> org.apache.spark.sql.execution.datasources.orc.OrcFileFormat  Batched: true  PushedFilters: [IsNotNull(PULocationID), EqualTo(PULocationID,132)]
+  impl=native vectorized=false -> org.apache.spark.sql.execution.datasources.orc.OrcFileFormat  Batched: false  PushedFilters: [IsNotNull(PULocationID), EqualTo(PULocationID,132)]
+  impl=hive   vectorized=true  -> org.apache.spark.sql.hive.orc.OrcFileFormat  Batched: false  PushedFilters: [IsNotNull(PULocationID), EqualTo(PULocationID,132)]
+  impl=hive   vectorized=false -> org.apache.spark.sql.hive.orc.OrcFileFormat  Batched: false  PushedFilters: [IsNotNull(PULocationID), EqualTo(PULocationID,132)]
+```
+
+- **Only the native reader has a vectorized mode.** With `spark.sql.orc.impl=hive`, the scan shows `Batched: false`, even with `spark.sql.orc.enableVectorizedReader=true`.
+- **Both readers get the same pushed filters.** Each one turns them into an ORC `SearchArgument`, and the ORC library skips stripes and row groups with it.
+- **The `hive` implementation does not need a Hive metastore.** Spark selects the class from the setting, for a path as well as for a table. A Hive SerDe table (`USING HIVE OPTIONS (fileFormat 'ORC')`) uses the native reader too, because `spark.sql.hive.convertMetastoreOrc` is true by default.
+
+## Step 11: Parquet against ORC on the taxi data
+
+`orc.py compare` writes the June trips twice, as Parquet and as ORC, with the same layout: four files, range-partitioned and sorted by `PULocationID`. Then it runs three queries with seven reader settings. For each run, it reads the rows that left the scan from the SQL metrics, as in Step 4. It also measures the median time of 5 runs after a warm-up, under the bench lock:
+
+```text
+=== 4. Parquet against ORC on the June trips (same rows, sorted by PULocationID, 4 files each)
+  parquet  4 files, 79.6 MB (codec snappy)
+  orc      4 files, 72.6 MB (codec zstd)
+
+  format, reader                        PULocationID = 132           tip_amount > 50      full scan, 4 columns
+                                   rows from scan   median   rows from scan   median   rows from scan   median
+  parquet, vectorized                    160,000    0.34 s       3,097,963    0.27 s       3,837,248    0.43 s
+  parquet, row by row                    160,000    0.20 s       3,097,963    0.40 s       3,837,248    0.70 s
+  parquet, no pushdown                 3,837,248    0.18 s       3,837,248    0.23 s       3,837,248    0.33 s
+  orc, native, vectorized                160,000    0.13 s       2,274,585    0.12 s       3,837,248    0.22 s
+  orc, native, row by row                160,000    0.12 s       2,274,585    0.29 s       3,837,248    0.57 s
+  orc, native, no pushdown             3,837,248    0.13 s       3,837,248    0.15 s       3,837,248    0.25 s
+  orc, hive reader                       160,000    0.28 s       2,274,585    0.29 s       3,837,248    0.49 s
+```
+
+<figure markdown>
+  ![Parquet against ORC](../media/figures/ch36-orc-compare-light.svg#only-light)
+  ![Parquet against ORC](../media/figures/ch36-orc-compare-dark.svg#only-dark)
+  <figcaption markdown="span">Rows from the scan for `tip_amount > 50`, and the time of the full scan (`orc_compare.txt`).</figcaption>
+</figure>
+
+- **Both formats skip the same data for the sorted column.** For `PULocationID = 132`, both returned 160,000 rows of 3,837,248. The ORC row index skipped groups of 10,000 rows, and the Parquet column index skipped pages of 20,000 rows.
+- **ORC skipped more for a column that is not sorted.** For `tip_amount > 50`, Parquet returned 3,097,963 rows and ORC returned 2,274,585. Large tips are rare, so some groups of 10,000 rows have no tip above $50. ORC has an index entry for each 10,000 rows, and its finer statistics found more of those groups.
+- **The vectorized readers are faster for the full scan.** ORC took 0.22 s vectorized and 0.57 s row by row. Parquet took 0.43 s and 0.70 s. The `hive` ORC reader, which is not vectorized, took 0.49 s.
+- **The times of the selective queries are too small to compare.** Their medians go from 0.12 to 0.40 s. Two settings that read the same rows differ by up to 0.15 s, for example Parquet with and without pushdown for `PULocationID = 132`. Compare the rows from the scan for these queries, not the times.
+- **The files are not the same size, because the default codecs differ**: `snappy` for Parquet (79.6 MB) and `zstd` for ORC (72.6 MB). Step 7 showed that a Parquet file with `zstd` is smaller too.
+
+The settings for ORC in Spark 4.3.0:
+
+| Setting | Default | What it does |
+|---|---|---|
+| `spark.sql.orc.impl` | `native` | `native` or `hive` (Step 10) |
+| `spark.sql.orc.enableVectorizedReader` | true | the vectorized reader of the native implementation |
+| `spark.sql.orc.filterPushdown` | true | give filters to the ORC reader as a `SearchArgument` |
+| `spark.sql.orc.compression.codec` | `zstd` | the codec when Spark writes ORC (`snappy` before Spark 4.0) |
+| `spark.sql.orc.mergeSchema` | false | merge the schemas of all files when Spark reads them |
+| `orc.bloom.filter.columns` (write option) | (none) | write a bloom filter for these columns, as in Step 5 for Parquet |
+| `orc.stripe.size`, `orc.row.index.stride` (write options) | 64 MiB, 10,000 | the stripe size and the rows for each row index entry |
+
+
+## Step 12: Parquet modular encryption
+
+Parquet can encrypt each column with its own key, and the footer with another key. This is **modular encryption** (or columnar encryption), in Spark since 3.2 with Parquet 1.12 and later. It uses envelope encryption.
+
+Parquet makes a random data key for each encrypted column of each file, and encrypts the data with it. Then it encrypts the data key with a **master key**, and stores the result in the file. The master keys stay in a key management service (KMS). Spark never sees them. It sees only the data keys, through a KMS client class.
+
+`crypto_rebase.py crypto` uses the mock `InMemoryKMS` from the Parquet test jar (`parquet-hadoop-1.17.0-tests.jar`), with two master keys in the configuration:
+
+```python
+hconf = spark.sparkContext._jsc.hadoopConfiguration()
+hconf.set("parquet.crypto.factory.class", "org.apache.parquet.crypto.keytools.PropertiesDrivenCryptoFactory")
+hconf.set("parquet.encryption.kms.client.class", "org.apache.parquet.crypto.keytools.mocks.InMemoryKMS")
+hconf.set("parquet.encryption.key.list", "keyA:AAECAwQFBgcICQoLDA0ODw==, keyB:AAECAAECAAECAAECAAECAA==")
+
+(trips.write
+   .option("parquet.encryption.column.keys", "keyA:fare_amount,tip_amount")   # (1)!
+   .option("parquet.encryption.footer.key", "keyB")
+   .parquet(out))
+
+# ORC: the native, vectorized reader is the default. A bloom filter for exact lookups.
+df.write.option("orc.bloom.filter.columns", "session_id").orc(out_orc)
+
+# Encrypt two columns and the footer (needs a KMS client class in parquet.encryption.kms.client.class).
+(df.write.option("parquet.encryption.column.keys", "keyA:fare_amount,tip_amount")
+   .option("parquet.encryption.footer.key", "keyB").parquet(out_enc))
+
+# Read old files from another writer that used the hybrid calendar.
+spark.read.option("datetimeRebaseMode", "LEGACY").parquet(old_files)
+```
+
+1. Two columns get master key `keyA`. The other columns are not encrypted. Add `.option("parquet.encryption.plaintext.footer", "true")` to keep the footer readable.
+
+!!! caution "The in-memory KMS is for tests only"
+    Do not use `InMemoryKMS` in production. It keeps the master keys in the Spark configuration, where each user of the application can read them. Write a `KmsClient` for your KMS, and give its class in `parquet.encryption.kms.client.class`.
+
+```text
+=== 1. columnar encryption: two columns with keyA, the footer with keyB
+  encrypted_footer    545,242 bytes  first 4 bytes b'PARE'  last 4 bytes b'PARE'  footer length 3,616
+  plaintext_footer    544,134 bytes  first 4 bytes b'PAR1'  last 4 bytes b'PAR1'  footer length 2,508
+  not encrypted       540,700 bytes  first 4 bytes b'PAR1'  last 4 bytes b'PAR1'  footer length 1,080
+
+=== 2. read with the keys (the crypto factory and the KMS are set)
+  encrypted_footer  rows 100,000, sum(tip_amount) 406374.91
+  plaintext_footer  rows 100,000, sum(tip_amount) 406374.91
+
+=== 3. read without the keys
+  encrypted_footer  PULocationID, trip_distance  Py4JJavaError: org.apache.parquet.crypto.ParquetCryptoRuntimeException: Trying to read file with encrypted footer. No keys av
+  encrypted_footer  tip_amount                   Py4JJavaError: org.apache.parquet.crypto.ParquetCryptoRuntimeException: Trying to read file with encrypted footer. No keys av
+  plaintext_footer  PULocationID, trip_distance  max: 265, 112.82
+  plaintext_footer  tip_amount                   Py4JJavaError: org.apache.parquet.crypto.ParquetCryptoRuntimeException: [tip_amount]. Null File Decryptor at org.apache.parqu
+  pyarrow, encrypted_footer  OSError: Could not read encrypted metadata, no decryption found in reader's properties
+  pyarrow, plaintext_footer  footer: 100,000 rows, 4 columns, created_by parquet-mr version 1.17.0 (build fac0c746532e133beb928a7f6a7e57b510b477a1)
+  pyarrow, plaintext_footer  trip_distance: 100,000 rows
+  pyarrow, plaintext_footer  OSError: Cannot decrypt ColumnMetadata. FileDecryption is not setup correctly
+```
+
+- **An encrypted footer changes the magic bytes** to `PARE` at both ends. A reader without keys cannot read even the schema. Spark and PyArrow both fail at the footer.
+- **A plaintext footer keeps `PAR1`.** Readers without keys can read the schema, the row count and the columns that are not encrypted: Spark read `PULocationID` and `trip_distance`. A read of `tip_amount` fails. The writer signs the footer, so a reader can detect a change to it.
+- **The cost in size is small**: 545,242 bytes against 540,700, for 100,000 rows. The footer grows because it holds the encrypted data keys and the metadata of each encrypted column.
+- **Parquet encrypts the statistics of encrypted columns too.** A reader without the key cannot use them to skip data, and it cannot learn the minimum and maximum of the column from them.
+
+The Spark 4.3.0 docs point to the test jar of Parquet 1.17.1. Spark 4.3.0 ships Parquet 1.17.0, and this book used the test jar of 1.17.0.
+
+## Step 13: Old dates, and the datetime rebase modes
+
+Before Spark 3.0, Spark used the hybrid Julian and Gregorian calendar for dates and timestamps, as Java's old date classes do. Since Spark 3.0, it uses the proleptic Gregorian calendar, the calendar of ISO 8601, Java 8 time and most other tools. The two calendars agree after 15 October 1582. Before that date, the same day has a different day number in each calendar. A file written by Spark 2.x, or by Hive and Impala, can store dates and timestamps before 1582 with the old calendar. Spark must **rebase** them, that is, move them to the new calendar, to read them correctly.
+
+`crypto_rebase.py rebase` writes `DATE'1000-01-01'` and a timestamp on that day with each write mode. It reads the files back with each read mode, and does the same for a file from PyArrow:
+
+```text
+=== 4. dates before 1582: the hybrid calendar and the proleptic Gregorian calendar
+  defaults in 4.3.0: datetimeRebaseModeInRead=CORRECTED, datetimeRebaseModeInWrite=CORRECTED, int96RebaseModeInRead=CORRECTED, int96RebaseModeInWrite=CORRECTED
+  Spark writes with CORRECTED: stored day number  -354285, pyarrow reads d=1000-01-01, legacyDateTime key: False
+  Spark writes with LEGACY   : stored day number  -354280, pyarrow reads d=1000-01-06, legacyDateTime key: True
+
+  Spark reads its own files back (the key in the footer decides, not the read mode):
+    file CORRECTED read mode CORRECTED -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file CORRECTED read mode LEGACY    -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file CORRECTED read mode EXCEPTION -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file LEGACY    read mode CORRECTED -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file LEGACY    read mode LEGACY    -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file LEGACY    read mode EXCEPTION -> d=1000-01-01  ts=1000-01-01 12:00:00
+
+  a file from another writer (pyarrow, no Spark keys in the footer), with the same day number
+    read mode CORRECTED -> d=1000-01-06
+    read mode LEGACY    -> d=1000-01-01
+    read mode EXCEPTION -> SparkUpgradeException: [INCONSISTENT_BEHAVIOR_CROSS_VERSION.READ_ANCIENT_DATETIME] You may get a different result due to the upgrading to Spark
+    read option datetimeRebaseMode=LEGACY -> d=1000-01-01
+```
+
+- **The defaults are `CORRECTED` in 4.3.0**: Spark writes and reads the day number without a change. The 4.3.0 data source page for Parquet still says that the default is `EXCEPTION`. The setting itself, in `SQLConf.scala`, and the run above say `CORRECTED`.
+- **`LEGACY` writes the old calendar.** The same day becomes day -354280 instead of -354285, five days later. PyArrow reads it as `1000-01-06`. Spark adds the key `org.apache.spark.legacyDateTime` to the footer.
+- **Spark ignores the read mode for its own files.** It looks for `org.apache.spark.version` in the footer. If the file comes from Spark before 3.0, or has the `legacyDateTime` key, Spark rebases. Otherwise it reads the value as it is. Thus all six reads of Spark's files gave `1000-01-01`.
+- **The read mode applies only to files without these keys.** For the PyArrow file with day -354280, `CORRECTED` read `1000-01-06`, `LEGACY` read `1000-01-01`, and `EXCEPTION` stopped with `INCONSISTENT_BEHAVIOR_CROSS_VERSION.READ_ANCIENT_DATETIME`. Only you know which calendar the other writer used.
+- **The read option `datetimeRebaseMode` sets the mode for one read**, without a change to the session.
+
+| Setting | Read option | Applies to |
+|---|---|---|
+| `spark.sql.parquet.datetimeRebaseModeInRead` | `datetimeRebaseMode` | `DATE`, `TIMESTAMP_MILLIS`, `TIMESTAMP_MICROS` in files without Spark's keys |
+| `spark.sql.parquet.datetimeRebaseModeInWrite` | | the same types, when Spark writes |
+| `spark.sql.parquet.int96RebaseModeInRead` | `int96RebaseMode` | `INT96` timestamps (Step 6) in files without Spark's keys |
+| `spark.sql.parquet.int96RebaseModeInWrite` | | `INT96` timestamps, when Spark writes |
+
+Each takes `EXCEPTION`, `CORRECTED` or `LEGACY`. Since Spark 4.0, the old names with the prefix `spark.sql.legacy.` are gone (the SQL migration guide lists them). Use `CORRECTED` for new data. Use `LEGACY` only for two cases:
+
+- to read files with dates before 1582 from Spark 2.x, Hive or Impala
+- to write files for such a system
+
+## Step 14: Rules for a Parquet or ORC layout
 
 The measurements give these rules:
 
@@ -331,6 +598,9 @@ The measurements give these rules:
 4. **Use bloom filters only for exact lookups on high-cardinality columns**, with an `expected.ndv` for one row group.
 5. **Use one codec for the whole table.** `snappy` and `lz4_raw` are fast. `zstd` makes files smaller and costs more CPU to write.
 6. **Count the rows that the scan returned**, not the run time, to see if a layout works. The SQL tab gives it as `number of output rows` of the scan.
+7. **The same rules apply to ORC.** Sort by the filter columns, keep the native vectorized reader, and use `orc.bloom.filter.columns` for exact lookups. ORC has an index entry for each 10,000 rows, so it can skip more of an unsorted column.
+8. **Encrypt only the columns that need it**, with a real KMS client. Use a plaintext footer if readers without keys must read the other columns.
+9. **Write new data with the `CORRECTED` rebase mode** (the default in 4.3.0). Set `LEGACY` or the read option `datetimeRebaseMode` only for old files from other writers that hold dates before 1582.
 
 ## The whole chapter, on one page
 
@@ -360,10 +630,16 @@ spark.conf.set("spark.sql.parquet.outputTimestampType", "TIMESTAMP_MICROS")
 - **The reader skips row groups and pages, never single rows**, with statistics, column indexes, dictionaries and bloom filters. The `Filter` node above the scan removes the rest.
 - **Each mechanism needs a layout.** Sorted data for statistics and column indexes, few values in each row group for dictionaries, a bloom filter written for the column.
 - **INT96 timestamps cannot skip**, even when the plan lists the filter in `PushedFilters`.
+- **An ORC file is `ORC`, stripes, stripe statistics, a footer and a postscript.** The last byte gives the length of the postscript. Each stripe has a row index for each 10,000 rows.
+- **Only the native ORC reader has a vectorized mode.** The `hive` implementation reads row by row.
+- **Modular encryption encrypts columns and the footer with their own keys.** An encrypted footer changes the magic bytes to `PARE`.
+- **Spark rebases old dates from its own files by itself.** The rebase modes apply only to files from other writers.
 
 ## Further reading
 
 - [The Parquet format specification](https://parquet.apache.org/docs/file-format/) and `parquet.thrift` in the parquet-format repository.
-- [Spark's Parquet data source guide](https://spark.apache.org/docs/4.3.0/sql-data-sources-parquet.html), with the Spark settings.
-- The 4.3.0 source: `ParquetFilters.scala`, `ParquetFileFormat.scala` and `VectorizedParquetRecordReader.java` in `sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/parquet/`.
+- [Spark's Parquet data source guide](https://spark.apache.org/docs/4.3.0/sql-data-sources-parquet.html), with the Spark settings, columnar encryption and the rebase modes.
+- [Spark's ORC data source guide](https://spark.apache.org/docs/4.3.0/sql-data-sources-orc.html) and the [ORC specification](https://orc.apache.org/specification/ORCv1/).
+- [Parquet modular encryption](https://github.com/apache/parquet-format/blob/master/Encryption.md) in the Parquet format documentation.
+- The 4.3.0 source: `ParquetFilters.scala`, `ParquetFileFormat.scala` and `VectorizedParquetRecordReader.java` in `sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/parquet/`, `OrcFileFormat.scala` and `OrcFilters.scala` in `datasources/orc/`, and `DataSourceUtils.datetimeRebaseSpec` for the rebase rules.
 - [Chapter 33](ch33-partitions-caching-memory.md) for how row groups set the scan tasks, and [Chapter 29](ch29-variant.md) for shredded VARIANT columns in Parquet.

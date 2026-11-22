@@ -10,13 +10,20 @@ from c86 import start, plan, median_s, noop, last_sql_metrics, ui_api, WH, F
 
 
 def scan_input():
-    """Tasks of the last job's first stage that read any bytes, and the bytes they read (REST API)."""
-    job = max(ui_api("jobs"), key=lambda j: j["jobId"])
-    st = min(job["stageIds"])
-    att = [s for s in ui_api(f"stages/{st}") if True][0]["attemptId"]
-    tasks = ui_api(f"stages/{st}/{att}/taskList?length=1000")
-    used = [t for t in tasks if t.get("taskMetrics", {}).get("inputMetrics", {}).get("bytesRead", 0) > 0]
-    return len(tasks), len(used), sum(t["taskMetrics"]["inputMetrics"]["bytesRead"] for t in used)
+    """Tasks of the last SQL query that read any bytes, and the bytes they read (REST API)."""
+    ex = max(ui_api("sql?details=false&length=1000"), key=lambda e: e["id"])
+    n = used = total = 0
+    for j in ex["successJobIds"]:
+        for st in ui_api(f"jobs/{j}")["stageIds"]:
+            for att in ui_api(f"stages/{st}"):
+                if att["status"] != "COMPLETE":
+                    continue
+                for t in ui_api(f"stages/{st}/{att['attemptId']}/taskList?length=1000"):
+                    b = t.get("taskMetrics", {}).get("inputMetrics", {}).get("bytesRead", 0)
+                    n += 1
+                    used += b > 0
+                    total += b
+    return n, used, total
 
 spark = start("ch86-bucketing", spark_driver_memory="8g", spark_sql_autoBroadcastJoinThreshold="-1")
 for t in ("trips_b16", "trips_b16_many", "trips_plain", "zstats_b16", "zstats_b8", "zstats_plain"):
@@ -97,7 +104,7 @@ for auto in ("true", "false"):
     n, used, b = scan_input()
     print(f"  autoBucketedScan.enabled={auto}: {' | '.join(scan)}")
     print(f"    metric 'number of files read' {m.get('number of files read')}, rows out of scan {m.get('number of output rows')}")
-    print(f"    scan tasks {n}, tasks that read bytes {used}, bytes read {b:,}")
+    print(f"    tasks of the query {n}, tasks that read input {used}, input bytes {b:,}")
 spark.conf.unset("spark.sql.sources.bucketing.autoBucketedScan.enabled")
 
 print("\n=== 5. a query that gains nothing from buckets: the planner turns the bucketed scan off")

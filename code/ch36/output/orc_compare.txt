@@ -1,0 +1,14 @@
+
+=== 4. Parquet against ORC on the June trips (same rows, sorted by PULocationID, 4 files each)
+  parquet  4 files, 79.6 MB (codec snappy)
+  orc      4 files, 72.6 MB (codec zstd)
+
+  format, reader                        PULocationID = 132           tip_amount > 50      full scan, 4 columns
+                                   rows from scan   median   rows from scan   median   rows from scan   median
+  parquet, vectorized                    160,000    0.34 s       3,097,963    0.27 s       3,837,248    0.43 s
+  parquet, row by row                    160,000    0.20 s       3,097,963    0.40 s       3,837,248    0.70 s
+  parquet, no pushdown                 3,837,248    0.18 s       3,837,248    0.23 s       3,837,248    0.33 s
+  orc, native, vectorized                160,000    0.13 s       2,274,585    0.12 s       3,837,248    0.22 s
+  orc, native, row by row                160,000    0.12 s       2,274,585    0.29 s       3,837,248    0.57 s
+  orc, native, no pushdown             3,837,248    0.13 s       3,837,248    0.15 s       3,837,248    0.25 s
+  orc, hive reader                       160,000    0.28 s       2,274,585    0.29 s       3,837,248    0.49 s

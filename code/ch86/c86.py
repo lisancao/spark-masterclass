@@ -84,3 +84,17 @@ def last_sql_metrics(spark, node_prefix):
     last = max(ex, key=lambda e: e["id"])
     return [(n["nodeName"], {m["name"]: m["value"] for m in n["metrics"]}) for n in last["nodes"]
             if n["nodeName"].startswith(node_prefix)]
+
+
+def last_query_work():
+    """Task time (sum of executorRunTime, s) and input bytes of all stages of the last SQL query (REST API).
+    Less sensitive than wall time to other work on a shared machine."""
+    ex = max(ui_api("sql?details=false&length=1000"), key=lambda e: e["id"])
+    run_ms = in_bytes = 0
+    for j in ex["successJobIds"]:
+        for st in ui_api(f"jobs/{j}")["stageIds"]:
+            for att in ui_api(f"stages/{st}"):
+                if att["status"] == "COMPLETE":
+                    run_ms += att["executorRunTime"]
+                    in_bytes += att["inputBytes"]
+    return run_ms / 1000, in_bytes
