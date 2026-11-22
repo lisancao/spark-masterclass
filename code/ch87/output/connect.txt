@@ -1,0 +1,42 @@
+== keys in the Spark configuration
+  fs.s3a.endpoint = http://localhost:19055
+      source: Set by Spark from keys starting with 'spark.hadoop'
+  fs.s3a.access.key = bookadmin
+      source: Set by Spark from keys starting with 'spark.hadoop'
+  fs.s3a.secret.key = ****
+      source: Set by Spark from keys starting with 'spark.hadoop'
+  fs.s3a.path.style.access = true
+      source: Set by Spark from keys starting with 'spark.hadoop'
+
+== the default credential provider chain (core-default.xml)
+  org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider
+  org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+  software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
+  org.apache.hadoop.fs.s3a.auth.IAMInstanceCredentialsProvider
+
+== write the taxi month to s3a://book/trips/
+  wrote 3,837,248 rows in 12.8 s (not a benchmark)
+
+== what MinIO holds (mc ls)
+  /   0B
+  _SUCCESS   12KiB
+  part-00000-94330bd4-d5ae-42ed-815d-7cb747b3701f-c000.snappy.parquet   11MiB
+  part-00001-94330bd4-d5ae-42ed-815d-7cb747b3701f-c000.snappy.parquet   11MiB
+  ...
+
+== read it back through S3A, with a filter
+  trips longer than 20 miles: 28,496
+  file system class: org.apache.hadoop.fs.s3a.S3AFileSystem
+
+== keys from AWS_ENDPOINT_URL, AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+  fs.s3a.endpoint = http://localhost:19055
+      source: Set by Spark on <host> from AWS_ENDPOINT_URL
+  fs.s3a.access.key = bookadmin
+      source: Set by Spark on <host> from AWS_ACCESS_KEY_ID
+  fs.s3a.secret.key = ****
+      source: Set by Spark on <host> from AWS_SECRET_ACCESS_KEY
+  rows read: 3,837,248
+
+== a wrong secret key
+  : java.nio.file.AccessDeniedException: s3a://book/trips: getFileStatus on s3a://book/trips: software.amazon.awssdk.services.s3.model.S3Exception: Forbidden (Service: S3, Status Code: 403, Request ID: 18EA811ED627FAAD, Ex
+

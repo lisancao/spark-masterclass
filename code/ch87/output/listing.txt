@@ -1,0 +1,21 @@
+== spark.read.parquet(path): list the folders, read one footer for the schema
+   result: 22 columns
+   requests: HeadObject 4, ListObjectsV2 4, GetObject 1
+   bytes sent by GetObject: 2,341,914
+
+== count the trips of one day (partition pruning)
+   result: 109,514 rows
+   requests: HeadObject 1, GetObject 1
+   bytes sent by GetObject: 2,320,442
+
+== sum one column over the whole month (column pruning)
+   result: 82,269,208 dollars
+   requests: GetObject 32, HeadObject 30
+   bytes sent by GetObject: 75,435,248
+
+== count every row (footers only)
+   result: 3,837,231 rows
+   requests: GetObject 60, HeadObject 30
+   bytes sent by GetObject: 34,016,496
+
+the table: 30 folders, 31 files, 77,809,567 bytes
