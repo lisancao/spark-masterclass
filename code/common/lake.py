@@ -23,6 +23,7 @@ def lake_session(app, warehouse, **conf):
         "spark.sql.catalog.lake.warehouse": f"file://{warehouse}",
         "spark.sql.shuffle.partitions": "4",
         "spark.sql.session.timeZone": "UTC",
+        "spark.ui.showConsoleProgress": "false",
         **conf,
     })
 

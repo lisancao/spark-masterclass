@@ -1,25 +1,24 @@
-Deleted 8 files and directories in a total of 2 directories.
 Spark 4.2.0 with ['io.delta:delta-spark_4.2_2.13:4.4.1']
 
 == version 0: write three rows, with the change data feed on
-data files: ['part-00000-e785f4d...']
+data files: ['part-00000-3fafd84...']
 _delta_log: ['00000000000000000000.crc', '00000000000000000000.json']
   commitInfo {"operation": "WRITE", "operationParameters": {"mode": "ErrorIfExists", "partitionBy": "[]"}, "operationMetrics": {"numFiles": "1", "numOutputRows": "3", "numOutputBytes": "1286"}}
   metaData   {"schema": ["id:integer", "name:string", "department:string", "salary:double"], "configuration": {"delta.enableChangeDataFeed": "true"}}
   protocol   {"minReaderVersion": 1, "minWriterVersion": 7, "writerFeatures": ["changeDataFeed", "invariants", "appendOnly"]}
-  add        {"path": "part-00000-e785f4d...", "dataChange": true, "stats": {"numRecords": 3, "minValues": {"id": 1, "name": "Alice", "department": "Engineering", "salary": 55000.0}, "maxValues": {"id": 3, "name": "Charlie", "department": "Sales", "salary": 85000.0}}}
+  add        {"path": "part-00000-3fafd84...", "dataChange": true, "stats": {"numRecords": 3, "minValues": {"id": 1, "name": "Alice", "department": "Engineering", "salary": 55000.0}, "maxValues": {"id": 3, "name": "Charlie", "department": "Sales", "salary": 85000.0}}}
 
 == version 1: MERGE a raise for Bob and two new hires
-  commitInfo {"operation": "MERGE", "operationParameters": {"predicate": "[\"(id#219 = id#215)\"]", "matchedPredicates": "[{\"actionType\":\"update\"}]", "notMatchedPredicates": "[{\"actionType\":\"insert\"}]", "notMatchedBySourcePredicates": "[]"}, "operationMetrics": {"numTargetRowsCopied": "2", "numTargetRowsDeleted": "0", "numTargetBytesRemoved": "1286", "numTargetDeletionVectorsAdded": "0", "numTargetRowsMatchedUpdated": "1", "numTargetRowsMatchedDeleted": "0", "numTargetRowsUpdated": "1", "numTargetChangeFilesAdded": "1", "numTargetRowsNotMatchedBySourceDeleted": "0", "rewriteTimeMs": "1274", "numTargetFilesAdded": "1", "numTargetBytesAdded": "1788", "executionTimeMs": "9943", "materializeSourceTimeMs": "395", "numTargetRowsInserted": "2", "numTargetDeletionVectorsUpdated": "0", "scanTimeMs": "8266", "numOutputRows": "5", "numTargetDeletionVectorsRemoved": "0", "numTargetRowsNotMatchedBySourceUpdated": "0", "numSourceRows": "3", "numTargetFilesRemoved": "1"}}
-  add        {"path": "part-00000-cd0fedd...", "dataChange": true, "stats": {"numRecords": 5, "minValues": {"id": 1, "name": "Alice", "department": "Engineering", "salary": 55000.0}, "maxValues": {"id": 5, "name": "Eve", "department": "Sales", "salary": 92000.0}}}
-  cdc        {"path": "_change_data/cdc-00000-aa25a312-8e50-46ea-b926-7739a2e1a47d.c000.snappy.parquet", "partitionValues": {}, "size": 1909, "dataChange": false}
-  remove     {"path": "part-00000-e785f4d...", "dataChange": true, "stats": {"numRecords": 3, "minValues": null, "maxValues": null}}
+  commitInfo {"operation": "MERGE", "operationParameters": {"predicate": "[\"(id#219 = id#215)\"]", "matchedPredicates": "[{\"actionType\":\"update\"}]", "notMatchedPredicates": "[{\"actionType\":\"insert\"}]", "notMatchedBySourcePredicates": "[]"}, "operationMetrics": {"numTargetRowsCopied": "2", "numTargetRowsDeleted": "0", "numTargetBytesRemoved": "1286", "numTargetDeletionVectorsAdded": "0", "numTargetRowsMatchedUpdated": "1", "numTargetRowsMatchedDeleted": "0", "numTargetRowsUpdated": "1", "numTargetChangeFilesAdded": "1", "numTargetRowsNotMatchedBySourceDeleted": "0", "rewriteTimeMs": "825", "numTargetFilesAdded": "1", "numTargetBytesAdded": "1788", "executionTimeMs": "7721", "materializeSourceTimeMs": "344", "numTargetRowsInserted": "2", "numTargetDeletionVectorsUpdated": "0", "scanTimeMs": "6544", "numOutputRows": "5", "numTargetDeletionVectorsRemoved": "0", "numTargetRowsNotMatchedBySourceUpdated": "0", "numSourceRows": "3", "numTargetFilesRemoved": "1"}}
+  add        {"path": "part-00000-66fcbc5...", "dataChange": true, "stats": {"numRecords": 5, "minValues": {"id": 1, "name": "Alice", "department": "Engineering", "salary": 55000.0}, "maxValues": {"id": 5, "name": "Eve", "department": "Sales", "salary": 92000.0}}}
+  cdc        {"path": "_change_data/cdc-00000-2e77be5d-2a6f-40da-ab90-0bbe27f1e5cf.c000.snappy.parquet", "partitionValues": {}, "size": 1909, "dataChange": false}
+  remove     {"path": "part-00000-3fafd84...", "dataChange": true, "stats": {"numRecords": 3, "minValues": null, "maxValues": null}}
 
 == version 2: DELETE Charlie
-  commitInfo {"operation": "DELETE", "operationParameters": {"predicate": "[\"(id#1488 = 3)\"]"}, "operationMetrics": {"numRemovedFiles": "1", "numRemovedBytes": "1788", "numCopiedRows": "4", "numDeletionVectorsAdded": "0", "executionTimeMs": "3648", "numDeletionVectorsUpdated": "0", "numAddedFiles": "1", "numDeletionVectorsRemoved": "0", "numAddedChangeFiles": "1", "numDeletedRows": "1", "scanTimeMs": "3378", "numAddedBytes": "1761", "rewriteTimeMs": "270"}}
-  remove     {"path": "part-00000-cd0fedd...", "dataChange": true}
-  add        {"path": "part-00000-a219bbb...", "dataChange": true, "stats": {"numRecords": 4, "minValues": {"id": 1, "name": "Alice", "department": "Engineering", "salary": 70000.0}, "maxValues": {"id": 5, "name": "Eve", "department": "Marketing", "salary": 92000.0}}}
-  cdc        {"path": "_change_data/cdc-00000-af8178d2-f01a-4da4-9ae5-2750f91ea656.c000.snappy.parquet", "partitionValues": {}, "size": 1732, "dataChange": false}
+  commitInfo {"operation": "DELETE", "operationParameters": {"predicate": "[\"(id#1488 = 3)\"]"}, "operationMetrics": {"numRemovedFiles": "1", "numRemovedBytes": "1788", "numCopiedRows": "4", "numDeletionVectorsAdded": "0", "executionTimeMs": "3388", "numDeletionVectorsUpdated": "0", "numAddedFiles": "1", "numDeletionVectorsRemoved": "0", "numAddedChangeFiles": "1", "numDeletedRows": "1", "scanTimeMs": "3099", "numAddedBytes": "1761", "rewriteTimeMs": "288"}}
+  remove     {"path": "part-00000-66fcbc5...", "dataChange": true}
+  add        {"path": "part-00000-2ff2851...", "dataChange": true, "stats": {"numRecords": 4, "minValues": {"id": 1, "name": "Alice", "department": "Engineering", "salary": 70000.0}, "maxValues": {"id": 5, "name": "Eve", "department": "Marketing", "salary": 92000.0}}}
+  cdc        {"path": "_change_data/cdc-00000-c42e0f0c-37a7-4004-beb3-37540118a686.c000.snappy.parquet", "partitionValues": {}, "size": 1732, "dataChange": false}
 
 == the table now, and the trap of reading the folder as Parquet
 +---+-----+-----------+-------+
@@ -43,7 +42,7 @@ rows read as parquet: 12 (every file still on disk: 3)
 |  3|Charlie|      Sales|55000.0|
 +---+-------+-----------+-------+
 
-TIMESTAMP AS OF '2026-11-22 09:00:08.446888' -> [(1, 85000.0), (2, 72000.0), (3, 55000.0), (4, 92000.0), (5, 70000.0)]
+TIMESTAMP AS OF '2026-11-22 09:31:31.373642' -> [(1, 85000.0), (2, 72000.0), (3, 55000.0), (4, 92000.0), (5, 70000.0)]
 VERSION AS OF 99 -> DELTA_VERSION_NOT_FOUND Cannot time travel Delta table to version 99. Available versions: [0, 2].
 
 == DESCRIBE HISTORY
@@ -122,4 +121,14 @@ VERSION AS OF 99 -> DELTA_VERSION_NOT_FOUND Cannot time travel Delta table to ve
 
 == checkpoints: commit until the log writes one
   commits: 16  checkpoints: ['00000000000000000010.checkpoint.parquet', '_last_checkpoint']
-  _last_checkpoint: {"version":10,"size":24,"sizeInBytes":22056,"numOfAddFiles":15,"checkpointSchema
+  _last_checkpoint: {"version":10,"size":24,"sizeInBytes":22068,"numOfAddFiles":15,"checkpointSchema
+
+== OPTIMIZE: many small files become one
+  data files after six appends: 6
+  OPTIMIZE: numFilesAdded=1 numFilesRemoved=6
+  files the current version reads: 1   files on disk: 7
+  last commit: OPTIMIZE dataChange in its add actions: [False]
+
+== two writers at once: optimistic concurrency
+  two appends: ['committed', 'committed'], version 0 -> 2
+  two deletes on the same file: ['DELTA_CONCURRENT_APPEND.WITHOUT_HINT', 'committed'], version 2 -> 3

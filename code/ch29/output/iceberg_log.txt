@@ -2,18 +2,18 @@ Spark 4.3.0 with iceberg-spark-runtime-4.3_2.13-b1eab64.jar
 
 == create, then insert three rows
   metadata/
-    c0d2308f-b931-439b-9316-b8570735c747-m0.avro
-    snap-5052692024519248891-1-c...b-9316-b8570735c747.avro
+    fd887a18-fe10-4015-b2a9-f42741cfd7fc-m0.avro
+    snap-5330835054228856905-1-f...5-b2a9-f42741cfd7fc.avro
     v1.metadata.json
     v2.metadata.json
     version-hint.text
   data/
-    00000-0-fa9cbb25-b7ab-4047-9...94c7848d-0-00001.parquet
+    00000-0-e65c9c54-fff8-4a1b-b...0c8c5eec-0-00001.parquet
 
 == the current metadata file (the root of the tree)
   version-hint.text -> 2, so the table is v2.metadata.json
-  format-version: 2  current-snapshot-id: 5052692024519248891
-  snapshot 5052692024519248891 append manifest-list: snap-5052692024519248891-1-c0d...
+  format-version: 2  current-snapshot-id: 5330835054228856905
+  snapshot 5330835054228856905 append manifest-list: snap-5330835054228856905-1-fd8...
   schema fields: ['1:id:int', '2:name:string', '3:department:string', '4:salary:double']
 
 == MERGE a raise for Bob and two new hires, then DELETE Charlie
@@ -27,51 +27,51 @@ Spark 4.3.0 with iceberg-spark-runtime-4.3_2.13-b1eab64.jar
 +---+-----+-----------+-------+
 
   metadata/
-    0d0fc699-7024-44ef-aa66-f4d34d2c888b-m0.avro
-    0d0fc699-7024-44ef-aa66-f4d34d2c888b-m1.avro
-    18e779f5-d3bb-421e-a567-517fa2bad8fa-m0.avro
-    18e779f5-d3bb-421e-a567-517fa2bad8fa-m1.avro
-    c0d2308f-b931-439b-9316-b8570735c747-m0.avro
-    snap-5052692024519248891-1-c...b-9316-b8570735c747.avro
-    snap-7927954330056481789-1-1...e-a567-517fa2bad8fa.avro
-    snap-8449010773965278315-1-0...f-aa66-f4d34d2c888b.avro
+    4f752cfc-2ab1-4447-a648-e6f5bf8f3253-m0.avro
+    4f752cfc-2ab1-4447-a648-e6f5bf8f3253-m1.avro
+    e17ed247-2f53-4a33-a6a7-5b7e476f1e3c-m0.avro
+    e17ed247-2f53-4a33-a6a7-5b7e476f1e3c-m1.avro
+    fd887a18-fe10-4015-b2a9-f42741cfd7fc-m0.avro
+    snap-5330835054228856905-1-f...5-b2a9-f42741cfd7fc.avro
+    snap-673678695532081050-1-e1...3-a6a7-5b7e476f1e3c.avro
+    snap-7646067053904263467-1-4...7-a648-e6f5bf8f3253.avro
     v1.metadata.json
     v2.metadata.json
     v3.metadata.json
     v4.metadata.json
     version-hint.text
   data/
-    00000-0-fa9cbb25-b7ab-4047-9...94c7848d-0-00001.parquet
-    00000-38-1fcaba76-64a3-4a14-...6cba7ce9-0-00001.parquet
-    00000-42-474ac2fc-df2e-4f24-...80592303-0-00001.parquet
+    00000-0-e65c9c54-fff8-4a1b-b...0c8c5eec-0-00001.parquet
+    00000-38-0a162be6-8b5e-4749-...7342ce10-0-00001.parquet
+    00000-42-c4008e07-090a-4bec-...007425b0-0-00001.parquet
 
 == the tree, read through Iceberg's metadata tables
 +-------------------+-------------------+---------+-----------+-------------+-------+
 |snapshot_id        |parent_id          |operation|added_files|deleted_files|records|
 +-------------------+-------------------+---------+-----------+-------------+-------+
-|5052692024519248891|NULL               |append   |1          |NULL         |3      |
-|8449010773965278315|5052692024519248891|overwrite|1          |1            |5      |
-|7927954330056481789|8449010773965278315|overwrite|1          |1            |4      |
+|5330835054228856905|NULL               |append   |1          |NULL         |3      |
+|7646067053904263467|5330835054228856905|overwrite|1          |1            |5      |
+|673678695532081050 |7646067053904263467|overwrite|1          |1            |4      |
 +-------------------+-------------------+---------+-----------+-------------+-------+
 
 +-------+-------------------------------------------------------------+------------+
 |content|file                                                         |record_count|
 +-------+-------------------------------------------------------------+------------+
-|0      |00000-42-474ac2fc-df2e-4f24-866d-a99080592303-0-00001.parquet|4           |
+|0      |00000-42-c4008e07-090a-4bec-b28b-35b5007425b0-0-00001.parquet|4           |
 +-------+-------------------------------------------------------------+------------+
 
 +--------------------------------------------+-----+--------+-------+
 |manifest                                    |added|existing|deleted|
 +--------------------------------------------+-----+--------+-------+
-|18e779f5-d3bb-421e-a567-517fa2bad8fa-m1.avro|1    |0       |0      |
-|18e779f5-d3bb-421e-a567-517fa2bad8fa-m0.avro|0    |0       |1      |
+|e17ed247-2f53-4a33-a6a7-5b7e476f1e3c-m1.avro|1    |0       |0      |
+|e17ed247-2f53-4a33-a6a7-5b7e476f1e3c-m0.avro|0    |0       |1      |
 +--------------------------------------------+-----+--------+-------+
 
 
 == time travel by snapshot id and by timestamp
-VERSION AS OF 5052692024519248891: [(1, 85000.0), (2, 65000.0), (3, 55000.0)]
-TIMESTAMP AS OF '2026-11-22 09:01:57.71': [(1, 85000.0), (2, 72000.0), (3, 55000.0), (4, 92000.0), (5, 70000.0)]
-new in 4.3, employees@v5052692024519248891: [1, 2, 3]
+VERSION AS OF 5330835054228856905: [(1, 85000.0), (2, 65000.0), (3, 55000.0)]
+TIMESTAMP AS OF '2026-11-22 09:31:39.732': [(1, 85000.0), (2, 72000.0), (3, 55000.0), (4, 92000.0), (5, 70000.0)]
+new in 4.3, employees@v5330835054228856905: [1, 2, 3]
 option snapshot-id -> Time travel option `snapshot-id` is no longer supported, use Spark built-in `versionAsOf` instead
 option versionAsOf: 3 rows
 VERSION AS OF 99 -> IllegalArgumentException Cannot find snapshot with ID 99
@@ -80,8 +80,8 @@ VERSION AS OF 99 -> IllegalArgumentException Cannot find snapshot with ID 99
 +-------+-------------------------------------------------------------------+------------+
 |content|file                                                               |record_count|
 +-------+-------------------------------------------------------------------+------------+
-|0      |00000-42-474ac2fc-df2e-4f24-866d-a99080592303-0-00001.parquet      |4           |
-|1      |00000-56-eaec79ff-6969-4936-8c32-6ba18e8720f3-00001-deletes.parquet|1           |
+|0      |00000-42-c4008e07-090a-4bec-b28b-35b5007425b0-0-00001.parquet      |4           |
+|1      |00000-56-f6987e03-d2c8-43b6-a376-d2f5f84eba0b-00001-deletes.parquet|1           |
 +-------+-------------------------------------------------------------------+------------+
 
 content 0 is a data file, content 1 a position delete file: the DELETE wrote a small file
@@ -107,11 +107,42 @@ INSERT WITH SCHEMA EVOLUTION -> columns ['id', 'name', 'department', 'salary', '
 +-----------------------+-------------------+-------------------+
 |made_current_at        |snapshot_id        |parent_id          |
 +-----------------------+-------------------+-------------------+
-|2026-11-22 09:01:54.727|5052692024519248891|NULL               |
-|2026-11-22 09:01:57.71 |8449010773965278315|5052692024519248891|
-|2026-11-22 09:01:58.453|7927954330056481789|8449010773965278315|
-|2026-11-22 09:02:00.317|3067874090631293957|7927954330056481789|
-|2026-11-22 09:02:00.767|3771356227221446018|3067874090631293957|
-|2026-11-22 09:02:01.317|8736731337808336863|3771356227221446018|
+|2026-11-22 09:31:36.412|5330835054228856905|NULL               |
+|2026-11-22 09:31:39.732|7646067053904263467|5330835054228856905|
+|2026-11-22 09:31:40.679|673678695532081050 |7646067053904263467|
+|2026-11-22 09:31:43.05 |6182181487454750975|673678695532081050 |
+|2026-11-22 09:31:43.584|2870340796795061938|6182181487454750975|
+|2026-11-22 09:31:44.287|2561789914811761798|2870340796795061938|
 +-----------------------+-------------------+-------------------+
 
+
+== the plan of a MERGE: copy-on-write against merge-on-read
+  copy-on-write:
+    ReplaceData lake.hr.employees IcebergWrite(table=lake.hr.employees, format=PARQUET)
+    +- MergeRowsExec[__row_operation#841, id#842, name#843, department#844, salary#845, country#846,
+    +- SortMergeJoin [id#827], [id#813], FullOuter
+    :        +- BatchScan lake.hr.employees[id#827, name#828, department#829, salary#830, country#83
+    :                                +- SortMergeJoin [id#926], [id#855], LeftSemi
+    :                                   :        +- BatchScan lake.hr.employees[id#926, _file#931] I
+  merge-on-read:
+    WriteDelta lake.hr.employees org.apache.iceberg.spark.source.SparkPositionDeltaWrite@6e57d5db
+    +- MergeRowsExec[__row_operation#968, id#969, name#970, department#971, salary#972, country#973,
+    +- SortMergeJoin [id#950], [id#813], RightOuter
+    :           +- BatchScan lake.hr.employees[id#950, _file#957, _pos#958L, _spec_id#955, _partitio
+
+== WHEN NOT MATCHED BY SOURCE: a full sync in one statement
+  roster now: [(2, 'Bob'), (3, 'Charles'), (4, 'Diana')]
+
+== replace a slice: INSERT ... REPLACE WHERE, and the 4.2 REPLACE USING grammar
+  REPLACE WHERE, attempt 1: [('2026-10-01', 1), ('2026-10-02', 20), ('2026-10-02', 21)]
+  REPLACE WHERE, attempt 2: [('2026-10-01', 1), ('2026-10-02', 20), ('2026-10-02', 21)]
+  REPLACE USING -> UNSUPPORTED_FEATURE.TABLE_OPERATION
+
+== two writers at once: optimistic concurrency
+  two appends: snapshots 1 -> 3
+    committed
+    committed
+  two deletes on the same file: snapshots 3 -> 4
+    org.apache.iceberg.exceptions.ValidationException: Found conflicting files that can contain records matching ref(name="id") == 1: [.../00000-149-d286eb92-c339-4b2b-b64c-a22c191246c8-0-00001.parquet]
+    committed
+  rows now: [1, 3, 4, 5, 6, 7, 8]

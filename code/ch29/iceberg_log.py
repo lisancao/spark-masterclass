@@ -5,6 +5,7 @@ apache/iceberg PR #18749 (commit b1eab64, "Spark: Initial support for 4.3.0"); n
 has the build and its sha256. Run from code/:  uv run python ch29/iceberg_log.py
 """
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -124,3 +125,77 @@ spark.table("lake.hr.employees").orderBy("id").show()
 
 section("history (the snapshot log)")
 spark.sql("SELECT made_current_at, snapshot_id, parent_id FROM lake.hr.employees.history").show(truncate=False)
+
+section("the plan of a MERGE: copy-on-write against merge-on-read")
+spark.createDataFrame([(2, "Bob", "Marketing", 75000.0, None), (7, "Gia", "Sales", 61000.0, "VN")],
+                      SCHEMA + ", country STRING").createOrReplaceTempView("upd")
+merge_sql = """MERGE INTO lake.hr.employees t USING upd s ON t.id = s.id
+               WHEN MATCHED THEN UPDATE SET * WHEN NOT MATCHED THEN INSERT *"""
+for mode in ("copy-on-write", "merge-on-read"):
+    spark.sql(f"ALTER TABLE lake.hr.employees SET TBLPROPERTIES ('write.merge.mode'='{mode}')")
+    p = spark.sql("EXPLAIN " + merge_sql).first()[0]
+    ops = [l.strip()[:96] for l in p.split("== Physical Plan ==")[1].splitlines()
+           if any(k in l for k in ("ReplaceData", "WriteDelta", "MergeRows", "Join", "BatchScan"))]
+    print(f"  {mode}:")
+    for o in ops:
+        print("    " + tidy(o))
+
+section("WHEN NOT MATCHED BY SOURCE: a full sync in one statement")
+spark.sql("CREATE TABLE lake.hr.roster (id INT, name STRING) USING iceberg")
+spark.sql("INSERT INTO lake.hr.roster VALUES (1, 'Alice'), (2, 'Bob'), (3, 'Charlie')")
+spark.createDataFrame([(2, "Bob"), (3, "Charles"), (4, "Diana")], "id INT, name STRING") \
+    .createOrReplaceTempView("hr_feed")
+spark.sql("""MERGE INTO lake.hr.roster t USING hr_feed s ON t.id = s.id
+                 WHEN MATCHED AND t.name <> s.name THEN UPDATE SET name = s.name
+                 WHEN NOT MATCHED THEN INSERT *
+                 WHEN NOT MATCHED BY SOURCE THEN DELETE""")
+print("  roster now:", [(x.id, x.name) for x in spark.table("lake.hr.roster").orderBy("id").collect()])
+
+section("replace a slice: INSERT ... REPLACE WHERE, and the 4.2 REPLACE USING grammar")
+spark.sql("CREATE TABLE lake.hr.daily (day DATE, n INT) USING iceberg PARTITIONED BY (day)")
+spark.sql("INSERT INTO lake.hr.daily VALUES (DATE'2026-10-01', 1), (DATE'2026-10-02', 2)")
+for attempt in (1, 2):
+    spark.sql("""INSERT INTO lake.hr.daily REPLACE WHERE day = DATE'2026-10-02'
+                 SELECT DATE'2026-10-02', 20 UNION ALL SELECT DATE'2026-10-02', 21""")
+    print(f"  REPLACE WHERE, attempt {attempt}:",
+          [(str(x.day), x.n) for x in spark.table("lake.hr.daily").orderBy("day", "n").collect()])
+try:
+    spark.sql("INSERT INTO lake.hr.daily REPLACE USING (day) SELECT DATE'2026-10-02', 22")
+    print("  REPLACE USING: worked")
+except Exception as e:
+    print("  REPLACE USING ->", e.getCondition())
+
+section("two writers at once: optimistic concurrency")
+from concurrent.futures import ThreadPoolExecutor
+spark.sql("CREATE TABLE lake.hr.accounts (id INT, balance DOUBLE) USING iceberg")
+spark.createDataFrame([(i, 100.0) for i in range(1, 7)], "id INT, balance DOUBLE").coalesce(1) \
+    .writeTo("lake.hr.accounts").append()
+
+
+def attempt_sql(stmt):
+    try:
+        spark.sql(stmt)
+        return "committed"
+    except Exception as e:
+        # Classic PySpark wraps the JVM error; the Iceberg exception is a line inside the message
+        java = [l.strip(": ") for l in str(e).splitlines() if l.strip(": ").startswith("org.apache.iceberg")]
+        return re.sub(r"\[file:[^\]]*/", "[.../", java[0] if java else type(e).__name__)
+
+
+def n_snapshots():
+    return spark.sql("SELECT count(*) FROM lake.hr.accounts.snapshots").first()[0]
+
+
+for label, stmts in [
+    ("two appends", ["INSERT INTO lake.hr.accounts VALUES (7, 1.0)",
+                     "INSERT INTO lake.hr.accounts VALUES (8, 1.0)"]),
+    ("two deletes on the same file", ["DELETE FROM lake.hr.accounts WHERE id = 1",
+                                      "DELETE FROM lake.hr.accounts WHERE id = 2"]),
+]:
+    before = n_snapshots()
+    with ThreadPoolExecutor(2) as pool:
+        results = list(pool.map(attempt_sql, stmts))
+    print(f"  {label}: snapshots {before} -> {n_snapshots()}")
+    for r in results:
+        print("    " + r)
+print("  rows now:", sorted(r.id for r in spark.table("lake.hr.accounts").collect()))

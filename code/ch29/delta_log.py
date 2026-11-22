@@ -23,6 +23,7 @@ builder = (SparkSession.builder.master("local[4]").appName("ch29-delta")
            .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
            .config("spark.sql.session.timeZone", "UTC")
            .config("spark.driver.extraJavaOptions", "-Duser.timezone=UTC")   # Delta reads TIMESTAMP AS OF in the JVM zone
+           .config("spark.ui.showConsoleProgress", "false")
            .config("spark.sql.shuffle.partitions", "2"))
 spark = configure_spark_with_delta_pip(builder).getOrCreate()
 spark.sparkContext.setLogLevel("OFF")
@@ -227,3 +228,44 @@ names = sorted(p.name for p in (Path(bpath) / "_delta_log").iterdir() if p.is_fi
 print("  commits:", len([n for n in names if n.endswith(".json")]),
       " checkpoints:", [n for n in names if "checkpoint" in n])
 print("  _last_checkpoint:", (Path(bpath) / "_delta_log" / "_last_checkpoint").read_text().strip()[:80])
+
+section("OPTIMIZE: many small files become one")
+opath = str(ROOT / "small_files")
+for day in range(1, 7):
+    spark.createDataFrame([(day, i) for i in range(50)], "day INT, n INT").coalesce(1) \
+        .write.format("delta").mode("append").save(opath)
+print("  data files after six appends:", len(list(Path(opath).glob("*.parquet"))))
+m = spark.sql(f"OPTIMIZE delta.`{opath}`").select("metrics.numFilesAdded", "metrics.numFilesRemoved").first()
+print(f"  OPTIMIZE: numFilesAdded={m.numFilesAdded} numFilesRemoved={m.numFilesRemoved}")
+print("  files the current version reads:", spark.read.format("delta").load(opath).inputFiles().__len__(),
+      "  files on disk:", len(list(Path(opath).glob("*.parquet"))))
+last = spark.sql(f"DESCRIBE HISTORY delta.`{opath}`").orderBy(F.desc("version")).first()
+print("  last commit:", last.operation, "dataChange in its add actions:",
+      sorted({json.loads(l)["add"]["dataChange"] for l in open(Path(opath) / "_delta_log" / f"{last.version:020d}.json")
+              if '"add"' in l}))
+
+section("two writers at once: optimistic concurrency")
+from concurrent.futures import ThreadPoolExecutor
+wpath = str(ROOT / "accounts")
+spark.createDataFrame([(i, 100.0) for i in range(1, 7)], "id INT, balance DOUBLE").coalesce(1) \
+    .write.format("delta").save(wpath)
+W = f"delta.`{wpath}`"
+
+
+def attempt(stmt):
+    try:
+        spark.sql(stmt)
+        return "committed"
+    except Exception as e:
+        return condition(e) if "DELTA_" in str(e) else type(e).__name__ + ": " + str(e).split("\n")[0][:70]
+
+
+for label, stmts in [
+    ("two appends", [f"INSERT INTO {W} VALUES (7, 1.0)", f"INSERT INTO {W} VALUES (8, 1.0)"]),
+    ("two deletes on the same file", [f"DELETE FROM {W} WHERE id = 1", f"DELETE FROM {W} WHERE id = 2"]),
+]:
+    before = version_of = spark.sql(f"DESCRIBE HISTORY {W}").agg(F.max("version")).first()[0]
+    with ThreadPoolExecutor(2) as pool:
+        results = list(pool.map(attempt, stmts))
+    after = spark.sql(f"DESCRIBE HISTORY {W}").agg(F.max("version")).first()[0]
+    print(f"  {label}: {results}, version {before} -> {after}")
