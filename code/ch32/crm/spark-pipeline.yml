@@ -1,0 +1,13 @@
+name: crm
+storage: file://@WORK@/pipeline-storage
+catalog: lake
+database: crm
+libraries:
+  - glob:
+      include: transformations/**
+configuration:
+  spark.sql.catalog.lake: org.apache.iceberg.spark.SparkCatalog
+  spark.sql.catalog.lake.type: hadoop
+  spark.sql.catalog.lake.warehouse: file://@WORK@/lake-warehouse
+  spark.sql.shuffle.partitions: "4"
+  spark.sql.session.timeZone: UTC

@@ -1,0 +1,30 @@
+snapshots, oldest first: [1544377441169591065, 1874908785575929893, 3857426869715506986] 
+
+1. The engine-level CDC surface (CHANGES, DataFrameReader.changes):
+  CHANGES on a Parquet table:
+    UNSUPPORTED_FEATURE.CHANGE_DATA_CAPTURE: The feature is not supported: Catalog spark_catalog does not support Change Data Capture (CDC).
+  CHANGES on an Iceberg table:
+    UNSUPPORTED_FEATURE.CHANGE_DATA_CAPTURE: The feature is not supported: Catalog lake does not support Change Data Capture (CDC).
+  read.changes() on an Iceberg table:
+    UNSUPPORTED_FEATURE.CHANGE_DATA_CAPTURE: The feature is not supported: Catalog lake does not support Change Data Capture (CDC).
+
+2. Iceberg's own changelog view (a stored procedure):
++------+---+-------------+---------------+-------------------+
+|   sku|qty| _change_type|_change_ordinal|_commit_snapshot_id|
++------+---+-------------+---------------+-------------------+
+|gadget| 50|       INSERT|              0|1544377441169591065|
+|   mug|  7|       INSERT|              0|1544377441169591065|
+|widget|100|       INSERT|              0|1544377441169591065|
+|widget|100|UPDATE_BEFORE|              1|1874908785575929893|
+|widget| 90| UPDATE_AFTER|              1|1874908785575929893|
+|gadget| 50|       DELETE|              2|3857426869715506986|
++------+---+-------------+---------------+-------------------+
+
+3. The same changes from two snapshots, with time travel and a full outer join:
++------+----------+---------+------------+
+|   sku|qty_before|qty_after|_change_type|
++------+----------+---------+------------+
+|gadget|        50|     NULL|      delete|
+|widget|       100|       90|      update|
++------+----------+---------+------------+
+

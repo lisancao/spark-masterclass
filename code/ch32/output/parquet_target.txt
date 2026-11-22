@@ -1,0 +1,22 @@
+2026-11-22 00:49:33: Loading pipeline spec from ~/spark-masterclass/data/work/part06/ch32-parquet/spark-pipeline.yml...
+2026-11-22 00:49:33: Creating Spark session...
+2026-11-22 00:49:38: Creating dataflow graph...
+2026-11-22 00:49:39: Registering graph elements...
+2026-11-22 00:49:39: Loading definitions. Root directory: '~/spark-masterclass/data/work/part06/ch32-parquet'.
+2026-11-22 00:49:39: Found 1 files matching glob 'transformations/**/*'
+2026-11-22 00:49:39: Importing ~/spark-masterclass/data/work/part06/ch32-parquet/transformations/customers.py...
+2026-11-22 00:49:39: Starting run...
+Traceback (most recent call last):
+  File "~/spark-masterclass-parts/part06/code/.venv/lib/python3.12/site-packages/pyspark/pipelines/cli.py", line 450, in <module>
+    main()
+  File "~/spark-masterclass-parts/part06/code/.venv/lib/python3.12/site-packages/pyspark/pipelines/cli.py", line 429, in main
+    run(
+  File "~/spark-masterclass-parts/part06/code/.venv/lib/python3.12/site-packages/pyspark/pipelines/cli.py", line 353, in run
+    handle_pipeline_events(result_iter)
+  File "~/spark-masterclass-parts/part06/code/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/pipelines/spark_connect_pipeline.py", line 53, in handle_pipeline_events
+    for result in iter:
+  File "~/spark-masterclass-parts/part06/code/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/client/core.py", line 1442, in execute_command_as_iterator
+  File "~/spark-masterclass-parts/part06/code/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/client/core.py", line 1950, in _execute_and_fetch_as_iterator
+  File "~/spark-masterclass-parts/part06/code/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/client/core.py", line 2340, in _handle_error
+  File "~/spark-masterclass-parts/part06/code/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/client/core.py", line 2443, in _handle_rpc_error
+pyspark.errors.exceptions.connect.UnknownException: (org.apache.spark.sql.pipelines.graph.DatasetManager$TableMaterializationException) org.apache.spark.sql.AnalysisException: [AUTOCDC_TARGET_DOES_NOT_SUPPORT_MERGE] Cannot start AutoCDC flow: the target table `spark_catalog`.`default`.`customers_current` (format: parquet) does not support row-level operations. AutoCDC requires a target backed by a connector that supports MERGE. SQLSTATE: 0A000
