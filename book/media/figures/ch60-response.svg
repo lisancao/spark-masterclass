@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 240" width="780" height="240" role="img"><title>The 102 bytes that the worker sent back for the pickled UDF</title><defs><marker id="m8a919e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a919e"/></marker><marker id="m8a919es" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#8a919e"/></marker></defs><rect x="12" y="40" width="70" height="40" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="47.0" y="63.2" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">00 00 00 22</text>
+<line x1="47.0" y1="82" x2="47.0" y2="86" stroke="#8a919e" stroke-width="1"/>
+<text x="47.0" y="98.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">frame length</text>
+<text x="47.0" y="110.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">34</text>
+<rect x="85" y="40" width="200" height="40" rx="6" fill="#2f7d5b" fill-opacity="1.0"/>
+<text x="185.0" y="63.2" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">pickle: [&#x27;AB0&#x27;, &#x27;AB1&#x27;, &#x27;AB2&#x27;]</text>
+<line x1="185.0" y1="82" x2="185.0" y2="120" stroke="#8a919e" stroke-width="1"/>
+<text x="185.0" y="132.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">34 bytes, protocol 5</text>
+<rect x="288" y="40" width="70" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="323.0" y="63.2" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">ff ff ff fd</text>
+<line x1="323.0" y1="82" x2="323.0" y2="86" stroke="#8a919e" stroke-width="1"/>
+<text x="323.0" y="98.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">TIMING_DATA</text>
+<text x="323.0" y="110.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">-3</text>
+<rect x="361" y="40" width="92" height="40" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="407.0" y="63.2" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">4 longs</text>
+<line x1="407.0" y1="82" x2="407.0" y2="120" stroke="#8a919e" stroke-width="1"/>
+<text x="407.0" y="132.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">boot, init, finish,</text>
+<text x="407.0" y="144.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">processing time</text>
+<rect x="456" y="40" width="70" height="40" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="491.0" y="63.2" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">2 longs</text>
+<line x1="491.0" y1="82" x2="491.0" y2="86" stroke="#8a919e" stroke-width="1"/>
+<text x="491.0" y="98.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">spill: memory, disk</text>
+<text x="491.0" y="110.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">(0, 0)</text>
+<rect x="529" y="40" width="70" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="564.0" y="63.2" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">ff ff ff ff</text>
+<line x1="564.0" y1="82" x2="564.0" y2="120" stroke="#8a919e" stroke-width="1"/>
+<text x="564.0" y="132.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">END_OF_DATA</text>
+<text x="564.0" y="144.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">_SECTION -1</text>
+<rect x="602" y="40" width="70" height="40" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="637.0" y="63.2" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">00 00 00 00</text>
+<line x1="637.0" y1="82" x2="637.0" y2="86" stroke="#8a919e" stroke-width="1"/>
+<text x="637.0" y="98.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">accumulator</text>
+<text x="637.0" y="110.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">updates: 0</text>
+<rect x="675" y="40" width="70" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="710.0" y="63.2" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">ff ff ff fc</text>
+<line x1="710.0" y1="82" x2="710.0" y2="120" stroke="#8a919e" stroke-width="1"/>
+<text x="710.0" y="132.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">END_OF_STREAM</text>
+<text x="710.0" y="144.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">-4: reuse me</text>
+<text x="12" y="26.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#d9661f" text-anchor="start" font-weight="700">worker → JVM</text>
+<text x="12" y="176.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="600">All numbers are big-endian. A positive int is the length of the next frame.</text>
+<text x="12" y="196.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">A negative int is a marker from SpecialLengths. -2 (PYTHON_EXCEPTION_THROWN) replaces the results when the UDF raises.</text>
+<text x="12" y="226.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">Bytes from tap.py and wire.py on pyspark 4.3.0.</text></svg>

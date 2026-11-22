@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 226" width="780" height="226" role="img"><title>Virtual address space and resident memory of a worker, against spark.executor.pyspark.memory</title><defs><marker id="ma8323a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#a8323a"/></marker><marker id="ma8323as" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#a8323a"/></marker></defs><text x="260" y="42.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">pickled worker, limit 300m</text>
+<rect x="270" y="26" width="28.56" height="22" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<rect x="270" y="26" width="21.84" height="22" rx="3" fill="#2f7d5b" fill-opacity="1"/>
+<line x1="396.0" y1="20" x2="396.0" y2="56" stroke="#a8323a" stroke-width="2.5"/>
+<text x="391.0" y="22.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#a8323a" text-anchor="end" font-weight="700">RLIMIT_AS 300 MiB</text>
+<text x="270" y="64.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">VmSize 68 MiB, RSS 52 MiB</text>
+<text x="260" y="104.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">Arrow worker, limit 300m</text>
+<rect x="270" y="88" width="124.74" height="22" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<rect x="270" y="88" width="36.54" height="22" rx="3" fill="#2f7d5b" fill-opacity="1"/>
+<line x1="396.0" y1="82" x2="396.0" y2="118" stroke="#a8323a" stroke-width="2.5"/>
+<text x="391.0" y="84.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#a8323a" text-anchor="end" font-weight="700">RLIMIT_AS 300 MiB</text>
+<text x="270" y="126.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">VmSize 297 MiB, RSS 87 MiB</text>
+<text x="260" y="166.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">Arrow worker, limit 1g, after 400 MiB</text>
+<rect x="270" y="150" width="197.4" height="22" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<rect x="270" y="150" width="53.76" height="22" rx="3" fill="#2f7d5b" fill-opacity="1"/>
+<line x1="700.0799999999999" y1="144" x2="700.0799999999999" y2="180" stroke="#a8323a" stroke-width="2.5"/>
+<text x="695.0799999999999" y="146.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#a8323a" text-anchor="end" font-weight="700">RLIMIT_AS 1024 MiB</text>
+<text x="270" y="188.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">VmSize 470 MiB, RSS 128 MiB</text>
+<rect x="270" y="200" width="14" height="12" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="290" y="210.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">resident (RSS)</text>
+<rect x="440" y="200" width="14" height="12" rx="2" fill="#3a5f96" fill-opacity="1"/>
+<text x="460" y="210.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">address space (VmSize)</text>
+<rect x="610" y="200" width="14" height="12" rx="2" fill="#a8323a" fill-opacity="1"/>
+<text x="630" y="210.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">the limit</text></svg>

@@ -83,6 +83,11 @@ driver python 816380, JVM 816388
 - **`spark.python.worker.reuse=false`.** The daemon is still there, and it is still the parent. But each task gets a new fork: twelve tasks, twelve workers. Each worker saw only the two rows of its partition.
 - **`spark.python.use.daemon=false`.** There is no daemon. The parent of each worker is the JVM (816388), and the JVM starts a full Python interpreter for each task. Without a daemon, Spark cannot use a worker again. On Windows, Spark never uses the daemon, because Windows cannot fork (`PythonWorkerFactory.scala`).
 
+<figure markdown>
+  ![The processes of a UDF query with three configurations](../media/figures/ch60-processes.svg)
+  <figcaption>The process tree for each configuration, from the output above. With the defaults, two forks of the daemon run all twelve tasks.</figcaption>
+</figure>
+
 The worker decides at the end of each task if the JVM can use it again. The last lines of `main` in `python/pyspark/worker.py` are:
 
 ```python
@@ -327,6 +332,12 @@ The parts are in this sequence:
 4. **`END_OF_DATA_SECTION` (-1) and the accumulator updates.** The count is 0, because this UDF changes no accumulator. The UDF of Chapter 59, Step 7 sends its count back in this section.
 5. **`END_OF_STREAM` (-4).** The worker can run another task (Step 2).
 
+
+<figure markdown>
+  ![The 102 bytes of the response, field by field](../media/figures/ch60-response.svg)
+  <figcaption>The response above as fields. The orange fields are markers with a negative value.</figcaption>
+</figure>
+
 The Arrow response starts with `START_ARROW_STREAM` (-6) and then an Arrow IPC stream, in place of the pickle frames. The tail is the same:
 
 ```text
@@ -342,6 +353,13 @@ response: 388 bytes out of the worker
 ```
 
 The Arrow worker used 170 ms to start and 129 ms to process three rows, against 75 ms and 0 ms for the pickled worker. The Arrow path imports `pyarrow` and builds Arrow arrays. That fixed cost is large for three rows. In a larger batch, all the rows share it.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch60-anim-frames.webp">
+    <source src="../../media/clips/ch60-anim-frames.mp4" type="video/mp4">
+  </video>
+  <figcaption>The request and the response of the pickled UDF, frame by frame. The sizes come from <code>tap.py</code>.</figcaption>
+</figure>
 
 All the negative values come from one object in `PythonRunner.scala`:
 
@@ -614,6 +632,12 @@ Four facts come from this table:
 - **The limit counts address space, not use.** With 1g, the Arrow worker could allocate 400 MiB but not 900 MiB. 297 + 900 is more than 1024, but the resident size was only 128 MiB.
 - **A reused worker keeps its address space.** In the last group, two allocations of 900 MiB ran in sequence on the same worker. The first succeeded. After it, `VmSize` was 1366 MiB, because the freed memory stayed mapped in the process. The second allocation failed.
 - **The failure is a `MemoryError`.** The limit makes `malloc` fail, and Python raises an exception that it can send back (Step 8). This is more useful than a kill from the kernel, which gives only `EOFException`.
+
+
+<figure markdown>
+  ![Address space and resident memory of a worker against the limit](../media/figures/ch60-rlimit.svg)
+  <figcaption>Three rows of the output above. The limit applies to the address space (blue), not to the resident memory (green). An Arrow worker starts near 300 MiB of address space.</figcaption>
+</figure>
 
 !!! caution "Keep 400 MiB or more for each Arrow worker"
     An Arrow worker uses about 300 MiB of address space before it runs your function. If the share of each worker is near that value, all Arrow UDFs fail with `MemoryError`. Spark divides `spark.executor.pyspark.memory` by the number of concurrent tasks.
