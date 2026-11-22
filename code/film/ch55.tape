@@ -1,4 +1,4 @@
-# Spark Masterclass, Chapter 55: capstone, your own connector. Storyboard: storyboard.md.
+# Spark Masterclass, Chapter 55: a DSv2 connector in Java. Storyboard: storyboard.md.
 #   film render code/film/ch55.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -10,19 +10,19 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: stream | The changes table as a stream, 400 bytes a batch
-Type "# stream the change logs, 400 bytes per micro-batch, complete lines only" Enter
+# beat: capability | The same questions, to a Python source and a Java source
+Type "# the same three queries, against the Python source and the Java source" Enter
 Sleep 500ms
-Type "python ch55/demo.py 2>/dev/null | sed -n '/== 9\./,/rows streamed/p'" Enter
-Wait@240s
-Sleep 10s
+Type "python ch55/capability.py 2>/dev/null | grep -E '^==|BatchScan|LocalTableScan|CollectLimit' | grep -v formatted | cut -c1-92" Enter
+Wait@180s
+Sleep 12s
 
-# beat: grade | Ten stages, graded one by one
+# beat: pushdown | Pruning, a pushed filter and a COUNT(*) with no file read
 Hide
 Type "clear" Enter
 Show
-Type "# grade the connector: parsers and tests first, then Spark" Enter
+Type "# what jdocs takes from the plan: columns, a filter, a whole COUNT(*)" Enter
 Sleep 500ms
-Type "python ch55/grade.py 2>/dev/null | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+Type "python ch55/jdocs.py 2>/dev/null | sed -n '/== 4\./,/== 5\./p;/== 6\./,/== 7\./p;/== 9\./,/sum(size)/p' | grep -v '== [57]\.' | cut -c1-92" Enter
+Wait@180s
+Sleep 12s
