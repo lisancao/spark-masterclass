@@ -7,7 +7,7 @@ Spark 4.1 added the `GEOMETRY` and `GEOGRAPHY` types behind a flag. Spark 4.2 en
 **Spark 4.3.0 has two geospatial types and five `ST` functions. The types store shapes correctly as WKB and keep the reference system in the type. They go into Parquet and Iceberg v3 files with their reference system. But Spark 4.3.0 does not measure, compare or join shapes. You write those operations yourself, and a grid key and a bounding box decide what they cost.**
 
 !!! note "What 4.3.0 has, checked against the source"
-    Spark 4.3.0 has the same functions as Spark 4.2.0. They are `st_asbinary`, `st_geogfromwkb`, `st_geomfromwkb`, `st_setsrid` and `st_srid`. The `master` branch of apache/spark on 2026-11-22 has the same five functions. The 4.3.0 release notes do not mention geospatial work. The geospatial changes that are only in 4.3.0 are guards and fixes:
+    This is the complete list of geospatial functions in Spark 4.3.0, from all releases. It is the same list as in Spark 4.2.0: `st_asbinary`, `st_geogfromwkb`, `st_geomfromwkb`, `st_setsrid` and `st_srid`. The `master` branch of apache/spark on 2026-11-22 has the same five functions. The 4.3.0 release notes do not mention geospatial work. The geospatial changes that are only in 4.3.0 are guards and fixes:
 
     - `GEOMETRY` and `GEOGRAPHY` cannot be partition columns (SPARK-60518).
     - Hive tables refuse them with a clear error (SPARK-60519, SPARK-60514).
