@@ -360,6 +360,13 @@ Look at the first session of `u1`. Its last click was at 09:09:18, so its timer 
 
 Thus, the processor saw the new click before the timer. Without the gap test in `handleInputRows`, the click at 10:45:56 would join a session that ended at 09:09:18. The watermark is always behind the data, so a processor with event-time timers must also look for the gap in its input.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch27-anim-call-order.webp">
+    <source src="../../media/clips/ch27-anim-call-order.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: batch 2 for the key `u1`. The watermark is past the timer, but `handleInputRows` runs first and closes the session by `gap`. The times and the closed row come from `t2_sessions.txt`. The new timer follows the code of the `Sessionizer`. The time scale is schematic.</figcaption>
+</figure>
+
 The data also shows the other defenses:
 
 - `u3` has five clicks. The re-sent `c008` did not count, and the out-of-order `c011` (09:36:30) went into the correct session.
@@ -384,6 +391,12 @@ Still open, from the state data source: the session value and its timer
 |  u7|11:48:03|11:48:03|     1|12:18:03|
 +----+--------+--------+------+--------+
 ```
+
+<figure markdown>
+  ![Sessions of the seven users](../media/figures/ch27-sessions-light.svg#only-light)
+  ![Sessions of the seven users](../media/figures/ch27-sessions-dark.svg#only-dark)
+  <figcaption markdown="span">The closed sessions and the open sessions from `t2_sessions.txt`, with the watermark of each batch. Each open session has one timer, 30 minutes after its last click.</figcaption>
+</figure>
 
 Each open session has one timer, 30 minutes after its last click. The last watermark is 11:38:03, so no timer can expire until more data moves the watermark. The `seen` map of `u6` holds the three events of its open session:
 
@@ -451,6 +464,12 @@ The query runs with `timeMode="ProcessingTime"` and a trigger of one second. The
  28.4s  + click a /p/lamp
  29.7s  batch 24  a  click  state before: None
 ```
+
+<figure markdown>
+  ![Processing-time timers and TTL](../media/figures/ch27-clock-light.svg#only-light)
+  ![Processing-time timers and TTL](../media/figures/ch27-clock-dark.svg#only-dark)
+  <figcaption markdown="span">The rows of `t3_time.txt` on a time line. Each timer fires about 5 seconds after the last click of its user. The value `/cart` expires 8 seconds after its update.</figcaption>
+</figure>
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch27-clock.webp">
