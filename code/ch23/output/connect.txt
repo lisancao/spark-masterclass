@@ -1,0 +1,15 @@
+client: pyspark.sql.connect.session | server runs Spark 4.3.0
+session a: spark.sql.optimizer.singleTaskExecution.enabled=true
+session b: spark.sql.optimizer.singleTaskExecution.enabled=false
+
+query                            session  exchanges  jobs  tasks
+CSV: groupBy, orderBy                  a          0     1      1
+CSV: groupBy, orderBy                  b          2     4      4
+Python list, 500 rows: groupBy         a          0     1      1
+Python list, 500 rows: groupBy         b          1     2     17
+pandas, 500 rows: groupBy              a          0     1      1
+pandas, 500 rows: groupBy              b          1     2     17
+
+CSV groupBy/orderBy from the client, median of 20 after a warm-up:
+  session b (off):  265.3 ms
+  session a (on):   164.6 ms
