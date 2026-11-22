@@ -1,4 +1,4 @@
-# Spark Masterclass, Chapter 40: calling models and services. Storyboard: notes/part07.md.
+# Spark Masterclass, Chapter 40: entity resolution and connected components. Storyboard: notes/part07.md.
 #   film render code/film/ch40.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -10,17 +10,17 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: runs | How many rows go into the model for each action
-Type "# one labelled DataFrame, five actions: how many rows reach the model?" Enter
+# beat: plan-growth | Label propagation without a cut, then with localCheckpoint()
+Type "# label propagation: the analyzed plan after each round, without and with a cut" Enter
 Sleep 500ms
-Type "python ch40/inference.py 2>/dev/null | sed -n '/how many times/,/cache()/p' | grep -v 'filter plan' | cut -c1-92" Enter
+Type "python ch40/resolve.py 2>/dev/null | sed -n '/without a cut/,/answer key has/p' | cut -c1-92" Enter
 Wait@900s
 Sleep 10s
 
-# beat: requests | One request per row, then a client per partition
+# beat: cache-plan | Four ways to keep each round
 Type "clear" Enter
-Type "# the same 232 texts: a UDF per row, then mapInPandas with batches and a rate limit" Enter
+Type "# the same loop kept four ways: nothing, cache(), localCheckpoint(), checkpoint()" Enter
 Sleep 500ms
-Type "python ch40/calling.py 2>/dev/null | sed -n '/once per row/,/largest request 10/p' | cut -c1-92" Enter
+Type "rm -rf $BOOK_DATA/ch40; python ch40/components.py loop 2>/dev/null | sed -n '/^   nothing/,/^   localCheckpoint/p'" Enter
 Wait@900s
 Sleep 10s

@@ -1,5 +1,5 @@
-# Spark Masterclass, Chapter 37: similarity search. Storyboard: notes/part07.md.
-#   film render code/film/ch37.tape --format chapter
+# Spark Masterclass, Chapter 37: MLlib over Spark Connect. Storyboard: notes/part07.md.
+#   film render code/film/ch37.tape --format chapter   (start ch37/server.sh first)
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
@@ -10,17 +10,9 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: banding | MinHash bands built from DataFrame functions: recall against work
-Type "# MinHash with b bands of r rows: candidates and recall for pairs with J >= 0.7" Enter
+# beat: connect | The fitted pipeline over Connect: references and the server ML cache
+Type "# fit the fare pipeline over Spark Connect: what does the client hold?" Enter
 Sleep 500ms
-Type "python ch37/indexes.py 2>/dev/null | sed -n '/== banding/,/numHashTables=25/p' | cut -c1-92" Enter
-Wait@1200s
-Sleep 12s
-
-# beat: ivf | The IVF recall curve
-Type "clear" Enter
-Type "# IVF over 20,000 vectors: recall at 10 against the share of vectors scored" Enter
-Sleep 500ms
-Type "python ch37/indexes.py 2>/dev/null | sed -n '/list sizes/,$p' | cut -c1-92" Enter
-Wait@1200s
+Type "python ch37/connect_ml.py 2>/dev/null | sed -n '/stages in/,/^ *sample/p' | cut -c1-92" Enter
+Wait@900s
 Sleep 10s

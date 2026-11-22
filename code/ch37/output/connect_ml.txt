@@ -1,0 +1,30 @@
+pyspark.sql.connect.session | server runs Spark 4.3.0
+
+fit() returned once the server finished the fit
+
+stages in the client's PipelineModel:
+  StringIndexerModel     _java_obj = b912f6e4-a79b-4230-9aa8-f79d141fa1ff
+  StringIndexerModel     _java_obj = fb5e6074-172a-4f40-b78f-8cbc3556857b
+  StringIndexerModel     _java_obj = dbccf4a3-2b4a-4278-a45c-0ae230c22b56
+  VectorAssembler        _java_obj = org.apache.spark.ml.feature.VectorAssembler
+  GBTRegressionModel     _java_obj = 6700356a-7f25-455e-b292-6fb8c4530949
+
+server ML cache for this session:
+  DecisionTreeRegressionModel   30 entries    5,181,144 bytes
+  GBTRegressionModel             1 entries    5,000,952 bytes
+  StringIndexerModel             3 entries       47,864 bytes
+
+getNumTrees = 30, featureImportances has 6 entries (each attribute is one round trip to the server)
+
+the plan the client sends for model.transform(test), outermost nodes:
+  ml_relation: obj_ref 6700356a...
+    ml_relation: transformer org.apache.spark.ml.feature.VectorAssembler
+      ml_relation: obj_ref dbccf4a3...
+        ml_relation: obj_ref fb5e6074...
+          ml_relation: obj_ref b912f6e4...
+            sample
+
+test rmse 8.12  (evaluated on the server as well)
+saved by the server to ~/spark-masterclass/data/ch37/fare_gbt_connect
+
+pyspark.mllib needs a SparkContext: PySparkAttributeError [JVM_ATTRIBUTE_NOT_SUPPORTED] Attribute `sparkContext` is not supporte

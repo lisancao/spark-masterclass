@@ -1,4 +1,4 @@
-# Spark Masterclass, Chapter 38: entity resolution and connected components. Storyboard: notes/part07.md.
+# Spark Masterclass, Chapter 38: text analytics without an LLM. Storyboard: notes/part07.md.
 #   film render code/film/ch38.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -10,17 +10,9 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: plan-growth | Label propagation without a cut, then with localCheckpoint()
-Type "# label propagation: the analyzed plan after each round, without and with a cut" Enter
+# beat: search | TF-IDF search, then every inbox ticket against the labelled tickets
+Type "# TF-IDF search over four policies, then 240 tickets scored in the JVM" Enter
 Sleep 500ms
-Type "python ch38/resolve.py 2>/dev/null | sed -n '/without a cut/,/answer key has/p' | cut -c1-92" Enter
-Wait@900s
-Sleep 10s
-
-# beat: cache-plan | Four ways to keep each round
-Type "clear" Enter
-Type "# the same loop kept four ways: nothing, cache(), localCheckpoint(), checkpoint()" Enter
-Sleep 500ms
-Type "rm -rf $BOOK_DATA/ch38; python ch38/components.py loop 2>/dev/null | sed -n '/^   nothing/,/^   localCheckpoint/p'" Enter
+Type "python ch38/text_search.py 2>/dev/null | sed -n '/search the policies/,$p' | cut -c1-92" Enter
 Wait@900s
 Sleep 10s

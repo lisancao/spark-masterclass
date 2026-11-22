@@ -1,4 +1,4 @@
-# Spark Masterclass, Chapter 39: sketches. Storyboard: notes/part07.md.
+# Spark Masterclass, Chapter 39: similarity search. Storyboard: notes/part07.md.
 #   film render code/film/ch39.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -10,9 +10,17 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: rollups | Rollups from stored sketches after the raw events are deleted
-Type "# store daily sketches, delete the raw events, answer from the sketches" Enter
+# beat: banding | MinHash bands built from DataFrame functions: recall against work
+Type "# MinHash with b bands of r rows: candidates and recall for pairs with J >= 0.7" Enter
 Sleep 500ms
-Type "python ch39/sketches.py 2>/dev/null | sed -n '/== sketch table/,/rank of the estimate/p;/^   0\./p' | grep -v 'plan of\|schema' | cut -c1-92" Enter
+Type "python ch39/indexes.py 2>/dev/null | sed -n '/== banding/,/numHashTables=25/p' | cut -c1-92" Enter
 Wait@1200s
 Sleep 12s
+
+# beat: ivf | The IVF recall curve
+Type "clear" Enter
+Type "# IVF over 20,000 vectors: recall at 10 against the share of vectors scored" Enter
+Sleep 500ms
+Type "python ch39/indexes.py 2>/dev/null | sed -n '/list sizes/,$p' | cut -c1-92" Enter
+Wait@1200s
+Sleep 10s
