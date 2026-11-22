@@ -109,7 +109,7 @@ Technical names (nouns, in code format where they are identifiers): Spark, PySpa
 
 Technical verbs: shuffle, broadcast, cache, spill, coalesce, partition, repartition, prune, push (a filter into a scan), transpile, collect, commit, compile, serialize, deserialize, fork, decode, encode, parse, sort, join, write, read, run, record, profile.
 
-Rules broken on purpose: none. Words allowlisted per chapter with `--allow` (technical nouns that end in `-ing`): `setting`, `caching`, `repartitioning`, `packing`, `timing`, `cleaning`. The shared `scripts/ste-check` wrapper drops extra `--allow` words when a mode is given (its `shift` logic), so the counts below come from `python3 scripts/ste_prep.py FILE | stecheck - --mode description --allow $(cat scripts/ste-allow.txt) <words>`.
+Rules broken on purpose: none. Words allowlisted per chapter with `--allow` (technical nouns that end in `-ing`): `setting`, `caching`, `repartitioning`, `packing`, `timing`, `cleaning`. Final counts are from `scripts/ste-check FILE --allow setting caching repartitioning packing timing cleaning skipping` (the wrapper as fixed by the integrator in this worktree).
 
 ## STE checker results
 
@@ -132,6 +132,10 @@ Rules broken on purpose: none. Words allowlisted per chapter with `--allow` (tec
 - No external packages.
 - Timings: `flock ~/spark-masterclass/data/.bench.lock` only for runs whose timings the book quotes (bench, salting, crossover, arrow_cache, cold, connect timing, json_table, the codec section of skipping, and in ch19 repartition, caching and spill). The machine ran other writers' unlocked jobs at the same time, so timings have more noise than a quiet machine; the chapters say where the order of close results is not meaningful.
 
+## Benchmark check (shuffle-file reuse)
+
+Every timed loop builds a new DataFrame for each run: `caching.py` (`median_ms(build)`), `spill.py`, `bench.py`, `salting.py`, `json_table.py`, the codec section of `skipping.py`, `crossover.py`, `cold.py` (new process), `connect.py`, `arrow_cache.py` (a new aggregate over the cached DataFrame each run), `demo.py`. The one deliberate reuse ("the same DataFrame object, collect() again", 27 ms) is shown as the trap in ch19 Step 5. `repartition.py` times repeated `noop` writes of one DataFrame; each write plans a new command, and the medians (17.70 s, 67.99 s, 19.81 s) show that the SHA-256 work ran in each run (a reused shuffle would take about a second).
+
 ## Open findings (possible Spark bugs or doc gaps, not filed)
 
 1. **`spark.sql.execution.arrow.maxRecordsPerBatch=-1` fails on the columnar Arrow UDF path** with `java.lang.NegativeArraySizeException: -1` at `OnHeapColumnVector.reserveInternal`, from `ColumnarArrowEvalPythonEvaluatorFactory.rowsToColumnarBatches` (it allocates `batchSize` rows). The config doc says "If set to zero or negative there is no limit". Repro: classic 4.3.0, `spark.conf.set("spark.sql.execution.arrow.maxRecordsPerBatch", "-1")`, then a `@pandas_udf` over a column of a Parquet scan (`code/ch20/arrow_batches.py`). `0` works.
@@ -142,6 +146,7 @@ Rules broken on purpose: none. Words allowlisted per chapter with `--allow` (tec
 6. **Classic PySpark cannot parse `timestamp_ntz(9)`**: with `spark.sql.timestampNanosTypes.enabled=true`, `df.schema` and `df.first()` fail with `CANNOT_PARSE_DATATYPE` (the JVM schema is `struct<t:timestamp_ntz(9)>`). The feature is an internal preview, so this may be expected. Output: `code/ch22/output/skipping.txt`.
 7. **INT96 timestamp filters appear in `PushedFilters` but cannot skip** (no statistics). Known Parquet behaviour; the plan text does not show it. Output: `code/ch22/output/skipping.txt`.
 8. Not a bug, an observation not explained: in `code/ch19/ui_tour.py` the June sort (2 partitions, AQE off, 1g heap) did not spill, while the same sort in `spill.py` and in a stand-alone test spilled 554 MiB on its first run. The tour sorts six months instead. Not investigated further.
+10. **A Connect client hung in `SparkSession.stop()`** after a session and its `newSession()` ran queries (`code/ch23/connect.py brief`, before the change to `os._exit`). One full run of the same script also hung in the middle, with the server idle; a fresh server fixed it. Not reduced to a minimal repro.
 9. `SparkEnv.get().memoryManager()` through Py4J failed on 4.3.0 (earlier writer's note in `code/ch19/memory.py`); the script reads the pools from the REST API instead.
 
 ## Nav entries

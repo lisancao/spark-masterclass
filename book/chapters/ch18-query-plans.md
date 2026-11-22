@@ -199,7 +199,7 @@ Of the 272 rules that ran, 9 changed the plan. The tracker also gives the time o
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch18-rules.webp">
     <source src="../../media/clips/ch18-rules.mp4" type="video/mp4">
   </video>
-  <figcaption><code>optimizer.py</code> reads the planning tracker of one query. Of the 272 rules that ran, 9 changed the plan.</figcaption>
+  <figcaption><code>optimizer.py</code> reads the <code>QueryPlanningTracker</code> of one query. Of the 272 rules that ran, 9 changed the plan.</figcaption>
 </figure>
 
 ## Step 3: The scan node

@@ -3,7 +3,7 @@
 Start the server first:  ch23/server.sh start
 Run from code/:          uv run python ch23/connect.py
 """
-import statistics, sys, time
+import os, statistics, sys, time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -47,8 +47,8 @@ for name, build in SHAPES:
         print(f"{name:<32}{label:>8}{ex:>11}{jobs:>6}{tasks:>7}")
 
 if "brief" in sys.argv:                  # the film shows the table only
-    a.stop()
-    sys.exit(0)
+    sys.stdout.flush()
+    os._exit(0)                          # a.stop() did not return here in some runs (see the part notes)
 
 # The same small query, timed from the client. A new DataFrame each run, sessions alternating.
 build = SHAPES[0][1]
