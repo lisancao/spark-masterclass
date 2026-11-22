@@ -47,6 +47,9 @@ print("default column names:", spark.sql("SELECT * FROM UNNEST(array(1), array(2
 
 section("several arrays in parallel: padded with NULL, not a cross product")
 q("""SELECT * FROM UNNEST(array('fragile', 'Gift', 'gift'), array(10, 20)) WITH ORDINALITY AS t(tag, n, pos)""")
+print("two explodes, one after the other:", spark.sql("""SELECT tag, n FROM
+      (SELECT explode(array('fragile', 'Gift', 'gift')) AS tag) LATERAL VIEW explode(array(10, 20)) x AS n""").count(),
+      "rows")
 print("arrays_zip + inline gives the same rows:",
       spark.sql("SELECT * FROM UNNEST(array('x','y','z'), array(1,2))").collect()
       == [tuple(r) for r in spark.sql("SELECT inline(arrays_zip(array('x','y','z'), array(1,2)))").collect()])
@@ -82,6 +85,7 @@ q("""SELECT o.order_id, t.line.sku, t.line.qty, t.n
      WHERE o.order_id = 'O-1001'""")
 print("UNNEST columns:", spark.sql("SELECT t.* FROM orders o, LATERAL UNNEST(o.lines) AS t(line)").columns)
 print("inline columns:", spark.sql("SELECT inline(lines) FROM orders").columns)
+print("t.line.* columns:", spark.sql("SELECT t.line.* FROM orders o, LATERAL UNNEST(o.lines) AS t(line)").columns)
 
 section("two arrays of one order, side by side")
 q("""SELECT o.order_id, t.tag, t.pay.method, t.pay.amount, t.i
@@ -98,6 +102,11 @@ for label, sql in (("LATERAL UNNEST", "SELECT o.order_id, t.tag FROM orders o, L
     print(label)
     for line in gen_lines(df):
         print(line)
+
+section("the optimized plan of LEFT JOIN LATERAL UNNEST")
+df = spark.sql("SELECT o.order_id, t.tag FROM orders o LEFT JOIN LATERAL UNNEST(o.tags) AS t(tag) ON true")
+for line in df._jdf.queryExecution().optimizedPlan().toString().splitlines():
+    print("  " + re.sub(r"#\d+L?", "", line)[:92])
 
 section("UNNEST is a non-reserved keyword")
 spark.createDataFrame([(1,)], "unnest INT").createOrReplaceTempView("unnest")

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 330" width="820" height="330" role="img"><title>Two arrays: UNNEST in parallel against two explodes</title><defs></defs><text x="20" y="26.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#8a919e" text-anchor="start" font-weight="600">input: tags = [fragile, Gift, gift], n = [10, 20]</text>
+<rect x="14" y="44" width="380" height="270" rx="10" fill="none" stroke="#3a5f96" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="26" y="63.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#3a5f96" text-anchor="start" font-weight="600">UNNEST(tags, n) WITH ORDINALITY: 3 rows</text>
+<rect x="34" y="80" width="130" height="40" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="99.0" y="104.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">fragile</text>
+<rect x="174" y="80" width="100" height="40" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="224.0" y="104.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">10</text>
+<rect x="284" y="80" width="90" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="329.0" y="104.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">1</text>
+<rect x="34" y="132" width="130" height="40" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="99.0" y="156.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">Gift</text>
+<rect x="174" y="132" width="100" height="40" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="224.0" y="156.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">20</text>
+<rect x="284" y="132" width="90" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="329.0" y="156.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">2</text>
+<rect x="34" y="184" width="130" height="40" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="99.0" y="208.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">gift</text>
+<rect x="174" y="184" width="100" height="40" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="224.0" y="208.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">NULL</text>
+<rect x="284" y="184" width="90" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="329.0" y="208.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="600">3</text>
+<text x="204" y="290.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="middle" font-weight="400">row i takes element i of each array</text>
+<rect x="420" y="44" width="386" height="270" rx="10" fill="none" stroke="#a8323a" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="432" y="63.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#a8323a" text-anchor="start" font-weight="600">explode(tags), then explode(n): 6 rows</text>
+<rect x="440" y="72" width="150" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="515.0" y="91.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">fragile</text>
+<rect x="600" y="72" width="90" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="645.0" y="91.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">10</text>
+<rect x="440" y="108" width="150" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="515.0" y="127.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">fragile</text>
+<rect x="600" y="108" width="90" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="645.0" y="127.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">20</text>
+<rect x="440" y="144" width="150" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="515.0" y="163.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">Gift</text>
+<rect x="600" y="144" width="90" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="645.0" y="163.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">10</text>
+<rect x="440" y="180" width="150" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="515.0" y="199.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">Gift</text>
+<rect x="600" y="180" width="90" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="645.0" y="199.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">20</text>
+<rect x="440" y="216" width="150" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="515.0" y="235.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">gift</text>
+<rect x="600" y="216" width="90" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="645.0" y="235.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">10</text>
+<rect x="440" y="252" width="150" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="515.0" y="271.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">gift</text>
+<rect x="600" y="252" width="90" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="645.0" y="271.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">20</text>
+<text x="612" y="300.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="middle" font-weight="400">each tag with each number</text></svg>

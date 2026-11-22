@@ -1,0 +1,4 @@
+4.2.0
+   +- *(5) HashAggregate(keys=[PULocationID], functions=[count(1)])
+      +- *(5) HashAggregate(keys=[PULocationID], functions=[partial_count(1)])
+            +- *(5) SortMergeJoin [PULocationID], [LocationID], Inner

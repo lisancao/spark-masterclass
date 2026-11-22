@@ -19,6 +19,7 @@ default column names: ['col0', 'col1', 'ordinality'] | one array: ['col']
 |gift   |NULL|3  |
 +-------+----+---+
 
+two explodes, one after the other: 6 rows
 arrays_zip + inline gives the same rows: True
 a NULL array counts as empty: [Row(a=1, b=None), Row(a=2, b=None)]
 
@@ -49,6 +50,7 @@ rows with a NULL tag: 7 (6 orders with no tags, 1 NULL element)
 
 UNNEST columns: ['line']
 inline columns: ['sku', 'qty', 'unit_price', 'discounts', 'attrs']
+t.line.* columns: ['sku', 'qty', 'unit_price', 'discounts', 'attrs']
 
 == two arrays of one order, side by side ==
 +--------+-------+------+------+---+
@@ -70,6 +72,17 @@ LEFT JOIN LATERAL UNNEST
   +- Generate unnest(tags), [tags], false, [col]
 LATERAL VIEW explode
   *(1) Generate explode(tags), [order_id], false, [tag]
+
+== the optimized plan of LEFT JOIN LATERAL UNNEST ==
+  Project [order_id, tag]
+  +- Join LeftOuter, (tags <=> tags)
+     :- Project [order_id, tags]
+     :  +- Relation [order_id,placed_at,customer,lines,tags,payments,status_history] json
+     +- Project [col AS tag, tags]
+        +- Generate unnest(tags), false, [col]
+           +- Aggregate [tags], [tags AS tags]
+              +- Project [tags]
+                 +- Relation [order_id,placed_at,customer,lines,tags,payments,status_history] 
 
 == UNNEST is a non-reserved keyword ==
 a column and a view named unnest: [Row(unnest=1)]

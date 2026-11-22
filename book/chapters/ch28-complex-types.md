@@ -4,13 +4,13 @@
 
 A common first plan is to flatten everything at once: `explode` each array, then select each field. This plan changes the number of rows, and it loses the records with empty lists. The next step must then be a join that puts the rows together again. Spark has a better tool for most of this work. A higher-order function, such as `transform` or `aggregate`, works on the elements of an array inside one row.
 
-**A nested value in Spark is a typed value, and Spark checks each operation on it in the analyzer, before a task starts. A Python lambda in a higher-order function is not Python code that runs on the data. PySpark calls it one time on the driver, and the result is a Catalyst expression. Most of the rules and errors in this chapter follow from these two facts.** In Spark 4.3, the array higher-order functions also take part in whole-stage code generation.
+**A nested value in Spark is a typed value, and Spark checks each operation on it in the analyzer, before a task starts. A Python lambda in a higher-order function is not Python code that runs on the data. PySpark calls it one time on the driver, and the result is a Catalyst expression. Most of the rules and errors in this chapter follow from these two facts.** In Spark 4.3, the array higher-order functions also take part in whole-stage code generation, and SQL has a standard `UNNEST` clause.
 
 The data is SparkTutor's `nested/orders.json` in [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy): 24 web orders. Each order has a `customer` struct with an address, an array of order `lines`, `tags`, `payments` and a `status_history`.
 
 SparkTutor put problems into the data on purpose. Some tags have different letter case. Some arrays are empty, and some are not there. One quantity is `NULL`, one `geo` struct is not there, and some status entries are not in time order.
 
-The scripts are [`code/ch28/nested.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch28) and `lambdas.py`. All output is from `code/ch28/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
+The scripts are [`code/ch28/nested.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch28), `lambdas.py` and `unnest.py`. All output is from `code/ch28/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
 
 ## Three nested types
 
@@ -133,7 +133,7 @@ struct<order_id:string,col2:int,col3:int>
 
 `struct` keeps the name of a plain column (`order_id`). An expression with no alias gets a position name: `col2`, `col3`. Give each expression an alias.
 
-Spark compares two structs field by field, from the first field to the last. The first field that is different decides the result. Here `a` is 1 in the left struct and 2 in the right, so the left struct is smaller, although its `b` is larger. Step 13 uses this rule to find the latest entry in an array.
+Spark compares two structs field by field, from the first field to the last. The first field that is different decides the result. Here `a` is 1 in the left struct and 2 in the right, so the left struct is smaller, although its `b` is larger. Step 17 uses this rule to find the latest entry in an array.
 
 ## Step 5: Edit a struct in place with `withField` and `dropFields`
 
@@ -174,7 +174,7 @@ The `email` field is gone, and the country codes are now in upper case. This is 
 
 - `withField` on a `NULL` struct gives `NULL`. It does not make a new struct.
 - A struct must keep at least one field. `dropFields` of all fields is an error.
-- `withField` and `dropFields` work on a struct, not on an array of structs. To edit each element of an array, use `transform` (Step 9) with `dropFields` inside the lambda. The last table shows this: each line lost `attrs` and `discounts`.
+- `withField` and `dropFields` work on a struct, not on an array of structs. To edit each element of an array, use `transform` (Step 12) with `dropFields` inside the lambda. The last table shows this: each line lost `attrs` and `discounts`.
 
 These two methods are in the DataFrame API only. SQL has no function for them.
 
@@ -363,7 +363,175 @@ flowchart LR
   r --> g2["Generate explode<br/>outer = true"]:::s --> o2["41 rows<br/>(6 with NULL)"]:::ok
 ```
 
-## Step 10: Put rows together again in the correct order
+## Step 10: New in 4.3: the UNNEST clause
+
+Spark 4.3.0 adds `UNNEST`, the ANSI SQL form of a generator in the `FROM` clause (SPARK-58419). It makes a table from one or more arrays, with one row for each element. The syntax, from the 4.3.0 docs page "UNNEST Clause":
+
+```sql
+UNNEST ( expression [ , ... ] ) [ WITH ORDINALITY ] [ table_alias ]
+```
+
+The script is `code/ch28/unnest.py`. The first query unnests a literal array:
+
+```text
+== UNNEST of a literal array, WITH ORDINALITY ==
++---+---+
+|tag|pos|
++---+---+
+|a  |1  |
+|b  |2  |
+|c  |3  |
++---+---+
+
+default column names: ['col0', 'col1', 'ordinality'] | one array: ['col']
+```
+
+`WITH ORDINALITY` adds a `BIGINT` column with the position of each element. The position starts at 1, as in PostgreSQL and Trino. `posexplode` starts at 0. Without a column list in the alias, one array gives the column `col`, the same name that `explode` gives. Several arrays give `col0`, `col1` and more.
+
+### Several arrays in parallel
+
+With two or more arrays, `UNNEST` takes element 1 of each array for row 1, element 2 for row 2, and so on. The number of rows is the length of the longest array. A shorter array gives `NULL` after its last element:
+
+```sql
+SELECT * FROM UNNEST(array('fragile', 'Gift', 'gift'), array(10, 20)) WITH ORDINALITY AS t(tag, n, pos)
+```
+
+```text
+== several arrays in parallel: padded with NULL, not a cross product ==
++-------+----+---+
+|tag    |n   |pos|
++-------+----+---+
+|fragile|10  |1  |
+|Gift   |20  |2  |
+|gift   |NULL|3  |
++-------+----+---+
+
+two explodes, one after the other: 6 rows
+arrays_zip + inline gives the same rows: True
+a NULL array counts as empty: [Row(a=1, b=None), Row(a=2, b=None)]
+```
+
+Two generators, one after the other, give each element of the first array with each element of the second array (Step 9). `UNNEST` gives the elements side by side. Before 4.3, `inline(arrays_zip(...))` gave the same rows. A `NULL` array counts as an empty array. It adds no elements, but the other arrays still give their rows.
+
+<figure markdown>
+![Three rows from UNNEST of two arrays, against six rows from two explodes.](../media/figures/ch28-unnest-parallel.svg)
+<figcaption>The same two arrays through <code>UNNEST</code> and through two generators, from <code>unnest.txt</code>. <code>UNNEST</code> pairs the elements by position and fills the short array with <code>NULL</code>. Two generators give each pair.</figcaption>
+</figure>
+
+### UNNEST of a column: LATERAL
+
+`UNNEST` of a column of another table in the `FROM` clause needs `LATERAL`, as `explode` does in Step 9. This query is the same as `LATERAL VIEW posexplode`:
+
+```sql
+SELECT o.order_id, t.tag, t.pos
+FROM orders o, LATERAL UNNEST(o.tags) WITH ORDINALITY AS t(tag, pos)
+ORDER BY o.order_id, t.pos
+```
+
+```text
+UNNEST rows: 35  LATERAL VIEW posexplode rows: 35  same rows: True
+posexplode position starts at: 0 | WITH ORDINALITY starts at: 1
+
+== LEFT JOIN LATERAL keeps the orders with no tags ==
+LEFT JOIN LATERAL UNNEST rows: 41  LATERAL VIEW OUTER explode rows: 41  same rows: True
+rows with a NULL tag: 7 (6 orders with no tags, 1 NULL element)
+```
+
+The comma form drops the six orders with no tags, as `explode` does. `LEFT JOIN LATERAL UNNEST(...) ON true` keeps them, with a `NULL` tag. It gives the same 41 rows as `LATERAL VIEW OUTER explode`.
+
+An array of structs stays one column of structs. `UNNEST` does not make a column for each field, as `inline` does:
+
+```text
+UNNEST columns: ['line']
+inline columns: ['sku', 'qty', 'unit_price', 'discounts', 'attrs']
+t.line.* columns: ['sku', 'qty', 'unit_price', 'discounts', 'attrs']
+```
+
+Use `t.line.sku` to get a field, or `t.line.*` to get all fields. Two arrays of the same row work in parallel too. Order O-1001 has two tags and one payment, and order O-1004 has no tags and one payment:
+
+```text
+== two arrays of one order, side by side ==
++--------+-------+------+------+---+
+|order_id|tag    |method|amount|i  |
++--------+-------+------+------+---+
+|O-1001  |fragile|card  |125.0 |1  |
+|O-1001  |Gift   |NULL  |NULL  |2  |
+|O-1004  |NULL   |card  |168.0 |1  |
++--------+-------+------+------+---+
+```
+
+### The plans
+
+The parser changes `UNNEST` into a `Generate` node with the `Unnest` generator. The physical plans of the three forms are different:
+
+```text
+== the plans: Generate in each case, and whole-stage code ==
+LATERAL UNNEST
+  +- Generate unnest(tags), [order_id], false, [col]
+LEFT JOIN LATERAL UNNEST
+  +- *(4) BroadcastHashJoin [coalesce(tags, []), isnull(tags)], [coalesce(tags, []), isnull(ta
+  +- Generate unnest(tags), [tags], false, [col]
+  +- BroadcastHashJoin [coalesce(tags, []), isnull(tags)], [coalesce(tags, []), isnull(tags)],
+  +- Generate unnest(tags), [tags], false, [col]
+LATERAL VIEW explode
+  *(1) Generate explode(tags), [order_id], false, [tag]
+
+== the optimized plan of LEFT JOIN LATERAL UNNEST ==
+  Project [order_id, tag]
+  +- Join LeftOuter, (tags <=> tags)
+     :- Project [order_id, tags]
+     :  +- Relation [order_id,placed_at,customer,lines,tags,payments,status_history] json
+     +- Project [col AS tag, tags]
+        +- Generate unnest(tags), false, [col]
+           +- Aggregate [tags], [tags AS tags]
+              +- Project [tags]
+                 +- Relation [order_id,placed_at,customer,lines,tags,payments,status_history]
+```
+
+- **`explode` runs in whole-stage code** (`*(1) Generate`). The `Generate` of `unnest` has no `*`. The 4.3.0 source of `Unnest` extends `CodegenFallback`, so it uses interpreted evaluation.
+- **`LEFT JOIN LATERAL UNNEST` is not a `Generate` with `outer = true`.** The optimizer removes the correlation. It finds the distinct arrays with an `Aggregate`, and it unnests each distinct array one time. Then a left outer join on the array value (`<=>`) joins the result to the orders. The physical plan has the join two times, as the final plan and the initial plan of AQE.
+
+`unnest_bench.py` runs the three forms on 3,837,248 taxi trips, with the array `array(PULocationID, DOLocationID)` for each trip (32,129 distinct arrays). It uses a cache, 5 runs after a warmup and the bench lock:
+
+```text
+rows: 3837248 | distinct arrays: 32129
+  LATERAL VIEW OUTER explode   median  1.166 s  operators: ['Generate']
+  LATERAL UNNEST               median  1.391 s  operators: ['Generate']
+  LEFT JOIN LATERAL UNNEST     median  1.390 s  operators: ['SortMergeJoin', 'Exchange', 'Exchange', 'Generate', 'HashAggregate', 'Exchange', 'HashAggregate']
+```
+
+On this table, the left lateral join adds an aggregate, three shuffles and a sort-merge join. An earlier locked run on the same machine gave 0.518 s, 0.832 s and 1.911 s. Other work used the machine at the same time. Thus the timings are not stable enough for a ratio. The plans are stable.
+
+If a table is large and has few repeated arrays, the left lateral join must shuffle the table and the distinct arrays. `LATERAL VIEW OUTER explode` or `explode_outer` does the same work in one `Generate`.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch28-unnest.webp">
+    <source src="../../media/clips/ch28-unnest.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>unnest.py</code> runs against Spark 4.3.0. <code>UNNEST</code> of two arrays gives three rows, not six. The plan of <code>LEFT JOIN LATERAL UNNEST</code> has a join, and the <code>Generate</code> of <code>unnest</code> has no whole-stage code.</figcaption>
+</figure>
+
+| Need | Before 4.3 | With `UNNEST` (4.3) |
+|---|---|---|
+| One row for each element | `explode`, `LATERAL VIEW explode` | `LATERAL UNNEST(arr)` |
+| The position too | `posexplode` (from 0) | `WITH ORDINALITY` (from 1) |
+| Keep rows with an empty or `NULL` array | `explode_outer`, `LATERAL VIEW OUTER` | `LEFT JOIN LATERAL UNNEST(arr) ON true` (a join in the plan) |
+| Several arrays by position | `inline(arrays_zip(a, b))` | `UNNEST(a, b)` |
+| One column for each struct field | `inline` | not done: use `t.col.*` |
+| A map | `explode` gives `key` and `value` | not supported: `UNNEST` takes arrays only |
+
+`UNNEST` is a non-reserved keyword. A table or a column can still have the name `unnest`. The arguments must be arrays:
+
+```text
+== UNNEST is a non-reserved keyword ==
+a column and a view named unnest: [Row(unnest=1)]
+  SELECT * FROM UNNEST(42)   -> [DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE] Cannot resolve "unnest(42)" due to dat
+  SELECT * FROM UNNEST()     -> [UNRESOLVABLE_TABLE_VALUED_FUNCTION] Could not resolve `UNNEST` to a table-value
+```
+
+[Chapter 13](ch13-spark-sql-in-depth.md) shows `UNNEST` in pipe syntax.
+
+## Step 11: Put rows together again in the correct order
 
 After an `explode`, a `groupBy` with `collect_list` makes an array again. But `collect_list` does not keep an order. The order of the elements depends on the order in which the tasks send their rows. To keep the original order, collect the position together with the value, sort, and then take the value:
 
@@ -404,7 +572,7 @@ only showing top 3 rows
 
 But the best solution is often to not explode at all. The next steps do the work inside each row.
 
-## Step 11: Higher-order functions work inside the row
+## Step 12: Higher-order functions work inside the row
 
 A **higher-order function** takes an array (or a map) and a lambda function. It calls the lambda for each element, and it gives one result in the same row. There is no `Generate` node, no shuffle and no join to put the rows together again.
 
@@ -420,7 +588,7 @@ A **higher-order function** takes an array (or a map) and a lambda function. It 
 
 The same functions are in SQL, with the arrow syntax `x -> x * 2`. In Python, the lambda is a Python `lambda`. The next step shows that the Python form is only a different way to write the SQL form.
 
-## Step 12: How PySpark traces a lambda into Catalyst
+## Step 13: How PySpark traces a lambda into Catalyst
 
 This script counts the calls to the Python function that it gives to `transform`:
 
@@ -495,7 +663,7 @@ The executors loop over the elements in the JVM. No Python worker starts, and no
 </figure>
 
 
-## Step 13: The errors that show the tracing
+## Step 14: The errors that show the tracing
 
 If you know that the lambda runs one time on a placeholder, the errors make sense:
 
@@ -542,7 +710,7 @@ Spark 4.3 adds an experimental feature, `spark.sql.experimental.optimizer.transp
 
 In a plain `select`, the plan contains `cast(id as int) * 3`, with no `BatchEvalPython` node. The transpilation worked. But inside a lambda, Spark still refuses the UDF with the same error as before. Thus, in Spark 4.3.0, write the lambda with Spark functions. [Chapter 34](ch34-python-udfs-arrow.md) explains UDF transpilation in full.
 
-## Step 14: `aggregate`: the type of the zero is the type of the result
+## Step 15: `aggregate`: the type of the zero is the type of the result
 
 `aggregate` folds an array into one value. It takes a zero value, a merge function and an optional finish function. The type of the zero value sets the type of the accumulator, and the merge function must return that type:
 
@@ -568,7 +736,7 @@ There are three traps:
 
 The finish function changes the accumulator into the result. The mean example keeps a struct with a sum and a count, and the finish function divides them. This is the method that Spark itself uses for `avg` ([Chapter 5](ch05-how-spark-runs.md), Step 1).
 
-## Step 15: `exists` and `forall` use three-valued logic
+## Step 16: `exists` and `forall` use three-valued logic
 
 `exists` and `forall` follow the SQL rules for `NULL`:
 
@@ -594,7 +762,7 @@ For `array(1, NULL)`, `exists(x > 3)` is `NULL`, not `false`. The `NULL` element
 
 The internal configuration `spark.sql.legacy.followThreeValuedLogicInArrayExists=false` gives the old two-valued result. Do not use it in new code. Use `coalesce(exists(...), false)` if a `NULL` must count as "no".
 
-## Step 16: Sort with a comparator, or with a struct
+## Step 17: Sort with a comparator, or with a struct
 
 The status history of an order is not always in time order. `array_sort` with a comparator sorts it by the `at` field:
 
@@ -619,7 +787,7 @@ The comparator must return an `INT`: negative, zero or positive. `b - a` on `BIG
 
 To get only the latest entry, a shorter method uses the struct comparison from Step 4. `transform` makes a struct `(at, status)` for each entry. `array_max` gives the largest struct, which is the one with the latest `at`. Then `.status` takes the status. The result is the same, and you do not have to write a comparator.
 
-## Step 17: `zip_with` and `arrays_zip` pair two arrays
+## Step 18: `zip_with` and `arrays_zip` pair two arrays
 
 ```text
 == zip_with and arrays_zip ==
@@ -632,7 +800,7 @@ To get only the latest entry, a shorter method uses the struct comparison from S
 
 Both functions pair the elements by position. If one array is shorter, they add `NULL` to it. `zip_with` calls a lambda on each pair, and `arrays_zip` makes an array of structs. These functions pair arrays inside one row. `DataFrame.zip` in Spark 4.3 pairs the rows of two DataFrames, which is a different operation ([Chapter 9](ch09-dataframes-columns-schemas.md)).
 
-## Step 18: Maps, and their rules
+## Step 19: Maps, and their rules
 
 The map functions follow the same pattern as the array functions. Most of them take a lambda with two parameters, the key and the value:
 
@@ -664,7 +832,7 @@ The map functions follow the same pattern as the array functions. Most of them t
 - **Maps have no order.** You cannot sort by a map or use it in `INTERSECT`. `GROUP BY` on a map works since Spark 4.0.
 - **New in 4.3: `COUNT(DISTINCT m)` normalizes the maps.** Two maps with the same keys and values in a different order now count as one value (SPARK-58420).
 
-## Step 19: New in 4.3: which higher-order functions get generated code
+## Step 20: New in 4.3: which higher-order functions get generated code
 
 Before Spark 4.3, each higher-order function ran as an interpreted expression. Whole-stage code generation compiles the operators of a stage into one Java function ([Chapter 32](ch32-query-plans.md)). A `Project` with a higher-order function could not take part in it. Spark 4.3 adds code generation for the array functions (SPARK-37019). The `*(n)` before an operator in the physical plan shows that the operator is in a code generation stage:
 
@@ -696,7 +864,7 @@ generated Java loop: /* 058 */         for (int project_i_0 = 0; project_i_0 < p
 
 `transform`, `filter`, `exists`, `forall` and `aggregate` now compile to a Java `for` loop over the array. The last line is from the generated code of the `aggregate` on the order lines. `array_sort` with a comparator, `zip_with` and the map functions still use the interpreted path (`CodegenFallback` in `higherOrderFunctions.scala`). Their `Project` has no `*(n)`. The query gives the same result in the two cases. Only the speed is different.
 
-## Step 20: Nested schema pruning
+## Step 21: Nested schema pruning
 
 Parquet keeps each leaf field of a nested type as a separate column ([Chapter 36](ch36-parquet-inside.md)). Thus, a query that reads one field of a struct does not have to read the other fields. The script writes the orders to Parquet and prints the `ReadSchema` of four queries:
 
@@ -710,7 +878,7 @@ Parquet keeps each leaf field of a nested type as a separate column ([Chapter 36
 
 All four queries read only the leaf that they use. The `transform` lambda uses only `l.sku`, and the scan reads only `lines.sku`. On Spark 4.3.0, pruning goes through the lambda and through the generator. The configuration is `spark.sql.optimizer.nestedSchemaPruning.enabled`, and it is `true` by default.
 
-## Step 21: JSON in, JSON out, and a flat table
+## Step 22: JSON in, JSON out, and a flat table
 
 `to_json` changes a struct into JSON text, and `from_json` with the same type changes it back:
 
@@ -780,6 +948,7 @@ attr_profile = (orders.select(F.explode("lines").alias("l"))
 - **`withField` and `dropFields` edit a struct.** Use `transform` to edit each struct of an array.
 - **Array positions start at 1 in functions and at 0 in `a[i]`.** Under ANSI mode, an index outside the array is an error. Use `try_element_at` or `get` for short arrays.
 - **`explode` drops rows with a `NULL` or empty array**, because the optimizer adds a filter. Use the `_outer` forms to keep them.
+- **New in 4.3: `UNNEST` is the standard form of a generator.** `WITH ORDINALITY` counts from 1, several arrays go side by side, and `LEFT JOIN LATERAL UNNEST` keeps empty arrays with a join in the plan.
 - **`collect_list` keeps no order.** Collect the position too, and sort.
 - **PySpark traces a Python lambda one time on the driver** into a Catalyst expression. Use `F.when`, not `if`. Return a `Column`. Do not put a Python UDF inside it, even a transpiled one.
 - **The zero of `aggregate` sets the result type.** Use `lit(0.0)` in Python and `0D` in SQL, and `coalesce` the elements.

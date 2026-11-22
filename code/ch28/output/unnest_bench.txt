@@ -1,0 +1,4 @@
+rows: 3837248 | distinct arrays: 32129
+  LATERAL VIEW OUTER explode   median  1.166 s  operators: ['Generate']
+  LATERAL UNNEST               median  1.391 s  operators: ['Generate']
+  LEFT JOIN LATERAL UNNEST     median  1.390 s  operators: ['SortMergeJoin', 'Exchange', 'Exchange', 'Generate', 'HashAggregate', 'Exchange', 'HashAggregate']
