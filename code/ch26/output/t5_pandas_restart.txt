@@ -1,0 +1,16 @@
+1. Restart t1's checkpoint with a new opening balance for u1 (500.0) and a new drop:
+   u1 total in state before: 78.15
+   batches this run: [(4, 1)]
+   u1 total in state after:  88.15 (the 500.0 was not applied)
+
+2. transformWithStateInPandas, all four drops at once:
++----+-----+--------+
+|user|total|payments|
++----+-----+--------+
+|  u1|58.15|       2|
+|  u2|43.33|       1|
+|  u3|39.26|       1|
+|  u5|62.99|       1|
+|  u6|19.15|       1|
++----+-----+--------+
+

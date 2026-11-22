@@ -54,46 +54,47 @@ def build(spark, inbox):
         initialState=opening.groupBy("user"))
 
 
-spark = session("ch26-spend", spark_sql_shuffle_partitions="2", spark_sql_session_timeZone="UTC")
-w = work("ch26/t1")
-inbox = w / "inbox"
-inbox.mkdir()
-for i in range(1, 5):
-    drop(inbox, i)
+if __name__ == "__main__":
+    spark = session("ch26-spend", spark_sql_shuffle_partitions="2", spark_sql_session_timeZone="UTC")
+    w = work("ch26/t1")
+    inbox = w / "inbox"
+    inbox.mkdir()
+    for i in range(1, 5):
+        drop(inbox, i)
 
-print("1. On the default state store:")
-try:
-    q = (build(spark, inbox).writeStream.format("memory").queryName("nope").outputMode("update")
-         .option("checkpointLocation", str(w / "ck_hdfs")).trigger(availableNow=True).start())
+    print("1. On the default state store:")
+    try:
+        q = (build(spark, inbox).writeStream.format("memory").queryName("nope").outputMode("update")
+             .option("checkpointLocation", str(w / "ck_hdfs")).trigger(availableNow=True).start())
+        q.awaitTermination()
+    except Exception as e:
+        print(error_text(e, lines=4))
+
+    spark.conf.set("spark.sql.streaming.stateStore.providerClass", ROCKSDB)
+    ck = w / "checkpoint"
+    q = (build(spark, inbox).writeStream.format("memory").queryName("spend").outputMode("update")
+         .option("checkpointLocation", str(ck)).trigger(availableNow=True).start())
     q.awaitTermination()
-except Exception as e:
-    print(error_text(e, lines=4))
+    print("\nThe physical plan of the query (expression ids and long lists removed):")
+    from common.book import plan
+    import re
+    for line in plan(build(spark, inbox), "simple").splitlines()[1:]:
+        line = re.sub(r"#\d+", "", line)               # drop expression ids
+        line = re.sub(r"\[(\w+(, )?){3,}[^\]]*\]", "[...]", line)
+        print("  " + line[:100])
+    print("\n2. With RocksDB. Batches (id, input rows):", [(p.batchId, p.numInputRows) for p in q.recentProgress])
+    print("Every row the memory sink received (update mode appends each emitted row):")
+    spark.table("spend").orderBy("user", "total").show()
+    print("The latest row per user:")
+    spark.sql("""SELECT user, total, flagged FROM spend
+                 QUALIFY row_number() OVER (PARTITION BY user ORDER BY total DESC) = 1
+                 ORDER BY user""").show()
 
-spark.conf.set("spark.sql.streaming.stateStore.providerClass", ROCKSDB)
-ck = w / "checkpoint"
-q = (build(spark, inbox).writeStream.format("memory").queryName("spend").outputMode("update")
-     .option("checkpointLocation", str(ck)).trigger(availableNow=True).start())
-q.awaitTermination()
-print("\nThe physical plan of the query (expression ids and long lists removed):")
-from common.book import plan
-import re
-for line in plan(build(spark, inbox), "simple").splitlines()[1:]:
-    line = re.sub(r"#\d+", "", line)               # drop expression ids
-    line = re.sub(r"\[(\w+(, )?){3,}[^\]]*\]", "[...]", line)
-    print("  " + line[:100])
-print("\n2. With RocksDB. Batches (id, input rows):", [(p.batchId, p.numInputRows) for p in q.recentProgress])
-print("Every row the memory sink received (update mode appends each emitted row):")
-spark.table("spend").orderBy("user", "total").show()
-print("The latest row per user:")
-spark.sql("""SELECT user, total, flagged FROM spend
-             QUALIFY row_number() OVER (PARTITION BY user ORDER BY total DESC) = 1
-             ORDER BY user""").show()
-
-print("3. The same state, read from the checkpoint with the state data source")
-spark.read.format("statestore").option("stateVarName", "total").load(str(ck)) \
-    .select("key.user", F.col("value.amount").alias("total"), "partition_id").orderBy("user").show()
-spark.read.format("statestore").option("stateVarName", "payments").load(str(ck)) \
-    .select("key.user", "list_element.*").orderBy("user", "event_id").show()
-print("state-metadata: what the checkpoint says each operator keeps")
-spark.read.format("state-metadata").load(str(ck)) \
-    .select("operatorName", "stateStoreName", "numPartitions", "minBatchId", "maxBatchId").show(truncate=False)
+    print("3. The same state, read from the checkpoint with the state data source")
+    spark.read.format("statestore").option("stateVarName", "total").load(str(ck)) \
+        .select("key.user", F.col("value.amount").alias("total"), "partition_id").orderBy("user").show()
+    spark.read.format("statestore").option("stateVarName", "payments").load(str(ck)) \
+        .select("key.user", "list_element.*").orderBy("user", "event_id").show()
+    print("state-metadata: what the checkpoint says each operator keeps")
+    spark.read.format("state-metadata").load(str(ck)) \
+        .select("operatorName", "stateStoreName", "numPartitions", "minBatchId", "maxBatchId").show(truncate=False)

@@ -8,8 +8,6 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import os
-os.environ["PYTHONPATH"] = os.pathsep.join(filter(None, [str(Path(__file__).parent), os.environ.get("PYTHONPATH")]))  # the Python workers import the lib too
 from pyspark.sql import functions as F
 from common.book import session, work, ROCKSDB
 from checkout import drop, SCHEMA
