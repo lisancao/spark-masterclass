@@ -174,7 +174,7 @@ Deliberate rule breaks:
 - SQLite 3.45.1 (the `sqlite3` module of the Python build).
 - Chapter 51: two venvs made by `ch51/packaging.sh` (`with`: `pyspark[connect]==4.3.0`, `pytest`, `pyspark-mailbox` editable; `bare`: `pyspark[connect]==4.3.0`, `pytest`).
 - Ports: `SPARK_UI_PORT=4029`. Connect server (ch47 `server.sh`, ch51 `packaging.sh`): gRPC 10290, UI 4129, `SPARK_IDENT_STRING` `part09a` / `part09a-ch51`. The earlier draft used 15059 / 4059; changed to the assigned ports.
-- Local mode, 16 cores. Timings under `flock ~/spark-masterclass/data/.bench.lock`.
+- Local mode, 16 cores. The one quoted timing (`arrow_batches.py --timing`) ran under `flock ~/spark-masterclass/data/.bench.lock`. Films and other runs ran without the lock, per the updated brief.
 
 ## Open findings
 

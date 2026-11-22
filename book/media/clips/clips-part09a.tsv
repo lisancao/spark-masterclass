@@ -2,3 +2,13 @@ clip	source	start	end	poster_at	chapter
 ch47-where	ch47-chapter.mp4	0	26.1	20	ch47
 ch47-balance	ch47-chapter.mp4	26.2	58.3	50	ch47
 ch47-errors	ch47-chapter.mp4	58.4	87.9	85	ch47
+ch48-requests	ch48-chapter.mp4	0.00	53.42	49.52	ch48
+ch48-ranges	ch48-chapter.mp4	53.52	107.78	103.88	ch48
+ch48-timezone	ch48-chapter.mp4	107.88	196.10	192.20	ch48
+ch49-offered	ch49-chapter.mp4	0.00	55.18	51.28	ch49
+ch49-opened	ch49-chapter.mp4	55.28	106.74	102.84	ch49
+ch49-shared	ch49-chapter.mp4	106.84	154.58	150.68	ch49
+ch50-commit	ch50-chapter.mp4	0.00	40.42	36.52	ch50
+ch50-stream	ch50-chapter.mp4	40.52	90.98	87.08	ch50
+ch51-workers	ch51-chapter.mp4	0.00	47.38	43.48	ch51
+ch51-logs	ch51-chapter.mp4	47.48	99.58	95.68	ch51

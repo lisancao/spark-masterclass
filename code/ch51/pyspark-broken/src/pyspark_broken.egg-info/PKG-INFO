@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: pyspark-broken
+Version: 0.1.0
+Summary: A pyspark_* module that fails to import, to show what that does to the lookup
+Requires-Python: >=3.10
