@@ -1,0 +1,18 @@
+# Chapter 45, Step 4: a standalone Spark cluster (one master, two workers) managed by the operator.
+apiVersion: spark.apache.org/v1
+kind: SparkCluster
+metadata:
+  name: book
+spec:
+  runtimeVersions:
+    sparkVersion: "4.3.0"
+  clusterTolerations:
+    instanceConfig:
+      initWorkers: 2
+      minWorkers: 2
+      maxWorkers: 2
+  sparkConf:
+    spark.kubernetes.container.image: "spark-masterclass/spark:4.3.0-book"
+    spark.kubernetes.container.image.pullPolicy: "Never"
+    spark.master.ui.title: "Spark Masterclass cluster"
+    spark.master.rest.host: "0.0.0.0"

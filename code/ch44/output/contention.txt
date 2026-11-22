@@ -1,0 +1,7 @@
+server local[2]; session A: 16 tasks of 1 s; session B: a small group-by, 2 s after A starts
+  FIFO run 1: B's query  9.59 s   A's query 11.83 s
+  FIFO run 2: B's query  8.86 s   A's query 10.96 s
+  FIFO run 3: B's query  8.11 s   A's query 10.15 s
+  FAIR run 1: B's query  3.29 s   A's query 12.01 s
+  FAIR run 2: B's query  1.67 s   A's query 10.18 s
+  FAIR run 3: B's query  1.72 s   A's query 10.37 s

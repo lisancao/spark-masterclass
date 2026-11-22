@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- Chapter 44: the default pool shares the executors between jobs instead of FIFO. -->
+<allocations>
+  <pool name="default">
+    <schedulingMode>FAIR</schedulingMode>
+    <weight>1</weight>
+    <minShare>0</minShare>
+  </pool>
+</allocations>

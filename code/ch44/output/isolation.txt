@@ -1,0 +1,12 @@
+session A sets state:
+what session B sees:
+  temp view t                                  TABLE_OR_VIEW_NOT_FOUND
+  spark.sql.shuffle.partitions                 200
+  UDF plus_one                                 UNRESOLVED_ROUTINE
+  global temp view global_temp.g               3
+  table shared_tbl                             4
+  A's cache, used by B's identical query       True
+  B sets spark.executor.memory                 CANNOT_MODIFY_CONFIG
+  B sets spark.sql.warehouse.dir               CANNOT_MODIFY_STATIC_CONFIG
+  B reads a file under the server's /etc       1
+  B calls spark.stop() then A runs a query     3
