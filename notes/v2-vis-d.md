@@ -21,3 +21,4 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | 52 | files-opened, guarded | anim-pushdown (query, pushed filter and counts from files_pushdown.txt) | none | 0, 0 (part09a allowlist) |
 | 53 | manifest-states, checkpoint | anim-commit (file names, counts and abort call from writers.txt) | offset designs table | 0, 0 (part09a allowlist) |
 | 54 | setups, connect-order | anim-lookup (outcomes of runs 2 and 4 in packaging.txt; module order schematic) | none | 0, 0 (part09a allowlist) |
+| 55 | three-plans, partitioning | anim-countpush (final plan and counts from jdocs.txt; logical plan schematic) | timing runs table | 0, 0 |
