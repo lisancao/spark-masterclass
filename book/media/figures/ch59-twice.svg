@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 300" width="780" height="300" role="img"><title>How many times the UDF ran in two queries with a filter on the UDF column</title><defs><marker id="m8a919e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a919e"/></marker><marker id="m8a919es" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#8a919e"/></marker></defs><text x="190" y="22.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="middle" font-weight="700">filter on area only</text>
+<rect x="20" y="40" width="340" height="40" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="190.0" y="57.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">scan: 200 rows</text>
+<text x="190.0" y="71.8" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="400">no status filter to push</text>
+<line x1="190" y1="80" x2="190" y2="89" stroke="#8a919e" stroke-width="2" marker-end="url(#m8a919e)"/>
+<rect x="20" y="90" width="340" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="190.0" y="107.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">filter copy of the UDF</text>
+<text x="190.0" y="121.8" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="400">runs on 200 rows</text>
+<line x1="190" y1="130" x2="190" y2="139" stroke="#8a919e" stroke-width="2" marker-end="url(#m8a919e)"/>
+<rect x="20" y="140" width="340" height="40" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="190.0" y="157.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">70 rows pass</text>
+<text x="190.0" y="171.8" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="400">area = &#x27;api&#x27;</text>
+<line x1="190" y1="180" x2="190" y2="189" stroke="#8a919e" stroke-width="2" marker-end="url(#m8a919e)"/>
+<rect x="20" y="190" width="340" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="190.0" y="207.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">projection copy of the UDF</text>
+<text x="190.0" y="221.8" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="400">runs on 70 rows</text>
+<text x="190" y="254.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="middle" font-weight="700">UDF calls: 200 + 70 = 270, rows returned: 70</text>
+<text x="590" y="22.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="middle" font-weight="700">filter on area and status (the slow query)</text>
+<rect x="420" y="40" width="340" height="40" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="590.0" y="57.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">scan: 98 rows</text>
+<text x="590.0" y="71.8" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="400">status = 200 pushed to Parquet</text>
+<line x1="590" y1="80" x2="590" y2="89" stroke="#8a919e" stroke-width="2" marker-end="url(#m8a919e)"/>
+<rect x="420" y="90" width="340" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="590.0" y="107.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">filter copy of the UDF</text>
+<text x="590.0" y="121.8" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="400">runs on 98 rows</text>
+<line x1="590" y1="130" x2="590" y2="139" stroke="#8a919e" stroke-width="2" marker-end="url(#m8a919e)"/>
+<rect x="420" y="140" width="340" height="40" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="590.0" y="157.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">31 rows pass</text>
+<text x="590.0" y="171.8" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="400">area = &#x27;api&#x27;</text>
+<line x1="590" y1="180" x2="590" y2="189" stroke="#8a919e" stroke-width="2" marker-end="url(#m8a919e)"/>
+<rect x="420" y="190" width="340" height="40" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="590.0" y="207.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">projection copy of the UDF</text>
+<text x="590.0" y="221.8" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="400">runs on 31 rows</text>
+<text x="590" y="254.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="middle" font-weight="700">UDF calls: 98 + 31 = 129, rows returned: 31</text>
+<text x="390" y="290.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400" font-style="italic">Counts from an accumulator in the UDF. avoidDoubleFilterEval = true does not cover a Python UDF in 4.3.0.</text></svg>

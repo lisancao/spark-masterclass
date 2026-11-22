@@ -175,6 +175,20 @@ after the failed append: manifest rows 200, files 3, commits 3, part files on di
 
 `abort()` received `None` for each task. A failed task sends no message, and in this run each of the three partitions contained `/login`. But the three tasks still left three half-written files in the staging folder. Thus `abort()` cannot know the files from the messages. It deletes the full staging folder of the job, which it knows from the job ID on `self`. The committed data did not change: 200 rows in 3 files.
 
+The figure shows the manifest after each of the four writes. The animation shows the overwrite and the failed append.
+
+<figure markdown>
+  ![The manifest and the part files after each of the four writes](../media/figures/ch53-manifest-states.svg)
+  <figcaption>The state of the output folder after each write, from the output above. The failed append did not change the manifest or the files.</figcaption>
+</figure>
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch53-anim-commit.webp">
+    <source src="../../media/clips/ch53-anim-commit.mp4" type="video/mp4">
+  </video>
+  <figcaption>The commit protocol of <code>jsonlog</code>. The file names and the counts come from <code>writers.py</code>.</figcaption>
+</figure>
+
 ## Step 5: Task retries
 
 On a cluster, Spark tries a failed task again (`spark.task.maxFailures`). The master `local[4,2]` gives two attempts in local mode. The first attempt of each task fails, and the second attempt succeeds:
@@ -368,10 +382,12 @@ The last line of `offsets/1` is the offset of the reader, as JSON. Spark writes 
 
 The design of the offset decides what the reader can find:
 
-- **A count of files** fails when a user deletes a file. The count then points to the wrong file.
-- **The last name** fails when names do not sort in the order of arrival.
-- **A set of all names** is correct, but it grows with each file, and Spark writes it in each `offsets/N`.
-- **`(mtime_ns, name)`** is small and sorts by arrival. It misses a file that arrives with an old modification time, for example from `cp -p` or `rsync -t`. The built-in file source of Spark keeps a log of the files that it saw, for this reason.
+| Offset | What can go wrong |
+|---|---|
+| **A count of files** | It fails when a user deletes a file. The count then points to the wrong file. |
+| **The last name** | It fails when names do not sort in the order of arrival. |
+| **A set of all names** | It is correct, but it grows with each file, and Spark writes it in each `offsets/N`. |
+| **`(mtime_ns, name)`** | It is small and sorts by arrival. It misses a file that arrives with an old modification time, for example from `cp -p` or `rsync -t`. The built-in file source of Spark keeps a log of the files that it saw, for this reason. |
 
 Four new files arrive, and the query starts again with a processing-time trigger. It continues at batch 2. Then the script deletes `commits/3` (and `.3.crc`) and starts the query again:
 
@@ -381,6 +397,11 @@ run 3, after deleting commits/3: [(3, 1)]
    writer.commit(batch 3): already published, replay skipped
 sink: 8 rows, 8 distinct files, folders ['batch=00000', 'batch=00001', 'batch=00002', 'batch=00003']
 ```
+
+<figure markdown>
+  ![The offsets and commits files of the inbox stream, and the batches of three runs](../media/figures/ch53-checkpoint.svg)
+  <figcaption>The checkpoint and the batches of the three runs. Run 3 found <code>offsets/3</code> with no commit, so it ran batch 3 again. The sink skipped the second commit.</figcaption>
+</figure>
 
 Without `commits/3`, Spark found an offset with no commit. It ran batch 3 again, with the same offsets and the same batch ID. The same thing occurs if the driver stops after the sink commit and before Spark writes `commits/3`. Thus a sink must expect each batch ID more than one time. The `BatchFolderWriter` uses the batch ID as the name of the published folder, and it skips a batch whose folder exists:
 

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14.5" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Byte ranges per batch: data.json (the connector's own stream reader); rows per batch agree with demo.txt.
+      const D = {"batches": [{"rows": 7, "ranges": [["CASE-0001", 0, 343, 6], ["CASE-0002", 0, 51, 1]]}, {"rows": 7, "ranges": [["CASE-0002", 51, 372, 6], ["CASE-0003", 0, 52, 1]]}, {"rows": 8, "ranges": [["CASE-0003", 52, 155, 2], ["CASE-0004", 0, 285, 6]]}, {"rows": 7, "ranges": [["CASE-0005", 0, 157, 3], ["CASE-0006", 0, 209, 4]]}, {"rows": 7, "ranges": [["CASE-0007", 0, 154, 3], ["CASE-0008", 0, 104, 2], ["CASE-0010", 0, 106, 2]]}, {"rows": 7, "ranges": [["CASE-0010", 106, 260, 3], ["case-0009", 0, 216, 4]]}], "sizes": {"CASE-0001": 343, "CASE-0002": 372, "CASE-0003": 208, "CASE-0004": 285, "CASE-0005": 157, "CASE-0006": 209, "CASE-0007": 154, "CASE-0008": 104, "CASE-0010": 260, "case-0009": 216}, "held": {"CASE-0001": 0, "CASE-0002": 0, "CASE-0003": 53, "CASE-0004": 0, "CASE-0005": 0, "CASE-0006": 0, "CASE-0007": 0, "CASE-0008": 0, "CASE-0010": 0, "case-0009": 0}, "source": "ranges from casefile.ChangesStreamReader on code/data/messy/casefiles with no Spark (../stream_plan.json); rows per batch agree with code/ch58/output/demo.txt", "order": ["CASE-0001", "CASE-0002", "CASE-0003", "CASE-0004", "CASE-0005", "CASE-0006", "CASE-0007", "CASE-0008", "CASE-0010", "case-0009"]}; // data.json
+      A.mount();
+      A.title("A stream over growing change logs", "byte offsets per log, at most 400 bytes per micro-batch");
+      const X0 = 0.20, SC = 2.2, Y0 = 0.23, DY = 0.052;     // px per byte at 1080
+      const cols = ["#5B8DEF", "#E25A1C", "#7BC496", "#B48EF0", "#4FC1C9", "#9AA0A8"];
+      const els = [];
+      D.order.forEach((f, i) => {
+        const y = Y0 + i * DY;
+        els.push(A.text(f, { x: X0 - 0.01, y, size: 22, mono: true, anchor: "right", color: "var(--a-mute)" }));
+        els.push(A.el("", { x: X0, y, anchor: "left", css: { width: A.px(D.sizes[f] * SC) + "px", height: A.px(34) + "px", border: A.px(2) + "px solid var(--a-line)", borderRadius: A.px(4) + "px", boxSizing: "border-box" } }));
+      });
+      A.in(els, 0.2, { stagger: 0.02 });
+      const T0 = 1.6, DT = 1.5;
+      let total = 0;
+      D.batches.forEach((b, k) => {
+        b.ranges.forEach(([f, a, e, n]) => {
+          const y = Y0 + D.order.indexOf(f) * DY;
+          const r = A.el("", { x: X0 + A.dx(a * SC), y, anchor: "left", css: { width: A.px((e - a) * SC - 2) + "px", height: A.px(34) + "px", background: cols[k], borderRadius: A.px(4) + "px", opacity: 0 } });
+          A.tl.set(r, { opacity: 1 }, T0 + k * DT);
+          A.tl.fromTo(r, { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.8, ease: "power1.out" }, T0 + k * DT);
+        });
+        total += b.rows;
+        const c = A.text(`batch ${k}: ${b.rows} rows, ${total} in all`, { x: 0.83, y: 0.30 + k * 0.06, size: 24, mono: true, color: cols[k] });
+        A.in(c, T0 + k * DT + 0.6, { rise: 0 });
+      });
+      // the held line of CASE-0003
+      const f3 = "CASE-0003", held = D.held[f3], sz = D.sizes[f3], y3 = Y0 + D.order.indexOf(f3) * DY;
+      const h = A.el("", { x: X0 + A.dx((sz - held) * SC), y: y3, anchor: "left", css: { width: A.px(held * SC) + "px", height: A.px(34) + "px", border: A.px(3) + "px dashed #E25A1C", borderRadius: A.px(4) + "px", boxSizing: "border-box", opacity: 0 } });
+      const hl = A.text(held + " bytes held: no newline yet", { x: X0 + A.dx(sz * SC + 14), y: y3, size: 22, anchor: "left", color: "var(--a-acc)" });
+      A.in([h, hl], T0 + 6 * DT + 0.2, { rise: 0 });
+      const fin = A.text("stream 43 rows, batch reader 44 rows", { x: 0.83, y: 0.30 + 6 * 0.06 + 0.02, size: 26, weight: 700 });
+      A.in(fin, T0 + 6 * DT + 0.8);
+      const caps = [
+        [0.4, "Each log is a bar of bytes. The offset is a byte per log."],
+        [T0 + 0.2, "Each micro-batch takes whole lines, up to 400 bytes."],
+        [T0 + 3 * DT, "It goes folder by folder, and splits a log between batches."],
+        [T0 + 6 * DT + 0.2, "A line without its newline waits for the next batch."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.90, size: 34, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.finish(14.5);
+    </script>
+  </body>
+</html>

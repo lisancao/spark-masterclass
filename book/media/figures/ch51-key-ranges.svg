@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 300" width="780" height="300" role="img"><title>Four partitions of the orders table: equal key ranges against equal row counts</title><defs></defs><text x="40" y="22.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">min..max stride ranges: the key space from 1 to 100006 in four equal parts</text>
+<rect x="42.0" y="40" width="171.0" height="34" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="127.5" y="61.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">1201 rows</text>
+<rect x="217.0" y="40" width="171.0" height="34" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="302.5" y="61.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">0 rows</text>
+<rect x="392.0" y="40" width="171.0" height="34" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="477.5" y="61.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">0 rows</text>
+<rect x="567.0" y="40" width="171.0" height="34" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="652.5" y="61.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">6 rows</text>
+<rect x="40.0" y="84" width="8.399580020998954" height="10" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="739.9650017499125" y="84" width="4" height="10" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<text x="40.0" y="110.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">ids 1 to 1201</text>
+<text x="740.0" y="110.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">six legacy ids from 100001</text>
+<text x="40" y="150.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="start" font-weight="700">quantile ranges: split points 302, 604, 906 from the index (the six legacy ids at the end)</text>
+<rect x="42.0" y="168" width="170.70978441127696" height="34" rx="6" fill="#2f7d5b" fill-opacity="1.0"/>
+<text x="127.35489220563848" y="189.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">301 rows</text>
+<rect x="216.70978441127696" y="168" width="171.29021558872307" height="34" rx="6" fill="#2f7d5b" fill-opacity="1.0"/>
+<text x="302.3548922056385" y="189.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">302 rows</text>
+<rect x="392.0" y="168" width="171.29021558872307" height="34" rx="6" fill="#2f7d5b" fill-opacity="1.0"/>
+<text x="477.64510779436154" y="189.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">302 rows</text>
+<rect x="567.2902155887231" y="168" width="170.70978441127696" height="34" rx="6" fill="#2f7d5b" fill-opacity="1.0"/>
+<text x="652.6451077943616" y="189.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600">302 rows</text>
+<text x="40" y="232.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">rows in key order (1207 rows)</text>
+<rect x="40" y="208" width="700" height="6" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<text x="740" y="232.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">the last range ends with the legacy ids</text>
+<text x="40" y="270.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">A task that reads 1201 rows sets the time of the stage. The quantile plan costs a few queries during planning.</text></svg>

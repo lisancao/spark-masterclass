@@ -1,0 +1,28 @@
+{
+ "source": "code/ch48/output/dag_submit.txt",
+ "t1": {
+  "id": "zone_revenue",
+  "op": "SparkSubmitOperator",
+  "start": "09:53:11",
+  "end": "09:53:41",
+  "secs": 30
+ },
+ "t2": {
+  "id": "top_zones",
+  "op": "SparkSqlOperator",
+  "start": "09:53:41",
+  "end": "09:54:05",
+  "secs": 24
+ },
+ "run": "54.3",
+ "log1": [
+  "ZONE_REVENUE Manhattan  3,374,269 trips",
+  "ZONE_REVENUE Queens  319,164 trips",
+  "ZONE_REVENUE 8 rows written"
+ ],
+ "log2": [
+  "Manhattan  3374269  90000789",
+  "Queens  319164  22374570",
+  "Brooklyn  106652  4107067"
+ ]
+}

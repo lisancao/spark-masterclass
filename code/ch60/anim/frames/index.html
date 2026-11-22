@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Frame sizes from tap.txt (the pickled UDF of tap.py).
+      const D = {"source": "code/ch60/output/tap.txt (pickled UDF: request 4633 bytes, init 4582, command 625, data frame 31; response 102 bytes)", "req": [["-8  START_OF_INIT_MESSAGE", "accent"], ["init message: 4582 bytes", "paper"], ["  task context, eval type 100", "ghost"], ["  pickled UDF: 625 bytes", "ghost"], ["data frame: 31 bytes (3 rows)", "ok"], ["-1  END_OF_DATA_SECTION", "accent"], ["-4  END_OF_STREAM", "accent"]], "resp": [["result frame: 34 bytes", "ok"], ["-3  TIMING_DATA + 4 longs", "accent"], ["spill: 2 longs", "paper"], ["-1  END_OF_DATA_SECTION, 0 accumulators", "accent"], ["-4  END_OF_STREAM", "accent"]], "req_total": 4633, "resp_total": 102}; // data.json
+      A.mount();
+      A.title("A task talks to a Python worker", "one request and one response on the socket");
+      const JX = 0.20, WX = 0.80;
+      const jvm = A.box({ x: JX, y: 0.47, w: 520, h: 520, kind: "ghost", radius: 16 });
+      const jl = A.text("JVM task (PythonRunner)", { x: JX, y: 0.47 - A.dy(230), size: 26, color: "var(--a-mute)" });
+      const wk = A.box({ x: WX, y: 0.47, w: 520, h: 520, kind: "ghost", radius: 16 });
+      const wl = A.text("Python worker (worker.py)", { x: WX, y: 0.47 - A.dy(230), size: 26, color: "var(--a-mute)" });
+      const sock = A.line({ x1: JX + A.dx(270), y1: 0.47, x2: WX - A.dx(270), y2: 0.47, width: 3, color: "var(--a-line)" });
+      const sl = A.text("socket", { x: 0.5, y: 0.47 + A.dy(26), size: 22, color: "var(--a-mute)" });
+      A.in([jvm, jl, wk, wl, sock, sl], 0.2);
+      const send = (rows, fromX, toX, t0, dt) => rows.map(([s, k], i) => {
+        const y = 0.315 + i * 0.055;
+        const b = A.box({ x: fromX, y, w: 470, h: 50, kind: k, title: s, size: 19, radius: 8 });
+        gsap.set(b, { opacity: 0 });
+        A.tl.set(b, { opacity: 1 }, t0 + i * dt);
+        A.tl.fromTo(b, { x: 0 }, { x: A.X(toX - fromX), duration: 0.7, ease: "power2.inOut" }, t0 + i * dt);
+        return b;
+      });
+      const req = send(D.req, JX, WX, 1.2, 0.55);
+      const rq = A.text(`request: ${D.req_total.toLocaleString("en-US")} bytes`, { x: WX, y: 0.47 + A.dy(290), size: 26, weight: 700 });
+      A.in(rq, 1.2 + 7 * 0.55 + 0.5);
+      // the worker runs the UDF
+      const run = A.text("UDF runs on 3 rows", { x: WX, y: 0.47 + A.dy(330), size: 24, color: "var(--a-ok)" });
+      A.in(run, 6.2); A.out([...req, run], 7.0);
+      const resp = send(D.resp, WX, JX, 7.4, 0.55);
+      const rs = A.text(`response: ${D.resp_total} bytes`, { x: JX, y: 0.47 + A.dy(290), size: 26, weight: 700 });
+      A.in(rs, 7.4 + 5 * 0.55 + 0.5);
+      const reuse = A.text("-4: the worker can take the next task", { x: WX, y: 0.47 + A.dy(330), size: 24, color: "var(--a-ok)" });
+      A.in(reuse, 10.8);
+      const caps = [
+        [0.4, "The JVM starts each request with -8 and the init message."],
+        [3.2, "The rows follow. Negative lengths mark the ends of sections."],
+        [7.2, "The worker answers with results, timings, spill and accumulators."],
+        [10.6, "It ends with -4, so the JVM can use the worker again."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.93, size: 32, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.finish(14);
+    </script>
+  </body>
+</html>

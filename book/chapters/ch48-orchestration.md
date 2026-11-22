@@ -212,6 +212,15 @@ Each task starts a JVM in a child process of the Airflow worker. In client mode,
 - The hook reads each line of the `spark-submit` output and sends it to the task log. If Airflow stops the task, the hook kills the `spark-submit` process.
 - Each task is a new Spark application. The second task cannot use a DataFrame of the first task. It reads the Parquet files that the first task wrote. Between tasks, data moves through storage, not through Airflow.
 
+The animation shows this DAG run. The task times and the log lines come from the output above.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch48-anim-handoff.webp">
+    <source src="../../media/clips/ch48-anim-handoff.mp4" type="video/mp4">
+  </video>
+  <figcaption>Each task starts its own JVM on the Airflow worker. The first task writes Parquet files, and the second task reads them.</figcaption>
+</figure>
+
 ## Step 4: A task with no JVM, over Spark Connect
 
 The second DAG asks a question over Spark Connect. The `@task.pyspark` decorator gives the function a `SparkSession`. With a `spark_connect` connection, that session is a thin Connect client, and the driver is the Connect server on `sc://localhost:15064`:
@@ -619,7 +628,14 @@ yunikorn  queue root.etl  cores used 0 of max 2
 
 YuniKorn reserved the two cores of the queue for `etl-a`: one placeholder for the driver and one for an executor. The real driver replaced its placeholder, and `exec-1` replaced the executor placeholder. `exec-2` stayed `Pending`, because the gang reserves the minimum, not all the executors that the job asks for. The job ran with one executor.
 
-The placeholders of `etl-b` waited until `etl-a` ended. Then `etl-b` ran in the same way. The two jobs ran one after the other, and each job completed with the same result:
+The placeholders of `etl-b` waited until `etl-a` ended. Then `etl-b` ran in the same way. The two jobs ran one after the other. The figure shows the pods of the two runs on time axes, from the outputs above.
+
+<figure markdown>
+  ![The pods of etl-a and etl-b on two time axes](../media/figures/ch48-gang-timeline.svg)
+  <figcaption>Top: without gang scheduling, the two drivers run, and the four executors wait. Bottom: with gang scheduling, the placeholders of <code>etl-b</code> wait until <code>etl-a</code> ends.</figcaption>
+</figure>
+
+Each job completed with the same result:
 
 ```text
 ZONE_REVENUE run=etl-a spark=4.3.0 master=k8s://https://127.0.0.1:40611
@@ -679,8 +695,10 @@ YuniKorn queues also give each team a share of the cluster. A queue has a guaran
 
 The feature step creates a `PodGroup` for each application from the template. The template sets the minimum resources, the queue and the priority. YuniKorn and Volcano solve the same problem with different methods:
 
-- YuniKorn uses placeholder pods and annotations on the driver pod. It does not need a change to the Spark pods beyond labels and annotations.
-- Volcano uses its own `PodGroup` resource, which Spark creates through the feature step.
+| | YuniKorn | Volcano |
+|---|---|---|
+| How it reserves a gang | Placeholder pods and annotations on the driver pod | Its own `PodGroup` resource, which Spark creates through the feature step |
+| Change to the Spark pods | Only labels and annotations | A feature step on the driver and the executors |
 
 This chapter ran only YuniKorn. The Volcano facts in this section come from the Spark 4.3 docs and the release jars, not from a run.
 
@@ -801,6 +819,11 @@ These are the results:
 - After the gap, 0 executors were alive. Executors 1 and 2 stopped with the reason "Executor killed by driver" (the idle timeout).
 - The second action started a new executor, 3. Spark still skipped the map stage (stage 4 is `SKIPPED`), and stage 5 read the same 10,467 bytes that stage 1 wrote. The data came from the Celeborn workers, because executors 1 and 2 no longer existed.
 - The Celeborn master gave slots to one shuffle (`-0`) of this application, for 8 reducers on 2 workers. The second action did not register a second shuffle.
+
+<figure markdown>
+  ![The executors alive at each report of the job](../media/figures/ch48-executors-alive.svg)
+  <figcaption>The executors that were alive at each report of <code>shuffle_idle.py</code>. With shuffle tracking, the two executors stayed for the full gap. With Celeborn, they stopped, and one new executor did the second action.</figcaption>
+</figure>
 
 The difference matters most on a shared cluster. A job with a long tail, or a pipeline that waits between stages, does not keep idle executors. On Kubernetes, these executors are pods that hold CPU and memory that other jobs cannot use. Celeborn also keeps the shuffle data when an executor pod stops for a different reason. For example, Kubernetes can remove a pod from a node.
 

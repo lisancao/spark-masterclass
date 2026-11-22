@@ -1,0 +1,5 @@
+{"source": "code/ch59/output/rules.txt (plan change log) and twice.txt (counts)",
+ "p0": [["Filter (area#11 = api)", 0], ["Project [ip, path, status, _area(path#7)#9 AS area#11]", 1], ["Relation [ip#6,path#7,status#8] parquet", 0]],
+ "p1": [["Project [ip, path, status, _area(path#7)#9 AS area#11]", 1], ["Filter (_area(path#7)#9 = api)", 1], ["Relation [ip#6,path#7,status#8] parquet", 0]],
+ "p2": [["Project [ip, path, status, pythonUDF0#13 AS area#11]", 0], ["ArrowEvalPython [_area(path#7)#9], [pythonUDF0#13], 101", 2], ["Project [ip#6, path#7, status#8]", 0], ["Filter (pythonUDF0#12 = api)", 0], ["ArrowEvalPython [_area(path#7)#9], [pythonUDF0#12], 101", 2], ["Relation [ip#6,path#7,status#8] parquet", 0]],
+ "calls": "200 + 70 = 270 UDF calls"}

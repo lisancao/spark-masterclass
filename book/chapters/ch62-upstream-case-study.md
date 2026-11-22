@@ -61,6 +61,13 @@ USE other    metric view: (east, 999)              regular view: (east, 10), (we
 
 After `USE other`, the metric view read `other.sales`. The query returned one row, `(east, 999)`, and no error. The regular view returned the correct rows from both namespaces. The bug is real on 4.3.0, and the control proves that the cause is in the metric view path, not in views in general.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch62-anim-resolve.webp">
+    <source src="../../media/clips/ch62-anim-resolve.mp4" type="video/mp4">
+  </video>
+  <figcaption>The name <code>sales</code> in the metric view, after <code>USE other</code>. On 4.3.0 it reads <code>other.sales</code>. With the fix of Step 7, it reads <code>default.sales</code>.</figcaption>
+</figure>
+
 ## Step 3: Find the boundaries
 
 A boundary is a change to the reproduction that changes the result. A table of boundaries tells you where the bug lives before you read a line of source. `boundaries.py` changes one thing in each row:
@@ -113,6 +120,11 @@ Evidence 2: the relations in the analyzed plans, after USE other
 ```
 
 Both predictions are correct. The metric view has the correct namespace in the catalog, `[spark_catalog, default]`. But its analyzed plan reads `spark_catalog.other.sales`. Thus the information is there, and some code does not use it.
+
+<figure markdown>
+  ![The unqualified name sales, resolved in two namespaces](../media/figures/ch62-namespaces.svg)
+  <figcaption>The tables and the views of <code>repro.py</code>. The catalog stores <code>default</code> for both views, but on 4.3.0 the metric view resolves its source in the namespace of the session.</figcaption>
+</figure>
 
 ## Step 5: Read the source
 
@@ -305,6 +317,11 @@ case                                           metric view                     r
 </figure>
 
 All six rows are now correct, also the error of row 2 and the temporary view of row 3. The compile took 9 seconds.
+
+<figure markdown>
+  ![The six boundary cases on 4.3.0, with the fix, and for the regular view](../media/figures/ch62-boundaries.svg)
+  <figcaption>The boundary table of Step 3 before and after the fix. Red cells are wrong results or errors. With the patched classes, all six cases give the expected rows.</figcaption>
+</figure>
 
 This method has limits. Know them before you trust a result:
 

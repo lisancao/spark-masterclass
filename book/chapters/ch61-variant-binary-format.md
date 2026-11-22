@@ -124,6 +124,13 @@ The header `0x02` is `OBJECT` with type info 0. Thus the size is 1 byte, each fi
 - **`07 00 0d 05 21`, the offsets.** Offset *i* is where the value of field *i* starts, counted from the start of the data. The last offset, `0x21` = 33, is the length of the data.
 - **The data.** The values are in the sequence of the JSON text: `event` at 0, `user_id` at 5, `amount` at 7, `ts` at 13.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch61-anim-decode.webp">
+    <source src="../../media/clips/ch61-anim-decode.mp4" type="video/mp4">
+  </video>
+  <figcaption>A reader walks the value above with its metadata. For each field, the id gives the name and the offset gives the data.</figcaption>
+</figure>
+
 Two sequences are in one object. The IDs and the offsets follow the sort of the names, so a reader can search them. The data stays in the input sequence, so the writer does not move bytes. The builder does this in `finishWritingObject`, in `VariantBuilder.java`. It sorts the field entries by key, and it keeps the offset that each field got when the builder wrote it:
 
 ```java
@@ -147,6 +154,12 @@ The field values show three primitive encodings:
 - **`11 76 69 65 77`.** The header `0x11` is `0b000100_01`: basic type 1 (`SHORT_STR`), type info 4. A short string stores its length in the header, so `view` costs 5 bytes. A string of up to 63 bytes (`MAX_SHORT_STR_SIZE = 0x3F`) is a short string.
 - **`0c 00`.** The header `0x0c` is `0b000011_00`: basic type 0 (`PRIMITIVE`), type info 3 (`INT1`). One byte of data, 0.
 - **`20 02 65 02 00 00`.** Type info 8 (`DECIMAL4`): one byte of scale (2) and a 4-byte little-endian integer (`0x0265` = 613). The value is 6.13, exact.
+
+
+<figure markdown>
+  ![The metadata and the value of one event](../media/figures/ch61-bytes.svg)
+  <figcaption>The first event of day 1. The purple arrows go from the field ids to the names. The blue arrows go from the offsets to the data.</figcaption>
+</figure>
 
 The full list of primitive IDs in `VariantUtil.java`:
 
@@ -535,6 +548,11 @@ files: JSON text 59.6 MiB, VARIANT 41.6 MiB, VARIANT shredded 20.4 MiB
   VARIANT shredded, variant_get          median   0.68 s   result 29767512.71
   VARIANT, to_json of the whole value    median   8.91 s   result 440622194
 ```
+
+<figure markdown>
+  ![Median seconds of the five queries over one million trips](../media/figures/ch61-bench.svg)
+  <figcaption>The output above as bars. A query on stored VARIANT values is faster than a query on JSON text, and a query on shredded VARIANT values is faster again.</figcaption>
+</figure>
 
 All five queries read the same data, and the four sums are equal. The results show four effects:
 

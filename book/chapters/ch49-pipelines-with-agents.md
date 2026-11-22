@@ -157,6 +157,13 @@ Run is COMPLETED.
 gold_daily_revenue: [('2026-06-01', 4757.14), ('2026-06-02', 5755.45), ('2026-06-03', 5380.04)] ... 5 rows
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch49-anim-sieve.webp">
+    <source src="../../media/clips/ch49-anim-sieve.mp4" type="video/mp4">
+  </video>
+  <figcaption>The five versions of the gold flow go through the checks. The outcomes come from <code>dryrun.sh</code>. Only a trusted number stops <code>gold_epoch.py</code>.</figcaption>
+</figure>
+
 The wrong flow ran without an error, and it wrote 561 days in the year 58384 instead of 5 days in June 2026. The talk calls these silent errors. It lists the ones from the study:
 
 - a currency that a join dropped
@@ -164,7 +171,12 @@ The wrong flow ran without an error, and it wrote 561 days in the year 58384 ins
 - a dedup without a deterministic tie-break
 - a filter that also removed valid rows
 
- Only a comparison with a trusted number from outside the pipeline finds them. The rest of the harness reduces them. It does not remove them.
+Only a comparison with a trusted number from outside the pipeline finds them. The rest of the harness reduces them. It does not remove them.
+
+<figure markdown>
+  ![Five versions of the gold flow and the check that stops each one](../media/figures/ch49-checks.svg)
+  <figcaption>The check that stopped each version. The dry-run stopped three versions and read no data. The epoch error passed each check of Spark.</figcaption>
+</figure>
 
 ## Step 5: Scope the agent with Spark Connect
 
@@ -267,6 +279,11 @@ The numbers are the same as on the talk's slides, now on 4.3.0. The by-hand SQL 
 
 - **An average of ratios.** The average of the five regional rates gives `remote` (32 users, rate 0.515) the same weight as `metro` (6,370 users, rate 0.0787). The correct rate is total conversions divided by total sessions, 0.0923.
 - **A sum of distinct counts.** A user active on many days counts once for each day. The month has 9,994 distinct users, not 69,420.
+
+<figure markdown>
+  ![Regional conversion rates with the by-hand average and the MEASURE() result](../media/figures/ch49-average-of-ratios.svg)
+  <figcaption>The five regional rates from <code>metric_view.py</code>. On the left, the width of each bar shows the active users of the region. On the right, each region has the same weight, as in the by-hand SQL.</figcaption>
+</figure>
 
 The view also made the agent's work shorter. The slides count the SQL statements that the agent used for three questions:
 

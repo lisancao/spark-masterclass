@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Type URLs, rows and the error from plugins.txt.
+      const D = {"source": "code/ch57/output/plugins.txt", "type_url": "type.googleapis.com/jplug.PlanNodes", "rows": ["0  NULL  Aggregate", "1  0     Project", "2  1     Filter", "3  2     Range"], "unknown": "type.googleapis.com/jplug.Note", "error": "CONNECT_INVALID_PLAN.NO_HANDLER_FOR_EXTENSION"}; // data.json
+      A.mount();
+      A.title("A relation plugin on a Connect server", "plan_nodes(df): a custom message in Relation.extension");
+      const CX = 0.17, SX = 0.72;
+      const cl = A.box({ x: CX, y: 0.46, w: 420, h: 420, kind: "ghost", radius: 16 });
+      const cll = A.text("Python client", { x: CX, y: 0.46 - A.dy(185), size: 26, color: "var(--a-mute)" });
+      const sv = A.box({ x: SX, y: 0.46, w: 760, h: 420, kind: "ghost", radius: 16 });
+      const svl = A.text("Connect server (JVM)", { x: SX, y: 0.46 - A.dy(185), size: 26, color: "var(--a-mute)" });
+      A.in([cl, cll, sv, svl], 0.2);
+      // the message
+      const msg = A.box({ x: CX, y: 0.38, w: 360, h: 110, kind: "accent", title: "Relation.extension", sub: "Any: jplug.PlanNodes", size: 26 });
+      const fields = [A.text("input = the plan of df", { x: CX, y: 0.55, size: 22, mono: true }), A.text("stage = 'optimized'", { x: CX, y: 0.55 + A.dy(34), size: 22, mono: true })];
+      A.in([msg, ...fields], 0.8, { stagger: 0.3 });
+      const planner = A.box({ x: SX - 0.105, y: 0.38, w: 300, h: 90, kind: "paper", title: "planner", sub: "Relation type EXTENSION", size: 26 });
+      const plug = A.box({ x: SX + 0.105, y: 0.38, w: 320, h: 90, kind: "paper", title: "PlanNodesPlugin", sub: "transform(bytes, planner)", size: 24 });
+      A.in([planner, plug], 1.2);
+      // beat send (2.8)
+      A.tl.to(msg, { x: A.X(SX - 0.105 - CX), y: A.Y(0.56 - 0.38), scale: 0.8, duration: 1.0, ease: "power2.inOut" }, 2.8);
+      // beat match (4.4)
+      const tu = A.text("type_url = " + D.type_url, { x: SX, y: 0.70, size: 20, mono: true, color: "var(--a-ok)" });
+      A.in(tu, 4.4);
+      A.tl.to(plug, { borderColor: "#7BC496", duration: 0.2 }, 4.8);
+      // beat transform (6.2)
+      const tr = A.text("transformRelation(input) → walk → LocalRelation", { x: SX, y: 0.62, size: 22, mono: true });
+      A.in(tr, 6.2); A.out(msg, 6.2);
+      // beat rows back (7.8)
+      const rows = D.rows.map((r, i) => A.text(r, { x: SX - 0.09, y: 0.47 + i * 0.045, size: 22, mono: true, anchor: "left", color: "var(--a-fg)", css: { whiteSpace: "pre" } }));
+      A.in(rows, 7.2, { stagger: 0.1 });
+      rows.forEach((r, i) => A.tl.to(r, { x: A.X(CX - SX), y: A.Y(0.0), duration: 1.0, ease: "power2.inOut" }, 8.2 + i * 0.05));
+      A.out([...fields, tr, tu], 8.0);
+      const ok = A.text("a usual DataFrame", { x: CX, y: 0.68, size: 22, color: "var(--a-ok)" });
+      A.in(ok, 9.3);
+      // beat unknown (10.5)
+      const bad = ["Any: " + D.unknown, "PlanNodesPlugin returns Optional.empty()", D.error].map((t, i) => A.text(t, { x: SX, y: 0.53 + i * 0.05, size: 20, mono: true, color: "var(--a-acc)" }));
+      A.in(bad, 10.8, { stagger: 0.3 });
+      const caps = [
+        [0.4, "The client packs its own message into Relation.extension."],
+        [2.8, "The server planner gets a relation of the type EXTENSION."],
+        [4.4, "It asks each plugin in turn. PlanNodesPlugin knows the type URL."],
+        [6.2, "The plugin plans the input and returns its nodes as rows."],
+        [10.5, "A message that no plugin knows fails on the server."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.90, size: 34, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.finish(14);
+    </script>
+  </body>
+</html>

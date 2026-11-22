@@ -40,8 +40,10 @@ The loop has the problems of the loop in Chapter 50, and two more. It reads one 
 
 How an API divides its results into pages decides if you can read it in parallel:
 
-- **Page numbers or offsets** (`?page=3`, `?offset=60&limit=20`). You can calculate the address of each page before you read it. Thus each page can be a partition. Ask one time for the total, and plan `ceil(total / page_size)` partitions.
-- **Cursors or next links** (`?cursor=...`, or a `next` URL in each response). You know the address of page 4 only after you read page 3. The pages are a chain, and a chain is one partition. You can still read in parallel on a different dimension that the API can filter, for example one partition for each day. Each partition then follows its own chain.
+| Kind of pages | Can each page be a partition? |
+|---|---|
+| **Page numbers or offsets** (`?page=3`, `?offset=60&limit=20`) | You can calculate the address of each page before you read it. Thus each page can be a partition. Ask one time for the total, and plan `ceil(total / page_size)` partitions. |
+| **Cursors or next links** (`?cursor=...`, or a `next` URL in each response) | You know the address of page 4 only after you read page 3. The pages are a chain, and a chain is one partition. You can still read in parallel on a different dimension that the API can filter, for example one partition for each day. Each partition then follows its own chain. |
 
 The tickets API uses page numbers. The reader requests page 0 in `partitions()` to get the total, and plans one `PagePartition` for each page:
 
@@ -120,6 +122,15 @@ Each number has a cause:
 - **The first `count()` sent 7 requests.** One request was the page 0 of `partitions()`. Then the five tasks each read one page. Page 3 failed one time, and the reader tried again. Thus the 7 requests are 1 + 5 + 1.
 - **The second query sent 6 requests, not 7.** Spark keeps the planned read on the DataFrame (Chapter 50, Step 11), so `partitions()` did not run again. But Spark does not keep rows. Each action runs all the tasks again, and each task requests its page again.
 - **After `cache()` and one action, the queries sent no requests.** The cached rows answered them.
+
+The animation shows the requests of the first two actions. The request logs come from the output above.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch51-anim-requests.webp">
+    <source src="../../media/clips/ch51-anim-requests.mp4" type="video/mp4">
+  </video>
+  <figcaption>The planning worker asks for page 0. Then each task asks for its page. The reader tries page 3 again after the 503 error.</figcaption>
+</figure>
 
 ```mermaid
 sequenceDiagram
@@ -348,6 +359,11 @@ conditions: local[*] on 16 cores, 4 partitions, maxRecordsPerBatch 10000
 
 The query reads 2,000,000 rows of four columns, in 4 partitions, and aggregates them. `arrow_batches.py --timing` ran it 5 times for each mode, after one warm-up run, on a 16-core machine, under the benchmark lock of the book. The batches took a median of 0.22 s. The tuples took 1.29 s, which is 5.7 times as long. The `Row` objects took 3.32 s, which is 2.6 times as long as the tuples. The minimum and maximum times in the output show that the three modes do not overlap.
 
+<figure markdown>
+  ![Median seconds to read 2,000,000 rows as tuples, Row objects and Arrow batches](../media/figures/ch51-arrow-timing.svg)
+  <figcaption>The three modes of <code>read()</code>, from the output above. The lines show the fastest and the slowest of the five runs.</figcaption>
+</figure>
+
 The cost of a tuple is the conversion of each value in Python, one row at a time. A `Row` adds the work of a `Row` object and the match of its field names to the schema. Thus, yield tuples, not `Row` objects, when you yield rows.
 
 A batch must agree exactly with the schema. Spark does not cast the Arrow types. A batch with `int64` for an `int` column fails in the task:
@@ -559,6 +575,11 @@ quantile split points: [302, 604, 906]
 ```
 
 The quantile ranges have almost equal row counts. The cost is a few queries during planning. Here, `order_id` is an `INTEGER PRIMARY KEY`, which is the rowid of SQLite. Thus `EXPLAIN QUERY PLAN` shows a scan of the table in key order, with no sort. For a key with no index, each quantile query sorts the table, and the planning cost can be more than the read. Other methods give a similar result:
+
+<figure markdown>
+  ![Four partitions by equal key ranges and by quantiles](../media/figures/ch51-key-ranges.svg)
+  <figcaption>The four partitions of the <code>orders</code> table in the two plans. Equal key ranges put 1,201 rows in one task. Quantile ranges give each task about 302 rows.</figcaption>
+</figure>
 
 - A modulo of the key (`id % n = i`) gives equal ranges if the keys have no pattern, but each task scans the full table.
 - The statistics of the database, for example `pg_stats` in PostgreSQL, give quantiles with no query.

@@ -80,6 +80,11 @@ Read the three pairs:
 - **`limit(3)`.** Spark keeps `CollectLimit 3` above the Python scan, which reads all 26 files. The Java scan reads three files and Spark keeps no `Limit`.
 - **`count(*)`.** For the Python source, the plan is a scan, a partial count, a shuffle and a final count. The full plan is in `output/capability.txt`. For the Java source, the plan is a `LocalTableScan` of one row that the source calculated when Spark planned the query.
 
+<figure markdown>
+  ![The plans of three queries on pydocs and on jdocs](../media/figures/ch55-three-plans.svg)
+  <figcaption>The plans of the three queries, from <code>capability.txt</code>. The Java scan takes the filter, the columns, the limit and the count. The Python scan returns all columns.</figcaption>
+</figure>
+
 The script also asks the optimizer for its size estimate of each source, before any filter:
 
 ```text
@@ -91,6 +96,13 @@ jdocs   Statistics(sizeInBytes=3.0 KiB)
 A source that reports no statistics gets the default size, `Long.MaxValue` bytes, which `explain` prints as 8.0 EiB. Spark never broadcasts a relation of that size in a join. `jdocs` reports 26 rows of 120 bytes each. Step 9 shows where that number comes from.
 
 The script also measures the time of `select("name", "size")`, with a new DataFrame for each run. Other work used the machine when the script ran. `output/capability_runs.txt` has four runs. In them, the median for `pydocs` went from 194 to 278 ms, and the median for `jdocs` went from 59 to 120 ms. `jdocs` was faster in each run.
+
+| Run (median of 15 queries) | `pydocs` | `jdocs` |
+|---|---|---|
+| 1 | 277.6 ms | 120.0 ms |
+| 2 | 193.7 ms | 59.2 ms |
+| 3 | 208.2 ms | 67.7 ms |
+| 4 | 202.5 ms | 80.1 ms |
 
 The difference is mostly the cost of the Python worker. `pydocs` uses a Python process when Spark plans the query and in each task, and `jdocs` stays in the JVM. These timings are not a benchmark. They only show that the Python path has a fixed cost that the Java path does not have.
 
@@ -499,6 +511,13 @@ The first plan counts the images. The filter `kind = 'image'` went to the scan f
 
 The REST API counted one Spark job for the `collect()`, which returns the local rows. Before the pushdown, the same count needed a scan stage and a shuffle.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch55-anim-countpush.webp">
+    <source src="../../media/clips/ch55-anim-countpush.mp4" type="video/mp4">
+  </video>
+  <figcaption>The count of images (the plan before pushdown is schematic). The filter goes into the scan first. Then the source takes the <code>COUNT(*)</code>, and the plan becomes a <code>LocalTableScan</code>.</figcaption>
+</figure>
+
 `jdocs` refuses `sum(size)`, because `pushAggregation` returns `false`. Spark plans a normal scan and aggregate.
 
 A small decision in `Filters` keeps this path open. If `jdocs` returned an `IS_NOT_NULL` on a column that is never null, a `Filter` would remain after the scan. Then Spark would not offer the aggregate or the limit. Accept the predicates that are always true for your data, so that the rest of the pushdown chain stays open.
@@ -573,6 +592,11 @@ byKind=true
 ```
 
 The `Exchange` is not there. The second plan is one stage, and its partial aggregate also disappeared, because each task already has all the rows of its kind. The same report lets two sources with the same partitioning join without a shuffle. This is a storage-partitioned join, behind `spark.sql.sources.v2.bucketing.enabled`.
+
+<figure markdown>
+  ![The final plans of the groupBy with and without the reported partitioning](../media/figures/ch55-partitioning.svg)
+  <figcaption>The two final plans from <code>jdocs.txt</code>. With <code>byKind=true</code>, the scan reports its partitioning, and Spark removes the <code>Exchange</code> and the partial aggregate.</figcaption>
+</figure>
 
 The promise is yours to keep. The javadoc of `HasPartitionKey` says "Spark doesn't check this property". If a partition says `kind = 'image'` and holds a PDF row, the groups are wrong and no error occurs. Each partition must implement `HasPartitionKey`, or Spark cannot use the partitioning at all.
 

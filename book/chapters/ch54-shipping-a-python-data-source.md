@@ -133,6 +133,13 @@ Thus install the package in the Python of every worker:
 
 The lookup runs one time for each Spark application. A package that you install after the session starts is not available until a new session.
 
+The figure puts the five runs of `packaging.sh` side by side. Step 3 explains run 4, and Step 5 explains run 5.
+
+<figure markdown>
+  ![The five runs of packaging.sh](../media/figures/ch54-setups.svg)
+  <figcaption>The Python of the driver, the Python of the workers, and the result of each read. A read works only when the workers can import the package.</figcaption>
+</figure>
+
 ## Step 3: One broken package hides all the others
 
 The lookup imports every `pyspark_*` module in one worker. `packaging.sh` installs a second package, `pyspark-broken`, whose module imports a module that does not exist:
@@ -148,6 +155,13 @@ ModuleNotFoundError: No module named 'a_module_that_is_not_installed'
 ```
 
 The broken package stopped the lookup, and Spark registered no packaged source, not even `mailbox`. The cause is only in the driver log, as a warning. The error of the user is `DATA_SOURCE_NOT_FOUND`, which names `mailbox`, not the broken package. Registration by hand still worked, because the workers could import `pyspark_mailbox`. If a packaged source disappears, look in the driver log for `Skipping the lookup`.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch54-anim-lookup.webp">
+    <source src="../../media/clips/ch54-anim-lookup.mp4" type="video/mp4">
+  </video>
+  <figcaption>The lookup in run 2 and in run 4 (schematic order of the modules). In run 4, one package fails to import, and Spark registers no packaged source.</figcaption>
+</figure>
 
 ## Step 4: Registration rules
 
@@ -183,6 +197,11 @@ register() again after addArtifacts(), then count(): 4 rows
 The client has the package, but the server workers do not, so the first two reads failed as in Step 2. A Connect client can send Python files to its server session with `spark.addArtifacts(path, pyfile=True)`. The script zips `src/pyspark_mailbox` and sends it. The next read still failed. A second `register()` after `addArtifacts()` made the read work.
 
 The 4.3.0 source shows why. `register()` creates the Python function of the source, with the Python includes of the session at that moment (`pythonIncludes` in `UserDefinedPythonDataSource.scala`). `PythonPlannerRunner` gives the worker only those includes. An artifact that the session gets after `register()` is not in the list. Thus, on Connect, call `addArtifacts()` first, and `register()` after it. The part notes record this order as a gap in the documentation.
+
+<figure markdown>
+  ![The order of register() and addArtifacts() on Spark Connect](../media/figures/ch54-connect-order.svg)
+  <figcaption>The calls of run 5 in order. The first <code>register()</code> kept the includes of that moment. Only a second <code>register()</code> after <code>addArtifacts()</code> found the package.</figcaption>
+</figure>
 
 ## Step 6: Unit tests without Spark
 

@@ -145,6 +145,11 @@ None of the methods executed in the script's process. The log shows three moment
 
 3. **Each task** called `read()` in a Python worker of the executor, one worker for each concurrent task.
 
+<figure markdown>
+  ![The processes of one read, with their PIDs](../media/figures/ch50-processes.svg)
+  <figcaption>The processes of one read, with the PIDs from the output above. The planning workers call the planning methods. The executor workers call <code>read()</code>.</figcaption>
+</figure>
+
 The second action did not call `reader()` or `partitions()` again. Spark keeps the planned read (the pickled reader and the partitions) on the DataFrame's relation, and each new action runs only the tasks again. The pids of the second action are the same as the pids of the first, because `spark.python.worker.reuse` (default `true`) keeps the workers alive between tasks. The PIDs change between runs. The file in `code/ch50/output/` is from a separate run, so its PIDs are different from the clip.
 
 The option `SomeOption` arrived in `read()` as the string `'42'`, although the script passed the integer `42`. Step 3 explains why.
@@ -501,6 +506,15 @@ def plan_files(files, n):
     return [g for g in groups if g]
 ```
 
+The animation deals the 26 files in the two ways. The file sizes come from the sample folder, and the totals agree with the output above.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch50-anim-deal.webp">
+    <source src="../../media/clips/ch50-anim-deal.mp4" type="video/mp4">
+  </video>
+  <figcaption>Round robin, then largest first. The height of each block shows the bytes of one file.</figcaption>
+</figure>
+
 The tasks then read almost the same number of bytes. One task gets the large log and two small files. The other two tasks share the many small files. `spark_partition_id()` confirms that Spark ran the plan as planned:
 
 ```text
@@ -519,6 +533,11 @@ Bytes per task, from spark_partition_id():
     <source src="../../media/clips/ch50-balance.mp4" type="video/mp4">
   </video>
   <figcaption><code>docs_source.py</code>: the same files dealt in turn, or largest first, and the bytes that each task read.</figcaption>
+</figure>
+
+<figure markdown>
+  ![Stacked bars of the bytes per task in the round robin plan and in the largest-first plan](../media/figures/ch50-balance.svg)
+  <figcaption>The two plans for the same files. Each block is one file. The three orange blocks are the files over 8 KB.</figcaption>
 </figure>
 
 With this greedy rule, no group is larger than another group by more than the largest single file. That is the best result possible if you do not split files. Some more rules for the number of partitions:
@@ -650,6 +669,14 @@ partitions() ran 0 more time(s) for the next three queries on df
 ReadSchema: struct<path:string,name:string,kind:string,size:bigint,modified:timestam ...
 .schema('name string, kind string, size long') then count() opened 0 files
 ```
+
+The table puts the file opens of these queries side by side:
+
+| Query on the `docs` source | Files opened |
+|---|---|
+| `groupBy("kind")` with the count and the bytes | 8 |
+| `select("name").count()` | 8 |
+| `.schema("name string, kind string, size long")`, then `count()` | 0 |
 
 **`select()` does not prune columns for a Python data source.** For Parquet, `df.select("name")` makes Spark read one column. A Python source always receives the full schema in `reader(schema)`, and the `ReadSchema` of the plan shows all eight columns. In the 4.3.0 source, `PythonScanBuilder` implements `SupportsPushDownFilters` but not `SupportsPushDownRequiredColumns`, and `PythonScan.readSchema()` returns the full output schema.
 

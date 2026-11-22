@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 374" width="780" height="374" role="img"><title>Median seconds of each version of is_png and fare_band</title><defs></defs><text x="10" y="36.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="start" font-weight="700">A. is_png over 20,000,000 cached values</text>
+<text x="322" y="61.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">is_png_fast (StaticInvoke, in codegen)</text>
+<rect x="330" y="50" width="45.24" height="15" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="381.24" y="62.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">0.377 s</text>
+<text x="322" y="87.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="600">Python UDF is_png, rewritten by PngRule</text>
+<rect x="330" y="76" width="46.08" height="15" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="382.08" y="88.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">0.384 s</text>
+<text x="322" y="113.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">is_png (CodegenFallback)</text>
+<rect x="330" y="102" width="37.08" height="15" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="373.08" y="114.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">0.309 s</text>
+<text x="322" y="139.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">built-in substring(b, 1, 8) = X&#x27;89504E47...&#x27;</text>
+<rect x="330" y="128" width="45.72" height="15" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="381.72" y="140.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">0.381 s</text>
+<text x="322" y="165.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">pandas UDF</text>
+<rect x="330" y="154" width="247.43999999999997" height="15" rx="2" fill="#c0661a" fill-opacity="1"/>
+<text x="583.4399999999999" y="166.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">2.062 s</text>
+<text x="322" y="191.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">Python UDF (Arrow, the 4.3 default)</text>
+<rect x="330" y="180" width="402.71999999999997" height="15" rx="2" fill="#c0661a" fill-opacity="1"/>
+<text x="738.72" y="192.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">3.356 s</text>
+<text x="10" y="218.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="start" font-weight="700">B. fare_band over 3,837,248 trips (group by band, count)</text>
+<text x="322" y="243.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">built-in when(...) chain</text>
+<rect x="330" y="232" width="75.96000000000001" height="15" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="411.96000000000004" y="244.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">0.633 s</text>
+<text x="322" y="269.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="600">Python UDF, transpiled (4.3, useArrow=False)</text>
+<rect x="330" y="258" width="54.120000000000005" height="15" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="390.12" y="270.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">0.451 s</text>
+<text x="322" y="295.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">Python UDF (Arrow, the 4.3 default)</text>
+<rect x="330" y="284" width="126.24000000000001" height="15" rx="2" fill="#c0661a" fill-opacity="1"/>
+<text x="462.24" y="296.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">1.052 s</text>
+<text x="322" y="321.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="end" font-weight="400">Python UDF (pickled, useArrow=False)</text>
+<rect x="330" y="310" width="135.96" height="15" rx="2" fill="#a8323a" fill-opacity="1"/>
+<text x="471.96000000000004" y="322.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="700">1.133 s</text>
+<rect x="330" y="333" width="14" height="10" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="350" y="342.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">no Python node</text>
+<rect x="480" y="333" width="14" height="10" rx="2" fill="#c0661a" fill-opacity="1"/>
+<text x="500" y="342.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">ArrowEvalPython</text>
+<rect x="630" y="333" width="14" height="10" rx="2" fill="#a8323a" fill-opacity="1"/>
+<text x="650" y="342.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">BatchEvalPython</text>
+<text x="10" y="364.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">Median of 5 runs after a warm-up, a new DataFrame for each run, local[*] on 16 cores.</text></svg>
