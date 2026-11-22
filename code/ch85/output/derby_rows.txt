@@ -1,0 +1,48 @@
+-- 1. databases and tables
+SELECT CAST(d.NAME AS VARCHAR(8)) AS db, CAST(t.TBL_NAME AS VARCHAR(10)) AS tbl, CAST(t.TBL_TYPE AS VARCHAR(14)) AS type
+  FROM DBS d JOIN TBLS t ON d.DB_ID = t.DB_ID ORDER BY 1, 2;
+DB      |TBL       |TYPE          
+----------------------------------
+taxi    |zones     |MANAGED_TABLE 
+taxi    |zones_ds  |MANAGED_TABLE 
+taxi    |zones_txt |MANAGED_TABLE 
+3 rows selected
+-- 2. the storage descriptor and the SerDe of each table
+SELECT CAST(t.TBL_NAME AS VARCHAR(10)) AS tbl, CAST(s.INPUT_FORMAT AS VARCHAR(64)) AS input_format,
+       CAST(SUBSTR(se.SLIB, LOCATE('serde', se.SLIB)) AS VARCHAR(36)) AS serde
+  FROM TBLS t JOIN SDS s ON t.SD_ID = s.SD_ID JOIN SERDES se ON s.SERDE_ID = se.SERDE_ID ORDER BY 1;
+TBL       |INPUT_FORMAT                                                    |SERDE                               
+----------------------------------------------------------------------------------------------------------------
+zones     |org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat   |serde.ParquetHiveSerDe              
+zones_ds  |org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat   |serde.ParquetHiveSerDe              
+zones_txt |org.apache.hadoop.mapred.TextInputFormat                        |serde2.lazy.LazySimpleSerDe         
+3 rows selected
+-- 3. one row per partition, each with its own storage descriptor and location
+SELECT CAST(t.TBL_NAME AS VARCHAR(10)) AS tbl, CAST(p.PART_NAME AS VARCHAR(18)) AS part_name,
+       CAST(SUBSTR(s.LOCATION, LOCATE('taxi.db', s.LOCATION)) AS VARCHAR(40)) AS location
+  FROM PARTITIONS p JOIN TBLS t ON p.TBL_ID = t.TBL_ID JOIN SDS s ON p.SD_ID = s.SD_ID ORDER BY 1, 2;
+TBL       |PART_NAME         |LOCATION                                
+----------------------------------------------------------------------
+zones     |borough=Bronx     |taxi.db/zones/borough=Bronx             
+zones     |borough=EWR       |taxi.db/zones/borough=EWR               
+zones     |borough=Manhattan |taxi.db/zones/borough=Manhattan         
+zones     |borough=Queens    |taxi.db/zones/borough=Queens            
+zones_ds  |borough=EWR       |taxi.db/zones_ds/borough=EWR            
+zones_txt |borough=Bronx     |taxi.db/zones_txt/borough=Bronx         
+zones_txt |borough=EWR       |taxi.db/zones_txt/borough=EWR           
+zones_txt |borough=Queens    |taxi.db/zones_txt/borough=Queens        
+8 rows selected
+-- 4. what Spark adds for a data source table: its provider and schema, as table parameters
+SELECT CAST(tp.PARAM_KEY AS VARCHAR(40)) AS param_key, CAST(SUBSTR(CAST(tp.PARAM_VALUE AS VARCHAR(4000)), 1, 44) AS VARCHAR(44)) AS param_value
+  FROM TABLE_PARAMS tp JOIN TBLS t ON tp.TBL_ID = t.TBL_ID
+  WHERE t.TBL_NAME = 'zones_ds' AND tp.PARAM_KEY LIKE 'spark.sql.%' ORDER BY 1;
+PARAM_KEY                               |PARAM_VALUE                                 
+-------------------------------------------------------------------------------------
+spark.sql.create.version                |4.3.0                                       
+spark.sql.partitionProvider             |catalog                                     
+spark.sql.sources.provider              |parquet                                     
+spark.sql.sources.schema                |{"type":"struct","fields":[{"name":"id","typ
+spark.sql.sources.schema.numPartCols    |1                                           
+spark.sql.sources.schema.partCol.0      |borough                                     
+6 rows selected
+

@@ -1,0 +1,188 @@
+> CREATE DATABASE taxi
+> USE taxi
+== 1. a partitioned Hive table: a static and a dynamic insert
+> CREATE TABLE zones (id INT, zone STRING)
+     PARTITIONED BY (borough STRING)
+     STORED AS PARQUET
+> INSERT INTO zones PARTITION (borough = 'EWR') SELECT LocationID, Zone FROM zl WHERE Borough = 'EWR'
+> INSERT INTO zones PARTITION (borough)
+     SELECT LocationID, Zone, Borough FROM zl WHERE Borough IN ('Bronx', 'Queens')
+> SHOW PARTITIONS zones
++--------------+
+|partition     |
++--------------+
+|borough=Bronx |
+|borough=EWR   |
+|borough=Queens|
++--------------+
+
+> SELECT borough, count(*) AS zones FROM zones GROUP BY borough ORDER BY borough
++-------+-----+
+|borough|zones|
++-------+-----+
+|Bronx  |43   |
+|EWR    |1    |
+|Queens |69   |
++-------+-----+
+
+  the partition value is in the folder name, not in the files:
+    ['id', 'zone']
+  DESCRIBE ... PARTITION (borough = 'Bronx') Location: taxi.db/zones/borough=Bronx
+
+== 2. another job writes a folder: the metastore does not know it
+  folders: ['borough=Bronx', 'borough=Bronx2', 'borough=EWR', 'borough=Manhattan', 'borough=Queens']
+> SHOW PARTITIONS zones
++--------------+
+|partition     |
++--------------+
+|borough=Bronx |
+|borough=EWR   |
+|borough=Queens|
++--------------+
+
+> SELECT count(*) AS rows FROM zones
++----+
+|rows|
++----+
+|113 |
++----+
+
+> MSCK REPAIR TABLE zones
+> SHOW PARTITIONS zones
++-----------------+
+|partition        |
++-----------------+
+|borough=Bronx    |
+|borough=Bronx2   |
+|borough=EWR      |
+|borough=Manhattan|
+|borough=Queens   |
++-----------------+
+
+> SELECT count(*) AS rows FROM zones
++----+
+|rows|
++----+
+|159 |
++----+
+
+== 3. a folder goes away: DROP or SYNC PARTITIONS
+  folders: ['borough=Bronx', 'borough=EWR', 'borough=Manhattan', 'borough=Queens']
+> SELECT count(*) AS rows FROM zones
+  Py4JJavaError: An error occurred while calling o105.showString. :
+  org.apache.spark.SparkException: [FAILED_READ_FILE.FILE_NOT_EXIST] Encountered error ...
+> REFRESH TABLE zones
+> SELECT count(*) AS rows FROM zones
++----+
+|rows|
++----+
+|116 |
++----+
+
+> MSCK REPAIR TABLE zones
+> SHOW PARTITIONS zones
++-----------------+
+|partition        |
++-----------------+
+|borough=Bronx    |
+|borough=Bronx2   |
+|borough=EWR      |
+|borough=Manhattan|
+|borough=Queens   |
++-----------------+
+
+> MSCK REPAIR TABLE zones SYNC PARTITIONS
+> SHOW PARTITIONS zones
++-----------------+
+|partition        |
++-----------------+
+|borough=Bronx    |
+|borough=EWR      |
+|borough=Manhattan|
+|borough=Queens   |
++-----------------+
+
+== 4. ALTER TABLE ... RECOVER PARTITIONS is the Spark name for ADD PARTITIONS
+> ALTER TABLE zones RECOVER PARTITIONS
+> SHOW PARTITIONS zones
++-----------------+
+|partition        |
++-----------------+
+|borough=Bronx    |
+|borough=Brooklyn |
+|borough=EWR      |
+|borough=Manhattan|
+|borough=Queens   |
++-----------------+
+
+== 5. partition DDL: a partition outside the warehouse, and DROP on a managed table
+> ALTER TABLE zones ADD PARTITION (borough = 'Staten Island') LOCATION '~/spark-masterclass-parts/sql-ddl/data/work/ch85-partitions/landing/si'
+> SELECT borough, count(*) AS zones FROM zones GROUP BY borough ORDER BY borough
++-------------+-----+
+|borough      |zones|
++-------------+-----+
+|Bronx        |43   |
+|Brooklyn     |69   |
+|EWR          |1    |
+|Manhattan    |3    |
+|Queens       |69   |
+|Staten Island|20   |
++-------------+-----+
+
+> ALTER TABLE zones DROP PARTITION (borough = 'Brooklyn')
+> ALTER TABLE zones DROP PARTITION (borough = 'Staten Island')
+  folders in the table: ['borough=Bronx', 'borough=EWR', 'borough=Manhattan', 'borough=Queens']
+  the folder outside the warehouse: gone
+
+== 6. INSERT OVERWRITE on a Hive table replaces only the partitions in the data
+> CREATE TABLE zones_txt (id INT, zone STRING) PARTITIONED BY (borough STRING)
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE
+> INSERT OVERWRITE TABLE zones_txt PARTITION (borough) SELECT LocationID, Zone, Borough FROM zl WHERE Borough IN ('Bronx', 'Queens', 'EWR')
+  Py4JJavaError: An error occurred while calling o32.sql. :
+  org.apache.spark.SparkException: Dynamic partition strict mode requires at least one ...
+> SET hive.exec.dynamic.partition.mode = nonstrict
++--------------------------------+---------+
+|key                             |value    |
++--------------------------------+---------+
+|hive.exec.dynamic.partition.mode|nonstrict|
++--------------------------------+---------+
+
+> SET spark.sql.sources.partitionOverwriteMode
++----------------------------------------+------+
+|key                                     |value |
++----------------------------------------+------+
+|spark.sql.sources.partitionOverwriteMode|STATIC|
++----------------------------------------+------+
+
+> INSERT OVERWRITE TABLE zones_txt PARTITION (borough)
+     SELECT LocationID, upper(Zone), Borough FROM zl WHERE Borough = 'EWR'
+  zones_txt  before ['borough=Bronx', 'borough=EWR', 'borough=Queens']
+             after  ['borough=Bronx', 'borough=EWR', 'borough=Queens']
+> INSERT OVERWRITE TABLE zones PARTITION (borough)
+     SELECT LocationID, upper(Zone), Borough FROM zl WHERE Borough = 'EWR'
+  zones      before ['borough=Bronx', 'borough=EWR', 'borough=Manhattan', 'borough=Queens']
+             after  ['borough=Bronx', 'borough=EWR', 'borough=Manhattan', 'borough=Queens']
+
+== 7. a partitioned data source table also keeps its partitions in the metastore
+> SET spark.sql.hive.manageFilesourcePartitions
++-----------------------------------------+-----+
+|key                                      |value|
++-----------------------------------------+-----+
+|spark.sql.hive.manageFilesourcePartitions|true |
++-----------------------------------------+-----+
+
+> CREATE TABLE zones_ds (id INT, zone STRING, borough STRING) USING parquet PARTITIONED BY (borough)
+> INSERT INTO zones_ds SELECT LocationID, Zone, Borough FROM zl WHERE Borough IN ('Bronx', 'EWR')
+  {'Provider': 'parquet', 'Partition Provider': 'Catalog'}
+> SHOW PARTITIONS zones_ds
++-------------+
+|partition    |
++-------------+
+|borough=Bronx|
+|borough=EWR  |
++-------------+
+
+> INSERT OVERWRITE TABLE zones_ds
+     SELECT LocationID, upper(Zone), Borough FROM zl WHERE Borough = 'EWR'
+  zones_ds (data source table, STATIC) before ['borough=Bronx', 'borough=EWR']
+                                     after  ['borough=EWR']

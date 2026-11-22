@@ -1,0 +1,26 @@
+== 1. HiveVersion objects in sql/hive/.../client/package.scala at each tag
+  v3.5.0  0.12.0 0.13.1 0.14.0 1.0.1 1.1.1 1.2.2 2.0.1 2.1.1 2.2.0 2.3.9 3.0.0 3.1.3
+  v4.0.0  2.0.1 2.1.1 2.2.0 2.3.10 3.0.0 3.1.3 4.0.1
+  v4.1.0  2.0.1 2.1.1 2.2.0 2.3.10 3.0.0 3.1.3 4.0.1 4.1.0
+  v4.2.0  2.0.1 2.1.1 2.2.0 2.3.10 3.0.0 3.1.3 4.0.1 4.1.0
+  v4.3.0  2.0.1 2.1.1 2.2.0 2.3.10 3.0.0 3.1.3 4.0.1 4.1.0
+
+== 2. the Hive jars inside the pyspark 4.3.0 wheel (the 'builtin' client)
+  hive-beeline-2.3.10.jar
+  hive-cli-2.3.10.jar
+  hive-common-2.3.10.jar
+  hive-exec-2.3.10-core.jar
+  hive-jdbc-2.3.10.jar
+  hive-metastore-2.3.10.jar
+  hive-serde-2.3.10.jar
+  hive-service-rpc-4.0.0.jar
+  hive-shims-0.23-2.3.10.jar
+  hive-shims-2.3.10.jar
+  hive-shims-common-2.3.10.jar
+  hive-shims-scheduler-2.3.10.jar
+  hive-storage-api-2.8.1.jar
+
+== 3. a session for each setting (one process each: these are static configurations)
+  version=2.3.10  jars=builtin  ok, databases: ['default']
+  version=1.2.1   jars=builtin  IllegalArgumentException: [INVALID_CONF_VALUE.REQUIREMENT] The value '1.2.1' in the config "spark.sql.hive.metastore.version" is invalid. Unsupported Hive Metastore version SQLSTATE: 22022
+  version=3.1.3   jars=builtin  IllegalArgumentException: Builtin jars can only be used when hive execution version == hive metastore version. Execution: 2.3.10 != Metastore: 3.1.3. Specify a valid path to the correct hive jars using spark.sql.hive.metastore.jars or change spark.sql.hive

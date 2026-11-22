@@ -1,0 +1,92 @@
+> CREATE DATABASE taxi
+> USE taxi
+== 1. five ways to make a table
+> CREATE TABLE z_text (id INT, borough STRING, zone STRING)
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+     STORED AS TEXTFILE
+> CREATE TABLE z_hive_pq (id INT, borough STRING, zone STRING) STORED AS PARQUET
+> CREATE TABLE z_hive_orc (id INT, borough STRING, zone STRING) STORED AS ORC
+> CREATE TABLE z_csv_serde (id STRING, borough STRING, zone STRING)
+     ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+     WITH SERDEPROPERTIES ('separatorChar' = ',', 'quoteChar' = '"')
+     STORED AS TEXTFILE
+> CREATE TABLE z_ds_pq (id INT, borough STRING, zone STRING) USING parquet
+> CREATE TABLE z_default (id INT, borough STRING, zone STRING)
+
+== 2. what the metastore keeps for each table
+  table        Provider  Serde Library                                          
+  z_text       hive      org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+  z_hive_pq    hive      org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
+  z_hive_orc   hive      org.apache.hadoop.hive.ql.io.orc.OrcSerde
+  z_csv_serde  hive      org.apache.hadoop.hive.serde2.OpenCSVSerde
+  z_ds_pq      parquet   org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
+  z_default    parquet   org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe
+
+== 3. on disk
+  warehouse/taxi.db:
+    z_csv_serde/part-00000-<uuid>-c000  (27 B)
+    z_csv_serde/part-00001-<uuid>-c000  (27 B)
+    z_default/_SUCCESS  (0 B)
+    z_default/part-00000-<uuid>-c000.snappy.parquet  (989 B)
+    z_default/part-00001-<uuid>-c000.snappy.parquet  (991 B)
+    z_ds_pq/_SUCCESS  (0 B)
+    z_ds_pq/part-00000-<uuid>-c000.snappy.parquet  (989 B)
+    z_ds_pq/part-00001-<uuid>-c000.snappy.parquet  (991 B)
+    z_hive_orc/_SUCCESS  (0 B)
+    z_hive_orc/part-00000-<uuid>-c000.zstd.orc  (590 B)
+    z_hive_orc/part-00001-<uuid>-c000.zstd.orc  (632 B)
+    z_hive_pq/_SUCCESS  (0 B)
+    z_hive_pq/part-00000-<uuid>-c000.snappy.parquet  (989 B)
+    z_hive_pq/part-00001-<uuid>-c000.snappy.parquet  (991 B)
+    z_text/part-00000-<uuid>-c000  (21 B)
+    z_text/part-00001-<uuid>-c000  (47 B)
+  one file of z_text: '1,EWR,Newark Airport\n'
+  one file of z_csv_serde: '"1","EWR","Newark Airport"\n'
+
+== 4. the reader and the writer in the physical plan
+  table        scan node        write command
+  z_text       Scan hive        InsertIntoHiveTable
+  z_hive_pq    FileScan parquet InsertIntoHadoopFsRelationCommand
+  z_hive_orc   FileScan orc     InsertIntoHadoopFsRelationCommand
+  z_ds_pq      FileScan parquet InsertIntoHadoopFsRelationCommand
+  with spark.sql.hive.convertMetastoreParquet=false:
+  z_hive_pq    Scan hive        InsertIntoHiveTable
+
+== 5. SHOW CREATE TABLE gives Spark DDL. AS SERDE gives Hive DDL
+> SHOW CREATE TABLE z_text
+  CREATE TABLE taxi.z_text (
+    id INT,
+    borough STRING COLLATE UTF8_BINARY,
+    zone STRING COLLATE UTF8_BINARY)
+  USING text
+> SHOW CREATE TABLE z_text AS SERDE
+  CREATE TABLE taxi.z_text (
+    id INT,
+    borough STRING,
+    zone STRING)
+  ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+  WITH SERDEPROPERTIES (
+    'field.delim' = ',',
+    'serialization.format' = ',')
+  STORED AS
+    INPUTFORMAT 'org.apache.hadoop.mapred.TextInputFormat'
+    OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+  run the Spark DDL under a new name, and it fails:
+> CREATE TABLE taxi.z_text_copy (
+     id INT,
+     borough STRING COLLATE UTF8_BINARY,
+     zone STRING COLLATE UTF8_BINARY)
+     USING text
+  AnalysisException: [UNSUPPORTED_DATA_TYPE_FOR_DATASOURCE] The Text datasource doesn't
+  support the column `id` of the type "INT". SQLSTATE: 0A000
+> SHOW CREATE TABLE z_ds_pq AS SERDE
+  AnalysisException: [UNSUPPORTED_SHOW_CREATE_TABLE.ON_DATA_SOURCE_TABLE_WITH_AS_SERDE]
+  Unsupported a SHOW CREATE TABLE command. The table `spark_catalog`.`taxi`.`z_ds_pq` is ...
+
+== 6. USING hive, and the legacy default
+> CREATE TABLE z_using_hive (id INT) USING hive OPTIONS (fileFormat 'orc')
+  {'Provider': 'hive', 'Serde Library': 'org.apache.hadoop.hive.ql.io.orc.OrcSerde'}
+> CREATE TABLE z_legacy (id INT)
+  {'Provider': 'hive', 'Serde Library': 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'}
+> CREATE TABLE z_char (code CHAR(3)) STORED AS PARQUET
+> CREATE TABLE z_char_ds (code CHAR(3)) USING parquet

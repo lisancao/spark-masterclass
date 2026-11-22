@@ -1,0 +1,54 @@
+> CREATE TABLE zones (id INT, zone STRING, borough STRING) USING parquet PARTITIONED BY (borough)
+> CREATE TABLE lake.db.zones (id INT, zone STRING, borough STRING) PARTITIONED BY (borough)
+== 1. VALUES, a column list, and BY NAME
+  zones          [(1, 'Newark Airport', 'EWR'), (2, 'Jamaica Bay', 'Queens'), (3, 'Allerton', 'Bronx')]
+  lake.db.zones  [(1, 'Newark Airport', 'EWR'), (2, 'Jamaica Bay', 'Queens'), (3, 'Allerton', 'Bronx')]
+> INSERT INTO zones SELECT 4, 'Bronx', 'Bedford Park'
+> INSERT INTO zones BY NAME SELECT 5 AS id, 'Bronx' AS borough
+> SELECT * FROM zones WHERE id >= 4 ORDER BY id
++---+-----+------------+
+|id |zone |borough     |
++---+-----+------------+
+|4  |Bronx|Bedford Park|
+|5  |NULL |Bronx       |
++---+-----+------------+
+
+> INSERT INTO zones BY NAME SELECT 4 AS id, 'Bronx' AS boro, 'Belmont' AS zone
+  AnalysisException: [INCOMPATIBLE_DATA_FOR_TABLE.EXTRA_COLUMNS] Cannot write
+  incompatible data for the table `spark_catalog`.`default`.`zones`: Cannot write extra ...
+
+== 2. the command in the plan, V1 table against V2 table
+  statement                                  session catalog (parquet)                    V2 catalog (Iceberg)
+  INSERT INTO t VALUES ...                   InsertIntoHadoopFsRelationCommand            AppendData
+  INSERT INTO t BY NAME SELECT               InsertIntoHadoopFsRelationCommand            AppendData
+  INSERT OVERWRITE t SELECT                  InsertIntoHadoopFsRelationCommand            OverwriteByExpression
+  INSERT OVERWRITE t PARTITION (...) SELECT  InsertIntoHadoopFsRelationCommand            OverwriteByExpression
+  INSERT INTO t REPLACE WHERE ...            error: does not support                      OverwriteByExpression
+  INSERT INTO t REPLACE USING (id)           error: does not support                      error: does not support
+  INSERT INTO t AS x REPLACE ON ...          error: does not support                      error: does not support
+  INSERT OVERWRITE t SELECT (dynamic mode)   InsertIntoHadoopFsRelationCommand            OverwritePartitionsDynamic
+
+== 3. REPLACE WHERE on the V2 table: delete the rows that match, insert the new rows
+> INSERT INTO lake.db.zones REPLACE WHERE borough = 'Bronx'
+     VALUES (3, 'Allerton/Pelham Gardens', 'Bronx'), (31, 'Bronx Park', 'Bronx')
+   [(1, 'Newark Airport', 'EWR'), (2, 'Jamaica Bay', 'Queens'), (3, 'Allerton/Pelham Gardens', 'Bronx'), (31, 'Bronx Park', 'Bronx')]
+> INSERT INTO lake.db.zones REPLACE WHERE borough = 'Bronx' VALUES (9, 'Astoria', 'Queens')
+
+== 4. REPLACE USING (id): replace the rows whose id is in the new data
+> INSERT INTO lake.db.zones REPLACE USING (id) VALUES (2, 'Jamaica Bay (fixed)', 'Queens'), (7, 'Astoria', 'Queens')
+  AnalysisException: [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported:
+  Table `lake`.`db`.`zones` does not support INSERT INTO ... REPLACE ON/USING. Please ...
+   [(1, 'Newark Airport', 'EWR'), (2, 'Jamaica Bay', 'Queens'), (9, 'Astoria', 'Queens')]
+
+== 5. INSERT WITH SCHEMA EVOLUTION: a new column in the data
+  without the clause:
+  AnalysisException: [INSERT_COLUMN_ARITY_MISMATCH.TOO_MANY_DATA_COLUMNS] Cannot write
+  to `lake`.`db`.`zones`, the reason is too many data columns: Table columns: `id`, ...
+> INSERT WITH SCHEMA EVOLUTION INTO lake.db.zones BY NAME
+     SELECT 8 AS id, 'Queens' AS borough, 'Auburndale' AS zone, 'Boro Zone' AS service_zone
+  columns of lake.db.zones : ['id', 'zone', 'borough', 'service_zone']
+> INSERT WITH SCHEMA EVOLUTION INTO zones BY NAME
+     SELECT 8 AS id, 'Queens' AS borough, 'Auburndale' AS zone, 'Boro Zone' AS service_zone
+  AnalysisException: [UNSUPPORTED_INSERT_WITH_SCHEMA_EVOLUTION] INSERT WITH SCHEMA
+  EVOLUTION ... is unsupported for this table format. SQLSTATE: 0A000
+  columns of zones : ['id', 'zone', 'borough']
