@@ -28,7 +28,7 @@ Chapters (old numbers in file names, final numbers from `book/roadmap.md` in bra
 
 | File | Findings | Chapter allowlist |
 |---|---|---|
-| `ch35-mllib-mlflow.md` | 0 | training tracking setting Scoring scoring |
+| `ch35-mllib-mlflow.md` | 0 | training tracking setting Scoring scoring Tuning |
 | `ch36-text-analytics.md` | 0 | (none) |
 | `ch37-similarity-search.md` | 0 | hashing banding Mining typing streaming |
 | `ch38-entity-resolution.md` | 0 | Blocking blocking Clustering clustering scoring matching ordering missing |

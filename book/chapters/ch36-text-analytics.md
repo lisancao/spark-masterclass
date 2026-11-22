@@ -261,7 +261,9 @@ flowchart TB
   dist --> dedup["HashAggregate:<br/>one row per pair"]:::j
 ```
 
-`posexplode` makes one row for each hash table and hash value. The `SortMergeJoin` joins rows with the same table number (`entry`) and the same value. A pair that matches in two tables appears two times, so the `HashAggregate` at the top removes the duplicate pairs. Each MLlib hash table holds one hash value. Thus, a pair is a candidate if any one value matches. This is OR-amplification only. [Chapter 37](ch37-similarity-search.md) shows why bands of several values give much fewer candidates.
+`posexplode` makes one row for each hash table and hash value. The `SortMergeJoin` joins rows with the same table number (`entry`) and the same value.
+
+A pair that matches in two tables appears two times, so the `HashAggregate` at the top removes the duplicate pairs. Each MLlib hash table holds one hash value. Thus, a pair is a candidate if any one value matches. This is OR-amplification only. [Chapter 37](ch37-similarity-search.md) shows why bands of several values give much fewer candidates.
 
 ## Step 8: Three traps
 
