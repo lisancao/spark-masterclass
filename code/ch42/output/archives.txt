@@ -1,0 +1,22 @@
+spark.submit.pyFiles in the builder:
+driver: <userFiles>/messytools.zip/messytools/__init__.py
+task:   <userFiles>/messytools.zip/messytools/__init__.py
+
+venv-pack: 61 MB; bin/python -> python3.12; bin/python3 -> python3.12; bin/python3.12 -> /usr/bin/python3.12
+PYSPARK_PYTHON=./environment/bin/python, spark.archives=pyspark_venv.tar.gz#environment:
+files root: <userFiles> ['environment']
+org.apache.spark.SparkException: Job aborted due to stage failure: Task 0 in stage 0.0 failed 1 times, most recent failure: Lost task 0.0 in stage 0.0 (TID 0) (localhost executor driver): java.io.IOException: Cannot run program "./environment/bin/python": error=2, No such file or directory
+
+a site folder shipped with addArchive:
+task imports: <userFiles>/deps/site-packages/tabulate/__init__.py
+
+PYSPARK_PYTHON=./uv_run, uv run --script app.py (uv 0.11.10), local mode, executors inherit the driver's environment:
+driver: ~/.cache/uv/environments-v2/<hash>/bin/python tabulate 0.9.0
+VIRTUAL_ENV in the driver: ~/.cache/uv/environments-v2/<hash>
+worker: ~/.cache/uv/environments-v2/<hash>/bin/python3 tabulate 0.9.0
+
+PYSPARK_PYTHON=./uv_run, uv run --script app.py (uv 0.11.10), spark.executorEnv.VIRTUAL_ENV='' (an executor on another host):
+driver: ~/.cache/uv/environments-v2/<hash>/bin/python3 tabulate 0.9.0
+VIRTUAL_ENV in the driver: ~/.cache/uv/environments-v2/<hash>
+worker: ~/.local/share/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 ModuleNotFoundError("No module named 'tabulate'")
+

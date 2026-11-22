@@ -66,7 +66,7 @@ spark.task.maxFailures as the scheduler sees it: 2
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch41-attempts.webp">
     <source src="../../media/clips/ch41-attempts.mp4" type="video/mp4">
   </video>
-  <figcaption><code>attempts.py</code>: the same failure under <code>local[4]</code> and <code>local[4,2]</code>, and the values that a retry gives again.</figcaption>
+  <figcaption><code>attempts.py</code>: the same failure under <code>local[4]</code> and <code>local[4,2]</code>, and the values that a retry gives again. The values from <code>random.random()</code> are different in each run, so they are not the same as in the output above.</figcaption>
 </figure>
 
 Under `local[4]`, one failure stops the job, and `spark.task.maxFailures=4` has no effect.
@@ -228,7 +228,7 @@ random  fullRetry=true  FAILED:
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch41-shuffle.webp">
     <source src="../../media/clips/ch41-shuffle.mp4" type="video/mp4">
   </video>
-  <figcaption><code>lost_shuffle.py</code>: a deleted map output with a deterministic UDF, then with a random UDF, with the check off and on.</figcaption>
+  <figcaption><code>lost_shuffle.py</code>: a deleted map output with a deterministic UDF, then with a random UDF, with the check off and on. The random counts change in each run.</figcaption>
 </figure>
 
 The stage records come from the monitoring REST API.
@@ -243,7 +243,9 @@ The protection comes from an order-independent checksum. Since Spark 4.1 (SPARK-
 
 When a recomputed map task reports a different checksum, `MapOutputTracker.registerMapOutput` records a mismatch. The stage becomes `isRuntimeIndeterminate`, and `DAGScheduler` rolls back each stage that read the output, so that all of their tasks run again (`spark.sql.shuffle.orderIndependentChecksum.enableFullRetryOnMismatch`). Both settings have the default `true` in 4.3.0 (`SQLConf.scala`, lines 1211 to 1232).
 
-Spark can roll back a `ShuffleMapStage`. It cannot roll back a `ResultStage` that finished some partitions, because those results can already be in your driver or in an output file. In this run, attempt 0 of stage 3 completed two of its four tasks before the failure. Thus `filterAndAbortUnrollbackableStages` stopped the job with the message above.
+Spark can roll back a `ShuffleMapStage`. It cannot roll back a `ResultStage` that finished some partitions, because those results can already be in your driver or in an output file.
+
+The first two cases show that attempt 1 of stage 3 ran only 2 of the 4 tasks. Thus attempt 0 finished the other 2 tasks before the fetch failure. The number changes between runs, because it depends on which reducers read the deleted file first. In the third case, the result stage also contained finished tasks. Thus `filterAndAbortUnrollbackableStages` stopped the job with the message above.
 
 ```mermaid
 flowchart TD
@@ -450,7 +452,7 @@ with SparkSession.builder.remote(f"sc://localhost:{PORT + 1}").getOrCreate() as 
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch41-reattach.webp">
     <source src="../../media/clips/ch41-reattach.mp4" type="video/mp4">
   </video>
-  <figcaption><code>reattach.py</code>: a result of 3.8 million rows through a proxy that cuts the TCP connection, with and without reattachable execution.</figcaption>
+  <figcaption><code>reattach.py</code>: a result of 3.8 million rows through a proxy that cuts the TCP connection, with and without reattachable execution. The operation IDs and the number of release calls change in each run.</figcaption>
 </figure>
 
 Each case teaches a different point:
@@ -536,7 +538,7 @@ correct_job:
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch41-fragile.webp">
     <source src="../../media/clips/ch41-fragile.mp4" type="video/mp4">
   </video>
-  <figcaption><code>fragile_job.py</code>: the fragile job and the correct job, each run clean and then under chaos.</figcaption>
+  <figcaption><code>fragile_job.py</code>: the fragile job and the correct job, each run clean and then under chaos. The size of the fragile audit sample changes in each run, because its rows change.</figcaption>
 </figure>
 
 The fragile job is wrong even in the clean run. Its ledger has 12 entries for 6 charges, and its metrics report 12 charges, because the second action ran the UDF again. Under chaos, the rerun appended a second copy of the charges and posted the ledger again. The correct job gives the same charges, audit sample, ledger and metrics in both runs, after 8 retried tasks.

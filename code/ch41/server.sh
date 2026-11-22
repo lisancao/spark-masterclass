@@ -7,12 +7,14 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 PORT=${CONNECT_PORT:-15058} UI=${CONNECT_UI_PORT:-4158}
 export SPARK_HOME=$(.venv/bin/python -c "import pyspark, os; print(os.path.dirname(pyspark.__file__))")
-DATA=${BOOK_DATA:-$PWD/../data}
-export SPARK_LOG_DIR=$DATA/logs/part08-$PORT SPARK_PID_DIR=$DATA/pids/part08-$PORT SPARK_LOCAL_IP=127.0.0.1
+# Logs and PID files go in the repo's own data/ folder (ignored by git), whatever BOOK_DATA says,
+# so that start and stop always find the same PID file.
+RUN=$PWD/../data
+export SPARK_LOG_DIR=$RUN/logs/part08-$PORT SPARK_PID_DIR=$RUN/pids/part08-$PORT SPARK_LOCAL_IP=127.0.0.1
 export SPARK_IDENT_STRING=part08-$PORT
 mkdir -p "$SPARK_LOG_DIR" "$SPARK_PID_DIR"
 "$SPARK_HOME/sbin/stop-connect-server.sh" >/dev/null 2>&1 || true
-while curl -sf "localhost:$UI/api/v1/applications" >/dev/null 2>&1; do sleep 1; done
+for _ in $(seq 60); do curl -sf "localhost:$UI/api/v1/applications" >/dev/null 2>&1 || break; sleep 1; done
 cmd=${1:-start}; shift || true
 [[ $cmd == stop ]] && exit 0
 "$SPARK_HOME/sbin/start-connect-server.sh" \

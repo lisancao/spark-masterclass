@@ -120,3 +120,24 @@ spark = fresh()
 spark.sparkContext.addPyFile(whl)
 print("\nmessytools-1.0-py3-none-any.whl via addPyFile:", import_in_tasks(spark, where_udf()))
 spark.stop()
+
+# spark.addArtifacts in Classic: a front for addPyFile, and it refuses changed bytes.
+spark = fresh()
+os.makedirs(f"{pkgs.WORK}/c1", exist_ok=True)
+os.makedirs(f"{pkgs.WORK}/c2", exist_ok=True)
+first = os.replace(pkgs.zip_package("1.0", "c1.zip"), f"{pkgs.WORK}/c1/messytools.zip") or f"{pkgs.WORK}/c1/messytools.zip"
+second = os.replace(pkgs.zip_package("2.0", "c2.zip"), f"{pkgs.WORK}/c2/messytools.zip") or f"{pkgs.WORK}/c2/messytools.zip"
+spark.addArtifacts(first, pyfile=True)
+print("\nClassic addArtifacts:", import_in_tasks(spark, where_udf()))
+spark.addArtifacts(first, pyfile=True)
+print("Classic addArtifacts, same bytes again: accepted")
+try:
+    spark.addArtifacts(second, pyfile=True)
+except Exception as e:
+    print("Classic addArtifacts, changed bytes:", type(e).__name__, short(str(e).splitlines()[0])[:150])
+try:
+    spark.sparkContext.addPyFile(second)
+except Exception as e:
+    cause = next(l for l in str(e).splitlines() if "SparkException" in l)
+    print("addPyFile, changed bytes, same file name:", short(cause.split("SparkException: ")[1])[:150])
+spark.stop()

@@ -67,7 +67,7 @@ out = run_script("packed_env.py", SESSION + f"""
     try:
         print(spark.range(1).select(f("id")).first()[0])
     except Exception as e:
-        print(next(l for l in str(e).splitlines() if "Cannot run program" in l).strip())
+        print(next(l for l in str(e).splitlines() if "Cannot run program" in l).strip().lstrip(": "))
 """, env={"PYSPARK_PYTHON": "./environment/bin/python"})
 print("PYSPARK_PYTHON=./environment/bin/python, spark.archives=pyspark_venv.tar.gz#environment:")
 print(short(out.stdout))
@@ -109,7 +109,12 @@ with open(app, "w") as f:
         import sys
         from pyspark.sql import SparkSession, functions as F
         import tabulate
-        spark = SparkSession.builder.master("local[1]").config("spark.ui.port", "{os.environ.get('SPARK_UI_PORT', '4040')}").getOrCreate()
+        import os
+        b = SparkSession.builder.master("local[1]").config("spark.ui.port", "{os.environ.get('SPARK_UI_PORT', '4040')}")
+        if os.environ.get("CH42_EXECUTOR_VENV") is not None:      # an executor that does not inherit the driver's env
+            b = (b.config("spark.executorEnv.VIRTUAL_ENV", os.environ["CH42_EXECUTOR_VENV"])
+                  .config("spark.sql.execution.pythonUDF.arrow.enabled", "false"))
+        spark = b.getOrCreate()
         spark.sparkContext.setLogLevel("OFF")
 
         @F.udf("string")
@@ -117,16 +122,20 @@ with open(app, "w") as f:
             import sys
             try:
                 import tabulate
-                return f"{{sys.executable}} {{tabulate.__version__}}"
+                return f"{{sys.executable}} tabulate {{tabulate.__version__}}"
             except ImportError as e:
                 return f"{{sys.executable}} {{e!r}}"
 
-        print("driver:", sys.executable, tabulate.__version__)
+        print("driver:", sys.executable, "tabulate", tabulate.__version__)
+        print("VIRTUAL_ENV in the driver:", os.environ.get("VIRTUAL_ENV"))
         print("worker:", spark.range(1).select(worker("id")).first()[0])
     """))
 env = {k: v for k, v in os.environ.items() if k not in ("VIRTUAL_ENV",)}
 env.update(PYSPARK_PYTHON="./uv_run", SPARK_HOME=spark_home)
-out = subprocess.run(["uv", "run", "--script", app], cwd=pkgs.WORK, env=env, capture_output=True, text=True)
-print("PYSPARK_PYTHON=./uv_run, uv run --script app.py (uv", subprocess.run(
-    ["uv", "--version"], capture_output=True, text=True).stdout.split()[1] + "):")
-print(short(out.stdout) or short(out.stderr[-600:]))
+uv_version = subprocess.run(["uv", "--version"], capture_output=True, text=True).stdout.split()[1]
+for title, extra in [("local mode, executors inherit the driver's environment", {}),
+                     ("spark.executorEnv.VIRTUAL_ENV='' (an executor on another host)", {"CH42_EXECUTOR_VENV": ""})]:
+    out = subprocess.run(["uv", "run", "--script", app], cwd=pkgs.WORK, env=dict(env, **extra),
+                         capture_output=True, text=True)
+    print(f"PYSPARK_PYTHON=./uv_run, uv run --script app.py (uv {uv_version}), {title}:")
+    print(short(out.stdout) or short(out.stderr[-600:]))
