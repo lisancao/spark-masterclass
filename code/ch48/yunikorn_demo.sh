@@ -21,6 +21,15 @@ if [[ $MODE == gang ]]; then       # keep one placeholder pod as YuniKorn made i
        image: .spec.containers[0].image, requests: .spec.containers[0].resources.requests}' \
     > ch48/output/yunikorn_placeholder.json
   wait
+  k logs "$(k get pods -o name | grep 'etl-a.*driver')" | grep ZONE_REVENUE > ch48/output/yunikorn_gang_driver_log.txt
+  exit 0
+fi
+if [[ $MODE == gang3 ]]; then     # YuniKorn rejects the application: show the pods and the reason
+  sleep 10
+  k get pods
+  pod=$(k get pods -o name | grep 'etl-a.*driver')
+  k get events --field-selector involvedObject.name="${pod#pod/}",reason=ApplicationFailed \
+    -o jsonpath='{range .items[*]}{.message}{"\n"}{end}' | fold -s -w 92
   exit 0
 fi
 python3 ch48/watch_pods.py "$SECONDS_TO_WATCH" --until-done

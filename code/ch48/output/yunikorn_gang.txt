@@ -1,13 +1,32 @@
 t+   0s  etl-a driver                   Pending
-t+   0s  etl-a placeholder (driver)     Pending
-t+   0s  etl-a placeholder (executor)   Pending
 t+   0s  etl-b driver                   Pending
-t+   0s  etl-b placeholder (driver)     Pending
-t+   0s  etl-b placeholder (executor)   Pending
+t+   1s  etl-a placeholder (driver)     Pending
+t+   1s  etl-a placeholder (executor)   Pending
+t+   1s  etl-b placeholder (driver)     Pending
+t+   1s  etl-b placeholder (executor)   Pending
+t+   2s  etl-a placeholder (driver)     Running
+t+   2s  etl-a placeholder (executor)   Running
 t+   3s  etl-a driver                   Running
-t+   3s  etl-a placeholder (executor)   Running
 t+   3s  etl-a placeholder (driver)     deleted
-t+  10s  etl-a exec-1                   Pending
-t+  10s  etl-a exec-2                   Pending
-t+  12s  etl-a exec-1                   Running
-t+  12s  etl-a placeholder (executor)   deleted
+t+   9s  etl-a exec-1                   Pending
+t+   9s  etl-a exec-2                   Pending
+t+   9s  etl-a placeholder (executor)   deleted
+t+  10s  etl-a exec-1                   Running
+t+  50s  etl-a exec-1                   Completed
+t+  50s  etl-a exec-2                   deleted
+t+  51s  etl-b placeholder (executor)   Running
+t+  51s  etl-a exec-1                   deleted
+t+  52s  etl-a driver                   Completed
+t+  54s  etl-b driver                   Running
+t+  54s  etl-b placeholder (driver)     deleted
+t+  61s  etl-b exec-1                   Pending
+t+  61s  etl-b exec-2                   Pending
+t+  62s  etl-b placeholder (executor)   deleted
+t+  63s  etl-b exec-2                   Running
+t+ 103s  etl-b exec-2                   Terminating
+t+ 103s  etl-b exec-1                   deleted
+t+ 104s  etl-b exec-2                   Completed
+t+ 105s  etl-b driver                   Completed
+t+ 105s  etl-b exec-2                   deleted
+yunikorn  etl-b  Running    cores used 1, cores waiting 0
+yunikorn  queue root.etl  cores used 1 of max 2

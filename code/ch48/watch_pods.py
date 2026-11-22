@@ -4,7 +4,7 @@
 
 Pod names are made short: "etl-a driver", "etl-a exec-1", and "etl-a placeholder (executor)" for the
 placeholder pods that YuniKorn makes for a gang. At the end, it prints the YuniKorn state of each
-application, from the scheduler's REST API (port-forwarded to localhost:19048 by yunikorn.sh). YuniKorn counts vcore in thousandths of a core..
+application, from the scheduler's REST API (port-forwarded to localhost:19048 by yunikorn.sh). YuniKorn counts vcore in thousandths of a core.
 """
 import json
 import re
@@ -74,6 +74,8 @@ while time.time() - t0 < seconds:
         break
     time.sleep(1)
 
+if until_done:
+    time.sleep(5)      # let YuniKorn see the last pods finish before its state is read
 try:
     url = "http://localhost:19048/ws/v1/partition/default/queue/root.etl/applications"
     for a in json.load(urllib.request.urlopen(url, timeout=5)):
