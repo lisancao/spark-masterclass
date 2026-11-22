@@ -181,7 +181,22 @@ See the chapter section list; filled in after the chapter (below).
 
 ## Clips
 
-FILLED AT THE END
+Tapes: `code/film/ch05.tape` to `ch10.tape`, rendered with `film render code/film/chNN.tape --format chapter` (no bench lock, `BOOK_NO_LOCK=1`, Spark UI on 4122). Each clip is the last 16 seconds of its beat (the command line stays on screen while the script runs), cut by ffmpeg; the cut list is `book/media/clips/clips-part02.tsv`. Timings that appear on screen in a film are not quoted in the text.
+
+| Clip | Beat | Draft VO |
+|---|---|---|
+| ch05-drift | drift.py step 5 | Each day of events is compared with the contract. Day 3 renamed a field and changed the type of amount. |
+| ch05-zones | type_system.py step 3 | The same timestamp text is two instants in two zones. The NTZ text is one wall-clock time. |
+| ch06-ansi | ansi.py steps 1-2 | One zero fare stops the average. Each error has its own condition, and ANSI off gives wrong numbers. |
+| ch06-nanos | nanos.py step 2 | New in 4.3: two events one nanosecond apart stay different. |
+| ch07-frames | windows.py step 4 | The default frame is a range, so the two rows with 30 trips both get 90. |
+| ch07-topn | qualify.py steps 3-4 | Upper limits on rank functions get a WindowGroupLimit. QUALIFY needs a window function. |
+| ch08-loop | scripting.py steps 4-5 | One script with five passes is twenty queries. Handlers catch errors by name and SQLSTATE. |
+| ch08-udf | functions.py steps 1-2 | The SQL function becomes a CASE WHEN in the plan. The Python function adds ArrowEvalPython. |
+| ch09-types | strategies.py steps 1-2 | Join types on a tiny table, then trips by zones: a broadcast hash join. |
+| ch09-asof | asof.py step 2 | New in 4.3: ASOF JOIN finds the last drop-off before each pickup. |
+| ch10-gaps | timeseries.py step 5 | A quiet zone has three rows for 24 hours. The fill makes the rest. |
+| ch10-nearest | geo.py step 8 | All pairs and NEAREST BY compare every pair. The grid compares fewer, and misses four. |
 
 ## Nav entries
 

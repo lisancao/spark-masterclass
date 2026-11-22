@@ -1,0 +1,13 @@
+== 1. join types
+  inner     [(2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x')]
+  left      [(None, 'a_null', None), (1, 'a1', None), (2, 'a2', 'b2'), (3, 'a3', 'b3x'), (3, 'a3', 'b3')]
+  right     [(None, None, 'b_null'), (2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x'), (4, None, 'b4')]
+  full      [(None, None, 'b_null'), (None, 'a_null', None), (1, 'a1', None), (2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x'), (4, None, 'b4')]
+  left_semi [(2, 'a2'), (3, 'a3')]
+  left_anti [(None, 'a_null'), (1, 'a1')]
+  cross     20 rows
+  k = k     3 rows | k <=> k: 4 rows
+  select('k') after a.k == b.k: AMBIGUOUS_REFERENCE: Reference `k` is ambiguous, could be: [`k`, `k`]. SQLSTATE: 42704
+  columns after join on 'k': ['k', 'a', 'b'] | on a.k == b.k: ['k', 'a', 'k', 'b']
+
+== 2. the default strategy

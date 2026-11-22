@@ -1,0 +1,88 @@
+== 1. ASOF JOIN needs a flag
+default config: UNSUPPORTED_FEATURE.ASOF_JOIN: The feature is not supported: SQL ASOF JOIN syntax. Set "spark.sql.join.
+
+== 2. the last drop-off before each pickup, in the same zone (1 June)
++----+-------------------+-------------------+
+|zone|             pickup|       last_dropoff|
++----+-------------------+-------------------+
+| 132|2026-06-01 00:13:37|2026-06-01 00:13:34|
+| 132|2026-06-01 00:13:41|2026-06-01 00:13:34|
+| 132|2026-06-01 00:13:53|2026-06-01 00:13:34|
+| 132|2026-06-01 00:13:54|2026-06-01 00:13:34|
+| 132|2026-06-01 00:14:08|2026-06-01 00:13:34|
++----+-------------------+-------------------+
+
++---------------------+-------+-------------+
+|Zone                 |pickups|median_wait_s|
++---------------------+-------+-------------+
+|Upper East Side South|6116   |7.0          |
+|JFK Airport          |5665   |50.0         |
+|Midtown Center       |5514   |10.0         |
+|Upper East Side North|5497   |7.0          |
+|Midtown East         |3989   |13.0         |
++---------------------+-------+-------------+
+
+== 3. the plan of ASOF JOIN
+AdaptiveSparkPlan isFinalPlan=false
++- Project [zone#158, t#159 AS pickup#154, t#163 AS last_dropoff#155]
+   +- SortMergeAsOfJoin [zone#158], [zone#162], [t#159], [t#163], (t#159 >= t#163), (t#159 - t#163), Inn
+      :- Sort [zone#158 ASC NULLS FIRST, t#159 ASC NULLS FIRST], false, 0
+      :  +- Exchange hashpartitioning(zone#158, 200), ENSURE_REQUIREMENTS, [plan_id=595]
+      :     +- Project [PULocationID#28 AS zone#158, tpep_pickup_datetime#22 AS t#159]
+      :        +- Filter (((((isnotnull(tpep_pickup_datetime#22) AND isnotnull(tpep_dropoff_datetime#23)
+      :           +- FileScan parquet [tpep_pickup_datetime#22,tpep_dropoff_datetime#23,PULocationID#28]
+
+== 4. direction, LEFT ASOF and NULL
+  e.t >= r.t (last at or before   ): [('07:30', None), ('09:00', '09:00'), ('09:40', '09:00'), (None, None)]
+  e.t >  r.t (last strictly before): [('07:30', None), ('09:00', '08:00'), ('09:40', '09:00'), (None, None)]
+  e.t <= r.t (first at or after   ): [('07:30', '08:00'), ('09:00', '09:00'), ('09:40', '10:00'), (None, None)]
+  INNER drops unmatched rows: 2 of 4
+  = in MATCH_CONDITION   ASOF_JOIN_MATCH_CONDITION_INVALID_OPERATOR: The MATCH_CONDITION operator must be one of >=, >, <=, <. Got: =. SQLSTA
+  RIGHT ASOF JOIN        PARSE_SYNTAX_ERROR: Syntax error at or near 'ASOF': extra input 'ASOF'. SQLSTATE: 42601 (lin
+
+== 5. the same answer three ways, 1 June (median of 3 after a warmup)
+  ASOF JOIN                  n=  109,379  s=    13,818,273    6.44 s  ['HashAggregate', 'SortMergeAsOfJoin']
+  window over a union        n=  109,379  s=    13,818,273    0.47 s  ['HashAggregate']
+  range join + max (10 min)  n=  102,503  s=     5,204,506   10.24 s  ['BroadcastHashJoin', 'HashAggregate']
+  (pickups may share a timestamp, so the range join groups fewer rows; and it misses waits over 10 minutes)
+
+== 5b. one busy zone (237), more days: ASOF JOIN against the window (median of 3)
+  1 day(s),  6,121 pickups:  ASOF   0.71 s   window  0.15 s
+  2 day(s), 13,477 pickups:  ASOF   2.63 s   window  0.19 s
+  4 day(s), 28,745 pickups:  ASOF  10.76 s   window  0.17 s
+
+== 6. NEAREST BY
++-----------+---------+---------+
+|fare_amount|     rule|rule_fare|
++-----------+---------+---------+
+|        4.4|  minimum|      3.0|
+|        4.4|    short|     10.0|
+|       19.8|crosstown|     25.0|
+|       19.8|    short|     10.0|
+|       52.0|  airport|     70.0|
+|       52.0|crosstown|     25.0|
+|       69.9|  airport|     70.0|
+|       69.9|crosstown|     25.0|
++-----------+---------+---------+
+
+plan of APPROX NEAREST BY: ['BroadcastNestedLoopJoin', 'SortAggregate']
+plan of EXACT NEAREST BY:  ['BroadcastNestedLoopJoin', 'SortAggregate']
+DataFrame API: [(30.0, 'crosstown', Decimal('25.0')), (95.0, 'airport', Decimal('70.0'))]
+  k = 0      NEAREST_BY_JOIN.NUM_RESULTS_OUT_OF_RANGE: Invalid nearest-by join. The number of results 0 must be between 1 and 1
+  FULL join  NEAREST_BY_JOIN.UNSUPPORTED_JOIN_TYPE: Invalid nearest-by join. Unsupported nearest-by join type FULL OUTER. Su
+
+== 7. LATERAL: the three longest trips from each of three zones
++-----------------+-------------+-----------+
+|Zone             |trip_distance|fare_amount|
++-----------------+-------------+-----------+
+|JFK Airport      |94.78        |605.0      |
+|JFK Airport      |93.76        |648.4      |
+|JFK Airport      |91.6         |300.0      |
+|LaGuardia Airport|81.21        |569.3      |
+|LaGuardia Airport|80.49        |562.3      |
+|LaGuardia Airport|74.4         |269.0      |
+|Midtown Center   |58.75        |200.0      |
+|Midtown Center   |56.05        |225.0      |
+|Midtown Center   |50.93        |261.3      |
++-----------------+-------------+-----------+
+

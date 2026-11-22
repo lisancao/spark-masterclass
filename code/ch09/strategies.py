@@ -66,7 +66,8 @@ print("== 1. join types")
 a = spark.createDataFrame([(1, "a1"), (2, "a2"), (3, "a3"), (None, "a_null")], "k INT, a STRING")
 b = spark.createDataFrame([(2, "b2"), (3, "b3"), (3, "b3x"), (4, "b4"), (None, "b_null")], "k INT, b STRING")
 for how in ("inner", "left", "right", "full", "left_semi", "left_anti"):
-    rows = a.join(b, "k", how).orderBy("k", *(["a"] if how not in ("right",) else []))
+    j = a.join(b, "k", how)
+    rows = j.orderBy(*[F.col(c).asc_nulls_first() for c in j.columns])
     print(f"  {how:<9} {[tuple(r) for r in rows.collect()]}")
 print("  cross    ", a.crossJoin(b).count(), "rows")
 print("  k = k    ", a.join(b, a.k == b.k).count(), "rows | k <=> k:", a.join(b, a.k.eqNullSafe(b.k)).count(), "rows")
@@ -80,7 +81,7 @@ print("  columns after join on 'k':", a.join(b, "k").columns, "| on a.k == b.k:"
 print("\n== 2. the default strategy")
 j = trips.join(zones, trips.PULocationID == zones.LocationID)
 stats = zones._jdf.queryExecution().optimizedPlan().stats().sizeInBytes()
-print("zones estimated size:", stats.toString(), "bytes | threshold:",
+print("zones estimated size:", str(stats), "bytes | threshold:",
       spark.conf.get("spark.sql.autoBroadcastJoinThreshold"))
 print("trips x zones ->", join_ops(j))
 print("\n".join(l[:100] for l in plan(j, "simple").splitlines()[1:9]))
