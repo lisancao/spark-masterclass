@@ -558,9 +558,9 @@ This is one of the placeholder pods that YuniKorn made. It runs the `pause` imag
 
 ```json
 {
-  "name": "tg-spark-adec58d7d22a4fbeadf64a-executor-jdpnc9sgkl",
+  "name": "tg-spark-a087d9c0d1d84a46b3597a-executor-ha7nagywvs",
   "labels": {
-    "yunikorn.apache.org/app-id": "spark-adec58d7d22a4fbeadf64aee4a28397a",
+    "yunikorn.apache.org/app-id": "spark-a087d9c0d1d84a46b3597a16f3a17c68",
     "yunikorn.apache.org/queue": "root.etl"
   },
   "scheduler": "yunikorn",
@@ -581,37 +581,33 @@ The same two jobs, now with gang scheduling:
 
 ```text
 t+   0s  etl-a driver                   Pending
+t+   0s  etl-a placeholder (driver)     Pending
+t+   0s  etl-a placeholder (executor)   Pending
 t+   0s  etl-b driver                   Pending
-t+   1s  etl-a placeholder (driver)     Pending
-t+   1s  etl-a placeholder (executor)   Pending
-t+   1s  etl-b placeholder (driver)     Pending
-t+   1s  etl-b placeholder (executor)   Pending
-t+   2s  etl-a placeholder (driver)     Running
+t+   0s  etl-b placeholder (driver)     Pending
+t+   0s  etl-b placeholder (executor)   Pending
 t+   2s  etl-a placeholder (executor)   Running
-t+   3s  etl-a driver                   Running
-t+   3s  etl-a placeholder (driver)     deleted
-t+   9s  etl-a exec-1                   Pending
-t+   9s  etl-a exec-2                   Pending
-t+   9s  etl-a placeholder (executor)   deleted
-t+  10s  etl-a exec-1                   Running
-t+  50s  etl-a exec-1                   Completed
-t+  50s  etl-a exec-2                   deleted
-t+  51s  etl-b placeholder (executor)   Running
-t+  51s  etl-a exec-1                   deleted
-t+  52s  etl-a driver                   Completed
-t+  54s  etl-b driver                   Running
-t+  54s  etl-b placeholder (driver)     deleted
-t+  61s  etl-b exec-1                   Pending
-t+  61s  etl-b exec-2                   Pending
+t+   2s  etl-a placeholder (driver)     deleted
+t+   4s  etl-a driver                   Running
+t+  10s  etl-a exec-1                   Pending
+t+  10s  etl-a exec-2                   Pending
+t+  10s  etl-a placeholder (executor)   deleted
+t+  12s  etl-a exec-1                   Running
+t+  52s  etl-a exec-2                   deleted
+t+  52s  etl-a exec-1                   deleted
+t+  53s  etl-a driver                   Completed
+t+  53s  etl-b placeholder (driver)     Running
+t+  55s  etl-b driver                   Running
+t+  55s  etl-b placeholder (executor)   Running
+t+  55s  etl-b placeholder (driver)     deleted
+t+  62s  etl-b exec-1                   Running
+t+  62s  etl-b exec-2                   Pending
 t+  62s  etl-b placeholder (executor)   deleted
-t+  63s  etl-b exec-2                   Running
-t+ 103s  etl-b exec-2                   Terminating
-t+ 103s  etl-b exec-1                   deleted
-t+ 104s  etl-b exec-2                   Completed
+t+ 104s  etl-b exec-1                   deleted
+t+ 104s  etl-b exec-2                   deleted
 t+ 105s  etl-b driver                   Completed
-t+ 105s  etl-b exec-2                   deleted
-yunikorn  etl-b  Running    cores used 1, cores waiting 0
-yunikorn  queue root.etl  cores used 1 of max 2
+yunikorn  etl-b  Completing cores used 0, cores waiting 0
+yunikorn  queue root.etl  cores used 0 of max 2
 ```
 
 <figure markdown>
@@ -626,7 +622,16 @@ YuniKorn reserved the two cores of the queue for `etl-a`: one placeholder for th
 The placeholders of `etl-b` waited until `etl-a` ended. Then `etl-b` ran in the same way. The two jobs ran one after the other, and each job completed with the same result:
 
 ```text
-
+ZONE_REVENUE run=etl-a spark=4.3.0 master=k8s://https://127.0.0.1:40611
+ZONE_REVENUE Manhattan       3,374,269 trips  $    90,000,789
+ZONE_REVENUE Queens            319,164 trips  $    22,374,570
+ZONE_REVENUE Brooklyn          106,652 trips  $     4,107,067
+ZONE_REVENUE Bronx              14,955 trips  $       533,102
+ZONE_REVENUE N/A                 2,355 trips  $       258,590
+ZONE_REVENUE Unknown             4,109 trips  $       155,703
+ZONE_REVENUE EWR                   565 trips  $        67,976
+ZONE_REVENUE Staten Island         236 trips  $        12,809
+ZONE_REVENUE 8 rows in 9.0 s
 ```
 
 ```mermaid
