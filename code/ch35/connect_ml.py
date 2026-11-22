@@ -15,7 +15,7 @@ from pyspark.sql import SparkSession, functions as F
 from common.book import DATA
 from ch35.fares import fare_table, FEATURES_NUMERIC, FEATURES_CATEGORICAL, LABEL
 
-url = os.environ.get("CONNECT_URL", "sc://localhost:15057")
+url = os.environ.get("CONNECT_URL", "sc://localhost:10270")
 with SparkSession.builder.remote(url).getOrCreate() as spark:
     print(type(spark).__module__, "| server runs Spark", spark.version)
     data = fare_table(spark)

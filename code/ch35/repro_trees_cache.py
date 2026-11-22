@@ -5,7 +5,7 @@ from pyspark.sql import SparkSession
 from pyspark.ml.regression import GBTRegressor
 from pyspark.ml.feature import VectorAssembler
 
-with SparkSession.builder.remote(sys.argv[1] if len(sys.argv) > 1 else "sc://localhost:15057").getOrCreate() as spark:
+with SparkSession.builder.remote(sys.argv[1] if len(sys.argv) > 1 else "sc://localhost:10270").getOrCreate() as spark:
     df = VectorAssembler(inputCols=["x"], outputCol="features").transform(
         spark.range(200).selectExpr("cast(id as double) x", "cast(id % 7 as double) label"))
     m = GBTRegressor(maxIter=5).fit(df)

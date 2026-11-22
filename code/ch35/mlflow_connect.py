@@ -20,7 +20,7 @@ store = DATA / "ch35" / "mlflow"
 mlflow.set_tracking_uri(f"sqlite:///{store}/mlflow.db")
 mlflow.set_experiment("taxi-fares")
 
-with SparkSession.builder.remote(os.environ.get("CONNECT_URL", "sc://localhost:15057")).getOrCreate() as spark:
+with SparkSession.builder.remote(os.environ.get("CONNECT_URL", "sc://localhost:10270")).getOrCreate() as spark:
     train = fare_table(spark, fraction=0.01)
     model = Pipeline(stages=[StringIndexer(inputCol="rate_code", outputCol="rate_idx", handleInvalid="keep"),
                              VectorAssembler(inputCols=["trip_distance", "rate_idx"], outputCol="features"),
