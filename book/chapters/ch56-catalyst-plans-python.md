@@ -147,7 +147,7 @@ Two details in this output are traps for a test that reads plans:
 - **Node names are not the text of `explain()`.** The scan prints as `FileScan parquet` in `explain()`, but its `nodeName()` is `Scan parquet ` (with a space at the end). A test that compares node names must use the names of the tree, not of the text.
 - **`AdaptiveSparkPlan` hides its children.** Its `children()` is empty. The current plan is in the `executedPlan()` method of the node, so the walker goes into it by hand. This query has no shuffle, so AQE did not wrap it. The walker still needs the branch for other queries.
 
-The tracker times change from run to run. In a second run of the same script, the three phases took 8, 10 and 7 ms. A test can use the tracker to find a slow phase, but not to assert a time.
+The tracker times change from run to run. A test can use the tracker to find a slow phase, but not to assert a time.
 
 ## Step 3: Rules, batches and the plan change log
 
@@ -160,7 +160,7 @@ The analyzer and the optimizer are both a `RuleExecutor`. A `RuleExecutor` runs 
    * A strategy that runs until fix point or maxIterations times, whichever comes first.
 ```
 
-A `FixedPoint` batch runs its rules again and again until the plan does not change, or until it reaches the limit. The limit comes from `spark.sql.optimizer.maxIterations`, which is 100 in the session of the script. A `Once` batch runs one time.
+A `FixedPoint` batch runs its rules again and again until the plan does not change, or until it reaches the limit. The limit comes from `spark.sql.optimizer.maxIterations`, which is 100 by default (`SQLConf.scala`). A `Once` batch runs one time.
 
 You can watch rules work. Three settings turn on the **plan change log**:
 
