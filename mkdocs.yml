@@ -77,6 +77,13 @@ nav:
       - "4. Spark Connect": chapters/ch04-spark-connect.md
   - "Part VI: Pipelines and tables":
       - "31. Apache Iceberg with Spark": chapters/ch31-iceberg.md
+  - "Part VII: Machine learning and applied algorithms":
+      - "37. ML pipelines with MLlib and MLflow": chapters/ch37-mllib-mlflow.md
+      - "38. Text analytics without an LLM": chapters/ch38-text-analytics.md
+      - "39. Similarity search": chapters/ch39-similarity-search.md
+      - "40. Entity resolution": chapters/ch40-entity-resolution.md
+      - "41. Sketches": chapters/ch41-sketches.md
+      - "42. Calling models and services": chapters/ch42-calling-models.md
   - "Part VIII: Running Spark in production":
       - "48. Orchestrating Spark": chapters/ch48-orchestration.md
   - "Part IX: Extending Spark":

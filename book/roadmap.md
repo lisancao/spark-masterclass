@@ -79,12 +79,12 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 
 | # | Chapter | Covers |
 |---|---|---|
-| 37 | ML pipelines with MLlib, tracked in MLflow | ML over Connect; open source MLflow for tracking |
-| 38 | Text analytics without an LLM | TF-IDF search and near-duplicates |
-| 39 | Similarity search: vectors, LSH and IVF | Recall against work; NEAREST BY top-K |
-| 40 | Entity resolution and connected components | Plan growth in iterative jobs, `localCheckpoint` |
-| 41 | Sketches: HLL, Theta and KLL | Mergeable summaries for profiling |
-| 42 | Calling models and services from Spark | Retries, batching, request counts |
+| 37 | [ML pipelines with MLlib, tracked in MLflow](chapters/ch37-mllib-mlflow.md) | ML over Connect; open source MLflow for tracking |
+| 38 | [Text analytics without an LLM](chapters/ch38-text-analytics.md) | TF-IDF search and near-duplicates |
+| 39 | [Similarity search: vectors, LSH and IVF](chapters/ch39-similarity-search.md) | Recall against work; NEAREST BY top-K |
+| 40 | [Entity resolution and connected components](chapters/ch40-entity-resolution.md) | Plan growth in iterative jobs, `localCheckpoint` |
+| 41 | [Sketches: HLL, Theta and KLL](chapters/ch41-sketches.md) | Mergeable summaries for profiling |
+| 42 | [Calling models and services from Spark](chapters/ch42-calling-models.md) | Retries, batching, request counts |
 
 ## Part VIII: Running Spark in production
 | # | Chapter | Covers |
