@@ -126,6 +126,14 @@ The three runs show how a sink behaves:
 - **Run 2** read one new bronze row with the status `shipped`, and sent only that row. The sink flow has its own checkpoint, as each streaming flow has.
 - **The full refresh** cleared all tables and computed them again. Bronze and silver have the same rows as before. The sink flow got a new checkpoint version (`0 1`), so it read all shipped orders from bronze again. But the feed still has 3 rows. A JSON sink is a file sink, and a file sink keeps its own log of batches in `_spark_metadata`. The new checkpoint started again at batch 0, the log already had batches 0 and 1, and the file sink skipped them. This is the mechanism of the lost rows in Chapter 32, Step 7.
 
+<figure markdown>
+  ![The checkpoint versions and batch IDs of the sink flow, and the file sink log, in the three runs](../media/figures/ch36-sink-log-light.svg#only-light)
+
+  ![The checkpoint versions and batch IDs of the sink flow, and the file sink log, in the three runs](../media/figures/ch36-sink-log-dark.svg#only-dark)
+
+  <figcaption>The sink flow in the three runs. The full refresh starts a new checkpoint version at batch 0. The file sink log already has that batch ID, so the sink skips the batch.</figcaption>
+</figure>
+
 !!! warning "Caution: a full refresh does not undo what a sink sent"
 
     Do not use a full refresh to correct the data in a sink. The rows that the sink sent stay in the target system. For a file sink, the new run also skips the batch IDs that its log already has, so the corrected rows do not arrive. Correct the data in the target system, or write to a new sink path.
@@ -189,10 +197,12 @@ Run is COMPLETED.
 
 The CLI sends four types of command (the `PipelineCommand` message in `sql/connect/common/src/main/protobuf/spark/connect/pipelines.proto`):
 
-- **`CreateDataflowGraph`** creates an empty graph on the server with the default catalog, the default database and the configurations of the spec. The server returns a graph ID, and each later command names it.
-- **`DefineOutput`** declares a dataset or a sink. It sends the name and the type: `TABLE` for a streaming table, `MATERIALIZED_VIEW`, `TEMPORARY_VIEW` or `SINK`. It also sends details, such as table properties, partitions, a schema or the options of a sink.
-- **`DefineFlow`** declares a flow: its name, its target and the unresolved plan of its query (`relation_flow_details`). The plan root is the last operation of the query function: `read` for a plain file read, `project` after a `select`, `filter` after a `where`. An Auto CDC flow sends `auto_cdc_flow_details` instead, with the keys, the sequence expression and the SCD type. A SQL file goes as one `DefineSqlGraphElements` command with its text. This project has no SQL file.
-- **`StartRun`** starts a run with the refresh selection, the `dry` flag and the `storage` path.
+| Command | What it does |
+|---|---|
+| `CreateDataflowGraph` | Creates an empty graph on the server with the default catalog, the default database and the configurations of the spec. The server returns a graph ID, and each later command names it. |
+| `DefineOutput` | Declares a dataset or a sink. It sends the name and the type: `TABLE` for a streaming table, `MATERIALIZED_VIEW`, `TEMPORARY_VIEW` or `SINK`. It also sends details, such as table properties, partitions, a schema or the options of a sink. |
+| `DefineFlow` | Declares a flow: its name, its target and the unresolved plan of its query (`relation_flow_details`). The plan root is the last operation of the query function: `read` for a plain file read, `project` after a `select`, `filter` after a `where`. An Auto CDC flow sends `auto_cdc_flow_details` instead, with the keys, the sequence expression and the SCD type. A SQL file goes as one `DefineSqlGraphElements` command with its text. This project has no SQL file. |
+| `StartRun` | Starts a run with the refresh selection, the `dry` flag and the `storage` path. |
 
 The plans are not analyzed on the client. Each `DefineFlow` holds the same unresolved plan that a Spark Connect client sends for a normal query. The server resolves them later, all together.
 
@@ -239,6 +249,14 @@ sequenceDiagram
 5. **Execute.** `TriggeredGraphExecution` runs the flows.
 
 A dry run calls only steps 1 and 2. That is why it writes nothing, and why it cannot find an error that occurs in steps 4 or 5.
+
+<figure markdown>
+  ![The five steps of StartRun, with the point where a dry run stops and the effects of each step](../media/figures/ch36-five-steps-light.svg#only-light)
+
+  ![The five steps of StartRun, with the point where a dry run stops and the effects of each step](../media/figures/ch36-five-steps-dark.svg#only-dark)
+
+  <figcaption>The five steps of <code>StartRun</code>. A dry run stops after the second step. The last three steps write checkpoints and tables.</figcaption>
+</figure>
 
 ## Step 6: How the flows run
 
@@ -289,6 +307,13 @@ SDP prepares all tables first. Then the flows start. `TriggeredGraphExecution` (
 - A flow that fails goes back to the queue for a retry after a wait, up to `spark.sql.pipelines.maxFlowRetryAttempts` times (default 2). The wait grows exponentially, from `spark.sql.pipelines.execution.watchdog.minRetryTime` (default 5 seconds) up to `...maxRetryTime` (default 3600 seconds). These are the retries of the gate in Chapter 33.
 - When a flow cannot retry again, each flow downstream of it becomes `SKIPPED`.
 - The run ends when the queue is empty, no flow runs and no flow waits for a retry.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch36-anim-flows.webp">
+    <source src="../../media/clips/ch36-anim-flows.mp4" type="video/mp4">
+  </video>
+  <figcaption>Run 2 of the reference pipeline. Each flow turns green at the time of its <code>COMPLETED</code> event. A flow completes only after its inputs.</figcaption>
+</figure>
 
 ```mermaid
 stateDiagram-v2
