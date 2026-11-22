@@ -1,0 +1,5 @@
+== no --packages ==
+  spark.read.format('avro')                  -> AVRO_DATA_SOURCE_NOT_ENABLED
+  SQL from_avro                              -> AVRO_NOT_LOADED_SQL_FUNCTIONS_UNUSABLE
+  SQL from_protobuf                          -> PROTOBUF_NOT_LOADED_SQL_FUNCTIONS_UNUSABLE
+  Python from_avro                           -> AVRO_NOT_LOADED_SQL_FUNCTIONS_UNUSABLE
