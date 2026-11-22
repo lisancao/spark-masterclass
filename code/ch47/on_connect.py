@@ -59,7 +59,7 @@ def show_log(log, title):
     open(log, "w").close()
 
 
-spark = SparkSession.builder.remote(os.environ.get("SPARK_REMOTE", "sc://localhost:15059")).getOrCreate()
+spark = SparkSession.builder.remote(os.environ.get("SPARK_REMOTE", "sc://localhost:10290")).getOrCreate()
 print("client:", type(spark).__module__, "| server: Spark", spark.version, "| client pid", os.getpid())
 spark.dataSource.register(Folder)
 

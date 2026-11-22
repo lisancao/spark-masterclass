@@ -339,10 +339,16 @@ for lo in range(partition.start, partition.end, 10_000):
 ```
 
 ```text
-TIMING_PLACEHOLDER
+tuple  2,000,000 rows: median 1.29 s over 5 runs (min 1.04, max 1.45)
+row    2,000,000 rows: median 3.32 s over 5 runs (min 2.38, max 3.62)
+arrow  2,000,000 rows: median 0.22 s over 5 runs (min 0.20, max 0.24)
+tuples / batches: 5.7x, rows / tuples: 2.6x
+conditions: local[*] on 16 cores, 4 partitions, maxRecordsPerBatch 10000
 ```
 
-TIMING_PROSE
+The query reads 2,000,000 rows of four columns, in 4 partitions, and aggregates them. `arrow_batches.py --timing` ran it 5 times for each mode, after one warm-up run, on a 16-core machine, under the benchmark lock of the book. The batches took a median of 0.22 s. The tuples took 1.29 s, which is 5.7 times as long. The `Row` objects took 3.32 s, which is 2.6 times as long as the tuples. The minimum and maximum times in the output show that the three modes do not overlap.
+
+The cost of a tuple is the conversion of each value in Python, one row at a time. A `Row` adds the work of a `Row` object and the match of its field names to the schema. Thus, yield tuples, not `Row` objects, when you yield rows.
 
 A batch must agree exactly with the schema. Spark does not cast the Arrow types. A batch with `int64` for an `int` column fails in the task:
 
