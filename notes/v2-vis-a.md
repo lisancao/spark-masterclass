@@ -24,3 +24,4 @@ Visual aids added to existing chapters. The prose substance is not changed. Chan
 | 9 | `ch09-join-types`, `ch09-strategy-times`, `ch09-skew-tasks` | `ch09-anim-movement` (broadcast against sort-merge data movement) | none (the strategy table was already there) | `code/ch09/output/strategies.txt`, `skew.txt` |
 | 11 | `ch11-png-header`, `ch11-formats` | `ch11-anim-packing` (2000 small files packed into 63 or 16 tasks) | none | `code/ch11/output/bytes.txt`, `formats.txt` |
 | 12 | `ch12-multiline-events`, `ch12-dropmalformed` | `ch12-anim-positions` (one header, columns by position, then unionByName) | none (the option table was already there) | `code/data/messy/logs/app.log`, `code/ch12/output/csv_drift.txt` |
+| 13 | `ch13-infer-cost`, `ch13-type-merge`, `ch13-balance` | `ch13-anim-inference` (two passes without a schema, one with) | none (the mode table was already there) | `code/ch13/output/infer_cost.txt`, `infer.txt`, `drift.txt` |
