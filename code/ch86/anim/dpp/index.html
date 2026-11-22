@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="22" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      A.mount();
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from dpp.txt: 181 partitions, 26 read, 22,131,665 and 2,885,119 rows. Grid layout schematic.
+      A.title("Dynamic partition pruning", "trips_by_day JOIN days WHERE days.weekday = 'Sunday'");
+      // dimension table on the left
+      const dim = A.box({ x: 0.13, y: 0.45, w: 300, h: 300, kind: "soft", title: "days", sub: "181 rows<br>pickup_date, weekday", size: 32 });
+      const flt = A.code("WHERE weekday = 'Sunday'", { x: 0.13, y: 0.24, w: 420, size: 26 });
+      // fact table grid: 181 days, January 1 2026 is a Thursday
+      const cells = [];
+      const x0 = 0.36, y0 = 0.30, cols = 26, cw = 0.0235, ch = 0.068;
+      for (let d = 0; d < 181; d++) {
+        const col = Math.floor(d / 7), row = d % 7;
+        const sunday = (d + 4) % 7 === 0;         // day 0 = Thu, so day 3 = Sun
+        const c = A.box({ x: x0 + col * cw, y: y0 + row * ch, w: 38, h: 58, kind: sunday ? "accent" : "soft", title: "", sub: "", radius: 5, size: 10 });
+        c.dataset.sun = sunday ? "1" : "0";
+        cells.push(c);
+      }
+      A.in(A.text("trips_by_day: one partition per day, January to June 2026 (181)", { x: 0.66, y: 0.235, size: 26, color: "var(--a-mute)" }), 0.3);
+      A.in(cells, 0.6, { stagger: 0.008, dur: 0.2 });
+      cap("The fact table has one partition for each day", 0.2, 4.4);
+      // beat filter
+      A.in(flt, 4.6);
+      const keys = A.box({ x: 0.13, y: 0.72, w: 300, h: 90, kind: "accent", title: "26 Sundays", sub: "join keys", size: 30 });
+      A.in(keys, 6.0);
+      cap("The filter on the dimension keeps 26 days", 4.5, 8.9);
+      // beat broadcast: the keys move toward the grid
+      A.tl.to(keys, { x: A.X(0.20), duration: 1.6, ease: "power2.inOut" }, 9.2);
+      A.tl.to(keys, { opacity: 0.0, duration: 0.5 }, 10.9);
+      const sub = A.code("PartitionFilters: [dynamicpruningexpression(pickup_date IN dynamicpruning)]", { x: 0.62, y: 0.80, w: 1150, size: 22 });
+      A.in(sub, 10.2);
+      cap("Spark broadcasts the join keys to the fact scan", 9.0, 12.9);
+      // beat prune
+      cells.forEach((c, i) => { if (c.dataset.sun === "0") A.tl.to(c, { opacity: 0.12, duration: 0.3 }, 13.2 + (i % 26) * 0.03); });
+      cap("The scan reads 26 of 181 partitions", 13.0, 16.9);
+      // beat result
+      const res = A.text("rows from the scan: 2,885,119 instead of 22,131,665", { x: 0.62, y: 0.73, size: 36, weight: 700, color: "var(--a-acc)" });
+      A.in(res, 17.2);
+      cap("Only the Sunday files are opened", 17.0);
+      A.in(A.note("partition and row counts from dpp.txt; grid layout schematic"), 0.4);
+      A.finish(22);
+    </script>
+  </body>
+</html>
