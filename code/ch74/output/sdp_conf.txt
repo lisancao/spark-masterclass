@@ -1,0 +1,16 @@
+== spark-pipeline.yml
+  | name: conf_layers
+  | storage: file://@WORK@/pipeline-storage
+  | configuration:
+  |   spark.sql.shuffle.partitions: "7"
+  | libraries:
+  |   - glob:
+  |       include: transformations/**
+== run
+module scope: spark.sql.shuffle.partitions = 7
+Flow spark_catalog.default.by_key_flow has COMPLETED.
+Flow spark_catalog.default.by_key_spec has COMPLETED.
+Run is COMPLETED.
+== shuffle partitions in each flow's initial plan (from the event log)
+  by_key_spec  Exchange hashpartitioning(..., 7)
+  by_key_flow  Exchange hashpartitioning(..., 7)

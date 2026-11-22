@@ -1,0 +1,4 @@
+== the environment sets a default, not a value
+  no variable                                          spark.sql.ansi.enabled = true
+  SPARK_ANSI_SQL_MODE=false                            spark.sql.ansi.enabled = false
+  SPARK_ANSI_SQL_MODE=false + builder.config(..., true) spark.sql.ansi.enabled = true

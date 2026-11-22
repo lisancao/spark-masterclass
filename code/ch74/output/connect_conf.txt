@@ -1,0 +1,32 @@
+== 1. the builder sends its configs after the session starts
+  spark.sql.shuffle.partitions   22
+  spark.sql.warehouse.dir        file:/tmp/ch74-server-warehouse
+  spark.executor.memory          (not set)
+
+== 2. each client session has its own runtime configs
+  session a: spark.sql.shuffle.partitions = 22
+  session b: spark.sql.shuffle.partitions = 21   (the server's --conf value)
+  after b sets 23 and ANSI off: a = 22, true | b = 23, false
+  after RESET in b: b = 21
+
+== 3. spark.conf.set of a static or core config fails, as in Classic
+  spark.sql.warehouse.dir:
+  AnalysisException: [CANNOT_MODIFY_STATIC_CONFIG] Cannot modify the value of the static
+  Spark config: "spark.sql.warehouse.dir". SQLSTATE: 46110
+  spark.executor.memory:
+  AnalysisException: [CANNOT_MODIFY_CONFIG] Cannot modify the value of the Spark config:
+  "spark.executor.memory".
+
+== 4. a client cannot read a redacted config (new in 4.3)
+  SparkNoSuchElementException: [SQL_CONF_NOT_FOUND] The SQL config
+  "spark.myteam.db.password" cannot be found. Please verify that the config exists. ...
+  with a default: (hidden)
+  in SET: *********(redacted)
+
+== 5. what the client can find out about the server
+  spark.master                     local[*]
+  spark.app.name                   Spark Connect server
+  spark.connect.grpc.binding.port  15102
+  SET -v rows: 345
+  isModifiable(spark.sql.shuffle.partitions): True
+  isModifiable(spark.sql.warehouse.dir):      False

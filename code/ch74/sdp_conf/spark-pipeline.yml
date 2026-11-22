@@ -1,0 +1,7 @@
+name: conf_layers
+storage: file://@WORK@/pipeline-storage
+configuration:
+  spark.sql.shuffle.partitions: "7"
+libraries:
+  - glob:
+      include: transformations/**

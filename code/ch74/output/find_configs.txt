@@ -1,0 +1,104 @@
+== 1. SET -v: every public SQL config, with its meaning
+  columns: ['key', 'value', 'meaning', 'Since version']
+  rows:    324
++-----------------------------------------------------------------+-----------+-------------+
+|key                                                              |value      |Since version|
++-----------------------------------------------------------------+-----------+-------------+
+|spark.sql.adaptive.coalescePartitions.enabled                    |true       |3.0.0        |
+|spark.sql.adaptive.coalescePartitions.initialPartitionNum        |<undefined>|3.0.0        |
+|spark.sql.adaptive.coalescePartitions.maxReducerPartitionsPerTask|2147483647 |4.3.0        |
+|spark.sql.adaptive.coalescePartitions.minPartitionSize           |1MB        |3.2.0        |
+|spark.sql.adaptive.coalescePartitions.parallelismFirst           |true       |3.2.0        |
++-----------------------------------------------------------------+-----------+-------------+
+
+== 1b. SET -v rows by the version that added the config
++-----+-----+
+|since|count|
++-----+-----+
+|  4.0|   43|
+|  4.1|   25|
+|  4.2|   24|
+|  4.3|   25|
++-----+-----+
+
++------------------------------------------------------------------------------------------+
+|key                                                                                       |
++------------------------------------------------------------------------------------------+
+|spark.sql.adaptive.coalescePartitions.maxReducerPartitionsPerTask                         |
+|spark.sql.adaptive.convertSortMergeJoinToShuffledHashJoin.enabled                         |
+|spark.sql.adaptive.convertSortMergeJoinToShuffledHashJoin.lookThroughOperators.enabled    |
+|spark.sql.adaptive.convertSortMergeJoinToShuffledHashJoin.minWideningFactor               |
+|spark.sql.adaptive.costEvaluator.countLocalSort.enabled                                   |
+|spark.sql.connect.streaming.foreachBatch.useClonedSession                                 |
+|spark.sql.execution.arrow.cache.prefetch.enabled                                          |
+|spark.sql.execution.bypassPartialAggregation                                              |
+|spark.sql.execution.pyspark.udf.tracebackWithLocals.enabled                               |
+|spark.sql.execution.udf.unified.execution.enabled                                         |
+|spark.sql.experimental.optimizer.pyTranspilers                                            |
+|spark.sql.experimental.optimizer.transpilePyUDFs                                          |
+|spark.sql.files.archive.reader.enabled                                                    |
+|spark.sql.files.ignoredPathSegmentRegex                                                   |
+|spark.sql.generatedColumn.allowNullableIngest.enabled                                     |
+|spark.sql.hive.initializeMetastoreFormatClasses                                           |
+|spark.sql.hive.showCreateTableAsSerde                                                     |
+|spark.sql.optimizer.mergeSubplans.filterPropagation.dsv2SymmetricFilterPropagation.enabled|
+|spark.sql.optimizer.runtime.bloomFilter.materializedCreationSideThreshold                 |
+|spark.sql.optimizer.singleTaskExecution.enabled                                           |
+|spark.sql.reflect.allowList                                                               |
+|spark.sql.shuffle.spreadNullJoinKeys.enabled                                              |
+|spark.sql.sources.structPredicateDecompose.enabled                                        |
+|spark.sql.thriftServer.catalogMetadata.enabled                                            |
+|spark.sql.timeTravel.atSyntax.enabled                                                     |
++------------------------------------------------------------------------------------------+
+
+== 2. SET -v, searched for a word in the meaning
++----------------------------------------------------+-----------+
+|key                                                 |value      |
++----------------------------------------------------+-----------+
+|spark.sql.adaptive.autoBroadcastJoinThreshold       |<undefined>|
+|spark.sql.adaptive.localShuffleReader.enabled       |true       |
+|spark.sql.autoBroadcastJoinThreshold                |10MB       |
+|spark.sql.broadcastTimeout                          |300        |
+|spark.sql.maxBroadcastTableSize                     |8589934592b|
+|spark.sql.optimizer.pushDownJoinThroughUnion.enabled|false      |
+|spark.sql.statistics.fallBackToHdfs                 |false      |
++----------------------------------------------------+-----------+
+
+== 3. SET with no argument: only the keys that something set
+  rows: 19
++----------------------------+----------------------------------------------------------------------+
+|key                         |value                                                                 |
++----------------------------+----------------------------------------------------------------------+
+|spark.app.name              |ch74-find                                                             |
+|spark.myteam.db.password    |*********(redacted)                                                   |
+|spark.sql.shuffle.partitions|16                                                                    |
+|spark.sql.warehouse.dir     |file:~/spark-masterclass-parts/config-sql/code/spark-warehouse|
++----------------------------+----------------------------------------------------------------------+
+
+== 4. SET for one key, also for a key that nothing set
++----------------------+-----+
+|key                   |value|
++----------------------+-----+
+|spark.sql.ansi.enabled|true |
++----------------------+-----+
+
++---------------------------------+----------+
+|key                              |value     |
++---------------------------------+----------+
+|spark.sql.files.maxPartitionBytes|134217728b|
++---------------------------------+----------+
+
+== 5. spark.conf.get with and without a default
+  spark.conf.get('spark.sql.files.maxPartitionBytes') = 134217728b
+  spark.conf.get('spark.myteam.none', 'fallback')      = fallback
+  spark.conf.get('spark.myteam.none')                  -> [SQL_CONF_NOT_FOUND]
+
+== 6. the REST API: /environment (the Environment tab, as JSON)
+  sections: ['runtime', 'sparkProperties', 'hadoopProperties', 'systemProperties', 'metricsProperties', 'classpathEntries', 'resourceProfiles']
+  sparkProperties: 19 entries
+    spark.sql.shuffle.partitions   16
+    spark.myteam.db.password       *********(redacted)
+    spark.master                   local[*]
+    spark.app.id                   local-1795370810757
+  a SQL config set only at runtime is absent here:
+    spark.sql.ansi.enabled in sparkProperties: False
