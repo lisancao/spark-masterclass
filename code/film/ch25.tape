@@ -1,4 +1,4 @@
-# Spark Masterclass, Chapter 25. Storyboard: storyboard-part05.md.
+# Spark Masterclass, Chapter 25: Structured Streaming fundamentals. Storyboard: storyboard-part05.md.
 #   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch25.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -10,17 +10,32 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-
-# beat: dead-letters | Dead letters, safe for a replay
-Type "# four drops through try_ parsing; bad lines go to dead letters with a reason" Enter
+# beat: ticking | A stream that ticks
+Type "# a file of trips arrives every 4 s; the query runs a micro-batch every 2 s" Enter
 Sleep 500ms
-Type "python ch25/m3_dead_letters.py 2>/dev/null | head -17" Enter
-Wait@240s
+Type "python ch25/s3_ticking.py 2>/dev/null" Enter
+Wait@180s
+Sleep 8s
+
+# beat: watermark | A watermark that advances over late trips
+Type "# count trips by pickup time, 10-minute windows, watermark 15 minutes behind" Enter
+Sleep 500ms
+Type "python ch25/s6_watermark.py 2>/dev/null | head -16" Enter
+Wait@180s
 Sleep 12s
 
-# beat: future | One event from tomorrow
-Type "# the naive query: one event dated the next day moves the watermark a full day" Enter
+# beat: crash | The driver dies inside batch 3
+Type "# count trips per zone; the driver dies after the sink writes batch 3" Enter
 Sleep 500ms
-Type "python ch25/m4_watermark.py naive 2>/dev/null | head -9" Enter
-Wait@240s
-Sleep 12s
+Type "python ch25/s7_restart.py crash 2>/dev/null" Enter
+Wait@180s
+Sleep 4s
+Type "ls ../data/work/ch25/s7-restart/checkpoint/{offsets,commits}" Enter
+Sleep 7s
+
+# beat: resume | Restart from the checkpoint
+Type "# same checkpoint, new process: batch 3 runs again with the same input" Enter
+Sleep 500ms
+Type "python ch25/s7_restart.py resume 2>/dev/null" Enter
+Wait@180s
+Sleep 10s

@@ -11,16 +11,16 @@ Sleep 1s
 Show
 
 
-# beat: sessions | Sessions closed by gaps and by timers
-Type "# sessions per user: closed by a 30-minute gap or by an event-time timer" Enter
+# beat: dead-letters | Dead letters, safe for a replay
+Type "# four drops through try_ parsing; bad lines go to dead letters with a reason" Enter
 Sleep 500ms
-Type "python ch26/t2_sessions.py 2>/dev/null | head -21" Enter
+Type "python ch26/m3_dead_letters.py 2>/dev/null | head -17" Enter
 Wait@240s
 Sleep 12s
 
-# beat: clock | Processing-time timers and TTL
-Type "# a timer 5 s after each click; the last page kept 8 s (TTL)" Enter
+# beat: future | One event from tomorrow
+Type "# the naive query: one event dated the next day moves the watermark a full day" Enter
 Sleep 500ms
-Type "python ch26/t3_time.py 2>/dev/null | head -11" Enter
+Type "python ch26/m4_watermark.py naive 2>/dev/null | head -9" Enter
 Wait@240s
-Sleep 10s
+Sleep 12s

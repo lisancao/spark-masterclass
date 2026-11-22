@@ -1,0 +1,28 @@
+1. Admission control: how many rows each micro-batch takes
+   {}                             rows per batch [1906]
+   {'maxFilesPerTrigger': 1}      rows per batch [487, 508, 450, 461]
+   {'maxFilesPerTrigger': 3}      rows per batch [1445, 461]
+   {'maxBytesPerTrigger': 200000} rows per batch [487, 958, 461]
+  StreamingQueryException: [STREAM_FAILED] ... Options 'maxFilesPerTrigger' and
+  'maxBytesPerTrigger' can't be both set at the same time SQLSTATE: XXKST
+   latestFirst + maxFiles 1       rows per batch [461, 450, 508, 487] (newest file first)
+
+2. foreachBatch runs the batch's plan once per action on it
+   persist=False  shuffle partitions 4, state store instances loaded 12
+   persist=True   shuffle partitions 4, state store instances loaded 4
+
+3. The memory sink keeps nothing across restarts:
+  AnalysisException: This query does not support recovering from checkpoint location.
+  Delete ~/spark-masterclass-parts/part05/data/work/ch25/s8/mem/offsets to start ...
+
+4. A file sink needs a checkpoint location of its own:
+  AnalysisException: checkpointLocation must be specified either through
+  option("checkpointLocation", ...) or ...
+
+5. trigger(once=True), which the 4.3 guide marks deprecated:
+   no Python warning | batches: [1906]
+
+6. A Real-time trigger on a file source:
+  StreamingQueryException: [STREAM_FAILED] ...
+  [STREAMING_REAL_TIME_MODE.INPUT_STREAM_NOT_SUPPORTED] Streaming real-time mode has the
+  following limitation: The input stream ...

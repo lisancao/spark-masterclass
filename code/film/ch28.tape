@@ -11,16 +11,16 @@ Sleep 1s
 Show
 
 
-# beat: decode | A delta file, decoded by hand
-Type "# a per-user count on the HDFS state store; its delta files decoded with plain Python" Enter
+# beat: rules | What Real-time Mode accepts
+Type "# each probe starts a query with trigger(realTime='5 seconds')" Enter
 Sleep 500ms
-Type "python ch28/c1_hdfs.py 2>/dev/null | sed -n '/decoded/,/state data source/p' | cut -c1-94" Enter
-Wait@240s
+Type "python ch28/r1_rules.py 2>/dev/null | grep -E '^(Each|The trigger|  )' | sed -E 's/STREAMING_REAL_TIME_MODE/RTM/; s/  [(]from the running query[)]/ (late)/'" Enter
+Wait@400s
 Sleep 12s
 
-# beat: repartition | Two state partitions become four
-Type "# repartition the state of a stopped query from 2 to 4 partitions, then restart it" Enter
+# beat: latency | Latency, micro-batch against Real-time
+Type "# 200 records/s through a running count, Kafka to Kafka, both engines" Enter
 Sleep 500ms
-Type "python ch28/c3_repartition.py 2>/dev/null | head -14 | cut -c1-94" Enter
-Wait@240s
+Type "python ch28/r2_latency.py 200 20 mb_count rtm_count 2>/dev/null | sed -E 's/ +/ /g'" Enter
+Wait@400s
 Sleep 12s

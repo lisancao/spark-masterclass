@@ -11,16 +11,16 @@ Sleep 1s
 Show
 
 
-# beat: rules | What Real-time Mode accepts
-Type "# each probe starts a query with trigger(realTime='5 seconds')" Enter
+# beat: sessions | Sessions closed by gaps and by timers
+Type "# sessions per user: closed by a 30-minute gap or by an event-time timer" Enter
 Sleep 500ms
-Type "python ch27/r1_rules.py 2>/dev/null | grep -E '^(Each|The trigger|  )' | sed -E 's/STREAMING_REAL_TIME_MODE/RTM/; s/  [(]from the running query[)]/ (late)/'" Enter
-Wait@400s
+Type "python ch27/t2_sessions.py 2>/dev/null | head -21" Enter
+Wait@240s
 Sleep 12s
 
-# beat: latency | Latency, micro-batch against Real-time
-Type "# 200 records/s through a running count, Kafka to Kafka, both engines" Enter
+# beat: clock | Processing-time timers and TTL
+Type "# a timer 5 s after each click; the last page kept 8 s (TTL)" Enter
 Sleep 500ms
-Type "python ch27/r2_latency.py 200 20 mb_count rtm_count 2>/dev/null | sed -E 's/ +/ /g'" Enter
-Wait@400s
-Sleep 12s
+Type "python ch27/t3_time.py 2>/dev/null | head -11" Enter
+Wait@240s
+Sleep 10s
