@@ -1,0 +1,96 @@
+
+== the three modes, with inference ==
+  PERMISSIVE    schema ok, rows: 61
+  DROPMALFORMED schema ok, rows: 60
+  FAILFAST      fails at read time: MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION
+
+== the three modes, with an explicit schema ==
+  PERMISSIVE    read() returns a DataFrame; rows: 61
+  DROPMALFORMED read() returns a DataFrame; rows: 60
+  FAILFAST      read() returns a DataFrame; the action fails: FAILED_READ_FILE.NO_HINT
+
+== query only the corrupt column ==
+without cache: UNSUPPORTED_FEATURE.QUERY_ONLY_CORRUPT_RECORD_COLUMN
+cached, with a data column next to it: 1 corrupt
++----------------------+-------------------------------------------+
+|file                  |_corrupt                                   |
++----------------------+-------------------------------------------+
+|events_2026-10-03.json|{"event_type": "purchase", "user": {"id": 9|
++----------------------+-------------------------------------------+
+
+
+== the corrupt column must be a nullable STRING ==
+_corrupt_record INT: INVALID_CORRUPT_RECORD_TYPE
+
+== a strict schema marks a whole record, and keeps the fields that parsed ==
+rows: 20  with _corrupt_record: 5
++--------+------+-------------------+------------------------------------------------+
+|event   |amount|ts                 |_corrupt_record (first 48)                      |
++--------+------+-------------------+------------------------------------------------+
+|purchase|NULL  |2026-10-02 11:00:00|{"event": "purchase", "user": {"id": 0, "plan": |
+|purchase|NULL  |2026-10-02 11:04:00|{"event": "purchase", "user": {"id": 4, "plan": |
+|purchase|NULL  |2026-10-02 11:08:00|{"event": "purchase", "user": {"id": 3, "plan": |
++--------+------+-------------------+------------------------------------------------+
+only showing top 3 rows
+
+== absorb the drift: STRING for the field that changes, then coalesce ==
++----------+-------+----+-------+------+-------------------+----------------------+
+|event_type|user_id|plan|country|amount|ts                 |file                  |
++----------+-------+----+-------+------+-------------------+----------------------+
+|view      |0      |NULL|NULL   |6.13  |2026-10-01 10:00:00|events_2026-10-01.json|
+|purchase  |1      |NULL|NULL   |16.02 |2026-10-01 10:01:00|events_2026-10-01.json|
++----------+-------+----+-------+------+-------------------+----------------------+
+only showing top 2 rows
++----------+-------+----+-------+------+-------------------+----------------------+
+|event_type|user_id|plan|country|amount|ts                 |file                  |
++----------+-------+----+-------+------+-------------------+----------------------+
+|purchase  |0      |pro |US     |29.93 |2026-10-03 12:00:00|events_2026-10-03.json|
+|purchase  |1      |pro |CA     |8.19  |2026-10-03 12:01:00|events_2026-10-03.json|
++----------+-------+----+-------+------+-------------------+----------------------+
+only showing top 2 rows
+amount shapes in raw text:
++------------------------+----------------------+-----+
+|shape                   |file                  |count|
++------------------------+----------------------+-----+
+|number or numeric string|events_2026-10-01.json|20   |
+|number or numeric string|events_2026-10-02.json|20   |
+|object                  |events_2026-10-03.json|20   |
++------------------------+----------------------+-----+
+
+
+== the books must balance, file by file ==
++----------------------+----+------+----------+
+|file                  |read|silver|quarantine|
++----------------------+----+------+----------+
+|events_2026-10-01.json|20  |20    |0         |
+|events_2026-10-02.json|20  |20    |0         |
+|events_2026-10-03.json|21  |20    |1         |
++----------------------+----+------+----------+
+
+read == silver + quarantine: True
+sum(amount): 1573.4  NULL amounts: 0
+
+== arrays to rows: explode, explode_outer, inline, inline_outer ==
+  explode        rows:  61  columns: ['user_id', 'col']
+  explode_outer  rows:  81  columns: ['user_id', 'col']
+  inline         rows:  61  columns: ['user_id', 'sku', 'qty']
+  inline_outer   rows:  81  columns: ['user_id', 'sku', 'qty']
++---+---+
+|sku|qty|
++---+---+
+|P1 |8  |
+|P2 |12 |
+|P3 |3  |
+|P4 |18 |
+|P5 |7  |
+|P6 |11 |
+|P7 |14 |
+|P8 |11 |
+|P9 |14 |
++---+---+
+
+
+== the plan of explode: the optimizer adds a filter ==
+Generate explode(items#121), [1], false, [col#4794]
++- Project [coalesce(user#119.id, user_id#118L) AS user_id#1048L, items#121]
+   +- Filter (isnull(_corrupt#123) AND ((size(items#121, false) > 0) AND isnotnull(items#121)))

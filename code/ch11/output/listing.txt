@@ -1,0 +1,86 @@
+
+== one row per file ==
+root
+ |-- path: string (nullable = true)
+ |-- modificationTime: timestamp (nullable = true)
+ |-- length: long (nullable = true)
+ |-- content: binary (nullable = true)
+
++------------------------+------+------------------------+
+|path                    |length|first 12 bytes          |
++------------------------+------+------------------------+
+|audio/silence.wav       |8044  |52494646641F000057415645|
+|audio/tone_440.wav      |4044  |52494646C40F000057415645|
+|audio/tone_880_quiet.wav|4044  |52494646C40F000057415645|
++------------------------+------+------------------------+
+
+
+== a folder that holds only folders ==
+load(images).count()                         -> 0
+recursiveFileLookup=true                     -> 6
+  + pathGlobFilter=*.png                     -> 5
+load(images/*/*.png)                         -> 5
+load([pdf, mail])                            -> 6
+pathGlobFilter matching nothing              -> 0
+a path glob matching nothing                 -> [PATH_NOT_FOUND]
+
+== partition folders: discovered, or not ==
+columns: ['path', 'modificationTime', 'length', 'content', 'day']
++--------------------------+----------+
+|path                      |day       |
++--------------------------+----------+
+|day=2026-10-02/events.json|2026-10-02|
+|day=2026-10-01/events.json|2026-10-01|
++--------------------------+----------+
+
+with recursiveFileLookup, columns: ['path', 'modificationTime', 'length', 'content']
+
+== modifiedAfter: only what changed since the last run ==
++---------------+-----------------------+
+|file           |modificationTime       |
++---------------+-----------------------+
+|voice_note.wav |2020-01-01 00:00:00    |
+|upload_0001.png|2026-11-22 08:44:15.132|
++---------------+-----------------------+
+
+modifiedAfter=2025-01-01T00:00:00 -> ['upload_0001.png']
+modifiedAfter='01/01/2025'   -> The timestamp provided for the 'modifiedafter' option is invalid. The expected format is 'YYYY-MM-DDTHH:mm:ss'
+modifiedAfter='2025-01-01'   -> 1 file(s)
+
+== the hidden _metadata column ==
+'_metadata' in events.columns: False
+root
+ |-- _metadata: struct (nullable = false)
+ |    |-- file_path: string (nullable = false)
+ |    |-- file_name: string (nullable = false)
+ |    |-- file_size: long (nullable = false)
+ |    |-- file_block_start: long (nullable = false)
+ |    |-- file_block_length: long (nullable = false)
+ |    |-- file_modification_time: timestamp (nullable = false)
+
++----------------------+---------+-----+
+|file_name             |file_size|count|
++----------------------+---------+-----+
+|events_2026-10-01.json|1589     |20   |
+|events_2026-10-02.json|3302     |20   |
+|events_2026-10-03.json|4016     |21   |
++----------------------+---------+-----+
+
+root
+ |-- _metadata: struct (nullable = false)
+ |    |-- file_path: string (nullable = false)
+ |    |-- file_name: string (nullable = false)
+ |    |-- file_size: long (nullable = false)
+ |    |-- file_block_start: long (nullable = false)
+ |    |-- file_block_length: long (nullable = false)
+ |    |-- file_modification_time: timestamp (nullable = false)
+ |    |-- row_index: long (nullable = false)
+
++---------+----------------+-----------------+
+|row_index|file_block_start|file_block_length|
++---------+----------------+-----------------+
+|0        |8707492         |4353746          |
+|1048575  |8707492         |4353746          |
+|1048576  |26122476        |4353746          |
++---------+----------------+-----------------+
+

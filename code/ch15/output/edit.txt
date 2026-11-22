@@ -1,0 +1,51 @@
+
+== the five edit functions on one value ==
+  variant_set(v, '$.amount', 12.5)                     -> {"amount":12.5,"note":null,"tags":["a"],"user":{"geo":{"country":"CA"},"id":7}}
+  variant_set(v, '$.user.plan', 'pro')                 -> {"amount":"12.50","note":null,"tags":["a"],"user":{"geo":{"country":"CA"},"id":7,"plan":"pro"}}
+  variant_set(v, '$.user.plan', 'pro', false)          -> {"amount":"12.50","note":null,"tags":["a"],"user":{"geo":{"country":"CA"},"id":7}}
+  variant_insert(v, '$.user.plan', 'pro')              -> {"amount":"12.50","note":null,"tags":["a"],"user":{"geo":{"country":"CA"},"id":7,"plan":"pro"}}
+  variant_insert(v, '$.amount', 1)                     -> VARIANT_DUPLICATE_KEY
+  try_variant_insert(v, '$.amount', 1)                 -> None
+  variant_insert(v, '$.tags[0]', 'z')                  -> {"amount":"12.50","note":null,"tags":["z","a"],"user":{"geo":{"country":"CA"},"id":7}}
+  variant_delete(v, '$.user.geo', '$.note')            -> {"amount":"12.50","tags":["a"],"user":{"id":7}}
+  variant_delete(v, '$.nothing')                       -> {"amount":"12.50","note":null,"tags":["a"],"user":{"geo":{"country":"CA"},"id":7}}
+  variant_array_append(v, '$.tags', 'b')               -> {"amount":"12.50","note":null,"tags":["a","b"],"user":{"geo":{"country":"CA"},"id":7}}
+  variant_array_append(v, '$.amount', 'b')             -> VARIANT_PATH_TYPE_MISMATCH
+  try_variant_array_append(v, '$.amount', 'b')         -> None
+  variant_strip_nulls(v)                               -> {"amount":"12.50","tags":["a"],"user":{"geo":{"country":"CA"},"id":7}}
+  variant_set(v, '$.amount.value', 1)                  -> VARIANT_PATH_TYPE_MISMATCH
+  try_variant_set(v, '$.amount.value', 1)              -> None
+  variant_set(v, '$', 1)  (the root)                   -> INVALID_VARIANT_PATH
+  variant_set(v, '$.x', NULL)                          -> None
+  variant_set(v, '$.x', parse_json('null'))            -> {"amount":"12.50","note":null,"tags":["a"],"user":{"geo":{"country":"CA"},"id":7},"x":null}
+  variant_set(v, '$.x', named_struct('a', 1))          -> DATATYPE_MISMATCH.CAST_WITHOUT_SUGGESTION
+  variant_set(v, '$.tags[3]', 'd')                     -> {"amount":"12.50","note":null,"tags":["a",null,null,"d"],"user":{"geo":{"country":"CA"},"id":7}}
+  variant_set with a path from a column                -> {"a":1,"amount":"12.50","note":null,"tags":["a"],"user":{"geo":{"country":"CA"},"id":7}}
+  variant_set with a column create_if_missing          -> DATATYPE_MISMATCH.NON_FOLDABLE_INPUT
+  variant_strip_nulls(v, false)  (keep array NULLs)    -> {"a":[1,null,{}]}
+  variant_strip_nulls(v)  (default)                    -> {"a":[1,{}]}
+
+== is_valid_variant (4.2): check bytes that came from outside Spark ==
+  is_valid_variant(parse_json('[1]'))                  -> True
+
+== fix the events in place: one shape for amount, no geo, a schema version ==
++----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|file                  |schema                                                                                                                                                         |
++----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|events_2026-10-01.json|OBJECT<amount: DECIMAL(4,2), event_type: STRING, ts: STRING, user: OBJECT<id: BIGINT>, v: BIGINT>                                                              |
+|events_2026-10-02.json|OBJECT<amount: DECIMAL(4,2), event_type: STRING, items: ARRAY<OBJECT<qty: BIGINT, sku: STRING>>, ts: STRING, user: OBJECT<id: BIGINT, plan: STRING>, v: BIGINT>|
+|events_2026-10-03.json|OBJECT<amount: DECIMAL(4,2), event_type: STRING, items: ARRAY<OBJECT<qty: BIGINT, sku: STRING>>, ts: STRING, user: OBJECT<id: BIGINT, plan: STRING>, v: BIGINT>|
++----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
++----------------------+-------------------------------------------------------------------------------------------------------------------------------------+
+|file                  |v                                                                                                                                    |
++----------------------+-------------------------------------------------------------------------------------------------------------------------------------+
+|events_2026-10-01.json|{"amount":6.13,"event_type":"view","ts":"2026-10-01T10:00:00","user":{"id":0},"v":2}                                                 |
+|events_2026-10-01.json|{"amount":38.14,"event_type":"view","ts":"2026-10-01T10:02:00","user":{"id":2},"v":2}                                                |
+|events_2026-10-01.json|{"amount":16.02,"event_type":"purchase","ts":"2026-10-01T10:01:00","user":{"id":1},"v":2}                                            |
+|events_2026-10-03.json|{"amount":29.93,"event_type":"purchase","items":[{"qty":1,"sku":"P4"}],"ts":"2026-10-03T12:00:00","user":{"id":0,"plan":"pro"},"v":2}|
++----------------------+-------------------------------------------------------------------------------------------------------------------------------------+
+
+sum of amounts after the edit: 1573.40
+plan of the edit:
+  *(1) Project [_metadata#26.file_name AS file#27, variant_delete(variant_set(variant_set(variant_set(variant_set(v#25, $.amount, coalesce(try_variant_get(v#25, $ ...

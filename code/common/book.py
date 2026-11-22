@@ -49,3 +49,13 @@ def ui_api(path, port=None):
         app = json.load(r)[0]["id"]
     with urllib.request.urlopen(f"{base}/applications/{app}/{path}") as r:
         return json.load(r)
+
+
+# Part III: SparkTutor's seeded messy data (small, checked in) and a gitignored scratch folder.
+MESSY = ROOT / "code" / "data" / "messy"
+WORK = ROOT / "data" / "work"
+
+
+def show(df, n=20, truncate=False):
+    """df.show() with truncate=False by default, which is what every Part III listing wants."""
+    df.show(n, truncate=truncate)

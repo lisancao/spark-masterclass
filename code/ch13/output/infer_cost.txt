@@ -1,0 +1,8 @@
+input: 1,000,000 trips as JSON Lines, 450.6 MB, 16 cores, local[*]
+  spark.read.json(path)                     (inference only)     0.60 s
+  spark.read.option(samplingRatio=0.1).json  (inference only)    0.19 s
+  spark.read.json(path).count()                                  0.94 s
+  spark.read.schema(schema).json(path).count()                   0.39 s
+  spark.read.json(path).agg(sum(fare_amount))                    1.19 s
+  spark.read.schema(schema).json.agg(sum(fare_amount))           0.42 s
+inferred == parquet types: {'DOLocationID': 'bigint', 'PULocationID': 'bigint', 'VendorID': 'bigint', 'tpep_dropoff_datetime': 'string', 'tpep_pickup_datetime': 'string'}

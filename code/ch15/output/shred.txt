@@ -1,0 +1,64 @@
+
+== shredding off: two binary columns ==
+required group field_id=-1 spark_schema {
+  optional group field_id=-1 v (Variant(1)) {
+    required binary field_id=-1 value;
+    required binary field_id=-1 metadata;
+  }
+}
+
+== shredding on (the default): the footer of the three-day file ==
+25 leaf columns, for example:
+  v.metadata
+  v.value
+  v.typed_value.amount.value
+  v.typed_value.user.value
+  v.typed_value.user.typed_value.geo.value
+  v.typed_value.user.typed_value.geo.typed_value.country.value
+  v.typed_value.user.typed_value.geo.typed_value.country.typed_value
+  v.typed_value.user.typed_value.id.value
+  v.typed_value.user.typed_value.id.typed_value
+  v.typed_value.user.typed_value.plan.value
+  v.typed_value.user.typed_value.plan.typed_value
+  v.typed_value.user_id.value
+  v.typed_value.user_id.typed_value
+shredded fields: ['event', 'event_type', 'items[].qty', 'items[].sku', 'ts', 'user.geo.country', 'user.id', 'user.plan', 'user_id']
+Parquet logical type: optional group field_id=-1 v (Variant(1)) {
+
+== one file for each day: each file gets its own shredding schema ==
+  10-01: ['amount', 'event', 'ts', 'user_id']
+  10-02: ['event', 'items[].qty', 'items[].sku', 'ts', 'user.id', 'user.plan']
+  10-03: ['amount.currency', 'amount.value', 'event_type', 'items[].qty', 'items[].sku', 'ts', 'user.geo.country', 'user.id', 'user.plan']
+
+== a field in fewer than 10% of the rows is not shredded ==
+  rare in 9% of rows:  ['a']
+  rare in 11% of rows: ['a', 'rare']
+  a: half BIGINT, half STRING: []
+  late appears after row 5000: ['a']
+
+== what the scan reads: try_variant_get against a path and a cast ==
+  select v                                       ReadSchema: struct<v:struct<0:variant>>
+  try_variant_get(v, '$.user.plan', 'string')    ReadSchema: struct<v:struct<0:string>>
+  v:user.plan::string                            ReadSchema: struct<v:struct<0:variant>>
+  variant_get(v, '$.user.plan', 'string')        ReadSchema: struct<v:struct<0:string>>
+  v:user.plan  (a VARIANT)                       ReadSchema: struct<v:struct<0:variant>>
+
+  where try_variant_get(...) = 'pro'     PushedFilters: [IsNotNull(v), EqualTo(v.`1`,pro)]
+  where v:user.plan::string = 'pro'      PushedFilters: [IsNotNull(v)]
+
+== new in 4.3: extractions inside an aggregate are pushed into the scan too ==
++----+-----+
+|plan|count|
++----+-----+
+|NULL|21   |
+|free|9    |
+|pro |31   |
++----+-----+
+
+  sum(...), count_if(...): pullOutExtractions=true  ReadSchema: struct<v:struct<0:string,1:double>>
+  sum(...), count_if(...): pullOutExtractions=false ReadSchema: struct<v:struct<0:variant,1:string>>
+  result: Row(amount=1139.8599999999997, pro=31)
+
+== a strict cast that fails inside the scan ==
+  exception: Py4JJavaError
+  conditions in the message: ['FAILED_READ_FILE.NO_HINT', 'INVALID_VARIANT_CAST']

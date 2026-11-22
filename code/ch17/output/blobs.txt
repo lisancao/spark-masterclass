@@ -1,0 +1,50 @@
+
+== 40 blobs of 1 MB, inline in Parquet ==
+file 41.9 MB, row groups: 1, rows: 40
+  name        0.000 MB compressed,    0.001 MB raw, min/max: yes
+  content    41.945 MB compressed,   41.943 MB raw, min/max: no
+  shelf       0.000 MB compressed,    0.000 MB raw, min/max: yes
+scan tasks: 11  tasks that got rows: 1  rows in that task: [40]
+ReadSchema of a query on name and shelf: struct<name:string,shelf:int>
+
+== a content-addressed store: hash the bytes, keep large blobs as files ==
+files in: 17  distinct hashes: 16  blobs in the store: 2
+  cas/41/41314f34ffb37a18e... 200000 bytes
+  cas/46/465f69fde3a5fe5d3... 200000 bytes
+
+== three tables: sources, blobs, derived ==
+  MERGE with two source rows for one hash      -> MERGE_CARDINALITY_VIOLATION
+insert-only MERGE with duplicates in the source: rows 17  distinct hashes 16
+after dropDuplicates on the hash: blobs 16  sources 17
++-----+-----+------+--------+------+
+|kind |blobs|bytes |in_store|inline|
++-----+-----+------+--------+------+
+|email|4    |1007  |0       |4     |
+|other|2    |400000|2       |0     |
+|pdf  |2    |1481  |0       |2     |
+|png  |5    |2066  |0       |5     |
+|wav  |3    |16132 |0       |3     |
++-----+-----+------+--------+------+
+
++------------------------------+------------+
+|source                        |sha         |
++------------------------------+------------+
+|file:/incoming/copy_of_red.png|de806669504e|
+|images/products/red_16x8.png  |de806669504e|
++------------------------------+------------+
+
+
+== derived rows, keyed by hash and extractor version ==
+work for extractor kind v1, first run: 16
+work for extractor kind v1, second run: 0
+
+== forget one file: a delete leaves the bytes on disk ==
+data files that hold the e-mail text before the delete: 1
+rows with the hash after DELETE: 0
+data files that still hold the text: 1
+delete files in the table: 1
+time travel to the snapshot before the delete still finds it: 1
+after rewrite_data_files, files that hold the text: 1
+after expire_snapshots, files that hold the text: 0
+  time travel to the snapshot before the delete -> IllegalArgumentException: Cannot find snapshot with ID 4500859435678070813
+the blob in the store is a separate file: remove it too, with the hash: cas/f1/f162c9a6dd8b... (this e-mail is small, so it was inline)

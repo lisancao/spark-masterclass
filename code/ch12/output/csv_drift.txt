@@ -1,0 +1,148 @@
+
+== parse modes and the corrupt record column ==
++---+------+----------+
+|id |amount|day       |
++---+------+----------+
+|1  |2.5   |2026-01-01|
+|2  |NULL  |2026-01-02|
+|3  |4.0   |NULL      |
+|4  |5.0   |2026-01-04|
+|5  |6.0   |NULL      |
++---+------+----------+
+
++---+------+----------+----------------------+
+|id |amount|day       |_corrupt_record       |
++---+------+----------+----------------------+
+|1  |2.5   |2026-01-01|NULL                  |
+|2  |NULL  |2026-01-02|2,abc,2026-01-02      |
+|3  |4.0   |NULL      |3,4.0                 |
+|4  |5.0   |2026-01-04|4,5.0,2026-01-04,EXTRA|
+|5  |6.0   |NULL      |5,6.0,2026-02-30      |
++---+------+----------+----------------------+
+
+count the corrupt rows -> UNSUPPORTED_FEATURE.QUERY_ONLY_CORRUPT_RECORD_COLUMN
+after cache()          -> 4
+_corrupt_record INT    -> INVALID_CORRUPT_RECORD_TYPE
+mode=FAILFAST          -> FAILED_READ_FILE.NO_HINT / MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION
+
+== DROPMALFORMED: three different answers ==
+len(collect())           1
+count()                  5
+select("id").count()     5
+count(), pruning off     3
+count() after cache()    1
+
+== a folder whose columns move ==
+  sales_2026-10-01.csv: id,amount,day
+  sales_2026-10-02.csv: day,id,amount
+  sales_2026-10-03.csv: id,amount,day,currency
++----------+------+-----+--------+--------------------+
+|id        |amount|day  |currency|file                |
++----------+------+-----+--------+--------------------+
+|2026-10-02|6     |12.00|NULL    |sales_2026-10-02.csv|
+|2026-10-02|7     |n/a  |NULL    |sales_2026-10-02.csv|
++----------+------+-----+--------+--------------------+
+
+enforceSchema=false -> sales_2026-10-01.csv 
+    Number of column in CSV header is not equal to number of fields in the schema: 
+    Header length: 3, schema size: 4
+
+== fix 1: each file's own header, then unionByName ==
++---+------+----------+--------+---------------+--------------------+
+|id |amount|day       |currency|_corrupt_record|file                |
++---+------+----------+--------+---------------+--------------------+
+|1  |10.50 |2026-10-01|NULL    |NULL           |sales_2026-10-01.csv|
+|2  |11.00 |2026-10-01|NULL    |NULL           |sales_2026-10-01.csv|
+|3  |4.00  |NULL      |NULL    |3,4.00         |sales_2026-10-01.csv|
+|4  |8.25  |2026-10-01|NULL    |NULL           |sales_2026-10-01.csv|
+|5  |3.10  |2026-10-01|NULL    |NULL           |sales_2026-10-01.csv|
+|6  |12.00 |2026-10-02|NULL    |NULL           |sales_2026-10-02.csv|
+|7  |NULL  |2026-10-02|NULL    |NULL           |sales_2026-10-02.csv|
+|8  |9.99  |2026-10-02|NULL    |NULL           |sales_2026-10-02.csv|
+|9  |1.01  |2026-10-02|NULL    |NULL           |sales_2026-10-02.csv|
+|10 |13.00 |2026-10-03|EUR     |NULL           |sales_2026-10-03.csv|
+|11 |2.50  |2026-10-03|CAD     |NULL           |sales_2026-10-03.csv|
+|12 |6.75  |2026-10-03|CAD     |NULL           |sales_2026-10-03.csv|
+|13 |20.00 |2026-10-03|USD     |NULL           |sales_2026-10-03.csv|
++---+------+----------+--------+---------------+--------------------+
+
+
+== fix 2: singleVariantColumn ==
++-----------------------------------------+--------------------+
+|v                                        |file                |
++-----------------------------------------+--------------------+
+|{"amount":10.5,"day":"2026-10-01","id":1}|sales_2026-10-01.csv|
+|{"amount":11,"day":"2026-10-01","id":2}  |sales_2026-10-01.csv|
+|{"amount":4,"id":3}                      |sales_2026-10-01.csv|
+|{"amount":8.25,"day":"2026-10-01","id":4}|sales_2026-10-01.csv|
+|{"amount":3.1,"day":"2026-10-01","id":5} |sales_2026-10-01.csv|
+|{"amount":12,"day":"2026-10-02","id":6}  |sales_2026-10-02.csv|
++-----------------------------------------+--------------------+
+
++---+------+----------+--------+
+|id |amount|day       |currency|
++---+------+----------+--------+
+|1  |10.50 |2026-10-01|NULL    |
+|2  |11.00 |2026-10-01|NULL    |
+|3  |4.00  |NULL      |NULL    |
+|4  |8.25  |2026-10-01|NULL    |
+|5  |3.10  |2026-10-01|NULL    |
+|6  |12.00 |2026-10-02|NULL    |
+|7  |NULL  |2026-10-02|NULL    |
+|8  |9.99  |2026-10-02|NULL    |
+|9  |1.01  |2026-10-02|NULL    |
++---+------+----------+--------+
+
+schema with another column -> INVALID_SINGLE_VARIANT_COLUMN
++-------------------+---------------+
+|v                  |_corrupt_record|
++-------------------+---------------+
+|{"amount":4,"id":3}|3,4.00         |
++-------------------+---------------+
+
+products.csv sku 00042 inside the variant: {"description":"Boils 1.7 L.","name":"Kettle, steel","sku":42}
+
+== new in 4.3: the same feed, zipped ==
+columns: ['id', 'amount', 'day']  rows: 13
+singleVariantColumn from the zip: ['{"amount":"1.01","day":"2026-10-02","id":9}', '{"amount":"9.99","day":"2026-10-02","id":8}', '{"amount":"n/a","day":"2026-10-02","id":7}']
+
+== CSV inside a column: from_csv and schema_of_csv ==
+schema_of_csv: STRUCT<_c0: INT, _c1: DOUBLE, _c2: DATE>
++----+----+-----+----------+----------------+
+|id  |qty |price|day       |_corrupt_record |
++----+----+-----+----------+----------------+
+|evt1|42  |19.99|2026-10-01|NULL            |
+|evt2|7   |NULL |2026-10-02|7;abc;2026-10-02|
+|evt3|NULL|NULL |NULL      |NULL            |
+|evt4|1   |2.0  |NULL      |1;2             |
++----+----+-----+----------+----------------+
+
+schema_of_csv(column)    -> DATATYPE_MISMATCH.NON_FOLDABLE_INPUT
+from_csv DROPMALFORMED   -> PARSE_MODE_UNSUPPORTED
+to_csv: evt1|42;19.99;2026-10-01
+
+== fixed width ==
++--------+---------------+--------+----------+--------+-----+-----+
+|store_id|name           |city    |opened    |sales   |chars|bytes|
++--------+---------------+--------+----------+--------+-----+-----+
+|0001    |Corner Store   |Toronto |2019-03-01|12500.50|54   |54   |
+|0002    |Le Petit Marché|Montréal|2020-06-15|9.99    |54   |56   |
+|0003    |Pho Kitchen    |Hà Nội  |2021-11-01|73422.10|54   |57   |
+|0004    |Harbour Books  |Halifax |2023-01-20|0.00    |54   |54   |
+|0005    |Broken Line    |        |NULL      |NULL    |15   |15   |
++--------+---------------+--------+----------+--------+-----+-----+
+
+trailer says 4, full-width records: 4, quarantined: 1
+
+== writing CSV: the writer's defaults ==
+['._SUCCESS.crc', '.part-00000-<uuid>-c000.csv.crc', '_SUCCESS', 'part-00000-<uuid>-c000.csv']
+id,pad,q,comma,empty,nul,nl
+1,padded,"say \"hi\"","a,b","",,"two
+lines"
+python csv reads row 1 as: ['1', 'padded', 'say \\hi\\""', 'a,b', '', '', 'two\nlines']
+id,pad,q,comma,empty,nul,nl
+1,  padded  ,"say ""hi""","a,b","",NULL,"two
+lines"
+python csv reads row 1 as: ['1', '  padded  ', 'say "hi"', 'a,b', '', 'NULL', 'two\nlines']
+round trip equal: True
+struct column -> UNSUPPORTED_DATA_TYPE_FOR_DATASOURCE
