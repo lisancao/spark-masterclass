@@ -312,6 +312,13 @@ response: 102 bytes out of the worker
   results ['AB0', 'AB1', 'AB2']; init 75 ms after boot; processing 0 ms; spill (0, 0); accumulators 0
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch57-tap.webp">
+    <source src="../../media/clips/ch57-tap.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>tap.py</code> records the bytes that a Python worker sends back for a pickled UDF, and names each field.</figcaption>
+</figure>
+
 The parts are in this sequence:
 
 1. **Result frames.** One frame of 34 bytes, a pickle of protocol 5 that holds the list `['AB0', 'AB1', 'AB2']`.
