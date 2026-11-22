@@ -1,0 +1,120 @@
+== 1. groupBy against a window
+groupBy rows: 2 | input rows: 8
++-------+----------+-----+-------------+-----+
+|borough|       day|trips|borough_total|share|
++-------+----------+-----+-------------+-----+
+|  Bronx|2026-06-01|    5|           35| 0.14|
+|  Bronx|2026-06-02|   15|           35| 0.43|
+|  Bronx|2026-06-05|   15|           35| 0.43|
+| Queens|2026-06-01|   10|          140| 0.07|
+| Queens|2026-06-02|   30|          140| 0.21|
+| Queens|2026-06-03|   30|          140| 0.21|
+| Queens|2026-06-04|   20|          140| 0.14|
+| Queens|2026-06-06|   50|          140| 0.36|
++-------+----------+-----+-------------+-----+
+
+== 2. ranking functions
++-------+----------+-----+----------+----+----------+--------+---------+------+
+|borough|       day|trips|row_number|rank|dense_rank|pct_rank|cume_dist|ntile2|
++-------+----------+-----+----------+----+----------+--------+---------+------+
+|  Bronx|2026-06-02|   15|         1|   1|         1|     0.0|     0.67|     1|
+|  Bronx|2026-06-05|   15|         2|   1|         1|     0.0|     0.67|     1|
+|  Bronx|2026-06-01|    5|         3|   3|         2|     1.0|      1.0|     2|
+| Queens|2026-06-06|   50|         1|   1|         1|     0.0|      0.2|     1|
+| Queens|2026-06-02|   30|         2|   2|         2|    0.25|      0.6|     1|
+| Queens|2026-06-03|   30|         3|   2|         2|    0.25|      0.6|     1|
+| Queens|2026-06-04|   20|         4|   4|         3|    0.75|      0.8|     2|
+| Queens|2026-06-01|   10|         5|   5|         4|     1.0|      1.0|     2|
++-------+----------+-----+----------+----+----------+--------+---------+------+
+
+== 3. lag and lead
++-------+----------+-----+----+------+----------+---------+
+|borough|       day|trips|prev|change|  next_day|prev_or_0|
++-------+----------+-----+----+------+----------+---------+
+|  Bronx|2026-06-01|    5|NULL|  NULL|2026-06-02|        0|
+|  Bronx|2026-06-02|   15|   5|    10|2026-06-05|        5|
+|  Bronx|2026-06-05|   15|  15|     0|      NULL|       15|
+| Queens|2026-06-01|   10|NULL|  NULL|2026-06-02|        0|
+| Queens|2026-06-02|   30|  10|    20|2026-06-03|       10|
+| Queens|2026-06-03|   30|  30|     0|2026-06-04|       30|
+| Queens|2026-06-04|   20|  30|   -10|2026-06-06|       30|
+| Queens|2026-06-06|   50|  20|    30|      NULL|       20|
++-------+----------+-----+----+------+----------+---------+
+
+== 4. frames
++-------+----------+-----+-------------+----------+------------+----------+
+|borough|       day|trips|default_frame|rows_frame|last_default|last_whole|
++-------+----------+-----+-------------+----------+------------+----------+
+| Queens|2026-06-01|   10|           10|        10|          10|        50|
+| Queens|2026-06-04|   20|           30|        30|          20|        50|
+| Queens|2026-06-02|   30|           90|        60|          30|        50|
+| Queens|2026-06-03|   30|           90|        90|          30|        50|
+| Queens|2026-06-06|   50|          140|       140|          50|        50|
++-------+----------+-----+-------------+----------+------------+----------+
+
+(borough#0, day#3 ASC NULLS FIRST, specifiedwindowframe(RangeFrame, unboundedpreceding$(), curre
+
+== 5. moving windows: ROWS against RANGE
++-------+----------+-----+-----------+-----------+
+|borough|       day|trips|last_3_rows|last_3_days|
++-------+----------+-----+-----------+-----------+
+|  Bronx|2026-06-01|    5|          5|          5|
+|  Bronx|2026-06-02|   15|         20|         20|
+|  Bronx|2026-06-05|   15|         35|         15|
+| Queens|2026-06-01|   10|         10|         10|
+| Queens|2026-06-02|   30|         40|         40|
+| Queens|2026-06-03|   30|         70|         70|
+| Queens|2026-06-04|   20|         80|         80|
+| Queens|2026-06-06|   50|        100|         70|
++-------+----------+-----+-----------+-----------+
+
+DataFrame rangeBetween on seconds, same answer: [5, 20, 15, 10, 40, 70, 80, 70]
+
+== 6. the WINDOW clause
++-------+----------+-----+-------+------------------+---+
+|borough|       day|trips|running|       running_avg|  n|
++-------+----------+-----+-------+------------------+---+
+|  Bronx|2026-06-01|    5|      5|               5.0|  3|
+|  Bronx|2026-06-02|   15|     20|              10.0|  1|
+|  Bronx|2026-06-05|   15|     35|11.666666666666666|  2|
+| Queens|2026-06-01|   10|     10|              10.0|  5|
+| Queens|2026-06-02|   30|     40|              20.0|  2|
+| Queens|2026-06-03|   30|     70|23.333333333333332|  3|
+| Queens|2026-06-04|   20|     90|              22.5|  4|
+| Queens|2026-06-06|   50|    140|              28.0|  1|
++-------+----------+-----+-------+------------------+---+
+
+== 7. errors
+  rank() with no ORDER BY        WINDOW_FUNCTION_FRAME_NOT_ORDERED: Window function rank requires the window to be ordered. You need to add an ORDER
+  window in WHERE                WINDOW_FUNCTION_NOT_ALLOWED_IN_CLAUSE: It is not allowed to use window functions inside WHERE clause. SQLSTATE: 42601
+  RANGE with two ORDER BY keys   DATATYPE_MISMATCH.RANGE_FRAME_MULTI_ORDER: Cannot resolve "(ORDER BY borough ASC NULLS FIRST, day ASC NULLS FIRST RANGE BET
+  row_number() with a frame      _LEGACY_ERROR_TEMP_1036: Window Frame specifiedwindowframe(RowFrame, -1, currentrow$()) must match the re
+
+== 8. the physical plan of a window, on the June trips
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- Project [PULocationID#244, tpep_pickup_datetime#238, timestampdiff(SECOND, cast(_we0#260 as timestamp
+   +- Window [lag(tpep_pickup_datetime#238, -1, null) windowspecdefinition(PULocationID#244, tpep_pickup
+      +- Sort [PULocationID#244 ASC NULLS FIRST, tpep_pickup_datetime#238 ASC NULLS FIRST], false, 0
+         +- Exchange hashpartitioning(PULocationID#244, 200), ENSURE_REQUIREMENTS, [plan_id=753]
+            +- Filter ((isnotnull(tpep_pickup_datetime#238) AND (tpep_pickup_datetime#238 >= 2026-06-01 
+               +- FileScan parquet [tpep_pickup_datetime#238,PULocationID#244] Batched: true, DataFilter
+
+same spec, two functions -> 1 Window operator(s)
+three specs -> 3 Window, 3 Sort, 2 Exchange
+
+== 9. no PARTITION BY
+['+- Exchange SinglePartition, ENSURE_REQUIREMENTS, [plan_id=836]']
+partitions of the result: 1
+
+== 10. median gap between pickups, five busiest zones
++---------------------+-------+------------+
+|Zone                 |pickups|median_gap_s|
++---------------------+-------+------------+
+|Upper East Side South|177609 |7           |
+|Midtown Center       |161197 |7           |
+|Upper East Side North|157112 |7           |
+|JFK Airport          |148168 |9           |
+|Midtown East         |119614 |11          |
++---------------------+-------+------------+
+
