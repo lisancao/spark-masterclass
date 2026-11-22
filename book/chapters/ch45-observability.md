@@ -22,6 +22,13 @@ flowchart LR
 
 The listener bus (`core/src/main/scala/org/apache/spark/scheduler/LiveListenerBus.scala`) contains these named queues: `appStatus`, `executorManagement`, `eventLog`, `shared` and `streams`. Each queue is an `AsyncEventQueue` with its own thread. The capacity of each queue is `spark.scheduler.listenerbus.eventqueue.capacity` (default 10000). When a queue is full, Spark drops events and increments the metric `queue.<name>.numDroppedEvents`. A slow listener thus loses events, and the UI of a very busy application can show gaps.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch45-anim-bus.webp">
+    <source src="../../media/clips/ch45-anim-bus.mp4" type="video/mp4">
+  </video>
+  <figcaption>The listener bus copies each event into the queue of each consumer. A slow listener fills its queue, and then Spark drops events and counts them. The number of slots and the speed are schematic.</figcaption>
+</figure>
+
 The metrics system is a different mechanism. It does not use events. It samples Dropwizard metrics from sources (the DAG scheduler, the block manager, the JVM, the executors) and sends them to sinks.
 
 ## Step 1: A workload to observe
@@ -219,6 +226,14 @@ event log totals equal the REST API totals: True
 
 The diagnosis finds the two problems that the workload has. Stage 1 has a skew of 33.8 and spends most of its time in Python. Stage 4 spilled.
 
+<figure markdown>
+  ![Bar chart of the run time of each stage, with the time in Python and the skew, python and spill flags](../media/figures/ch45-diagnosis-light.svg#only-light)
+
+  ![Bar chart of the run time of each stage, with the time in Python and the skew, python and spill flags](../media/figures/ch45-diagnosis-dark.svg#only-dark)
+
+  <figcaption>The diagnosis of each stage from the event log. Stage 1 has the flags <code>skew</code> and <code>python</code>, and stage 4 has the flag <code>spill</code>.</figcaption>
+</figure>
+
 The task counts, run times, record counts and spill bytes are the same as the REST API gave while the application ran. The median here (1,638) is different from the median of `taskSummary` (1,669). The reason is that `percentile` interpolates between the two middle values of four tasks, and the REST API does not.
 
 The events in the log are the events that the UI used. Thus, for each question that the UI answers, you can get the same answer from the log after the application stops.
@@ -275,6 +290,14 @@ Each operation ID that a client printed is in the list, with the jobs and the SQ
 - **The statement is the protobuf plan as text**, not the Python code. The `detail` field has the error.
 - **The job tag is the key.** It contains the user, the session and the operation. The `detail` endpoint takes it as a query parameter, because a user ID can contain a `/`.
 - **Client tags become server tags with a prefix.** `addTag("daily-report")` became `SparkConnect_SessionTag_User_analyst_Session_<id>_Tag_daily-report`. Thus a tag from one session cannot match the jobs of a different session. To find the jobs of one client tag, match the end of the tag. The script does this with the `jobTags` field of the jobs endpoint.
+
+<figure markdown>
+  ![Two Connect sessions, their three operations and the job IDs of each operation](../media/figures/ch45-connect-ops-light.svg#only-light)
+
+  ![Two Connect sessions, their three operations and the job IDs of each operation](../media/figures/ch45-connect-ops-dark.svg#only-dark)
+
+  <figcaption>The sessions and operations of the live server, from the 4.3 Connect endpoints. Each operation lists the jobs that it ran.</figcaption>
+</figure>
 
 ```mermaid
 sequenceDiagram
@@ -397,6 +420,14 @@ pandas               0.16s    0.13s    0.8
 
 The profiler made the cheap UDF 21.4 times slower, and the slow UDF 4.2 times slower. The pandas UDF did not change. The profiler adds a large fixed cost to each call of a row UDF.
 
+<figure markdown>
+  ![Bar chart of the wall time of three UDFs with the profiler off and on](../media/figures/ch45-profiler-light.svg#only-light)
+
+  ![Bar chart of the wall time of three UDFs with the profiler off and on](../media/figures/ch45-profiler-dark.svg#only-dark)
+
+  <figcaption>The wall time of the three UDFs with the profiler off and with <code>perf</code>. The times are medians of 5 runs after a warmup.</figcaption>
+</figure>
+
 For a row UDF, `wrap_perf_profiler` (`python/pyspark/worker.py`, line 519) puts each call in its own `WorkerPerfProfiler` block, which enables and disables `cProfile` for that call. For a cheap UDF, the profiler costs much more than the function, and the result is useless. For a pandas UDF, the cost is small, because one call processes a full Arrow batch. The profile itself shows the cost:
 
 ```text
@@ -466,9 +497,11 @@ Spark 4.0 added JSON logs for the JVM side (`spark.log.structuredLogging.enabled
 
 The two loggers write JSON, but the JSON is not the same:
 
-- The JVM writes the time in UTC with a `Z`. Python writes the local time without a zone.
-- The JVM writes the level `WARN`. Python writes `WARNING`.
-- The keyword arguments of the Python call go into `context`. The JVM puts its MDC values (for example the task name) into `context` too.
+| Field | JVM | Python (`PySparkLogger`) |
+|---|---|---|
+| Time | UTC with a `Z` | The local time without a zone |
+| Level | `WARN` | `WARNING` |
+| `context` | The MDC values, for example the task name | The keyword arguments of the call |
 
 Make the two formats the same in your log pipeline before you join them. The time zone is the important difference.
 
