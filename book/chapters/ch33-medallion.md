@@ -8,7 +8,7 @@ The names are not important. The contracts are important. Each layer makes a pro
 
 **In SDP, only the streaming tables are incremental, and open source Spark 4.3 has no expectations. Thus, you build the quality checks from datasets, and a check stops bad data only when it is in the path of the data.** This chapter shows each part of that sentence with two pipelines, two runs of each, and the event logs of the runs.
 
-The code is in [`code/ch33`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch33). Each output block comes from `code/ch33/output/`. The pipelines run on `pyspark==4.3.0` with a Hive metastore, as in Step 9 of Chapter 32.
+The code is in [`code/ch33`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch33). Each output block comes from `code/ch33/output/`. The pipelines run on `pyspark==4.3.0` with a Hive metastore, as in Step 6 of [Chapter 77](ch77-first-etl-pipeline.md).
 
 ## Step 1: Three layers, three contracts
 
@@ -245,7 +245,7 @@ for category in CATEGORIES:
 Two details make the loop correct:
 
 - **`name=`** gives each dataset its own name. Without it, each loop iteration declares a dataset with the name `revenue_for_category`, and the second declaration is an error.
-- **`category: str = category`** binds the value of the loop variable when Python defines the function. Open source Spark 4.3 calls the function at once, in the same loop iteration (Chapter 32, Step 4). Thus, the late lookup of names in Python closures does not change the result here. Other SDP implementations can call the function later, after the loop ends. Then, without the default argument, each function reads the last value of `category`.
+- **`category: str = category`** binds the value of the loop variable when Python defines the function. Open source Spark 4.3 calls the function at once, in the same loop iteration (Chapter 32, Step 3). Thus, the late lookup of names in Python closures does not change the result here. Other SDP implementations can call the function later, after the loop ends. Then, without the default argument, each function reads the last value of `category`.
 
 !!! warning "Caution: do not remove a name from a list that makes datasets"
 
@@ -396,7 +396,7 @@ In open source Spark 4.3, a materialized view has no incremental refresh. For a 
 
 Each run has two logs.
 
-The first log is the event stream that the CLI prints. Each line is an event that the server sent: a flow changed state, or the run ended. Chapter 32 showed all states (`QUEUED`, `PLANNING`, `STARTING`, `RUNNING`, `COMPLETED`, `FAILED`, `SKIPPED`, `EXCLUDED`).
+The first log is the event stream that the CLI prints. Each line is an event that the server sent: a flow changed state, or the run ended. Chapters 32 and 78 showed all states (`QUEUED`, `PLANNING`, `STARTING`, `RUNNING`, `COMPLETED`, `FAILED`, `SKIPPED`, `EXCLUDED`).
 
 The CLI shows each event as one line with a time and a message. The protocol of Spark 4.3 sends only these two fields (the `PipelineEvent` message in `pipelines.proto` has `timestamp` and `message`). Open source SDP does not keep the events in a table. If you need the events after the run, save the output of the CLI.
 
@@ -421,7 +421,7 @@ IsADirectoryError: [Errno 21] Is a directory: '~/spark-masterclass/data/work/par
   <figcaption>The streaming progress of <code>bronze_orders</code> in the Spark event log of each run. Batch 0 read 11 rows. Batch 1 read only the 4 new rows.</figcaption>
 </figure>
 
-The query name is the full name of the table. Run 1 read 11 rows in batch 0. Run 2 started the same query (the same ID) from its checkpoint, and read only 4 rows in batch 1. The offsets are positions in the list of files that the file source keeps in its checkpoint (`sources/0/0` in Chapter 32). The materialized views are batch queries, and they post no streaming progress.
+The query name is the full name of the table. Run 1 read 11 rows in batch 0. Run 2 started the same query (the same ID) from its checkpoint, and read only 4 rows in batch 1. The offsets are positions in the list of files that the file source keeps in its checkpoint (`sources/0/0` in [Chapter 77](ch77-first-etl-pipeline.md), Step 8). The materialized views are batch queries, and they post no streaming progress.
 
 Spark 4.3 writes the event log in a folder (`eventlog_v2_<app>`), and compresses it with zstd. Use the Spark history server to see the same runs in the UI, with the SQL plan of each flow.
 
