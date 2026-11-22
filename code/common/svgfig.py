@@ -9,7 +9,7 @@ Usage:
     f = Fig(760, 300)
     f.box(40, 40, 160, 60, "Driver", "SparkSession", kind="acc")
     f.arrow(200, 70, 300, 70, "plan")
-    f.save("ch02-example")
+    f.save("ch06-example")
 """
 from __future__ import annotations
 

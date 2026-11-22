@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Mechanism: data.json (LiveListenerBus, AsyncEventQueue). Counts and speed: schematic.
+      const D = {"source": "LiveListenerBus.scala and AsyncEventQueue (v4.3.0) as Chapter 61 describes them: named queues, one thread each, default capacity 10000, numDroppedEvents. Event counts, slots and speed are schematic.", "capacity_default": 10000, "slots_schematic": 8, "events_schematic": 18};
+      A.mount();
+      // beat open (0.0)
+      A.title("The listener bus: one queue per consumer");
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.875, size: 36 }); A.in(c, t0); if (t1) A.out(c, t1); };
+      A.box({ x: 0.1, y: 0.5, w: 260, h: 150, kind: "ink", title: "scheduler", sub: "SQL, Connect", size: 28 });
+      const Q = [{ n: "appStatus", y: 0.28, out: "UI + REST" }, { n: "eventLog", y: 0.5, out: "event log file" }, { n: "shared", y: 0.72, out: "slow listener" }];
+      const QX = 0.3, SW = A.dx(52);
+      Q.forEach((q, i) => {
+        A.text(q.n, { x: QX - A.dx(10), y: q.y - A.dy(48), size: 26, weight: 700, anchor: "left" });
+        for (let k = 0; k < D.slots_schematic; k++) A.box({ x: QX + (k + 0.5) * SW, y: q.y, w: 46, h: 46, kind: "ghost", title: "", radius: 6 });
+        A.box({ x: 0.84, y: q.y, w: 300, h: 80, kind: i == 2 ? "accent" : "ok", title: q.out, size: 26 });
+      });
+      const dropped = A.text("numDroppedEvents: 0", { x: 0.84, y: 0.72 + A.dy(72), size: 26, mono: true, color: "var(--a-acc)" });
+      let drops = 0, fill = 0;
+      const T0 = 1.0, DT = 0.45;
+      for (let e = 0; e < D.events_schematic; e++) {
+        const t = T0 + e * DT;
+        Q.forEach((q, i) => {
+          const dd = A.dot({ x: 0.17, y: 0.5, r: 16, color: "var(--a-acc)" });
+          A.tl.set(dd, { opacity: 1 }, t);
+          if (i < 2) {
+            A.tl.to(dd, { x: A.X(QX + 7.5 * SW - 0.17), y: A.Y(q.y - 0.5), duration: 0.6, ease: "power1.inOut" }, t);
+            A.tl.to(dd, { x: A.X(0.84 - 0.17 - 0.06), duration: 0.3 }, t + 0.6);
+            A.tl.set(dd, { opacity: 0 }, t + 0.9);
+          } else if (fill < D.slots_schematic) {
+            const k = fill++;
+            A.tl.to(dd, { x: A.X(QX + (D.slots_schematic - 0.5 - k) * SW - 0.17), y: A.Y(q.y - 0.5), duration: 0.6, ease: "power1.inOut" }, t);
+          } else {
+            drops++;
+            A.tl.to(dd, { x: A.X(QX - 0.03 - 0.17), y: A.Y(q.y - 0.5), duration: 0.5 }, t);
+            A.tl.to(dd, { y: A.Y(q.y - 0.5 + 0.12), opacity: 0, duration: 0.4 }, t + 0.5);
+            const c = A.text("numDroppedEvents: " + drops, { x: 0.84, y: 0.72 + A.dy(72), size: 26, mono: true, color: "var(--a-acc)" });
+            gsap.set(c, { opacity: 0 }); A.tl.set(c, { opacity: 1 }, t + 0.6);
+            A.tl.set(dropped, { opacity: 0 }, t + 0.6);
+            if (drops > 1) A.tl.set(window["__d" + (drops - 1)], { opacity: 0 }, t + 0.6);
+            window["__d" + drops] = c;
+          }
+        });
+      }
+      cap("Each event goes to every queue, and each queue has its own thread", 0.8, 5.0);
+      cap("A slow listener fills its queue", 5.0, 8.4);
+      cap("A full queue drops events, and the metric counts them", 8.6);
+      A.in(A.note("8 slots and the event rate: schematic; the default capacity is 10,000 events"), 0.3);
+      A.finish(13);
+    </script>
+  </body>
+</html>

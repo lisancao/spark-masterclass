@@ -1,6 +1,6 @@
 # Shared shell helpers for the SDP part (chapters 77 to 79). Source it:  . common/sdp.sh
 #   sdp_venv            a venv with pyspark[pipelines]==4.3.0 at $BOOK_DATA/work/sdp/venv, activated
-#   sdp_project <dir>   a fresh copy of the taxi_etl project of Chapter 77 (with two days of data)
+#   sdp_project <dir>   a fresh copy of the taxi_etl project of Chapter 46 (with two days of data)
 #   sdp_server <dir> [--conf k=v ...]   start a Connect server with its current folder in <dir>
 #   sdp_stop            stop that server (by PID)
 #   x <command>         print "$ command", run it, print a blank line
@@ -25,9 +25,9 @@ sdp_venv() {
 
 sdp_project() {
   local d="$1"; rm -rf "$d"; mkdir -p "$d/data" "$d/transformations"
-  cp "$SDP_CODE/ch77/project/transformations/"* "$d/transformations/"
+  cp "$SDP_CODE/ch46/project/transformations/"* "$d/transformations/"
   cp "$BOOK_DATA/nyc-taxi/taxi_zone_lookup.csv" "$d/data/"
-  python "$SDP_CODE/ch77/make_days.py" "$d/data/trips" 2026-06-01 2026-06-02 >/dev/null
+  python "$SDP_CODE/ch46/make_days.py" "$d/data/trips" 2026-06-01 2026-06-02 >/dev/null
   printf 'name: taxi_etl\nstorage: file://%s/pipeline-storage\nlibraries:\n  - glob:\n      include: transformations/**\n' "$d" > "$d/spark-pipeline.yml"
 }
 

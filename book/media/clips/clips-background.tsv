@@ -1,6 +1,6 @@
 clip	source	start	end	poster_at	chapter
-ch70-passes	ch70-chapter.mp4	14.2	28.6	9	ch70
-ch71-tasks	ch71-chapter.mp4	0	34.9	10	ch71
-ch71-dynamic	ch71-chapter.mp4	34.9	49.4	9	ch71
-ch72-codegen	ch72-chapter.mp4	0	45.4	40	ch72
-ch73-graphs	ch73-chapter.mp4	0	45.2	10	ch73
+ch01-passes	ch01-chapter.mp4	14.2	28.6	9	ch01
+ch02-tasks	ch02-chapter.mp4	0	34.9	10	ch02
+ch02-dynamic	ch02-chapter.mp4	34.9	49.4	9	ch02
+ch03-codegen	ch03-chapter.mp4	0	45.4	40	ch03
+ch04-graphs	ch04-chapter.mp4	0	45.2	10	ch04

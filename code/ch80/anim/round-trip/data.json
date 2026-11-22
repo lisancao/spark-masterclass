@@ -1,5 +1,0 @@
-{"source": "code/ch80/output/protocol.txt (df.collect() of the top-3 zones query, through ch80/proxy.py)",
- "request_bytes": 695,
- "responses": [["schema", "192 B"], ["execution_progress", "x4"], ["arrow_batch", "3 rows, 496 B Arrow"], ["metrics", "4038 B"], ["result_complete", ""]],
- "rows": [[237, 177610], [161, 161198], [236, 157113]],
- "plan": ["read parquet", "aggregate", "sort", "limit 3"]}

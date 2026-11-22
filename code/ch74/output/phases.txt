@@ -1,0 +1,48 @@
+rows 200, status 200: 98, api among them: 31
+
+== Parsed Logical Plan ==
+'Filter 'and('`=`('status, 200), '`=`(_area('path)#33, api))
++- Relation [ip#6,path#7,status#8] parquet
+
+== Analyzed Logical Plan ==
+ip: string, path: string, status: int
+Filter ((status#8 = 200) AND (_area(path#7)#33 = api))
++- Relation [ip#6,path#7,status#8] parquet
+
+== Optimized Logical Plan ==
+Project [ip#6, path#7, status#8]
++- Filter (pythonUDF0#34 = api)
+   +- ArrowEvalPython [_area(path#7)#33], [pythonUDF0#34], 101
+      +- Filter (isnotnull(status#8) AND (status#8 = 200))
+         +- Relation [ip#6,path#7,status#8] parquet
+
+== Physical Plan ==
+*(2) Project [ip#6, path#7, status#8]
++- *(2) Filter (pythonUDF0#34 = api)
+   +- ArrowEvalPython [_area(path#7)#33], [pythonUDF0#34], 101
+      +- *(1) Filter (isnotnull(status#8) AND (status#8 = 200))
+         +- *(1) ColumnarToRow
+            +- FileScan parquet [ip#6,path#7,status#8] Batched: true, DataFilters: [isnotnull(status#8), (status#8 = 200)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/tmp/ch74-z9d7w4ly/access], PartitionFilters: [], PushedFilters: [IsNotNull(status), EqualTo(status,200)], ReadSchema: struct<ip:string,path:string,status:int>
+
+logical       org.apache.spark.sql.catalyst.plans.logical.Filter
+analyzed      org.apache.spark.sql.catalyst.plans.logical.Filter
+optimizedPlan org.apache.spark.sql.catalyst.plans.logical.Project
+sparkPlan     org.apache.spark.sql.execution.ProjectExec
+executedPlan  org.apache.spark.sql.execution.WholeStageCodegenExec
+
+The executed plan as a tree of JVM objects:
+  'WholeStageCodegen (2)'
+    'Project'
+      'Filter'
+        'InputAdapter'
+          'ArrowEvalPython'
+            'WholeStageCodegen (1)'
+              'Filter'
+                'ColumnarToRow'
+                  'InputAdapter'
+                    'Scan parquet '
+
+qe.tracker().phases():
+  planning        3 ms
+  optimization    5 ms
+  analysis        3 ms

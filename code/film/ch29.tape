@@ -1,26 +1,30 @@
-# Spark Masterclass, Chapter 29. Storyboard: storyboard-part05.md.
-#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch29.tape --format chapter
-Set TypingSpeed 40ms
+# Spark Masterclass, Chapter 29. Clips for the book page.
+#   film render code/film/ch29.tape --format chapter
+Set TypingSpeed 35ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4025 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-
-# beat: decode | A delta file, decoded by hand
-Type "# a per-user count on the HDFS state store; its delta files decoded with plain Python" Enter
+# beat: ch29-edit | Edit VARIANT values in place
+Hide
+Type "nvim +/'^v = F.col' ch29/edit.py" Enter
+Sleep 2.5s
+Type ":noh" Enter
+Type "zt" Ctrl+L
+Show
+Sleep 7s
+Hide
+Type ":qa!" Enter
+Type "clear" Enter
 Sleep 500ms
-Type "python ch29/c1_hdfs.py 2>/dev/null | sed -n '/decoded/,/state data source/p' | cut -c1-94" Enter
-Wait@240s
-Sleep 12s
-
-# beat: repartition | Two state partitions become four
-Type "# repartition the state of a stopped query from 2 to 4 partitions, then restart it" Enter
+Show
+Type "# new in 4.3: edit VARIANT values in place" Enter
 Sleep 500ms
-Type "python ch29/c3_repartition.py 2>/dev/null | head -14 | cut -c1-94" Enter
-Wait@240s
-Sleep 12s
+Type "python ch29/edit.py 2>/dev/null | sed -n '/the five edit/,/variant_strip_nulls(v) /p' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s

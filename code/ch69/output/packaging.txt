@@ -1,0 +1,75 @@
+== Two virtual environments: 'with' has the package, 'bare' has only pyspark
+pyspark                  4.3.0
+pyspark-mailbox          0.1.0    ~/spark-masterclass-parts/part09a/code/ch69/pyspark-mailbox
+
+== Plain-Python tests: no SparkSession, no JVM
+.....                                                                    [100%]
+5 passed in 0.08s
+
+== 1. The driver uses 'with', PYSPARK_PYTHON is not set
+driver python: $CH51_VENVS/with/bin/python
+PYSPARK_PYTHON: (not set)
+format('mailbox'), no register(): DATA_SOURCE_NOT_FOUND | An error occurred while calling o30.load.
+register(MailboxDataSource), then count(): PYTHON_DATA_SOURCE_ERROR 
+   ModuleNotFoundError: No module named 'pyspark_mailbox'
+
+== 2. Driver and workers both use 'with'
+driver python: $CH51_VENVS/with/bin/python
+PYSPARK_PYTHON: $CH51_VENVS/with/bin/python
+format('mailbox'), no register(): 4 rows
+format('MailBox') (names have no case): 4 rows
+register a source named 'json': DATA_SOURCE_ALREADY_EXISTS
+register() again under the same name: MailboxV2
+
+Error conditions in a classic session:
+  unknown format   Py4JJavaError                getCondition(): None                       in message: DATA_SOURCE_NOT_FOUND
+                   An error occurred while calling o69.load.
+  no path          AnalysisException            getCondition(): PYTHON_DATA_SOURCE_ERROR   in message: PYTHON_DATA_SOURCE_ERROR
+                   ValueError: mailbox needs a folder: .load(path)
+  read() raises    PythonException              getCondition(): PYTHON_EXCEPTION           in message: None
+                   ValueError: broken.eml has no From header
+
+python_worker_logs() columns: ['ts', 'level', 'msg', 'context', 'exception', 'logger']
+rows from our loggers, read right after the action: 12 | later reads: []
+  WARNING  chatty   warning "files ['ticket_0.eml', 'ticket_2.eml']"
+  WARNING  chatty   warning "files ['ticket_1.eml', 'ticket_3.eml']"
+  INFO     mailbox  read   'parsed ticket_0.eml'
+  INFO     mailbox  read   'parsed ticket_1.eml'
+  INFO     mailbox  read   'parsed ticket_2.eml'
+  INFO     mailbox  read   'parsed ticket_3.eml'
+  INFO     stdout   context_provider '2'
+  INFO     stdout   context_provider '2'
+  INFO     stdout   context_provider 'files'
+  INFO     stdout   context_provider 'files'
+  INFO     stdout   context_provider 'print with'
+  INFO     stdout   context_provider 'print with'
+
+== 3. The driver uses 'with', the workers use 'bare'
+driver python: $CH51_VENVS/with/bin/python
+PYSPARK_PYTHON: $CH51_VENVS/bare/bin/python
+format('mailbox'), no register(): DATA_SOURCE_NOT_FOUND | An error occurred while calling o30.load.
+register(MailboxDataSource), then count(): PYTHON_DATA_SOURCE_ERROR 
+   ModuleNotFoundError: No module named 'pyspark_mailbox'
+
+== 4. A second pyspark_* package that fails to import
+driver python: $CH51_VENVS/with/bin/python
+PYSPARK_PYTHON: $CH51_VENVS/with/bin/python
+format('mailbox'), no register(): DATA_SOURCE_NOT_FOUND | An error occurred while calling o30.load.
+register(MailboxDataSource), then count(): 4 rows
+Skipping the lookup of Python Data Sources due to the failure.
+ModuleNotFoundError: No module named 'a_module_that_is_not_installed'
+
+== 5. Spark Connect: the server's workers use 'bare', the client uses 'with'
+driver python: $CH51_VENVS/with/bin/python
+PYSPARK_PYTHON: (not set)
+format('mailbox'), no register(): DATA_SOURCE_NOT_FOUND | (org.apache.spark.SparkClassNotFoundException) [DATA_SOURCE_NOT_FOUND] Failed to fin
+register(MailboxDataSource), then count(): PYTHON_DATA_SOURCE_ERROR 
+   ModuleNotFoundError: No module named 'pyspark_mailbox'
+addArtifacts(pyspark_mailbox.zip, pyfile=True), then count(): PYTHON_DATA_SOURCE_ERROR 
+   ModuleNotFoundError: No module named 'pyspark_mailbox'
+register() again after addArtifacts(), then count(): 4 rows
+
+Error conditions on Connect:
+  unknown format   UnknownException             getCondition(): DATA_SOURCE_NOT_FOUND      in message: DATA_SOURCE_NOT_FOUND
+  no path          AnalysisException            getCondition(): PYTHON_DATA_SOURCE_ERROR   in message: PYTHON_DATA_SOURCE_ERROR
+  read() raises    PythonException              getCondition(): None                       in message: PYTHON_EXCEPTION

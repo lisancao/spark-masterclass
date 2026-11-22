@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 28: PySpark calls the lambda one time on the driver with a placeholder Column; the JVM loops.
+      // Values from code/ch28/output/lambdas.txt: 1 call, argument Column<'x_1'>, result [2, 4, 6, None].
+      const D = {"input": ["1", "2", "3", "NULL"], "output": ["2", "4", "6", "NULL"], "calls": 1};
+      A.mount();
+      // beat open (0.0)
+      A.title("A Python lambda becomes a Catalyst expression");
+      const code = A.code("def double(x):\n    calls.append(repr(x))\n    return x * 2\n\nF.transform(\"xs\", double)", { x: 0.22, y: 0.36, w: 640, size: 26, label: "driver: Python" });
+      A.in(code, 0.2);
+      const cnt = A.text("calls: 0", { x: 0.22, y: 0.58, size: 34, weight: 700, mono: true });
+      A.in(cnt, 0.4);
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.915, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      // beat call (1.0): one call with a placeholder Column
+      cap("PySpark calls the function one time, with a placeholder Column", 1.0, 4.4);
+      const ph = A.box({ x: 0.22, y: 0.68, w: 360, h: 64, kind: "accent", title: "Column<'x_1'>", size: 28 });
+      A.in(ph, 1.3);
+      const c1 = A.text("calls: 1", { x: 0.22, y: 0.58, size: 34, weight: 700, mono: true, color: "var(--a-acc)" });
+      A.tl.set(c1, { opacity: 0 }, 0); A.tl.set(c1, { opacity: 1 }, 1.8); A.tl.set(cnt, { opacity: 0 }, 1.8);
+      // beat tree (4.6): x * 2 builds an expression tree
+      cap("x * 2 on a Column builds an expression, not a number", 4.6, 7.6);
+      const tx = A.box({ x: 0.55, y: 0.30, w: 300, h: 70, kind: "soft", title: "transform(xs, ...)", size: 26 });
+      const lf = A.box({ x: 0.55, y: 0.44, w: 300, h: 70, kind: "soft", title: "lambdafunction", size: 26 });
+      const mul = A.box({ x: 0.55, y: 0.58, w: 300, h: 70, kind: "soft", title: "x_1 * 2", size: 26 });
+      const e1 = A.line({ x1: 0.55, y1: 0.30 + A.dy(35), x2: 0.55, y2: 0.44 - A.dy(35) });
+      const e2 = A.line({ x1: 0.55, y1: 0.44 + A.dy(35), x2: 0.55, y2: 0.58 - A.dy(35) });
+      A.in([mul, e2, lf, e1, tx], 4.9, { stagger: 0.25 });
+      // beat run (7.8): the tree goes to the JVM; executors loop over the elements
+      cap("Executors run the loop in the JVM. No Python worker starts.", 7.8, 11.6);
+      const jv = A.box({ x: 0.85, y: 0.44, w: 300, h: 280, kind: "ghost", radius: 16 });
+      const jt = A.text("executor JVM", { x: 0.85, y: 0.44 - A.dy(172), size: 28, weight: 700, color: "var(--a-mute)" });
+      A.in([jv, jt], 7.9);
+      const ar = A.line({ x1: 0.55 + A.dx(160), y1: 0.44, x2: 0.85 - A.dx(160), y2: 0.44, color: "var(--a-acc)" });
+      A.in(ar, 8.0);
+      D.input.forEach((v, i) => {
+        const y = 0.36 + i * A.dy(56);
+        const a = A.box({ x: 0.81, y, w: 90, h: 46, kind: "paper", title: v, size: 22, radius: 8 });
+        const b = A.box({ x: 0.89, y, w: 90, h: 46, kind: "ok", title: D.output[i], size: 22, radius: 8 });
+        A.in(a, 8.4 + i * 0.1);
+        A.in(b, 9.2 + i * 0.35);
+      });
+      const still = A.text("calls: 1 after two actions", { x: 0.22, y: 0.80, size: 30, weight: 700, color: "var(--a-acc)" });
+      A.in(still, 10.6);
+      cap("The SQL form transform(xs, x -> x * 2) gives the same tree", 11.8);
+      A.in(A.note("values from lambdas.py on Spark 4.3.0"), 0.5);
+      A.finish(14);
+    </script>
+  </body>
+</html>

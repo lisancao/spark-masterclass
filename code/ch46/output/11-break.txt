@@ -1,0 +1,61 @@
+$ sed -i 's/avg(c.fare_amount)/avg(c.fare)/' transformations/borough_daily.sql
+$ grep -n "avg(" transformations/borough_daily.sql
+7:  round(avg(c.fare), 2)  AS avg_fare
+$ spark-pipelines run --remote $SPARK_REMOTE; echo "exit code: $?"
+2026-11-22 10:10:48: Loading pipeline spec from ~/spark-masterclass/data/work/sdp/ch46/taxi_etl/spark-pipeline.yml...
+2026-11-22 10:10:48: Creating Spark session...
+2026-11-22 10:10:48: Creating dataflow graph...
+2026-11-22 10:10:48: Registering graph elements...
+2026-11-22 10:10:48: Loading definitions. Root directory: '~/spark-masterclass/data/work/sdp/ch46/taxi_etl'.
+2026-11-22 10:10:48: Found 3 files matching glob 'transformations/**/*'
+2026-11-22 10:10:48: Registering SQL file ~/spark-masterclass/data/work/sdp/ch46/taxi_etl/transformations/borough_daily.sql...
+2026-11-22 10:10:48: Registering SQL file ~/spark-masterclass/data/work/sdp/ch46/taxi_etl/transformations/clean_trips.sql...
+2026-11-22 10:10:48: Importing ~/spark-masterclass/data/work/sdp/ch46/taxi_etl/transformations/raw.py...
+2026-11-22 10:10:48: Starting run...
+2026-11-22 18:10:48: Failed to resolve flow: 'spark_catalog.default.borough_daily'.
+Error: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `c`.`fare` cannot be resolved. Did you mean one of the following? [`z`.`Zone`, `z`.`Borough`, `c`.`fare_amount`, `c`.`pickup_date`, `c`.`pickup_ts`]. SQLSTATE: 42703; line 7 pos 12;
+'Aggregate [pickup_date#748, Borough#755], [pickup_date#748, Borough#755 AS borough#698, count(1) AS trips#699L, 'round('avg('c.fare), 2) AS avg_fare#700]
++- Join Inner, (pickup_zone#749 = LocationID#754)
+   :- SubqueryAlias c
+   :  +- SubqueryAlias spark_catalog.default.clean_trips
+   :     +- LocalRelation <empty>, [pickup_ts#747, pickup_date#748, pickup_zone#749, trip_distance#750, fare_amount#751, tip_amount#752, payment_type#753L]
+   +- SubqueryAlias z
+      +- SubqueryAlias spark_catalog.default.zones
+         +- LocalRelation <empty>, [LocationID#754, Borough#755, Zone#756, service_zone#757]
+Traceback (most recent call last):
+  File "~/spark-masterclass/data/work/sdp/ch46/.venv/lib/python3.12/site-packages/pyspark/pipelines/cli.py", line 450, in <module>
+    main()
+  File "~/spark-masterclass/data/work/sdp/ch46/.venv/lib/python3.12/site-packages/pyspark/pipelines/cli.py", line 429, in main
+    run(
+  File "~/spark-masterclass/data/work/sdp/ch46/.venv/lib/python3.12/site-packages/pyspark/pipelines/cli.py", line 353, in run
+    handle_pipeline_events(result_iter)
+  File "~/spark-masterclass/data/work/sdp/ch46/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/pipelines/spark_connect_pipeline.py", line 53, in handle_pipeline_events
+    for result in iter:
+  File "~/spark-masterclass/data/work/sdp/ch46/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/client/core.py", line 1442, in execute_command_as_iterator
+  File "~/spark-masterclass/data/work/sdp/ch46/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/client/core.py", line 1950, in _execute_and_fetch_as_iterator
+  File "~/spark-masterclass/data/work/sdp/ch46/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/client/core.py", line 2340, in _handle_error
+  File "~/spark-masterclass/data/work/sdp/ch46/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/client/core.py", line 2443, in _handle_rpc_error
+pyspark.errors.exceptions.connect.AnalysisException: 
+Failed to resolve flows in the pipeline.
+A flow can fail to resolve because the flow itself contains errors or because it reads
+from an upstream flow which failed to resolve.
+Flows with errors: spark_catalog.default.borough_daily
+Flows that failed due to upstream errors: 
+To view the exceptions that were raised while resolving these flows, look for flow
+failures that precede this log.
+exit code: 1
+$ python look.py $SPARK_REMOTE | tail -12
++-----------+---------+------+--------+
+|pickup_date|  borough| trips|avg_fare|
++-----------+---------+------+--------+
+| 2026-06-01|Manhattan| 91226|   17.25|
+| 2026-06-01|   Queens| 11189|   52.88|
+| 2026-06-01| Brooklyn|  1984|   32.85|
+| 2026-06-02|Manhattan|106387|   17.73|
+| 2026-06-02|   Queens|  9727|    52.5|
+| 2026-06-02| Brooklyn|  1923|    32.2|
++-----------+---------+------+--------+
+$ sed -i 's/avg(c.fare)/avg(c.fare_amount)/' transformations/borough_daily.sql
+$ spark-pipelines run --remote $SPARK_REMOTE | grep -E "Run is"; echo "exit code: ${PIPESTATUS[0]}"
+2026-11-22 18:10:58: Run is COMPLETED.
+exit code: 0

@@ -1,4 +1,0 @@
-{"source": "code/ch57/output/plugins.txt",
- "type_url": "type.googleapis.com/jplug.PlanNodes",
- "rows": ["0  NULL  Aggregate", "1  0     Project", "2  1     Filter", "3  2     Range"],
- "unknown": "type.googleapis.com/jplug.Note", "error": "CONNECT_INVALID_PLAN.NO_HANDLER_FOR_EXTENSION"}

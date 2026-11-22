@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14.5" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 10: ANSI mode stops the job at the first zero fare; try_divide gives NULL and avg ignores it.
+      // Counts from code/ch10/output/ansi.txt. Row values are schematic (the first fares of check_env.txt plus a zero).
+      const D = {"zero_fares": "3,167", "trips_used": "3,834,081", "avg": "0.1732", "fares": ["16.30", "16.30", "39.40", "7.20", "0.00", "14.90", "12.10", "21.00"], "zero": 4};
+      A.mount();
+      // beat open (0.0)
+      A.title("One zero fare in 3.8 million trips");
+      const XS = 0.10, XT = 0.52, XE = 0.83, YA = 0.34, YB = 0.66, TRAVEL = 1.1, GAP = 0.45;
+      const la = A.text("tip / fare, ANSI mode on", { x: 0.06, y: YA - A.dy(90), size: 32, weight: 700, anchor: "left" });
+      const lb = A.text("try_divide(tip, fare)", { x: 0.06, y: YB - A.dy(90), size: 32, weight: 700, anchor: "left", mono: true });
+      const ta = A.box({ x: XT, y: YA, w: 220, h: 110, kind: "soft", title: "task", sub: "tip / fare", size: 32 });
+      const tb = A.box({ x: XT, y: YB, w: 220, h: 110, kind: "soft", title: "task", sub: "try_divide", size: 32 });
+      const ea = A.box({ x: XE, y: YA, w: 300, h: 110, kind: "ghost", title: "avg(r)", size: 32 });
+      const eb = A.box({ x: XE, y: YB, w: 300, h: 110, kind: "ghost", title: "avg(r)", size: 32 });
+      for (const b of [ta, tb]) b.style.zIndex = 5;
+      A.in([la, ta, ea], 0.2); A.in([lb, tb, eb], 0.4);
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.915, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      function cell(v, y, kind) { const c = A.box({ x: XS, y, w: 130, h: 60, kind, title: v, size: 28, radius: 8 }); A.tl.set(c, { opacity: 0 }, 0); return c; }
+      const dxT = A.X(XT - XS) - A.px(180), dxE = A.X(XE - XS) - A.px(210);
+      // beat ansi (0.8)
+      cap("Under ANSI mode, one zero fare stops the whole job", 0.8, 5.9);
+      const stopAt = 1.0 + D.zero * GAP + TRAVEL;
+      D.fares.forEach((v, i) => {
+        const z = i === D.zero, c = cell(v, YA, z ? "accent" : "paper"), t = 1.0 + i * GAP;
+        if (t >= stopAt) return;
+        A.tl.set(c, { opacity: 1 }, t);
+        if (t + TRAVEL <= stopAt) {
+          A.tl.to(c, { x: dxT, duration: TRAVEL, ease: "none" }, t);
+          if (!z) A.tl.to(c, { opacity: 0, duration: 0.15 }, t + TRAVEL);
+        } else {
+          A.tl.to(c, { x: dxT * (stopAt - t) / TRAVEL, duration: stopAt - t, ease: "none" }, t);
+        }
+      });
+      const err = A.text("DIVIDE_BY_ZERO, SQLSTATE 22012", { x: XE, y: YA - A.dy(8), size: 30, weight: 700, color: "var(--a-acc)", mono: true });
+      const fail = A.text("job failed", { x: XE, y: YA + A.dy(36), size: 30, weight: 600, color: "var(--a-acc)" });
+      A.tl.to(ta, { scale: 1.12, duration: 0.2, yoyo: true, repeat: 1 }, stopAt);
+      A.out(ea, stopAt); A.in([err, fail], stopAt + 0.1);
+      // beat try (6.0)
+      cap("try_divide gives NULL for that row, and avg ignores NULL", 6.0, 11.3);
+      D.fares.forEach((v, i) => {
+        const z = i === D.zero, c = cell(v, YB, z ? "accent" : "paper"), t = 6.1 + i * GAP;
+        A.tl.set(c, { opacity: 1 }, t);
+        A.tl.to(c, { x: dxT, duration: TRAVEL, ease: "none" }, t);
+        if (z) {
+          const n = A.box({ x: XS, y: YB, w: 130, h: 60, kind: "ghost", title: "NULL", size: 28, radius: 8 });
+          A.tl.set(n, { opacity: 0, x: dxT }, 0);
+          A.tl.set(c, { opacity: 0 }, t + TRAVEL); A.tl.set(n, { opacity: 1 }, t + TRAVEL);
+          A.tl.to(n, { x: dxE, duration: 0.9, ease: "none" }, t + TRAVEL);
+          A.tl.to(n, { opacity: 0, duration: 0.3 }, t + TRAVEL + 0.6);
+        } else {
+          A.tl.to(c, { x: dxE, duration: 0.9, ease: "none" }, t + TRAVEL);
+          A.tl.to(c, { opacity: 0, duration: 0.15 }, t + TRAVEL + 0.9);
+        }
+      });
+      // beat result (11.4)
+      const res = A.text(D.avg, { x: XE, y: YB - A.dy(10), size: 52, weight: 700, color: "var(--a-ok)" });
+      const res2 = A.text("over " + D.trips_used + " trips", { x: XE, y: YB + A.dy(40), size: 28, weight: 500, color: "var(--a-ok)" });
+      A.out(eb, 11.2); A.in([res, res2], 11.4);
+      cap(D.zero_fares + " zero fares become NULL, and the average uses the rest", 11.4);
+      A.in(A.note("row values schematic; counts from the June 2026 run"), 0.5);
+      A.finish(14.5);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="12.5" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 11: a broadcast join copies the small side; a sort-merge join shuffles both sides.
+      // Timings from code/ch11/output/strategies.txt (section 3, median of 3). Dots and partitions are schematic.
+      const D = {"broadcast": "0.17 s", "merge": "0.75 s"};
+      A.mount();
+      // beat open (0.0)
+      A.title("Two ways to join trips to zones");
+      const XT = [0.42, 0.56, 0.70, 0.84], YB = 0.37, YM = 0.62, YR = 0.81, XZ = 0.15;
+      const l1 = A.text("Broadcast hash join", { x: 0.04, y: 0.225, size: 32, weight: 700, anchor: "left", color: "var(--a-ok)" });
+      const l2 = A.text("Sort-merge join", { x: 0.04, y: 0.505, size: 32, weight: 700, anchor: "left", color: "var(--a-acc)" });
+      const z1 = A.box({ x: XZ, y: YB, w: 230, h: 100, kind: "accent", title: "zones", sub: "265 rows", size: 30 });
+      const z2 = A.box({ x: XZ, y: (YM + YR) / 2, w: 230, h: 100, kind: "accent", title: "zones", sub: "265 rows", size: 30 });
+      const t1 = XT.map(x => A.box({ x, y: YB, w: 200, h: 110, kind: "paper", title: "", size: 24 }));
+      const m2 = XT.map(x => A.box({ x, y: YM, w: 200, h: 90, kind: "paper", title: "", size: 24 }));
+      const r2 = XT.map(x => A.box({ x, y: YR, w: 200, h: 90, kind: "ghost", title: "", size: 24 }));
+      const lm = A.text("map tasks: trips", { x: 0.63, y: YM - A.dy(66), size: 24, weight: 600, color: "var(--a-mute)" });
+      const lr = A.text("reduce tasks", { x: 0.63, y: YR + A.dy(66), size: 24, weight: 600, color: "var(--a-mute)" });
+      const lt = A.text("tasks: trips", { x: 0.63, y: YB + A.dy(76), size: 24, weight: 600, color: "var(--a-mute)" });
+      A.in([l1, z1, ...t1, lt], 0.15, { stagger: 0.03 }); A.in([l2, z2, ...m2, ...r2, lm, lr], 0.35, { stagger: 0.03 });
+      // trip dots inside the tasks
+      const off = [[-60, -22], [0, -22], [60, -22], [-60, 22], [0, 22], [60, 22]];
+      XT.forEach((x) => off.forEach(([dx, dy]) => { const d = A.dot({ x: x + A.dx(dx), y: YB + A.dy(dy), r: 12, color: "var(--a-info, #2F5D8A)", hidden: false }); A.in(d, 0.4); }));
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.935, size: 36, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      // beat broadcast (0.9): a copy of the hash table goes to each task, the trips stay
+      cap("Broadcast: a copy of the small side goes to each task. The trips stay.", 0.9, 4.8);
+      XT.forEach((x, i) => {
+        const h = A.box({ x: XZ, y: YB, w: 90, h: 46, kind: "accent", title: "hash", size: 20, radius: 8 });
+        A.tl.set(h, { opacity: 0 }, 0); A.tl.set(h, { opacity: 1 }, 1.2 + i * 0.25);
+        A.tl.to(h, { x: A.X(x - XZ), y: -A.Y(A.dy(80)), duration: 0.9, ease: "power2.inOut" }, 1.2 + i * 0.25);
+      });
+      const bt = A.text(D.broadcast, { x: 0.25, y: 0.225, size: 44, weight: 700, anchor: "left", color: "var(--a-ok)" });
+      // beat shuffle (5.0): both sides move by key
+      cap("Sort-merge: a shuffle moves both sides by the key, then each task sorts", 5.0, 9.4);
+      let n = 0;
+      XT.forEach((x, i) => off.forEach(([dx, dy], j) => {
+        const d = A.dot({ x: x + A.dx(dx), y: YM + A.dy(dy * 0.8), r: 12, color: "var(--a-info, #2F5D8A)", hidden: false });
+        A.in(d, 0.5);
+        const tgt = XT[(i + j) % 4] + A.dx(dx);
+        A.tl.to(d, { x: A.X(tgt - x - A.dx(dx)) + A.X(A.dx(dx)) - A.X(A.dx(dx)), y: A.Y(YR - YM), duration: 1.0, ease: "power2.inOut" }, 5.3 + (n++ % 6) * 0.08);
+      }));
+      XT.forEach((x, i) => {
+        const d = A.dot({ x: XZ, y: (YM + YR) / 2, r: 12, color: "var(--a-acc)" });
+        A.tl.set(d, { opacity: 1 }, 5.4);
+        A.tl.to(d, { x: A.X(x - XZ), y: A.Y(YR - (YM + YR) / 2) + A.px(0), duration: 1.0, ease: "power2.inOut" }, 5.5 + i * 0.1);
+      });
+      A.tl.to(r2, { scale: 1.06, duration: 0.25, yoyo: true, repeat: 3 }, 7.0);
+      const mt = A.text(D.merge, { x: 0.25, y: 0.505, size: 44, weight: 700, anchor: "left", color: "var(--a-acc)" });
+      // beat cost (9.6)
+      A.in([bt, mt], 9.6);
+      cap("The same join and the same answer, measured on the June trips", 9.6);
+      A.in(A.note("dots and partitions are schematic; times: median of 3 runs"), 0.5);
+      A.finish(12.5);
+    </script>
+  </body>
+</html>

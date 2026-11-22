@@ -1,4 +1,0 @@
-{"source": "code/ch22/output/skipping.txt, layout C",
- "rows_total": 2000000, "files": 8, "row_groups_in_layout": 135, "row_groups_per_file_example": 17,
- "rows_returned_user_id_probe": 15360, "probe": 16073,
- "file_and_row_group_ranges": "schematic (20,000 users split evenly)", "timing": "schematic"}

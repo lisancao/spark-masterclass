@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="12.5" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Final plan and counts from jdocs.txt. The logical plan before pushdown is schematic.
+      const D = {"source": "code/ch70/output/jdocs.txt (count of images: 5, files opened 0, Spark jobs 1; final plan Project + LocalTableScan)", "count": 5, "opened": 0, "jobs": 1}; // data.json
+      A.mount();
+      A.title("A COUNT(*) that the source answers", "jdocs: filter first, then the aggregate");
+      const X = 0.36, W = 560;
+      const code = A.code('df.filter("kind = \'image\'").count()', { x: X, y: 0.255, w: 760, size: 24 });
+      A.in(code, 0.2);
+      const agg = A.box({ x: X, y: 0.38, w: W, h: 76, kind: "paper", title: "Aggregate [count(1)]", size: 28 });
+      const fil = A.box({ x: X, y: 0.52, w: W, h: 76, kind: "paper", title: "Filter (kind = 'image')", size: 28 });
+      const rel = A.box({ x: X, y: 0.66, w: W, h: 76, kind: "soft", title: "RelationV2 jdocs", size: 28 });
+      const l1 = A.line({ x1: X, y1: 0.38 + A.dy(38), x2: X, y2: 0.52 - A.dy(38), width: 3 });
+      const l2 = A.line({ x1: X, y1: 0.52 + A.dy(38), x2: X, y2: 0.66 - A.dy(38), width: 3 });
+      A.in([agg, l1, fil, l2, rel], 0.6, { stagger: 0.1 });
+      // side panel: the calls to the source
+      const PX = 0.80;
+      const calls = [
+        [2.6, "pushPredicates([kind = 'image'])", "taken: no Filter remains"],
+        [5.4, "supportCompletePushDown(COUNT(*))", "true"],
+        [6.6, "pushAggregation(COUNT(*))", "true: build() returns CountScan"],
+      ];
+      calls.forEach(([t, a, b], i) => {
+        const e1 = A.text(a, { x: PX, y: 0.38 + i * 0.13, size: 20, mono: true, color: "var(--a-fg)" });
+        const e2 = A.text(b, { x: PX, y: 0.38 + i * 0.13 + A.dy(34), size: 20, color: "var(--a-ok)" });
+        A.in([e1, e2], t, { stagger: 0.3 });
+      });
+      // beat filter (3.2): the Filter goes into the scan
+      const scan = A.box({ x: X, y: 0.66, w: W, h: 76, kind: "accent", title: "BatchScan jdocs pushed=[kind = 'image']", size: 22 });
+      gsap.set(scan, { opacity: 0 });
+      A.tl.to(fil, { y: A.Y(0.14), opacity: 0, duration: 0.7, ease: "power2.in" }, 3.2);
+      A.tl.to(l2, { opacity: 0, duration: 0.3 }, 3.2);
+      A.tl.to(scan, { opacity: 1, duration: 0.3 }, 3.8); A.tl.to(rel, { opacity: 0, duration: 0.3 }, 3.8);
+      A.tl.to([agg, l1], { y: A.Y(0.14), duration: 0.6, ease: "power2.inOut" }, 4.3);
+      // beat aggregate (7.4): the aggregate goes too, the scan becomes a LocalTableScan
+      const prj = A.box({ x: X, y: 0.52, w: W, h: 76, kind: "paper", title: "Project [count]", size: 28 });
+      const lts = A.box({ x: X, y: 0.66, w: W, h: 76, kind: "ok", title: "LocalTableScan [count]", size: 28 });
+      gsap.set([prj, lts], { opacity: 0 });
+      A.tl.to([agg, l1], { opacity: 0, duration: 0.4 }, 7.4);
+      A.tl.to(scan, { opacity: 0, duration: 0.3 }, 7.8);
+      A.tl.to([prj, lts], { opacity: 1, duration: 0.4 }, 7.8);
+      const l3 = A.line({ x1: X, y1: 0.52 + A.dy(38), x2: X, y2: 0.66 - A.dy(38), width: 3 });
+      A.in(l3, 7.9, { rise: 0 });
+      const res = A.text(`count ${D.count}, files opened ${D.opened}, Spark jobs ${D.jobs}`, { x: X, y: 0.78, size: 28, weight: 700, color: "var(--a-ok)" });
+      A.in(res, 8.8);
+      const caps = [
+        [0.4, "The query counts the images in the folder."],
+        [2.6, "Spark offers the filter first. jdocs takes it."],
+        [5.2, "No filter remains above the scan, so Spark offers the COUNT(*)."],
+        [7.4, "jdocs answers from its file list. No scan, no shuffle."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.88, size: 34, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.in(A.note("logical plan schematic; final plan and counts from jdocs.py"), 0.5);
+      A.finish(12.5);
+    </script>
+  </body>
+</html>

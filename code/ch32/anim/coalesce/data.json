@@ -1,0 +1,3 @@
+{"source": "code/ch32/output/aqe.txt, section 1",
+ "rows_in": 3837248, "map_tasks": 16, "shuffle_partitions": 200, "reduce_tasks_after_aqe": 1, "result_rows": 258,
+ "partition_sizes": "schematic"}

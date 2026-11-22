@@ -4,7 +4,9 @@
   "ide"
  ],
  "formats": [
+  "portrait",
+  "square",
   "landscape"
  ],
- "title": "Batch and stream"
+ "title": "stream"
 }

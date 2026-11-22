@@ -1,43 +1,36 @@
-# Spark Masterclass, Chapter 72: from RDDs to a SQL engine. Storyboard: storyboard-background.md.
+# Spark Masterclass, Chapter 72: Spark Connect plugins. Storyboard: storyboard.md.
 #   film render code/film/ch72.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
+# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4141 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4030 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: times | The same question as RDD code and as a DataFrame
-Type "# the same question, as Python RDD code and as a DataFrame" Enter
-Sleep 500ms
-Type "python ch72/rdd_vs_df.py 2>/dev/null | head -8" Enter
+# beat: plugins | A relation plugin returns the plan as rows
 Hide
-Wait@400s
+Type "ch72/server.sh start >/dev/null; clear" Enter
+Wait@180s
 Show
-Sleep 10s
+Type "# a Connect client has no JVM: a server plugin sends the plan back as rows" Enter
+Sleep 500ms
+Type "python ch72/plugins.py 2>/dev/null | sed -n '/== 4\./,/== 5\./p' | grep -v '== 5' | cut -c1-92" Enter
+Wait@180s
+Sleep 12s
 
-# beat: row | One row as Tungsten keeps it
+# beat: artifacts | An artifact jar becomes a plugin for every session
 Hide
-Type "clear" Enter
+Type "ch72/server.sh bare >/dev/null; clear" Enter
+Wait@180s
 Show
-Type "# one taxi row, as the bytes of an UnsafeRow" Enter
+Type "# a server with the plugin configured, but without its jar" Enter
 Sleep 500ms
-Type "python ch72/tungsten.py 2>/dev/null | head -10" Enter
-Hide
-Wait@300s
-Show
+Type "python ch72/artifacts.py 2>/dev/null | cut -c1-92" Enter
+Wait@180s
 Sleep 10s
-
-# beat: codegen | The Java loop that whole-stage codegen wrote
 Hide
-Type "clear" Enter
-Show
-Type "# the generated Java: scan, filter, project and aggregate in one loop" Enter
-Sleep 500ms
-Type "python ch72/codegen.py 2>/dev/null | sed -n '/generated code/,/final plan/p' | cut -c1-94" Enter
-Hide
-Wait@300s
-Show
-Sleep 10s
+Type "ch72/server.sh stop; clear" Enter
+Wait@60s

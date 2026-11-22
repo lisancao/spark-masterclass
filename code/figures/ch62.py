@@ -1,41 +1,52 @@
-"""Figures for Chapter 62. Results from code/ch62/output/boundaries.txt, repro.txt and test_fix.txt."""
+"""Figures for Chapter 62. Numbers and names from code/ch62/output/*.txt."""
 from svgkit import *
 
-# 1. The boundary table, on 4.3.0 and with the patched classes
-cases = ["1 USE other (has its own sales)", "2 USE empty (no sales table)", "3 USE default, temp view named sales",
-         "4 source qualified as default.sales", "5 SQL source SELECT * FROM sales", "6 subquery in filter: FROM regions"]
-mv = ["(east, 999)", "TABLE_OR_VIEW_NOT_FOUND", "(north, 5)", "(east, 10), (west, 20)", "(east, 999)", "(west, 20)"]
-ok = "(east, 10), (west, 20)"
-s = Svg(780, 300, "The six boundary cases: metric view on 4.3.0, metric view with the fix, regular view")
-cols = [("metric view, 4.3.0", 300), ("metric view, patched", 460), ("regular view", 620)]
-for lab, x in cols:
-    s.text(x + 75, 24, lab, 12, ACC if "patched" in lab else MUTE, "middle", 700)
-for i, c in enumerate(cases):
-    y = 40 + i * 38
-    s.text(290, y + 19, c, 11, MUTE, "end", 600)
-    for k, (lab, x) in enumerate(cols):
-        v = mv[i] if k == 0 else ok
-        good = v == ok
-        s.box(x, y, 150, 28, v, GREEN if good else RED, 10 if len(v) > 20 else 11, mono=True)
-s.text(12, 286, "Expected everywhere: (east, 10), (west, 20). Cases 2 to 6 with USE other unless the row says otherwise.", 11, MUTE, "start", italic=True)
-s.save(FIG + "ch62-boundaries.svg")
+# 1. Restart timeline of flaky (failing-app.txt)
+s = Svg(780, 250, "Three attempts of the flaky application under restartPolicy OnFailure")
+X0, SC = 110, 6.6   # px per second
+ev = [  # attempt, start, end of the RunningHealthy span (next state), from failing-app.txt
+    (0, 1.2, 16.0, 30.4), (1, 36.2, 46.5, 61.2), (2, 66.1, 76.5, 90.5)]
+for t in range(0, 100, 10):
+    s.line(X0 + t * SC, 30, X0 + t * SC, 200, MUTE, 0.6, dash=True, arrow=False)
+    s.text(X0 + t * SC, 216, f"{t} s", 11, MUTE)
+for a, st, rh, end in ev:
+    y = 40 + a * 52
+    s.text(X0 - 12, y + 22, f"attempt {a}", 13, MUTE, "end", 600)
+    s.text(X0 - 12, y + 37, f"flaky-{a}-driver", 10, MUTE, "end", mono=True)
+    s.box(X0 + st * SC, y + 6, (rh - st) * SC, 26, "driver start", GRAY, 11)
+    s.box(X0 + rh * SC, y + 6, (end - rh) * SC, 26, "RunningHealthy", BLUE, 11)
+    if a < 2:
+        s.text(X0 + end * SC + 5, y + 23, f"ScheduledToRestart {end} s", 11, MUTE, "start", 600)
+    else:
+        s.text(X0 + end * SC, y + 46, f"ResourceReleased {end} s: no restart left", 11, RED, "end", 600)
+    if a < 2:
+        nxt = ev[a + 1][1]
+        s.box(X0 + end * SC, y + 32 + 20, (nxt - end) * SC, 0.1, "", ORANGE)
+        s.path(f"M{X0 + end * SC},{y + 32} C{X0 + end * SC + 10},{y + 70} {X0 + nxt * SC - 10},{y + 40} {X0 + nxt * SC},{y + 58}", ORANGE, 1.5)
+        s.text((X0 + (end + nxt) / 2 * SC) + 2, y + 66, "backoff", 10, ACC, "middle", 600)
+s.text(390, 240, "restartPolicy OnFailure, maxRestartAttempts 2, restartBackoffMillis 5000 (states polled once a second)", 11, MUTE, italic=True)
+s.save(FIG + "ch62-restart-timeline.svg")
 
-# 2. Where the unqualified name goes (repro.txt)
-s = Svg(780, 300, "The unqualified name sales in the metric view, resolved in two namespaces")
-s.frame(12, 40, 360, 140, "namespace default", MUTE, 13)
-s.box(30, 72, 140, 50, "sales", BLUE, 13, mono=True, sub="(east, 10), (west, 20)", subsize=10)
-s.box(215, 72, 140, 50, "mv", PURPLE, 13, mono=True, sub="metric view, source: sales", subsize=9)
-s.box(215, 128, 140, 42, "v", GRAY, 13, mono=True, sub="regular view, FROM sales", subsize=9)
-s.frame(408, 40, 360, 140, "namespace other", MUTE, 13)
-s.box(520, 72, 140, 50, "sales", ORANGE, 13, mono=True, sub="(east, 999)", subsize=10)
-s.line(213, 97, 173, 97, GREEN, 2.5)
-s.path("M285,70 C300,0 560,0 590,68", RED, 2.5)
-s.text(590, 150, "4.3.0, after USE other:", 11, RED, "middle", 700)
-s.text(590, 165, "the session namespace", 11, RED, "middle", 700)
-s.text(20, 204, "with the fix: the creation namespace (view.desc)", 12, GREEN, "start", 700)
-s.text(20, 220, "→ (east, 10), (west, 20)", 12, GREEN, "start", 700)
-s.text(420, 204, "4.3.0: the metric view reads other.sales", 12, RED, "start", 700)
-s.text(420, 220, "→ (east, 999), and no error", 12, RED, "start", 700)
-s.text(12, 260, "The regular view v always resolves in default: ViewResolution uses", 11, MUTE, "start", italic=True)
-s.text(12, 276, "AnalysisContext.withAnalysisContext(view.desc). The metric view placeholder did not get this context.", 11, MUTE, "start", italic=True)
-s.save(FIG + "ch62-namespaces.svg")
+# 2. Where the executors run: k8s master against SparkCluster (zones-app.txt, run_cluster.txt, zones-on-cluster.txt)
+s = Svg(780, 300, "Pods of the zones application in the two modes")
+def pod(x, y, w, name, fill, sub=None, h=40):
+    s.box(x, y, w, h, name, fill, 12, mono=True, sub=sub, subsize=11)
+s.frame(10, 10, 370, 280, "SparkApplication, master k8s://", MUTE, 13)
+pod(30, 50, 330, "zones-0-driver", ORANGE, "driver pod (the operator made it)")
+s.line(195, 92, 85, 150); s.line(195, 92, 305, 150)
+s.text(195, 122, "the driver asks the\nKubernetes API", 11, MUTE)
+pod(30, 152, 160, "zones-exec-1", BLUE, "1,000,000 rows", 46)
+pod(200, 152, 160, "zones-exec-2", BLUE, "1,000,000 rows", 46)
+s.text(195, 230, "executor pods: created and deleted", 12, MUTE)
+s.text(195, 246, "for each application", 12, MUTE)
+s.frame(400, 10, 370, 280, "SparkApplication on SparkCluster book", MUTE, 13)
+pod(420, 50, 160, "zones-standalone-\n0-driver", ORANGE, None, 46)
+pod(590, 50, 160, "book-master-0", GRAY, "spark://...:7077", 46)
+s.line(580, 73, 590, 73, MUTE, 2)
+for i, x in enumerate([420, 590]):
+    s.frame(x, 118, 160, 110, f"book-worker-{i}", MUTE, 12, 8, dash=False, anchor="middle")
+    s.box(x + 14, 152, 132, 58, "executor process", BLUE, 11, sub="1,000,000 rows", subsize=11)
+s.line(670, 98, 500, 118); s.line(670, 98, 670, 118)
+s.text(585, 250, "no executor pods: executors run inside", 12, MUTE)
+s.text(585, 266, "the long-lived worker pods (spark.cores.max 4)", 12, MUTE)
+s.save(FIG + "ch62-executor-placement.svg")

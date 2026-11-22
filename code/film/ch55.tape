@@ -1,28 +1,26 @@
-# Spark Masterclass, Chapter 55: a DSv2 connector in Java. Storyboard: storyboard.md.
+# Spark Masterclass, Chapter 55: similarity search. Storyboard: notes/part07.md.
 #   film render code/film/ch55.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4030 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4227 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: capability | The same questions, to a Python source and a Java source
-Type "# the same three queries, against the Python source and the Java source" Enter
+# beat: banding | MinHash bands built from DataFrame functions: recall against work
+Type "# MinHash with b bands of r rows: candidates and recall for pairs with J >= 0.7" Enter
 Sleep 500ms
-Type "python ch55/capability.py 2>/dev/null | grep -E '^==|BatchScan|LocalTableScan|CollectLimit' | grep -v formatted | cut -c1-92" Enter
-Wait@180s
+Type "python ch55/indexes.py 2>/dev/null | sed -n '/== banding/,/numHashTables=25/p' | cut -c1-92" Enter
+Wait@1200s
 Sleep 12s
 
-# beat: pushdown | Pruning, a pushed filter and a COUNT(*) with no file read
-Hide
+# beat: ivf | The IVF recall curve
 Type "clear" Enter
-Show
-Type "# what jdocs takes from the plan: columns, a filter, a whole COUNT(*)" Enter
+Type "# IVF over 20,000 vectors: recall at 10 against the share of vectors scored" Enter
 Sleep 500ms
-Type "python ch55/jdocs.py 2>/dev/null | sed -n '/== 4\./,/== 5\./p;/== 6\./,/== 7\./p;/== 9\./,/sum(size)/p' | grep -v '== [57]\.' | cut -c1-92" Enter
-Wait@180s
-Sleep 12s
+Type "python ch55/indexes.py 2>/dev/null | sed -n '/list sizes/,$p' | cut -c1-92" Enter
+Wait@1200s
+Sleep 10s

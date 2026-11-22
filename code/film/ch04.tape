@@ -1,42 +1,43 @@
-# Spark Masterclass, Chapter 4: Spark Connect. Storyboard: storyboard.md.
+# Spark Masterclass, Chapter 4: one engine for batch and streaming. Storyboard: storyboard-background.md.
 #   film render code/film/ch04.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data CONNECT_PORT=15105 CONNECT_UI_PORT=4145 && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4141 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: connect | A query and a mistake, over Spark Connect
-Hide
-Type "ch04/server.sh start >/dev/null; rm -f ../data/failed_op; clear" Enter
-Wait@120s
-Show
-Type "# the same DataFrame code, sent to a Connect server as a plan" Enter
+# beat: same | One function as a batch query and as a stream
+Type "# one function: read the inbox as a table, then as a stream" Enter
 Sleep 500ms
-Type "python ch04/connect.py 2>/dev/null | sed -n '/busiest/,/SQLSTATE/p'" Enter
-Wait@120s
-Sleep 10s
+Type "python ch04/same_code.py 2>/dev/null | sed -n '1,22p'" Enter
+Hide
+Wait@300s
+Show
+Sleep 12s
 
-# beat: rest | The failed operation, from the server's REST API
+# beat: dstream | The first streaming API, still in the package
 Hide
-Type "export API=localhost:$CONNECT_UI_PORT/api/v1/applications/$(curl -s localhost:$CONNECT_UI_PORT/api/v1/applications | jq -r '.[0].id') OP=$(cat ../data/failed_op); clear" Enter
-Sleep 1s
+Type "clear" Enter
 Show
-Type "# new in 4.3: look the operation up by the ID the client printed" Enter
+Type "# DStreams: the first streaming API, deprecated since 3.4" Enter
 Sleep 500ms
-Type "curl -s $API/connect/operations | jq '.[] | select(.operationId == env.OP) | {operationId, state, executionTime, sqlExecIds, detail: .detail[0:120]}'" Enter
-Sleep 10s
-
-# beat: thin | The same server from pyspark-client: no jars, no Py4J
+Type "python ch04/dstream.py 2>/dev/null" Enter
 Hide
-Type "export THIN=/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/connect-core; clear" Enter
-Show
-Type "# a client environment with only pyspark-client 4.3.0: how big, and does it work?" Enter
-Sleep 500ms
-Type "ch04/sizes.sh $THIN" Enter
 Wait@180s
+Show
+Sleep 8s
+
+# beat: graphs | GraphFrames 0.12.3 on Spark 4.3
+Hide
+Type "clear" Enter
+Show
+Type "# GraphFrames, the DataFrame graph package, on Spark 4.3" Enter
+Sleep 500ms
+Type "uv run -q --with graphframes-py==0.12.3 python ch04/graphs.py 2>/dev/null | head -22" Enter
+Hide
+Wait@400s
+Show
 Sleep 10s

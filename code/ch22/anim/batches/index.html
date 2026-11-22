@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13.5" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 22: Arrow batches from Spark into Polars. Totals from code/ch22/output/app.txt.
+      const D = {"rows": "6,145", "kib": "145.4", "cols": ["PULocationID", "hour", "trips", "avg_fare"]};
+      A.mount();
+      // beat open (0.0)
+      A.title("Arrow batches from Spark into Polars");
+      const srv = A.box({ x: 0.15, y: 0.47, w: 470, h: 620, kind: "soft", title: "", size: 30 });
+      const srvT = A.text("Spark server", { x: 0.15, y: 0.21, size: 34, weight: 700 });
+      const ty = [0.32, 0.44, 0.56, 0.68];
+      const tasks = ty.map((y, i) => A.box({ x: 0.10, y, w: 170, h: 80, kind: "paper", title: `task ${i + 1}`, size: 26 }));
+      const app = A.box({ x: 0.82, y: 0.47, w: 560, h: 620, kind: "soft", title: "", size: 30 });
+      const appT = A.text("Polars DataFrame in the app", { x: 0.82, y: 0.21, size: 34, weight: 700 });
+      const colX = [0.73, 0.79, 0.85, 0.91];
+      const heads = D.cols.map((c, i) => A.text(c, { x: colX[i], y: 0.27, size: 17, weight: 600, mono: true }));
+      const pipe = A.line({ x1: 0.32, y1: 0.47, x2: 0.66, y2: 0.47, width: 10, color: "var(--a-line)" });
+      const pipeT = A.text("gRPC stream", { x: 0.49, y: 0.40, size: 28, weight: 600, color: "var(--a-mute)" });
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.915, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      // a batch: four thin column stripes side by side
+      function batch(x, y) {
+        const kinds = ["accent", "ok", "ink", "paper"];
+        return kinds.map((k, j) => A.box({ x: x + A.dx(j * 34 - 51), y, w: 30, h: 70, kind: k, radius: 4, title: "" }));
+      }
+      // beat tasks (1.2): each task writes an Arrow record batch
+      cap("Each task writes its rows as an Arrow record batch", 1.2, 3.8);
+      const bs = ty.map((y, i) => { const b = batch(0.22, y); b.forEach((s) => A.tl.set(s, { opacity: 0 }, 0)); A.tl.to(b, { opacity: 1, duration: 0.3 }, 1.6 + i * 0.35); return b; });
+      // beat wire (4.0): the batches move through the stream, one after another
+      cap("The batches stream to the app over gRPC", 4.0, 6.8);
+      bs.forEach((b, i) => {
+        A.tl.to(b, { y: A.Y(0.47 - ty[i]), duration: 0.5, ease: "power1.inOut" }, 4.2 + i * 0.55);
+        A.tl.to(b, { x: A.X(0.62 - 0.22), duration: 1.0, ease: "none" }, 4.7 + i * 0.55);
+      });
+      // beat polars (7.0): each stripe joins its column; the columns grow
+      cap("Polars takes the column buffers as they are", 7.0, 9.8);
+      const cols = colX.map((x, j) => {
+        const c = A.box({ x, y: 0.53, w: 70, h: 440, kind: ["accent", "ok", "ink", "paper"][j], radius: 6, title: "" });
+        A.tl.set(c, { opacity: 0, scaleY: 0, transformOrigin: "50% 0%" }, 0);
+        return c;
+      });
+      bs.forEach((b, i) => A.tl.to(b, { opacity: 0, duration: 0.3 }, 7.1 + i * 0.4));
+      cols.forEach((c, j) => { A.tl.to(c, { opacity: 1, duration: 0.2 }, 7.1); A.tl.to(c, { scaleY: 1, duration: 1.8, ease: "steps(4)" }, 7.2); });
+      // beat end (10.0)
+      cap(`${D.rows} rows, ${D.kib} KiB of Arrow. No row conversion.`, 10.0);
+      A.in(A.note("number of tasks and batches is schematic"), 0.5);
+      A.finish(13.5);
+    </script>
+  </body>
+</html>

@@ -1,2 +1,0 @@
-{"source": "code/ch37/output/estimators.txt (what fit() runs). The four partitions and the timing are schematic.",
- "lbfgs_jobs": 11, "lbfgs_iterations": 6, "normal_jobs": 2, "partitions_schematic": 4}

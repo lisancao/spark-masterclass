@@ -1,3 +1,0 @@
-{"source": "code/ch39/output/indexes.txt (IVF table). The 2-D positions of the 64 lists and of the query are schematic.",
- "nlist": 64,
- "probes": [[1, "2.0%", "0.424"], [2, "3.9%", "0.591"], [4, "7.7%", "0.765"], [8, "14.7%", "0.913"], [16, "25.1%", "0.988"]]}

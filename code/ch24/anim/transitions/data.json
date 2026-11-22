@@ -1,4 +1,0 @@
-{"source": "code/ch24/output/plans-cpu.txt and plans-gluten.txt (hourly query)",
- "cpu_430": {"engine_ops": 0, "spark_ops": 8, "transitions": 1, "transition": "ColumnarToRowExec above the scan"},
- "gluten_411": {"engine_ops": 10, "spark_ops": 0, "transitions": 1, "transition": "VeloxColumnarToRowExec at the top"},
- "operator_chain": "simplified: scan, filter, partial aggregate, shuffle, final aggregate, sort", "timing": "schematic"}

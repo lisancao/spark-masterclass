@@ -1,0 +1,4 @@
+{"source": "code/ch41/output/t2_sessions.txt and the chapter text (Step 5)",
+ "u1_session": {"start": "09:00:14", "last": "09:09:18", "clicks": 3, "timer": "09:39:18"},
+ "batch2_watermark": "10:02:28", "c018": "10:45:56", "closed_row": "u1 09:00:14 09:09:18 3 16.39 gap",
+ "new_timer": "11:15:56 (last click + 30 min, from the Sessionizer code)", "timing": "schematic"}

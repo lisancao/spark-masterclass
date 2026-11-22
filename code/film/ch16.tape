@@ -1,30 +1,29 @@
-# Spark Masterclass, Chapter 16. Clips for the book page.
+# Spark Masterclass, Chapter 16: Geospatial data in Spark 4.3.
 #   film render code/film/ch16.tape --format chapter
-Set TypingSpeed 35ms
+# Needs ch16/zones.py first (pip.py reads data/work/ch16/zones.parquet).
+Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4143 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: ch16-kafka | The Confluent header
+# beat: inventory | Five ST functions in 4.3.0, and the names it does not have
+Type "# Which ST functions does Spark 4.3.0 have, in SQL, PySpark and Scala?" Enter
+Sleep 500ms
+Type "python ch16/inventory.py 2>/dev/null | sed -n '1,5p;/== 5/,$p' | cut -c1-90" Enter
+Wait@180s
+Sleep 9s
+
+# beat: pip | Point in polygon by hand: a grid key, a bounding box, then edge crossings
 Hide
-Type "nvim +/'^framed = topic' ch16/protobuf.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
 Type "clear" Enter
-Sleep 500ms
 Show
-Type "# a Kafka message: header, schema id, index, then Protobuf" Enter
+Type "# Citi Bike starts, June 2026, against the 263 taxi zones. No st_contains:" Enter
 Sleep 500ms
-Type "python ch16/protobuf.py 2>/dev/null | sed -n '/Confluent header for Protobuf/,/only showing/p' | cut -c1-92" Enter
+Type "python ch16/pip.py 2>/dev/null | sed -n '/^distinct/p;/== 3/,/inside bbox/p;/== 5/,/^Row/p' | cut -c1-90" Enter
 Wait@300s
 Sleep 10s

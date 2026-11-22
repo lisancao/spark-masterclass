@@ -1,30 +1,18 @@
-# Spark Masterclass, Chapter 17. Clips for the book page.
-#   film render code/film/ch17.tape --format chapter
-Set TypingSpeed 35ms
+# Spark Masterclass, Chapter 17: metric views. Storyboard: notes/part06.md (film section).
+#   film render code/film/ch17.tape --format chapter (after ch17/define.py)
+Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} SPARK_UI_PORT=4026 W=${BOOK_DATA:-$HOME/spark-masterclass/data}/work/part06 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: ch17-forget | A delete leaves the bytes
-Hide
-Type "nvim +/'forget one file' ch17/blobs.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
-Type "clear" Enter
+# beat: measure | The average of ratios, and MEASURE()
+Type "# one ratio, two answers: by hand, and from the metric view" Enter
 Sleep 500ms
-Show
-Type "# delete one e-mail: the rows go at once, the bytes go later" Enter
-Sleep 500ms
-Type "python ch17/blobs.py 2>/dev/null | sed -n '/forget one file/,/the blob in the store/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+Type "python ch17/film.py 2>/dev/null" Enter
+Wait@180s
+Sleep 12s

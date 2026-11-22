@@ -15,26 +15,26 @@ Visual aids added to existing chapters. The prose substance is not changed. Chan
 
 | Chapter | Figures | Animation | Other | Numbers from |
 |---|---|---|---|---|
-| 2 | `ch02-install-sizes`, `ch02-what-runs-where`, `ch02-data-problems` | `ch02-anim-drivers` (where the driver runs, four installs) | "How to choose" list as a table; annotation on the pip line | chapter table, `code/ch02/output/check_env.txt` |
-| 3 | `ch03-cleaning-rules`, `ch03-when-sum` (schematic rows), `ch03-top-zones` | `ch03-anim-plans` (analyzed plans become one optimized plan) | warning admonition for named parameters; annotation on the conditional sum | `code/ch03/output/what_cleaning_drops.txt`, `quickstart.txt` |
-| 5 | `ch05-chain-cost`, `ch05-timezones`, `ch05-drift-days` | `ch05-anim-projects` (withColumn loop vs withColumns, CollapseProject) | drift-kind list as a table; TIME warning as an admonition | `code/ch05/output/plans.txt`, `type_system.txt`, `drift.txt` |
-| 6 | `ch06-collations`, `ch06-bytes`, `ch06-reject-reasons` | `ch06-anim-ansi` (ANSI stops the job; try_divide gives NULL) | error-method list and collation-name list as tables | `code/ch06/output/ansi.txt`, `strings.txt`, `values.txt` |
-| 7 | `ch07-groupby-window`, `ch07-rows-range` | `ch07-anim-window` (Exchange, Sort, Window with running sums) | window-part list, ranking list and window-cost list as tables | `code/ch07/output/windows.txt` |
-| 8 | `ch08-script-executions`, `ch08-udf-cost`, `ch08-zone-chain` | `ch08-anim-recursion` (UnionLoop passes on the zone chain) | recursion-limit list as a table | `code/ch08/output/scripting.txt`, `functions.txt` |
-| 9 | `ch09-join-types`, `ch09-strategy-times`, `ch09-skew-tasks` | `ch09-anim-movement` (broadcast against sort-merge data movement) | none (the strategy table was already there) | `code/ch09/output/strategies.txt`, `skew.txt` |
-| 11 | `ch11-png-header`, `ch11-formats` | `ch11-anim-packing` (2000 small files packed into 63 or 16 tasks) | none | `code/ch11/output/bytes.txt`, `formats.txt` |
-| 12 | `ch12-multiline-events`, `ch12-dropmalformed` | `ch12-anim-positions` (one header, columns by position, then unionByName) | none (the option table was already there) | `code/data/messy/logs/app.log`, `code/ch12/output/csv_drift.txt` |
-| 13 | `ch13-infer-cost`, `ch13-type-merge`, `ch13-balance` | `ch13-anim-inference` (two passes without a schema, one with) | none (the mode table was already there) | `code/ch13/output/infer_cost.txt`, `infer.txt`, `drift.txt` |
-| 14 | `ch14-explode`, `ch14-three-valued` | `ch14-anim-tracing` (a Python lambda traced into a Catalyst expression) | aggregate-trap list and codegen list as tables | `code/ch14/output/nested.txt`, `lambdas.txt` |
-| 15 | `ch15-key-profile`, `ch15-shredding`, `ch15-extraction-cost` | `ch15-anim-shredding` (fields into typed columns, one-column read) | none (the comparison table was already there) | `code/ch15/output/land.txt`, `shred.txt`, `speed.txt`, `code/data/messy/events` |
-| 16 | `ch16-confluent`, `ch16-record-bytes` | `ch16-anim-wrongschema` (Avro bytes decoded with the right and a wrong schema) | none (the format table was already there) | `code/ch16/output/avro.txt`, `protobuf.txt` |
-| 17 | `ch17-bgr`, `ch17-parquet-blobs` | `ch17-anim-forget` (delete, rewrite, expire on snapshots and files) | the delete-sequence list as a table | `code/ch17/output/media.txt`, `blobs.txt` |
+| 2 | `ch06-install-sizes`, `ch06-what-runs-where`, `ch06-data-problems` | `ch06-anim-drivers` (where the driver runs, four installs) | "How to choose" list as a table; annotation on the pip line | chapter table, `code/ch06/output/check_env.txt` |
+| 3 | `ch07-cleaning-rules`, `ch07-when-sum` (schematic rows), `ch07-top-zones` | `ch07-anim-plans` (analyzed plans become one optimized plan) | warning admonition for named parameters; annotation on the conditional sum | `code/ch07/output/what_cleaning_drops.txt`, `quickstart.txt` |
+| 5 | `ch09-chain-cost`, `ch09-timezones`, `ch09-drift-days` | `ch09-anim-projects` (withColumn loop vs withColumns, CollapseProject) | drift-kind list as a table; TIME warning as an admonition | `code/ch09/output/plans.txt`, `type_system.txt`, `drift.txt` |
+| 6 | `ch10-collations`, `ch10-bytes`, `ch10-reject-reasons` | `ch10-anim-ansi` (ANSI stops the job; try_divide gives NULL) | error-method list and collation-name list as tables | `code/ch10/output/ansi.txt`, `strings.txt`, `values.txt` |
+| 7 | `ch13-groupby-window`, `ch13-rows-range` | `ch13-anim-window` (Exchange, Sort, Window with running sums) | window-part list, ranking list and window-cost list as tables | `code/ch13/output/windows.txt` |
+| 8 | `ch14-script-executions`, `ch14-udf-cost`, `ch14-zone-chain` | `ch14-anim-recursion` (UnionLoop passes on the zone chain) | recursion-limit list as a table | `code/ch14/output/scripting.txt`, `functions.txt` |
+| 9 | `ch11-join-types`, `ch11-strategy-times`, `ch11-skew-tasks` | `ch11-anim-movement` (broadcast against sort-merge data movement) | none (the strategy table was already there) | `code/ch11/output/strategies.txt`, `skew.txt` |
+| 11 | `ch25-png-header`, `ch25-formats` | `ch25-anim-packing` (2000 small files packed into 63 or 16 tasks) | none | `code/ch25/output/bytes.txt`, `formats.txt` |
+| 12 | `ch26-multiline-events`, `ch26-dropmalformed` | `ch26-anim-positions` (one header, columns by position, then unionByName) | none (the option table was already there) | `code/data/messy/logs/app.log`, `code/ch26/output/csv_drift.txt` |
+| 13 | `ch27-infer-cost`, `ch27-type-merge`, `ch27-balance` | `ch27-anim-inference` (two passes without a schema, one with) | none (the mode table was already there) | `code/ch27/output/infer_cost.txt`, `infer.txt`, `drift.txt` |
+| 14 | `ch28-explode`, `ch28-three-valued` | `ch28-anim-tracing` (a Python lambda traced into a Catalyst expression) | aggregate-trap list and codegen list as tables | `code/ch28/output/nested.txt`, `lambdas.txt` |
+| 15 | `ch29-key-profile`, `ch29-shredding`, `ch29-extraction-cost` | `ch29-anim-shredding` (fields into typed columns, one-column read) | none (the comparison table was already there) | `code/ch29/output/land.txt`, `shred.txt`, `speed.txt`, `code/data/messy/events` |
+| 16 | `ch30-confluent`, `ch30-record-bytes` | `ch30-anim-wrongschema` (Avro bytes decoded with the right and a wrong schema) | none (the format table was already there) | `code/ch30/output/avro.txt`, `protobuf.txt` |
+| 17 | `ch31-bgr`, `ch31-parquet-blobs` | `ch31-anim-forget` (delete, rewrite, expire on snapshots and files) | the delete-sequence list as a table | `code/ch31/output/media.txt`, `blobs.txt` |
 
 Totals: 36 figures (72 SVG files, light and dark, 0.50 MB), 14 animations (mp4 plus webp poster, 3.49 MB; the largest mp4 is about 280 KB). Media added: about 4.0 MB.
 
 ## Claims and sources
 
-Every number in a figure or an animation comes from the chapter's saved output (`code/chNN/output/`) or from the chapter's own tables, as listed in the "Numbers from" column above and in each `code/chNN/anim/<name>/storyboard.md`. Anything illustrative is labelled on the figure or on screen as schematic: example rows (ch03 conditional sums), dot positions and partitions (ch09, ch13), the squares that stand for files (ch11), the six drawn `withColumn` calls (ch05) and the row values of the ANSI animation (ch06). Two derived values: the PNG chunk length `00 00 00 0D` and the width bytes `00 00 00 20` in `ch11-png-header` follow from the PNG format and the decoded width 32; the four unread bytes in `ch16-anim-wrongschema` follow from the Avro byte layout and the decoded row.
+Every number in a figure or an animation comes from the chapter's saved output (`code/chNN/output/`) or from the chapter's own tables, as listed in the "Numbers from" column above and in each `code/chNN/anim/<name>/storyboard.md`. Anything illustrative is labelled on the figure or on screen as schematic: example rows (ch07 conditional sums), dot positions and partitions (ch11, ch27), the squares that stand for files (ch25), the six drawn `withColumn` calls (ch09) and the row values of the ANSI animation (ch10). Two derived values: the PNG chunk length `00 00 00 0D` and the width bytes `00 00 00 20` in `ch25-png-header` follow from the PNG format and the decoded width 32; the four unread bytes in `ch30-anim-wrongschema` follow from the Avro byte layout and the decoded row.
 
 ## Environment
 
@@ -44,13 +44,13 @@ Every number in a figure or an animation comes from the chapter's saved output (
 
 ## Open findings (text against saved output, not changed)
 
-- **ch06, Step 2:** the text says "Seven queries return NULL, and two return a wrong number". `code/ch06/output/ansi.txt` shows eight `None` results and two wrong numbers (ten queries).
-- **ch09, Step 3:** the text quotes 0.16 s, 0.56 s, 0.73 s and 8.50 s. `code/ch09/output/strategies.txt` shows 0.17 s, 0.54 s, 0.75 s and 8.61 s. The figure `ch09-strategy-times` uses the saved output.
+- **ch10, Step 2:** the text says "Seven queries return NULL, and two return a wrong number". `code/ch10/output/ansi.txt` shows eight `None` results and two wrong numbers (ten queries).
+- **ch11, Step 3:** the text quotes 0.16 s, 0.56 s, 0.73 s and 8.50 s. `code/ch11/output/strategies.txt` shows 0.17 s, 0.54 s, 0.75 s and 8.61 s. The figure `ch11-strategy-times` uses the saved output.
 - **Possible merge overlap:** `code/common/svgfig.py` and `code/common/build_anim.sh` are new shared files. If another visual-aids branch adds files with the same names, keep one copy.
 
 ## STE
 
-`scripts/ste-check` on each changed chapter, with the part allow lists (`notes/part02.md` words for ch02 to ch09, `notes/.ste-allow-part03` plus the part03 words for ch11 to ch17). No chapter has a new finding:
+`scripts/ste-check` on each changed chapter, with the part allow lists (`notes/part02.md` words for ch06 to ch11, `notes/.ste-allow-part03` plus the part03 words for ch25 to ch31). No chapter has a new finding:
 
 | Chapter | Findings before | Findings after |
 |---|---|---|
@@ -58,7 +58,7 @@ Every number in a figure or an animation comes from the chapter's saved output (
 | 11, 13, 14, 15, 16, 17 | 0 | 0 |
 | 12 | 1 (`is parsed`, already in the chapter) | 1 (the same) |
 
-(ch05 without the allow list has the same 4 findings before and after.) Rules for captions: alt text short, a blank line between the two images and before `<figcaption>` (the checker joins lines of one paragraph into one sentence), captions in STE description text.
+(ch09 without the allow list has the same 4 findings before and after.) Rules for captions: alt text short, a blank line between the two images and before `<figcaption>` (the checker joins lines of one paragraph into one sentence), captions in STE description text.
 
 ## Nav and roadmap
 

@@ -1,2 +1,0 @@
-{"source": "code/ch42/service.py (client timeout 0.5 s, slow answer after 1 s) and code/ch42/output/calling.txt (attempts table, model runs). Motion speed is schematic.",
- "timeout_s": 0.5, "slow_s": 1, "retried_texts": 61, "model_runs_more_than_once": 0}

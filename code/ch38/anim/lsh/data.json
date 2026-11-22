@@ -1,4 +1,0 @@
-{"source": "code/ch38/output/near_duplicates.txt: messages, pairs and distances at thresholds 0.1 and 0.3. The bucket of each message is schematic (one hash table shown of five).",
- "messages": [["chat_0", 0], ["chat_1", 0], ["chat_2", 1], ["ticket_0", 2], ["ticket_1", 2], ["ticket_2", 2], ["ticket_3", 2]],
- "pairs_01": [["chat_0", "chat_1", "0.0"]],
- "pairs_03_count": 7, "template_distance": "0.2222"}

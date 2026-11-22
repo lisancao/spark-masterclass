@@ -1,4 +1,0 @@
-{"source": "code/ch20/output/arrow_batches.txt",
- "defaults": {"rows_per_batch": 4096, "batches": 937, "last_batch": 3392},
- "columnarInput_false": {"rows_per_batch": 10000, "batches": 385},
- "rows": 3837248, "timing": "schematic"}

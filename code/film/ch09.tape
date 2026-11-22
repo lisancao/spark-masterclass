@@ -1,4 +1,4 @@
-# Spark Masterclass, Chapter 9: Joins. VO lines: notes/part02.md.
+# Spark Masterclass, Chapter 9: DataFrames, columns and schemas. VO lines: notes/part02.md.
 #   film render code/film/ch09.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -10,22 +10,22 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: types | Join types and the default strategy
+# beat: drift | Schema drift against a contract
 Hide
 Type "clear" Enter
 Show
-Type "# join types on a tiny table, then trips x zones: which strategy?" Enter
+Type "# three days of events: what changed against the schema contract?" Enter
 Sleep 500ms
-Type "python ch09/strategies.py 2>/dev/null | sed -n '/== 2/,/== 3/{/== 3/q;p}' | cut -c1-92" Enter
+Type "python ch09/drift.py 2>/dev/null | sed -n '/== 5/,/== 6/{/== 6/q;p}' | cut -c1-92" Enter
 Wait@300s
 Sleep 10s
 
-# beat: asof | ASOF JOIN, new in 4.3
+# beat: zones | Two timestamp types, two time zones
 Hide
 Type "clear" Enter
 Show
-Type "# new in 4.3: ASOF JOIN, the last drop-off before each pickup" Enter
+Type "# TIMESTAMP is an instant, TIMESTAMP_NTZ is a wall-clock time" Enter
 Sleep 500ms
-Type "python ch09/asof.py 2>/dev/null | sed -n '/== 2/,/== 3/{/== 3/q;p}' | cut -c1-92" Enter
+Type "python ch09/type_system.py 2>/dev/null | sed -n '/== 3/,/== 4/{/== 4/q;p}' | cut -c1-92" Enter
 Wait@300s
 Sleep 10s

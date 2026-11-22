@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13.5" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // File names, manifest counts and the abort call from writers.txt (the overwrite, then the failed append).
+      const D = {"source": "code/ch68/output/writers.txt", "job": "1d143314", "files": ["part-00000-1d143314-a0.jsonl", "part-00001-1d143314-a0.jsonl", "part-00002-1d143314-a0.jsonl"], "before": "rows 400, files 6", "after": "rows 200, files 3", "abort": "abort([None, None, None])"}; // data.json
+      A.mount();
+      A.title("Stage, then publish", "the jsonlog sink: an overwrite, then a failed append");
+      const tx = 0.12, sx = 0.42, ox = 0.78;
+      const tasks = [0, 1, 2].map((i) => A.box({ x: tx, y: 0.32 + i * 0.13, w: 230, h: 80, kind: "ghost", title: "task " + i, size: 28 }));
+      const stg = A.box({ x: sx, y: 0.45, w: 470, h: 420, kind: "ghost", radius: 16 });
+      const stgl = A.text("_staging/" + D.job + "/", { x: sx, y: 0.45 - A.dy(182), size: 24, mono: true, color: "var(--a-mute)" });
+      const out = A.box({ x: ox, y: 0.45, w: 470, h: 420, kind: "ghost", radius: 16 });
+      const outl = A.text("output folder", { x: ox, y: 0.45 - A.dy(182), size: 24, color: "var(--a-mute)" });
+      const manOld = A.box({ x: ox, y: 0.355, w: 400, h: 76, kind: "paper", title: "_MANIFEST.json", sub: D.before, size: 24 });
+      const oldParts = [0, 1, 2, 3, 4, 5].map((k) => A.box({ x: ox - 0.07 + (k % 3) * 0.07, y: 0.575 + Math.floor(k / 3) * 0.045, w: 120, h: 40, kind: "soft", title: "old", size: 16 }));
+      A.in([...tasks, stg, stgl, out, outl, manOld, ...oldParts], 0.2, { stagger: 0.02 });
+      // beat stage (1.4): each task writes a file into staging
+      const files = D.files.map((f, i) => A.box({ x: tx, y: 0.32 + i * 0.13, w: 420, h: 48, kind: "ok", title: f, size: 18 }));
+      files.forEach((f, i) => { gsap.set(f, { opacity: 0 });
+        A.tl.set(f, { opacity: 1 }, 1.4 + i * 0.2);
+        A.tl.fromTo(f, { x: 0, y: 0 }, { x: A.X(sx - tx), y: A.Y(0.36 + i * 0.09 - (0.32 + i * 0.13)), duration: 0.8, ease: "power2.out" }, 1.4 + i * 0.2); });
+      // beat move (3.8): commit moves the files next to the data
+      files.forEach((f, i) => A.tl.to(f, { x: A.X(ox - tx), y: A.Y(0.43 + i * 0.05 - (0.32 + i * 0.13)), duration: 0.8, ease: "power2.inOut" }, 3.8 + i * 0.1));
+      // beat manifest (5.4): one rename replaces the manifest
+      const manNew = A.box({ x: ox, y: 0.355, w: 400, h: 76, kind: "accent", title: "_MANIFEST.json", sub: D.after, size: 24 });
+      gsap.set(manNew, { opacity: 0 });
+      A.tl.to(manNew, { opacity: 1, duration: 0.15 }, 5.4); A.tl.to(manOld, { opacity: 0, duration: 0.15 }, 5.4);
+      // beat delete (6.6): old files go
+      A.tl.to(oldParts, { opacity: 0, scale: 0.6, duration: 0.4, stagger: 0.05 }, 6.6);
+      // beat fail (8.0): a failed append stages partial files, abort deletes the staging folder
+      const part = [0, 1, 2].map((i) => A.box({ x: sx, y: 0.36 + i * 0.09, w: 420, h: 48, kind: "soft", title: "partial file, task " + i, size: 18 }));
+      A.in(part, 8.2, { stagger: 0.15, rise: 0 });
+      const ab = A.text(D.abort, { x: sx, y: 0.45 + A.dy(240), size: 22, mono: true, color: "var(--a-acc)" });
+      A.in(ab, 9.4);
+      A.tl.to(part, { opacity: 0, x: A.px(-30), duration: 0.4, stagger: 0.05 }, 10.2);
+      const same = A.text("manifest unchanged: " + D.after, { x: ox, y: 0.45 + A.dy(240), size: 22, color: "var(--a-ok)" });
+      A.in(same, 10.6);
+      const caps = [
+        [0.4, "An overwrite starts. Each task writes into a staging folder."],
+        [3.6, "The commit moves the staged files next to the data."],
+        [5.2, "One rename replaces the manifest. Readers see old or new."],
+        [6.6, "Only then does the commit delete the old files."],
+        [8.0, "A failed append leaves partial files in staging."],
+        [10.0, "abort() deletes the staging folder. The manifest does not change."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.88, size: 34, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.in(A.note("file names, counts and the abort call from one run"), 0.5);
+      A.finish(13.5);
+    </script>
+  </body>
+</html>

@@ -1,57 +1,65 @@
-"""Figures for Chapter 8. Numbers from code/ch08/output/scripting.txt and functions.txt."""
+"""Figures for Chapter 8. Numbers from code/ch08/output/layers.txt, static_runtime.txt and
+connect_conf.txt. Run: FIG_CHECK_DIR=<scratch> python3 code/ch08/figures/make_figures.py"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "common"))
 from svgfig import Fig
 
-# 1. One script with a 5-pass loop against one query (scripting.txt section 4)
-f = Fig(820, 250, "What one script with a loop runs")
-f.text(20, 26, "One spark.sql() call with a 5-pass WHILE loop", 14, 700, anchor="start")
-f.text(20, 52, "20 SQL executions", 13, 600, anchor="start", c="mute")
-for i in range(20):
-    x = 20 + i * 30
-    f.rect(x, 62, 24, 24, "acc" if i < 5 else "n", r=4)
-f.text(20, 108, "5 scan the trips", 12, 700, anchor="start", c="acc")
-f.text(170, 108, "15 with no scan: conditions, SET, DECLARE, the final SELECT", 12, 500, anchor="start", c="mute")
-f.text(640, 52, "27 jobs", 13, 700, anchor="start", c="acc")
-f.text(20, 160, "The same total as one query (BETWEEN 132 AND 136)", 14, 700, anchor="start")
-f.text(20, 186, "1 SQL execution", 13, 600, anchor="start", c="mute")
-f.rect(20, 196, 24, 24, "ok", r=4)
-f.text(640, 186, "2 jobs", 13, 700, anchor="start", c="ok")
-f.text(60, 214, "total = 149702 in both", 12, 500, anchor="start", c="mute")
-f.note("each square is one SQL execution; the order of the colours is schematic")
-f.save("ch08-script-executions")
+# 1. The layers: each row adds one source (layers.txt, section 1).
+rows = [  # label, shuffle, driver.memory in SparkConf, JVM heap MiB, winner kind
+    ("built-in defaults only", "200", "(not set)", "1024", "n"),
+    ("+ spark-env.sh  SPARK_DRIVER_MEMORY=3g", "200", "3g", "3072", "n"),
+    ("+ spark-defaults.conf  11, 1g", "11", "1g", "1024", "n"),
+    ("+ --conf  12, 2g", "12", "2g", "2048", "n"),
+    ("+ --driver-memory 1500m", "12", "1500m", "1500", "n"),
+    ("+ builder.config  13, 4g", "13", "4g", "1500", "bad"),
+]
+f = Fig(900, 390, "One key in more places each time")
+f.text(20, 28, "Each row is a new session with one more source. What wins?", 15, 700, anchor="start")
+X = [20, 400, 560, 720]
+f.text(X[1] + 70, 62, "spark.sql.shuffle.partitions", 12, 700, c="mute")
+f.text(X[2] + 70, 62, "spark.driver.memory", 12, 700, c="mute")
+f.text(X[2] + 70, 77, "(the SparkConf says)", 11, 400, c="mute")
+f.text(X[3] + 80, 62, "JVM heap", 12, 700, c="mute")
+f.text(X[3] + 80, 77, "(what really happened)", 11, 400, c="mute")
+for i, (lab, sh, dm, heap, k) in enumerate(rows):
+    y = 90 + i * 44
+    f.rect(X[0], y, 370, 36, "blue" if i else "n", r=6)
+    f.text(X[0] + 12, y + 23, lab, 13, 500, anchor="start", c="blue" if i else "fg", mono=i > 0)
+    changed_sh = i == 0 or sh != rows[i - 1][1]
+    f.box(X[1] + 20, y, 100, 36, sh, kind="acc" if changed_sh else "ghost", size=15, mono=True)
+    changed_dm = i == 0 or dm != rows[i - 1][2]
+    f.box(X[2] + 20, y, 100, 36, dm, kind="acc" if changed_dm else "ghost", size=14, mono=True)
+    hk = "bad" if k == "bad" else ("acc" if i == 0 or heap != rows[i - 1][3] else "ghost")
+    f.box(X[3] + 20, y, 120, 36, f"{heap} MiB", kind=hk, size=14, mono=True)
+f.text(X[3] + 80, 370, "4g in the SparkConf, but the JVM", 11.5, 600, c="bad")
+f.text(X[3] + 80, 384, "had already started with 1500m", 11.5, 600, c="bad")
+f.text(20, 372, "orange = this row changed the value", 11, 400, anchor="start", c="mute", italic=True)
+f.save("ch08-layers")
 
-# 2. SQL UDF against Python UDF (functions.txt section 2)
-f = Fig(820, 250, "A SQL UDF against a Python UDF")
-f.text(20, 26, "The same fare_band logic, WHERE band = 'long' (445,492 rows)", 14, 700, anchor="start")
-rows = [("fare_band", "SQL UDF", 0.35, "blue", "Project [CASE WHEN ...]  in generated code"),
-        ("fare_band_py", "Python UDF", 1.13, "acc", "ArrowEvalPython  ->  Python worker")]
-for i, (name, kind, s, k, plan) in enumerate(rows):
-    y = 50 + i * 80
-    f.text(20, y + 20, name, 13, 700, anchor="start", mono=True)
-    f.text(20, y + 38, kind, 12, 500, anchor="start", c="mute")
-    w = 420 * s / 1.13
-    f.rect(150, y + 6, w, 28, k, r=4)
-    f.text(150 + w + 8, y + 26, f"median {s:.2f} s", 13, 700, anchor="start", c=k)
-    f.text(150, y + 54, plan, 12, 500, anchor="start", c=k, mono=True)
-f.text(20, 230, "median of three runs after a warmup, one machine", 11, 400, anchor="start", c="mute", italic=True)
-f.save("ch08-udf-cost")
-
-# 3. The zone chain of the recursive CTE (functions.txt section 7)
-zones = ["Marine Park/Floyd Bennett Field", "Marine Park/Mill Basin", "Flatlands", "Flatbush/Ditmas Park",
-         "Park Slope", "Crown Heights North", "Bushwick South"]
-f = Fig(820, 300, "The zone chain of the recursive CTE")
-f.text(20, 24, "WITH RECURSIVE chain: follow next_zone from zone 154", 14, 700, anchor="start")
-pos = [(20, 50), (290, 50), (560, 50), (560, 140), (290, 140), (20, 140), (20, 230)]
-for i, (z, (x, y)) in enumerate(zip(zones, pos)):
-    f.box(x, y, 240, 48, z, f"step {i}" + ("  (anchor)" if i == 0 else ""), kind="acc" if i == 0 else "blue", size=12, subsize=11)
-for (a, b) in zip(pos, pos[1:]):
-    (x1, y1), (x2, y2) = a, b
-    if y1 == y2:
-        f.arrow(x1 + 242 if x2 > x1 else x1 - 2, y1 + 24, x2 - 2 if x2 > x1 else x2 + 242, y2 + 24)
-    else:
-        f.arrow(x1 + 120, y1 + 50, x2 + 120, y2 - 2)
-f.box(290, 230, 300, 48, "next zone is already in path", "WHERE returns no row: the recursion stops", kind="ghost", dash=True, size=12, subsize=11)
-f.arrow(262, 254, 288, 254, dash=True)
-f.save("ch08-zone-chain")
+# 2. Who may change what, and when (static_runtime.txt, connect_conf.txt).
+cols = ["runtime SQL\nspark.sql.shuffle.partitions", "static SQL\nspark.sql.warehouse.dir",
+        "core\nspark.executor.memory"]
+acts = [
+    ("before the driver starts\n(conf file, --conf, builder)", ["set", "set", "set"]),
+    ("builder on a session\nthat already exists", ["set", "ignored", "ignored"]),
+    ("spark.conf.set or SET\n(Classic)", ["set", "CANNOT_MODIFY_\nSTATIC_CONFIG", "CANNOT_MODIFY_\nCONFIG"]),
+    ("Connect client builder", ["set", "ignored", "ignored"]),
+    ("Connect spark.conf.set", ["set", "CANNOT_MODIFY_\nSTATIC_CONFIG", "CANNOT_MODIFY_\nCONFIG"]),
+]
+f = Fig(900, 444, "Who may change what, and when")
+f.text(20, 28, "Who may change a config, and when", 15, 700, anchor="start")
+cx, cw, rh, top = 250, 210, 62, 50
+for j, c in enumerate(cols):
+    f.box(cx + j * cw + 5, top, cw - 10, 50, c.split("\n")[0], c.split("\n")[1], kind="n", size=14,
+          sub_mono=True, subsize=11)
+for i, (lab, cells) in enumerate(acts):
+    y = top + 60 + i * rh
+    f.text(20, y + 26, lab, 12.5, 600, anchor="start")
+    for j, v in enumerate(cells):
+        k = {"set": "ok", "ignored": "ghost"}.get(v, "bad")
+        f.box(cx + j * cw + 5, y + 4, cw - 10, rh - 10, v, kind=k, size=12.5 if k == "bad" else 14,
+              mono=(k == "bad"))
+f.text(20, 436, "ignored = no error, and the value does not change", 11, 400, anchor="start", c="mute",
+       italic=True)
+f.save("ch08-who-may-change")

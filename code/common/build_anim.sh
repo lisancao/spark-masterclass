@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Render one book animation: code/chNN/anim/<name>/index.html -> book/media/clips/chNN-anim-<name>.{mp4,webp}
-# Usage: code/common/build_anim.sh ch02 drivers [poster_second]
+# Usage: code/common/build_anim.sh ch06 drivers [poster_second]
 # Needs the create-animation kit (`anim` on PATH). Renders landscape, paper theme, then scales to 1280x720.
 set -euo pipefail
 ch=$1; name=$2; poster=${3:-}
