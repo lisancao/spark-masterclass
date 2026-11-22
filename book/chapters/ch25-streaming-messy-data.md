@@ -415,7 +415,7 @@ finished sessions written: 5
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch25-future.webp">
     <source src="../../media/clips/ch25-future.mp4" type="video/mp4">
   </video>
-  <figcaption><code>m4_watermark.py</code>, defended and then naive. In the naive run, one event from the next day moves the watermark to 10-06 09:12. Then the operators drop all ten events of each later drop.</figcaption>
+  <figcaption><code>m4_watermark.py naive</code>. One event from the next day moves the watermark to 10-06 09:12. Then the operators drop all ten events of each later drop.</figcaption>
 </figure>
 
 After batch 2, the newest event time was 2026-10-06 09:22. The watermark became that time minus ten minutes: 10-06 09:12, one day ahead of all real events. The damage follows from the rules:

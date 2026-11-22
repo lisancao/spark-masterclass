@@ -131,6 +131,13 @@ Each delta and snapshot of the count, decoded (key: user, value: count):
   1/4.delta       52 bytes  [('u6', 3)]
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch28-decode.webp">
+    <source src="../../media/clips/ch28-decode.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>c1_hdfs.py</code> on Spark 4.3.0. The count runs on the HDFS state store, and <code>lz4delta.py</code> decodes each delta file and snapshot with the Python standard library.</figcaption>
+</figure>
+
 The decoded files show how the provider works:
 
 - **A delta holds only the keys that changed.** `u1` is in versions 1, 3 and 4 of partition 0, but not in version 2, because `u1` had no new event in batch 1.
@@ -346,6 +353,13 @@ spark._streamingCheckpointManager.repartition(str(ck), 4)
 ```
 
 The method wrote a new batch, batch 2. That batch read no input. It read the state of batch 1 and wrote it again into 4 partitions. Each key moved to the partition that its hash gives for 4 partitions. Then the restarted query continued at batch 3 on 4 partitions, although the session still had 2. The final counts are the same as in Step 4, so no event was lost or counted two times.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch28-repartition.webp">
+    <source src="../../media/clips/ch28-repartition.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>c3_repartition.py</code>. The repartition writes batch 2 with no input. The keys move to new partitions, and the restarted query continues on 4 partitions.</figcaption>
+</figure>
 
 The method needs RocksDB. On the HDFS provider, it fails:
 

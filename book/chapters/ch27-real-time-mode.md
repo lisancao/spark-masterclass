@@ -101,7 +101,7 @@ The plan differs from a micro-batch aggregation in three places:
 
 - **`RealTimeStreamScan`** reads Kafka. Each task reads one Kafka partition for the full batch.
 - **`Exchange ... isPipelined=true`** is the shuffle. A pipelined shuffle does not write shuffle files for a later stage. It sends each row to the task that owns its key, over the network, while both stages run.
-- **`StatefulStreamlineAggregate`** replaces the usual pair of `StateStoreRestore` and `StateStoreSave`. For each input row, it merges the row into the state of its key and emits the new result immediately. The source calls this loop "read-process-output" for each input.
+- **`StatefulStreamlineAggregate`** replaces the usual pair of `StateStoreRestore` and `StateStoreSave`. For each input row, it merges the row into the state of its key and emits the new result immediately. The class comment in the Spark code calls this loop "read-process-output" for each input.
 
 The stages show the pipelined shuffle at work:
 
@@ -178,26 +178,87 @@ Each output record carries the `CreateTime` of an input record. The latency of t
 
 The producer sends 200 records a second for 30 seconds, to 40 keys. The script leaves out the first 10 seconds of each run, and it computes the percentiles over the rest. It ran three times under the book's benchmark lock, on `local[*]` with 16 cores:
 
-R2_OUT
+```text
+== run 1
+200 records/s for 30 s into a 4-partition topic, first 10 s left out, local[*] on 16 cores
+  mb_stateless         sent  6000  out rows  4000   p50    110  p90    170  p99    374  max   1072  ms
+  rtm_stateless        sent  6000  out rows  4000   p50      1  p90      3  p99     10  max     74  ms
+  mb_count             sent  6000  out rows  3296   p50    276  p90    396  p99   1068  max   1239  ms
+  rtm_count            sent  6000  out rows  4000   p50     28  p90     49  p99    195  max    309  ms
+== run 2
+200 records/s for 30 s into a 4-partition topic, first 10 s left out, local[*] on 16 cores
+  mb_stateless         sent  6000  out rows  4000   p50    177  p90    278  p99    387  max    664  ms
+  rtm_stateless        sent  6000  out rows  4000   p50      1  p90      1  p99      3  max     42  ms
+  mb_count             sent  6000  out rows  3743   p50    250  p90    348  p99    650  max    805  ms
+  rtm_count            sent  6000  out rows  4000   p50     28  p90     49  p99    232  max    357  ms
+== run 3
+200 records/s for 30 s into a 4-partition topic, first 10 s left out, local[*] on 16 cores
+  mb_stateless         sent  6000  out rows  4000   p50     95  p90    128  p99    192  max    584  ms
+  rtm_stateless        sent  6000  out rows  4000   p50      1  p90      2  p99      4  max     17  ms
+  mb_count             sent  6000  out rows  3372   p50    278  p90    386  p99    759  max    859  ms
+  rtm_count            sent  6000  out rows  4000   p50     27  p90     47  p99    145  max    300  ms
+```
 
-R2_TEXT
+The medians over the three runs:
+
+| Query | Engine | p50 | p99 | Output rows (4000 inputs) |
+|---|---|---|---|---|
+| pass-through | micro-batch | 110 ms | 374 ms | 4000 |
+| pass-through | Real-time Mode | 1 ms | 4 ms | 4000 |
+| running count | micro-batch | 276 ms | 759 ms | 3296 to 3743 |
+| running count | Real-time Mode | 28 ms | 195 ms | 4000 |
+
+The numbers show four results:
+
+- **Real-time Mode removed most of the latency.** For the pass-through query, the median went from about 100 ms to 1 ms. Kafka timestamps have a resolution of 1 ms, so 1 ms is at the limit of this measurement.
+- **The stateful query costs more in both engines.** The shuffle and the state store add work. In Real-time Mode, the count had a median of 28 ms, against 1 ms without state. That is still ten times less than the micro-batch count.
+- **Real-time Mode emits one update for each input.** The Real-time count wrote 4000 output rows for 4000 inputs, because `StatefulStreamlineAggregate` emits after each row. The micro-batch count wrote one row for each changed key in each batch. Thus, its number of output rows depends on the size of the batches.
+- **Micro-batch latency changes with the load.** The micro-batch medians moved between 95 ms and 177 ms from run to run. The Real-time medians did not change. A fourth run, which the book does not use, had film renders on the machine at the same time. In that run, the micro-batch pass-through median was 424 ms, and the Real-time median was still 1 ms.
+
+These are numbers from one laptop with one broker. They show the order of size and the shape of the difference. They are not a benchmark of a cluster.
 
 ## Step 5: Measured inside a Python sink
 
 The Kafka-to-Kafka path stays in the JVM. `r3_foreach.py` puts Python on the path. It runs a stateless Real-time query into a Python `foreach` writer, and the writer records the time when its `process()` method gets each row. The producer sends one record a second for 10 seconds, and the batch is 20 seconds:
 
-R3_DEFAULT
+```text
+spark.buffer.size = default (65536): one record a second, 20 s Real-time batches
+  record  0  reached Python after  11846 ms
+  record  1  reached Python after  11833 ms
+  record  2  reached Python after  11517 ms
+  record  3  reached Python after  10518 ms
+  record  4  reached Python after   9517 ms
+  record  5  reached Python after   8515 ms
+  record  6  reached Python after   7517 ms
+  record  7  reached Python after   6517 ms
+  record  8  reached Python after   5517 ms
+  record  9  reached Python after   4517 ms
+```
 
-The engine read each record within milliseconds, but the Python writer got the records much later. The cause is in the path from the JVM to the Python worker:
+All ten records got to Python in one group, between 11.8 and 13.5 seconds after the first record was sent. That is near the end of the 20-second batch. The engine read each record within milliseconds of its arrival (Step 4), but the Python writer got the records much later. The cause is in the path from the JVM to the Python worker:
 
 - `PythonForeachWriter` pickles rows with `AutoBatchedPickler`. Its batch size starts at 1 and doubles while the batches stay small.
 - The writer thread of the Python runner fills a buffer of `spark.buffer.size` bytes (default 65536) before it sends data to the worker. A slow flow of small rows does not fill the buffer.
 
 The same run with `spark.buffer.size=64`:
 
-R3_64
+```text
+spark.buffer.size = 64: one record a second, 20 s Real-time batches
+  record  0  reached Python after    121 ms
+  record  1  reached Python after   1865 ms
+  record  2  reached Python after   1003 ms
+  record  3  reached Python after   4005 ms
+  record  4  reached Python after   3005 ms
+  record  5  reached Python after   2005 ms
+  record  6  reached Python after   1004 ms
+  record  7  reached Python after   6230 ms
+  record  8  reached Python after   5230 ms
+  record  9  reached Python after   4230 ms
+```
 
-R3_TEXT
+The records now arrive in groups. Record 0 arrived alone after 121 ms. Records 1 and 2 arrived together, records 3 to 6 arrived together, and records 7 to 9 arrived together. Each record of a group waited for the last record of its group. The groups have the sizes 1, 2 and 4, as the pickler doubles its batch size. A smaller buffer does not remove the delay, but it changes the shape of the delay.
+
+Thus, the latency of Real-time Mode is a property of the full path, not of the engine only. In Spark 4.3.0, a Python step on the path collects rows before it processes them.
 
 !!! caution "Keep Python off a Real-time path"
     Do not put a Python `foreach` writer on the path of a Real-time query that needs low latency. The rows wait in buffers before Python gets them. Keep the query in the JVM from source to sink, and do the Python work after the sink.
@@ -218,7 +279,7 @@ The guarantees are the same as in micro-batch mode: each record changes the stat
 
 | Question | Micro-batch | Real-time Mode |
 |---|---|---|
-| Latency in this chapter (p50, count) | R2_MB_P50 | R2_RTM_P50 |
+| Latency in this chapter (p50, count) | 276 ms | 28 ms |
 | Sources | all | Kafka |
 | Sinks | all | Kafka, console, `foreach` |
 | Stateful operators | all | aggregation, `dropDuplicates`, JVM `transformWithState` (new in 4.3) |

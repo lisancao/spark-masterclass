@@ -452,6 +452,13 @@ The query runs with `timeMode="ProcessingTime"` and a trigger of one second. The
  29.7s  batch 24  a  click  state before: None
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch26-clock.webp">
+    <source src="../../media/clips/ch26-clock.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>t3_time.py</code> on Spark 4.3.0, a second run. The clicks arrive at fixed times. Each timer fires about five seconds after the last click of its user. The click at the end finds no page in the state, because the TTL of eight seconds expired.</figcaption>
+</figure>
+
 The output shows the two clocks:
 
 - **The timers.** The last click of `a` was at 16.4 s, and its timer fired in batch 18, at 23.6 s. The timer of `b` fired one second later. A timer fires in the first batch after its time. Thus, it is late by up to one trigger interval plus the time of the batch.
