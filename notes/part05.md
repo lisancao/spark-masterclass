@@ -12,7 +12,7 @@ Chapters 24 to 28. Chapters 24 and 25 were written by an earlier writer and comm
 
 ## STE checker results
 
-`scripts/ste-check <file> description --allow <words>`. The `--allow` list replaces the shared list, so the shared words are repeated in it.
+`scripts/ste-check <file> description --allow <words>`. With the earlier `ste-check`, the `--allow` list replaced the shared list, so the shared words are repeated in it (the updated script adds them, with the same result).
 
 | Chapter | Findings | Extra allowlist words |
 |---|---|---|
