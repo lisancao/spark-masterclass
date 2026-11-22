@@ -1,5 +1,6 @@
 // Chapter 92: typed Datasets and Encoders in Scala, on Spark Classic.
-// Run from code/:  uv run spark-shell --master 'local[*]' --conf spark.ui.port=4157 -i ch92/Datasets.scala
+// Run from code/:  uv run spark-shell --master 'local[*]' --conf spark.ui.port=4157 -I ch92/Datasets.scala
+// -I loads the file as one pasted block. With -i, the case classes fail to decode (see notes/v3-apis.md).
 import org.apache.spark.sql.{Dataset, Encoder, Encoders, SparkSession}
 import org.apache.spark.sql.expressions.Aggregator
 import org.apache.spark.sql.functions._
@@ -9,15 +10,11 @@ spark.conf.set("spark.sql.ui.explainMode", "simple")
 val path = sys.env("BOOK_DATA") + "/nyc-taxi/yellow"
 
 // The case class is the schema. Option marks a column that can be null.
-// The classes sit in an object, so that the REPL gives them no outer instance to capture.
-object Model {
-  case class Trip(PULocationID: Int, payment_type: Option[Long], passenger_count: Option[Long],
-                  trip_distance: Double, fare_amount: Double, tip_amount: Double)
-  case class Missing(PULocationID: Int, surge_fee: Double)
-  case class NoOption(PULocationID: Int, passenger_count: Long)
-  case class SumCount(sum: Double, count: Long)
-}
-import Model._
+case class Trip(PULocationID: Int, payment_type: Option[Long], passenger_count: Option[Long],
+                trip_distance: Double, fare_amount: Double, tip_amount: Double)
+case class Missing(PULocationID: Int, surge_fee: Double)
+case class NoOption(PULocationID: Int, passenger_count: Long)
+case class SumCount(sum: Double, count: Long)
 
 def section(s: String): Unit = println(s"\n== $s")
 def physical(ds: Dataset[_]): String =
@@ -42,7 +39,7 @@ try raw.as[Missing] catch { case e: org.apache.spark.sql.AnalysisException =>
   println("as[Missing]: " + e.getCondition + " " + e.getMessageParameters) }
 try raw.as[NoOption].where($"passenger_count".isNull).head() catch { case e: Exception =>
   val c = Option(e.getCause).getOrElse(e)
-  println("as[NoOption] on a null: " + c.getClass.getSimpleName + " " + c.getMessage.split("\n").head.take(80)) }
+  println("as[NoOption] on a null: " + c.getClass.getSimpleName + " " + c.getMessage.split("\n").head.take(150)) }
 
 section("3. a typed filter and map: the plan deserializes and serializes")
 val typed = trips.filter(t => t.fare_amount > 0).map(t => (t.PULocationID, t.tip_amount / t.fare_amount))
@@ -103,8 +100,12 @@ q.show()
 println(physical(q))
 val tUdaf = median(() => spark.sql("SELECT PULocationID, mean_of(fare_amount) FROM trips GROUP BY 1").collect())
 val tAvg = median(() => spark.sql("SELECT PULocationID, avg(fare_amount) FROM trips GROUP BY 1").collect())
-val tKey = median(() => byZone.collect())
+// build a new Dataset for each run: a second collect() of the same Dataset reuses its shuffle files
+val tKey = median(() => trips.groupByKey(_.PULocationID).agg(TipShare.toColumn.name("tip_share")).collect())
+val tUntypedShare = median(() => raw.groupBy("PULocationID")
+  .agg(avg(when($"fare_amount" > 0, $"tip_amount" / $"fare_amount")).as("tip_share")).collect())
 println(f"mean_of (Aggregator via udaf)   $tUdaf%5.2f s")
 println(f"avg (built-in)                  $tAvg%5.2f s")
 println(f"groupByKey + TipShare (typed)   $tKey%5.2f s")
+println(f"groupBy + avg(when(...))        $tUntypedShare%5.2f s   (the same tip share, untyped)")
 System.exit(0)

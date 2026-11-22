@@ -1,0 +1,97 @@
+== 1. an Encoder is a schema plus code that converts objects to rows
+root
+ |-- PULocationID: integer (nullable = false)
+ |-- payment_type: long (nullable = true)
+ |-- passenger_count: long (nullable = true)
+ |-- trip_distance: double (nullable = false)
+ |-- fare_amount: double (nullable = false)
+ |-- tip_amount: double (nullable = false)
+Encoders.kryo[Trip]: struct<value:binary>
+Encoders.scalaInt:   struct<value:int>
+Encoders.STRING:     struct<value:string>
+
+== 2. as[Trip] gives a typed view of the same rows
+raw.as[Trip]: Dataset[Trip], columns kept: 21
+first: Trip(140,Some(1),Some(1),2.9,16.3,6.4)
+after a typed map, columns: value
+as[Missing]: UNRESOLVED_COLUMN.WITH_SUGGESTION {objectName=`surge_fee`, proposal=`Airport_fee`, `extra`, `mta_tax`, `RatecodeID`, `VendorID`}
+as[NoOption] on a null: SparkRuntimeException [NOT_NULL_ASSERT_VIOLATION] NULL value appeared in non-nullable field: 
+
+== 3. a typed filter and map: the plan deserializes and serializes
+== Parsed Logical Plan ==
+'SerializeFromObject [invoke(knownnotnull(assertnotnull(input[0, scala.Tuple2, true]))._1()) AS _1#123, invoke(knownnotnull(assertnotnull(input[0, scala.Tuple2, true]))._2()) AS _2#124]
++- 'MapElements $line46.$read$$iw$$Lambda$4812/0x000070cb924bf460@5273da5f, class $line25.$read$$iw$Trip, [StructField(PULocationID,IntegerType,false), StructField(payment_type,LongType,true), StructField(passenger_count,LongType,true), StructField(trip_distance,DoubleType,false), StructField(fare_amount,DoubleType,false), StructField(tip_amount,DoubleType,false)], obj#120: scala.Tuple2
+   +- 'DeserializeToObject unresolveddeserializer(newInstance(class $line25.$read$$iw$Trip)), obj#117: $line25.$read$$iw$Trip
+      +- TypedFilter $line46.$read$$iw$$Lambda$4811/0x000070cb924bf098@22731342, class $line25.$read$$iw$Trip, [StructField(PULocationID,IntegerType,false), StructField(payment_type,LongType,true), StructField(passenger_count,LongType,true), StructField(trip_distance,DoubleType,false), StructField(fare_amount,DoubleType,false), StructField(tip_amount,DoubleType,false)], newInstance(class $line25.$read$$iw$Trip)
+         +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== Analyzed Logical Plan ==
+_1: int, _2: double
+SerializeFromObject [invoke(knownnotnull(assertnotnull(input[0, scala.Tuple2, true]))._1()) AS _1#123, invoke(knownnotnull(assertnotnull(input[0, scala.Tuple2, true]))._2()) AS _2#124]
++- MapElements $line46.$read$$iw$$Lambda$4812/0x000070cb924bf460@5273da5f, class $line25.$read$$iw$Trip, [StructField(PULocationID,IntegerType,false), StructField(payment_type,LongType,true), StructField(passenger_count,LongType,true), StructField(trip_distance,DoubleType,false), StructField(fare_amount,DoubleType,false), StructField(tip_amount,DoubleType,false)], obj#120: scala.Tuple2
+   +- DeserializeToObject newInstance(class $line25.$read$$iw$Trip), obj#117: $line25.$read$$iw$Trip
+      +- TypedFilter $line46.$read$$iw$$Lambda$4811/0x000070cb924bf098@22731342, class $line25.$read$$iw$Trip, [StructField(PULocationID,IntegerType,false), StructField(payment_type,LongType,true), StructField(passenger_count,LongType,true), StructField(trip_distance,DoubleType,false), StructField(fare_amount,DoubleType,false), StructField(tip_amount,DoubleType,false)], newInstance(class $line25.$read$$iw$Trip)
+         +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== Optimized Logical Plan ==
+SerializeFromObject [invoke(knownnotnull(assertnotnull(input[0, scala.Tuple2, true]))._1()) AS _1#123, invoke(knownnotnull(assertnotnull(input[0, scala.Tuple2, true]))._2()) AS _2#124]
++- MapElements $line46.$read$$iw$$Lambda$4812/0x000070cb924bf460@5273da5f, class $line25.$read$$iw$Trip, [StructField(PULocationID,IntegerType,false), StructField(payment_type,LongType,true), StructField(passenger_count,LongType,true), StructField(trip_distance,DoubleType,false), StructField(fare_amount,DoubleType,false), StructField(tip_amount,DoubleType,false)], obj#120: scala.Tuple2
+   +- Filter (isnotnull(obj#117) AND invoke($line46.$read$$iw$$Lambda$4811/0x000070cb924bf098@22731342.apply(obj#117)))
+      +- DeserializeToObject newInstance(class $line25.$read$$iw$Trip), obj#117: $line25.$read$$iw$Trip
+         +- Project [passenger_count#3L, trip_distance#4, PULocationID#7, payment_type#9L, fare_amount#10, tip_amount#13]
+            +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== Physical Plan ==
+*(1) SerializeFromObject [invoke(knownnotnull(assertnotnull(input[0, scala.Tuple2, true]))._1()) AS _1#123, invoke(knownnotnull(assertnotnull(input[0, scala.Tuple2, true]))._2()) AS _2#124]
++- *(1) MapElements $line46.$read$$iw$$Lambda$4812/0x000070cb924bf460@5273da5f, obj#120: scala.Tuple2
+   +- *(1) Filter (isnotnull(obj#117) AND invoke($line46.$read$$iw$$Lambda$4811/0x000070cb924bf098@22731342.apply(obj#117)))
+      +- *(1) DeserializeToObject newInstance(class $line25.$read$$iw$Trip), obj#117: $line25.$read$$iw$Trip
+         +- *(1) ColumnarToRow
+            +- FileScan parquet [passenger_count#3L,trip_distance#4,PULocationID#7,payment_type#9L,fare_amount#10,tip_amount#13] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<passenger_count:bigint,trip_distance:double,PULocationID:int,payment_type:bigint,fare_amou...
+
+
+== 4. the same logic untyped: plain expressions
+*(1) Project [PULocationID#7, (tip_amount#13 / fare_amount#10) AS (tip_amount / fare_amount)#130]
++- *(1) Filter (isnotnull(fare_amount#10) AND (fare_amount#10 > 0.0))
+   +- *(1) ColumnarToRow
+      +- FileScan parquet [PULocationID#7,fare_amount#10,tip_amount#13]
+
+== 5. typed and untyped, measured (median of 5 after a warmup)
+typed filter + map        0.21 s
+untyped where + select    0.11 s    1.9x faster than typed
+select first, then typed  0.16 s
+
+== 6. a mixed form: typed Dataset, untyped column functions
+Dataset[(Int, Double)]
+*(1) Project [PULocationID#7, (tip_amount#13 / fare_amount#10) AS (tip_amount / fare_amount)#486]
++- *(1) Filter (isnotnull(fare_amount#10) AND (fare_amount#10 > 0.0))
+   +- *(1) ColumnarToRow
+      +- FileScan parquet [PULocationID#7,fare_amount#10,tip_amount#13]
+
+== 7. groupByKey and an Aggregator as a typed UDAF
+132 0.1387 | 138 0.2189 | 161 0.2057
+AdaptiveSparkPlan isFinalPlan=false
++- ObjectHashAggregate(keys=[value#494], functions=[tipshare($line65.$read$$iw$TipShare$@38b4d7c7, Some(newIns
+   +- Exchange hashpartitioning(value#494, 200), ENSURE_REQUIREMENTS, [plan_id=803]
+      +- ObjectHashAggregate(keys=[value#494], functions=[partial_tipshare($line65.$read$$iw$TipShare$@38b4d7c
+         +- AppendColumns $line66.$read$$iw$$Lambda$5139/0x000070cb925b7018@3cd42ecc, newInstance(class $line2
+            +- FileScan parquet [passenger_count#3L,trip_distance#4,PULocationID#7,payment_type#9L,fare_amount
++------------+------------------+------------------+
+|PULocationID|                 m|                 a|
++------------+------------------+------------------+
+|         132|60.840966174445704|60.840966174445704|
+|         138|  46.0095891606656|  46.0095891606656|
++------------+------------------+------------------+
+
+AdaptiveSparkPlan isFinalPlan=false
++- Sort [PULocationID#7 ASC NULLS FIRST], true, 0
+   +- Exchange rangepartitioning(PULocationID#7 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id=895]
+      +- ObjectHashAggregate(keys=[PULocationID#7], functions=[mean_of(fare_amount#10, $line69.$read$$iw$MeanO
+         +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=892]
+            +- ObjectHashAggregate(keys=[PULocationID#7], functions=[partial_mean_of(fare_amount#10, $line69.$
+               +- Filter PULocationID#7 IN (132,138)
+                  +- FileScan parquet [PULocationID#7,fare_amount#10]
+mean_of (Aggregator via udaf)    0.39 s
+avg (built-in)                   0.10 s
+groupByKey + TipShare (typed)    0.63 s
+groupBy + avg(when(...))         0.12 s   (the same tip share, untyped)
