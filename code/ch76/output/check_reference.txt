@@ -1,0 +1,16 @@
+Downloading pyproj (9.1MiB)
+Downloading shapely (3.0MiB)
+ Downloaded shapely
+ Downloaded pyproj
+Installed 4 packages in 13ms
+shapely 2.1.2 | pyproj 3.7.2 | PROJ 9.5.1
+
+== projection: geo76.lcc_python against pyproj EPSG:4326 -> EPSG:2263
+points: 2279 | largest difference: 0.000000 ft
+Times Square: (988369.5233640223, 215763.33774841248) (988369.5233640209, 215763.33774841344)
+
+== areas: shoelace in Spark against shapely
+zones: 263 | largest relative difference: 1.71e-10 | invalid in shapely: 0
+
+== point in polygon: Spark edge crossings against shapely.contains
+points: 2279 | different answers: 0

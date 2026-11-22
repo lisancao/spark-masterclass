@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 250" font-family="DM Sans, Helvetica, Arial, sans-serif">
+<text x="20" y="26" font-size="16" font-weight="600" fill="#8a8f98">Edge tests for 2,279 stations and 263 zones (log scale)</text>
+<text x="20" y="70" font-size="14" fill="#8a8f98">all pairs</text>
+<rect x="220" y="54" width="400.0" height="24" rx="4" fill="#1c5cab"/>
+<text x="628.0" y="71" font-size="13" fill="#8a8f98">222,972,802 edge tests, 599,377 pairs</text>
+<text x="20" y="132" font-size="14" fill="#8a8f98">same grid cell</text>
+<rect x="220" y="116" width="310.2" height="24" rx="4" fill="#2a78d6"/>
+<text x="538.2" y="133" font-size="13" fill="#8a8f98">2,979,104 edge tests, 14,686 pairs</text>
+<text x="20" y="194" font-size="14" fill="#8a8f98">same cell and inside bbox</text>
+<rect x="220" y="178" width="288.8" height="24" rx="4" fill="#5598e7"/>
+<text x="516.8" y="195" font-size="13" fill="#8a8f98">1,066,168 edge tests, 4,624 pairs</text>
+<text x="20" y="238" font-size="13" fill="#8a8f98">median time on the same 2,279 points: all pairs 2.94 s, grid + bbox + edges 0.24 s (local[*], 16 cores, median of 3)</text>
+</svg>

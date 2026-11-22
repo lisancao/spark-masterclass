@@ -1,0 +1,34 @@
+cache serializer: org.apache.spark.sql.execution.columnar.DefaultCachedBatchSerializer
+
+== 1. ordering, equality and grouping
+  ORDER BY g                     DATATYPE_MISMATCH.INVALID_ORDERING_TYPE
+  WHERE g = g                    DATATYPE_MISMATCH.INVALID_ORDERING_TYPE
+  GROUP BY g                     Py4JJavaError, caused by scala.MatchError: org.apache.spark.unsafe.types.BinaryView@... (of class 
+  SELECT DISTINCT g              Py4JJavaError, caused by scala.MatchError: org.apache.spark.unsafe.types.BinaryView@... (of class 
+  GROUP BY st_asbinary(g)        263
+  max_by(g, location_id) per borough 6
+  collect_list(g) per borough    6
+  JOIN ON g                      DATATYPE_MISMATCH.INVALID_ORDERING_TYPE
+
+== 2. the in-memory cache
+  cache() then count()           SparkException: not support type: GeometryType(3857).
+  cache() of st_asbinary(g)      263
+
+== 3. printing and JSON
++-----------+-----------------------------------------------+
+|location_id|g                                              |
++-----------+-----------------------------------------------+
+|161        |org.apache.spark.unsafe.types.BinaryView@d29618|
++-----------+-----------------------------------------------+
+
+  to_json(named_struct('g', g))  _LEGACY_ERROR_TEMP_2026: Failed to convert value org.apache.spark.unsafe.types.BinaryView@41cf7c36 (class of class 
+  to_json of st_asbinary(g)      {"g":"AQYAAAABAAAAAQMAAAABAAAAJgAAAAAkWA3SPi5BADo9lq0tCkGAg8
+
+---- with --arrow-cache
+cache serializer: org.apache.spark.sql.execution.columnar.ArrowCachedBatchSerializer
+
+== 2. the in-memory cache
+  cache() then count()           263
+  cache() of st_asbinary(g)      263
+  cached rows, then st_srid(g)   (263, 3857)
+  cached plan has InMemoryRelation True

@@ -1,0 +1,41 @@
+== 1. ST functions in the function registry
+Spark 4.3.0 | pyspark 4.3.0
+SQL     : ['st_asbinary', 'st_geogfromwkb', 'st_geomfromwkb', 'st_setsrid', 'st_srid']
+PySpark : ['st_asbinary', 'st_geogfromwkb', 'st_geomfromwkb', 'st_setsrid', 'st_srid']
+Scala   : ['st_asbinary', 'st_geogfromwkb', 'st_geomfromwkb', 'st_setsrid', 'st_srid']
+all built-in and session functions: 591
+
+== 2. signatures (DESCRIBE FUNCTION)
+  st_asbinary(geo[, endianness]) - Returns the geospatial value (value of type GEOGRAPHY or GEOMETRY) in WKB for
+  st_geogfromwkb(wkb) - Parses the WKB description of a geography and returns the corresponding GEOGRAPHY value.
+  st_geomfromwkb(wkb[, srid]) - Parses the WKB description of a geometry and returns the corresponding GEOMETRY 
+  st_setsrid(geo, srid) - Returns a new GEOGRAPHY or GEOMETRY value whose SRID is the specified SRID value.
+  st_srid(geo) - Returns the SRID of the input GEOGRAPHY or GEOMETRY value.
+
+== 3. the types (DDL strings)
+  GEOMETRY(4326)     GeometryType(4326)
+  GEOMETRY(2263)     CANNOT_PARSE_DATATYPE: Unable to parse datatype. [ST_INVALID_CRS_VALUE] Invalid or unsupporte
+  GEOMETRY(0)        GeometryType(0)
+  GEOMETRY(ANY)      GeometryType(ANY)
+  GEOGRAPHY(4326)    GeographyType(4326)
+  GEOGRAPHY(ANY)     GeographyType(ANY)
+  GEOGRAPHY(3857)    ST_INVALID_SRID_VALUE: Invalid or unsupported SRID (spatial reference identifier) value: 3857
+  GEOMETRY           UNSUPPORTED_DATATYPE: Unsupported data type "GEOMETRY". SQLSTATE: 0A000
+
+== 4. the flag spark.sql.geospatial.enabled
+  default: true
+  st_srid with the flag off  UNSUPPORTED_FEATURE.GEOSPATIAL_DISABLED: The feature is not supported: Geospatial feature is disabled. SQLSTATE
+  CAST AS GEOMETRY(0), flag off UNSUPPORTED_FEATURE.GEOSPATIAL_DISABLED: The feature is not supported: Geospatial feature is disabled. SQLSTATE
+
+== 5. names from PostGIS and Sedona that 4.3.0 does not have
+  st_point(1, 2)                 UNRESOLVED_ROUTINE: Cannot resolve routine `st_point` on search path [`system`.`builtin`, 
+  st_geomfromtext('POINT (1 2)') UNRESOLVED_ROUTINE: Cannot resolve routine `st_geomfromtext` on search path [`system`.`bui
+  st_geomfromgeojson('{}')       UNRESOLVED_ROUTINE: Cannot resolve routine `st_geomfromgeojson` on search path [`system`.`
+  st_astext(g)                   UNRESOLVED_ROUTINE: Cannot resolve routine `st_astext` on search path [`system`.`builtin`,
+  st_x(g)                        UNRESOLVED_ROUTINE: Cannot resolve routine `st_x` on search path [`system`.`builtin`, `sys
+  st_contains(g, g)              UNRESOLVED_ROUTINE: Cannot resolve routine `st_contains` on search path [`system`.`builtin
+  st_intersects(g, g)            UNRESOLVED_ROUTINE: Cannot resolve routine `st_intersects` on search path [`system`.`built
+  st_distance(g, g)              UNRESOLVED_ROUTINE: Cannot resolve routine `st_distance` on search path [`system`.`builtin
+  st_area(g)                     UNRESOLVED_ROUTINE: Cannot resolve routine `st_area` on search path [`system`.`builtin`, `
+  st_transform(g, 4326)          UNRESOLVED_ROUTINE: Cannot resolve routine `st_transform` on search path [`system`.`builti
+  h3_longlatash3(1.0, 2.0, 7)    UNRESOLVED_ROUTINE: Cannot resolve routine `h3_longlatash3` on search path [`system`.`buil

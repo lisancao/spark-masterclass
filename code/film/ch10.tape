@@ -26,6 +26,6 @@ Type "clear" Enter
 Show
 Type "# the nearest store: all pairs, a grid and NEAREST BY" Enter
 Sleep 500ms
-Type "python ch10/geo.py 2>/dev/null | sed -n '/== 8/,/== 9/{/== 9/q;p}' | grep -v only | cut -c1-92" Enter
+Type "python ch76/geo_points.py 2>/dev/null | sed -n '/== 8/,/== 9/{/== 9/q;p}' | grep -v only | cut -c1-92" Enter
 Wait@300s
 Sleep 10s
