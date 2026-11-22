@@ -1,4 +1,4 @@
-name: Deploy course site
+name: Deploy book
 
 # Build the MkDocs site and publish it to GitHub Pages on every push to main.
 # One-time setup: repo Settings -> Pages -> Source -> "GitHub Actions".

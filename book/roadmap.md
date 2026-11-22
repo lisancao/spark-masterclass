@@ -1,6 +1,6 @@
 # Roadmap
 
-The book is being written a part at a time, in order. Part I is drafted; each later part lists its chapters and what they cover. Chapter numbers may still move. Every SparkTutor lesson lands in one of these chapters; the lesson-to-chapter map is in [coverage](coverage.md).
+The author writes the book one part at a time, in sequence. Part I has a first draft. Each later part lists its chapters and the subjects that they cover. The chapter numbers can still change. Each SparkTutor lesson goes into one of these chapters. The map from lessons to chapters is in [coverage](coverage.md).
 
 ## Part I: Getting started
 *Data: NYC Taxi trips*
@@ -48,71 +48,74 @@ The book is being written a part at a time, in order. Part I is drafted; each la
 | 21 | Python UDTFs | JSON_TABLE as the alternative to parsing UDTFs |
 | 22 | Parquet from the inside | Footer hexdumps, row groups, statistics, pushdown |
 | 23 | Project Feather: small queries without the distributed tax | **4.3:** when single-task execution applies, the crossover measured across data sizes, what it does to plans, AQE, the UI and Connect |
+| 24 | Acceleration: Gluten and Velox, RAPIDS and cuDF, Comet | Native and GPU execution engines for Spark: how each one plugs in (plugins, columnar rules, fallbacks), which support Spark 4.3, and the same taxi queries measured on CPU, Velox and the GPU |
 
 ## Part V: Streaming
 *Data: taxi trips replayed to Kafka, messy events*
 
 | # | Chapter | Covers |
 |---|---|---|
-| 24 | Structured Streaming fundamentals | Sources and sinks, output modes, triggers, windows, watermarks and checkpoints |
-| 25 | Streaming messy data: drift, dead letters, late events | The future-dated event that wrecks a watermark |
-| 26 | Stateful processing with transformWithState | Timers, TTL, state inspection |
-| 27 | Real-time Mode | **4.3:** stateful RTM and the pipelined shuffle, latency measured both ways |
-| 28 | Inside a checkpoint and the state store | Delta files, RocksDB, the state data source |
+| 25 | Structured Streaming fundamentals | Sources and sinks, output modes, triggers, windows, watermarks and checkpoints |
+| 26 | Streaming messy data: drift, dead letters, late events | The future-dated event that wrecks a watermark |
+| 27 | Stateful processing with transformWithState | Timers, TTL, state inspection |
+| 28 | Real-time Mode | **4.3:** stateful RTM and the pipelined shuffle, latency measured both ways |
+| 29 | Inside a checkpoint and the state store | Delta files, RocksDB, the state data source |
 
 ## Part VI: Pipelines and tables
 *Data: SparkTutor's dirty retail set*
 
 | # | Chapter | Covers |
 |---|---|---|
-| 29 | Tables: Delta and Iceberg, MERGE and time travel | The transaction log on disk. |
-| 30 | Declarative Pipelines: the model and the CLI | The project layout and spec the tutor used to hide; dry-run output |
-| 31 | Medallion in practice: bronze, silver, gold and quality | Incrementality shown across two runs; the event log |
-| 32 | Change data capture: reading changes and Auto CDC | **4.3:** SCD Type 2 on the Toronto, Ottawa, Hanoi changes |
-| 33 | Metric views | A semantic layer in Spark SQL: dimensions, measures and `measure()` |
-| 34 | A pipeline end to end, and how SDP runs it | Under the hood rewritten from the real SDP source, not the regex toy |
+| 30 | Tables: Delta and Iceberg, MERGE and time travel | The transaction log on disk. |
+| 31 | Apache Iceberg with Spark: the runtime and catalog management | The `iceberg-spark-runtime` jar, Spark catalogs (`SparkCatalog`, `SparkSessionCatalog`), REST, JDBC and Hadoop catalogs, namespaces, Iceberg SQL extensions and procedures, table maintenance |
+| 32 | Declarative Pipelines: the model and the CLI | The project layout and spec the tutor used to hide; dry-run output |
+| 33 | Medallion in practice: bronze, silver, gold and quality | Incrementality shown across two runs; the event log |
+| 34 | Change data capture: reading changes and Auto CDC | **4.3:** SCD Type 2 on the Toronto, Ottawa, Hanoi changes |
+| 35 | Metric views | A semantic layer in Spark SQL: dimensions, measures and `measure()` |
+| 36 | A pipeline end to end, and how SDP runs it | Under the hood rewritten from the real SDP source, not the regex toy |
 
 ## Part VII: Machine learning and applied algorithms
 *Data: taxi fares, messy documents*
 
 | # | Chapter | Covers |
 |---|---|---|
-| 35 | ML pipelines with MLlib, tracked in MLflow | ML over Connect; open source MLflow for tracking |
-| 36 | Text analytics without an LLM | TF-IDF search and near-duplicates |
-| 37 | Similarity search: vectors, LSH and IVF | Recall against work; NEAREST BY top-K |
-| 38 | Entity resolution and connected components | Plan growth in iterative jobs, `localCheckpoint` |
-| 39 | Sketches: HLL, Theta and KLL | Mergeable summaries for profiling |
-| 40 | Calling models and services from Spark | Retries, batching, request counts |
+| 37 | ML pipelines with MLlib, tracked in MLflow | ML over Connect; open source MLflow for tracking |
+| 38 | Text analytics without an LLM | TF-IDF search and near-duplicates |
+| 39 | Similarity search: vectors, LSH and IVF | Recall against work; NEAREST BY top-K |
+| 40 | Entity resolution and connected components | Plan growth in iterative jobs, `localCheckpoint` |
+| 41 | Sketches: HLL, Theta and KLL | Mergeable summaries for profiling |
+| 42 | Calling models and services from Spark | Retries, batching, request counts |
 
 ## Part VIII: Running Spark in production
 | # | Chapter | Covers |
 |---|---|---|
-| 41 | Determinism, retries and fault injection | Connect operation IDs for reattach |
-| 42 | Shipping Python dependencies | Archives, environments and what actually reaches the workers |
-| 43 | Observability: listeners, event logs, metrics, profilers | **4.3:** Connect REST endpoints |
-| 44 | Spark Connect in production: deployment patterns | One server per app or shared, sessions and isolation, auth and proxies, reattach, a sandbox per agent. **4.3:** operation IDs, REST endpoints, Feather on the server |
-| 45 | Spark on Kubernetes with the Spark Kubernetes Operator | SparkApplication and SparkCluster resources, a Connect server on Kubernetes, run for real on a local cluster |
-| 46 | Writing Spark pipelines with agents | What agents get wrong in Spark (from the OSA Con 2026 study), and a harness of declare, scope and context: dry-run, a Connect sandbox, version-pinned skills, metric views |
+| 43 | Determinism, retries and fault injection | Connect operation IDs for reattach |
+| 44 | Shipping Python dependencies | Archives, environments and what actually reaches the workers |
+| 45 | Observability: listeners, event logs, metrics, profilers | **4.3:** Connect REST endpoints |
+| 46 | Spark Connect in production: deployment patterns | One server per app or shared, sessions and isolation, auth and proxies, reattach, a sandbox per agent. **4.3:** operation IDs, REST endpoints, Feather on the server |
+| 47 | Spark on Kubernetes with the Spark Kubernetes Operator | SparkApplication and SparkCluster resources, a Connect server on Kubernetes, run for real on a local cluster |
+| 48 | Orchestrating Spark: Airflow, operators, YuniKorn and Celeborn | Airflow's Spark operators (submit, Kubernetes, Connect), the Kubernetes operator under Airflow, gang scheduling and queues with Apache YuniKorn, remote shuffle with Apache Celeborn |
+| 49 | Writing Spark pipelines with agents | What agents get wrong in Spark (from the OSA Con 2026 study), and a harness of declare, scope and context: dry-run, a Connect sandbox, version-pinned skills, metric views |
 
 ## Part IX: Extending Spark
 *Data: messy set, local HTTP and SQLite*
 
 | # | Chapter | Covers |
 |---|---|---|
-| 47 | Python data sources I: readers and partition planning | A parallel reader for a custom format |
-| 48 | Python data sources II: APIs, databases and Arrow batches | JDBC ranges vs a Python source |
-| 49 | Python data sources III: filter pushdown | Which filters Spark offers a source, and what goes wrong when a source accepts them |
-| 50 | Python data sources IV: writers and streaming | Commit protocols, offsets, idempotent sinks |
-| 51 | Shipping a source: packaging, testing and debugging | Registration, tests, logging inside workers |
-| 52 | A DSv2 connector in Java | Capability table that bridges to the Python API |
-| 53 | Catalyst extensions: rules and native functions | **4.3:** the hand-written rule vs built-in UDF transpilation |
-| 54 | Spark Connect plugins | Relation, command and expression plugins |
-| 55 | Capstone: your own connector | Format, batch and pushdown, writer, streaming |
+| 50 | Python data sources I: readers and partition planning | A parallel reader for a custom format |
+| 51 | Python data sources II: APIs, databases and Arrow batches | JDBC ranges vs a Python source |
+| 52 | Python data sources III: filter pushdown | Which filters Spark offers a source, and what goes wrong when a source accepts them |
+| 53 | Python data sources IV: writers and streaming | Commit protocols, offsets, idempotent sinks |
+| 54 | Shipping a source: packaging, testing and debugging | Registration, tests, logging inside workers |
+| 55 | A DSv2 connector in Java | Capability table that bridges to the Python API |
+| 56 | Catalyst extensions: rules and native functions | **4.3:** the hand-written rule vs built-in UDF transpilation |
+| 57 | Spark Connect plugins | Relation, command and expression plugins |
+| 58 | Capstone: your own connector | Format, batch and pushdown, writer, streaming |
 
 ## Part X: Internals
 | # | Chapter | Covers |
 |---|---|---|
-| 56 | How Catalyst plans Python | **4.3:** transpilation as the closing section |
-| 57 | The Python worker protocol | Wire format, failure modes, memory limits |
-| 58 | The VARIANT binary format | The bytes, the metadata dictionary and shredding |
-| 59 | From wrong results to a fix: an upstream case study | Reproducing, minimizing and reporting a Spark bug |
+| 59 | How Catalyst plans Python | **4.3:** transpilation as the closing section |
+| 60 | The Python worker protocol | Wire format, failure modes, memory limits |
+| 61 | The VARIANT binary format | The bytes, the metadata dictionary and shredding |
+| 62 | From wrong results to a fix: an upstream case study | Reproducing, minimizing and reporting a Spark bug |

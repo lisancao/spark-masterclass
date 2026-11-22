@@ -1,14 +1,18 @@
 # Chapter 1: How Spark runs your code
 
-When I first learned Spark I treated it like a very large pandas, which works right up until the moment it doesn't: a query that should take a second takes a minute, a filter you wrote first runs last, or a job you expected to read one file launches sixteen tasks and fifteen of them do nothing. All of those surprises have the same cause, which is that Spark never runs the code you wrote. It reads your code as a description of a result, turns that description into a plan, cuts the plan into pieces it can run in parallel, and runs the pieces; your Python is closer to a query than a program.
+Many new users think of Spark as a very large pandas. This model works until it fails. A query that you expect to take a second takes a minute. A filter that you wrote first runs last. A job that you expect to read one file starts sixteen tasks, and fifteen of them do nothing.
 
-**Spark turns every query into a plan, and the plan into jobs, stages and tasks, so the cost of a query is set by the shape of that plan (how the input splits into tasks, where a shuffle cuts one stage from the next, and which processes do the work) rather than by the lines of code that describe it.** Reading that shape is most of what it means to understand Spark, and the rest of this book leans on it constantly, so this chapter takes one question about New York taxi trips and follows it all the way down.
+All of these problems have the same cause: Spark never runs the code that you wrote. Spark reads your code as a description of a result. It changes that description into a plan. It divides the plan into pieces that it can run in parallel, and then it runs the pieces. Your Python code is more like a query than a program.
 
-Everything here runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch01`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch01), and every number in the chapter comes from their saved output in `code/ch01/output/`. If you haven't installed Spark yet, [Chapter 2](ch02-installing.md) does that; you can read this chapter first and come back.
+**Spark changes every query into a plan, and then it changes the plan into jobs, stages and tasks. The shape of that plan sets the cost of a query, not the lines of code that describe it. The shape is how the input splits into tasks, where a shuffle cuts one stage from the next, and which processes do the work.** Most of what it means to understand Spark is to read that shape. The rest of this book uses this skill frequently. Thus, this chapter takes one question about New York taxi trips and follows it through all the levels.
+
+All the code in this chapter runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch01`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch01). Each number in the chapter comes from their saved output in `code/ch01/output/`. If you did not install Spark yet, [Chapter 2](ch02-installing.md) shows how. You can read this chapter first and install Spark later.
 
 ## The pieces of a Spark application
 
-A Spark application is one **driver** and some number of **executors**. The driver is the process that holds your `SparkSession`: it parses and analyzes your queries, optimizes them, plans how to run them, and then hands small units of work (tasks) to executors, which are the processes that actually read data and compute. A **cluster manager** (Kubernetes, YARN or Spark's own standalone manager) starts the executors and gives them CPU and memory; the driver then talks to them directly.
+A Spark application has one **driver** and a number of **executors**. The driver is the process that holds your `SparkSession`. It parses and analyzes your queries, and it optimizes them. Then it makes a plan to run them, and it gives small units of work (tasks) to the executors. The executors are the processes that read the data and compute the results.
+
+A **cluster manager** (Kubernetes, YARN or the standalone manager of Spark) starts the executors and gives them CPU and memory. Then the driver communicates with the executors directly.
 
 ```mermaid
 flowchart LR
@@ -24,13 +28,15 @@ flowchart LR
   e2 <-->|"shuffle"| e3
 ```
 
-On a laptop, `local[*]` collapses all of this into a single JVM: the driver and one executor share a process, and the executor gets one task slot per CPU core (16 on the machine these numbers come from). Nothing about the plan changes in local mode, which is why everything you learn here carries straight over to a cluster; what changes is that tasks run as threads instead of on other machines, and that shuffles go through local disk instead of the network.
+On a laptop, `local[*]` puts all of these parts into a single JVM. The driver and one executor share a process. The executor gets one task slot for each CPU core (16 on the machine that gave these numbers). Local mode does not change the plan. Thus, all that you learn here applies to a cluster without changes.
 
-Since Spark 3.4 there's a second way to reach a driver, **Spark Connect**, in which your code runs in a thin client that sends plans over gRPC to a driver somewhere else. That split matters a lot in practice and gets [Chapter 4](ch04-spark-connect.md) to itself; for now it's enough to know that the driver does the same work either way.
+Only two things change in local mode. Tasks run as threads, not on other machines. Shuffles go through the local disk, not through the network.
 
-## Step 1: Build a query, and notice that nothing happens
+Since Spark 3.4, there is a second method to connect to a driver: **Spark Connect**. With Spark Connect, your code runs in a thin client. The client sends plans over gRPC to a driver in a different location. This split is very important in practice, and all of [Chapter 4](ch04-spark-connect.md) is about it. For now, you only need to know that the driver does the same work in the two cases.
 
-Here is the question: across June 2026, how many yellow-cab trips started in each hour of the day, and what did they cost on average? The data is the NYC Taxi and Limousine Commission's trip record file for that month, one 65 MB Parquet file with 3,837,248 rows.
+## Step 1: Build a query, and see that nothing occurs
+
+Here is the question. In June 2026, how many yellow-cab trips started in each hour of the day, and what was their average cost? The data is the trip record file for that month from the NYC Taxi and Limousine Commission. It is one 65 MB Parquet file with 3,837,248 rows.
 
 ```python
 trips = spark.read.parquet(str(TRIPS))
@@ -43,7 +49,9 @@ by_hour = (trips
            .orderBy("hour"))
 ```
 
-None of these lines reads a single trip. `spark.read.parquet` opens the file's footer to learn its schema, and every method after it (`where`, `groupBy`, `agg`, `orderBy`) returns a new DataFrame that wraps the old one in one more node of a logical plan. These are **transformations**, and Spark evaluates them lazily: it records what you asked for and waits until something needs an actual result. You can still ask what it intends to do, and `explain()` prints the physical plan it would run:
+None of these lines reads a single trip. `spark.read.parquet` opens the footer of the file to get its schema. Each method after it (`where`, `groupBy`, `agg`, `orderBy`) returns a new DataFrame. The new DataFrame wraps the old one in one more node of a logical plan.
+
+These methods are **transformations**, and Spark evaluates them lazily. Spark records the request, and it waits until an operation needs a real result. But you can ask Spark what it will do. `explain()` prints the physical plan that Spark will run:
 
 ```text
 == Physical Plan ==
@@ -60,19 +68,19 @@ AdaptiveSparkPlan isFinalPlan=false
                         ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,total_amount:double>
 ```
 
-Read it bottom up, because that's the direction data flows. A few things in it already differ from the code you wrote:
+Read the plan from the bottom to the top, because the data moves in that direction. Some items in the plan are already different from the code that you wrote:
 
-- **The scan reads two columns, not 21.** `ReadSchema` lists only `tpep_pickup_datetime` and `total_amount`, because nothing else is used downstream; Parquet stores each column separately, so the other 19 are never read from disk. This is column pruning, and you got it without asking.
-- **The filter has been pushed into the scan.** `PushedFilters` hands the date range to the Parquet reader, which can use the min and max statistics stored for each row group to skip groups that can't match. It doesn't skip anything in this file (every row group contains June trips), but on a year of trips it would skip the row groups of the other eleven months without decoding them.
-- **The aggregation happens twice.** The lower `HashAggregate` computes `partial_count` and `partial_avg` inside each task, the `Exchange` moves those partial results so that every row for one hour ends up in the same place, and the upper `HashAggregate` merges them. Averages are merged as a running sum and count, which is why `avg` can be split this way at all.
-- **There are two `Exchange` operators**, one for the `groupBy` (hash partitioning on the hour) and one for the `orderBy` (range partitioning, so that partition 0 holds the earliest hours and the result is sorted end to end). An exchange is a **shuffle**, and shuffles are what the rest of this chapter is mostly about.
-- **`200` is the default for `spark.sql.shuffle.partitions`**, and `isFinalPlan=false` says that this isn't the plan that will run; adaptive query execution (AQE) will revise it once it has seen real data, and Step 3 shows what it changes.
+- **The scan reads two columns, not 21.** `ReadSchema` lists only `tpep_pickup_datetime` and `total_amount`, because no later operator uses the other columns. Parquet keeps each column separately, so Spark does not read the other 19 columns from the disk. This optimization is column pruning, and Spark does it automatically.
+- **Spark pushes the filter into the scan.** `PushedFilters` gives the date range to the Parquet reader. The reader can use the minimum and maximum statistics for each row group, and skip the groups that cannot match. In this file, it skips no groups, because each row group contains June trips. But on a year of trips, it can skip the row groups of the other eleven months, and it does not decode them.
+- **The aggregation occurs two times.** The lower `HashAggregate` calculates `partial_count` and `partial_avg` in each task. Then the `Exchange` moves these partial results, so that all the rows for one hour go to the same location. Then the upper `HashAggregate` merges them. Spark keeps an average as a sum and a count, and it adds the sums and the counts together. That is why Spark can divide `avg` in this way.
+- **There are two `Exchange` operators.** One is for the `groupBy`, with hash partitioning on the hour. The other is for the `orderBy`, with range partitioning. Range partitioning puts the earliest hours in partition 0, so the result has one sort order from start to end. An exchange is a **shuffle**, and most of the rest of this chapter is about shuffles.
+- **`200` is the default for `spark.sql.shuffle.partitions`.** `isFinalPlan=false` tells you that Spark will not run this plan as it is. Adaptive query execution (AQE) will change the plan after it sees real data. Step 3 shows the changes.
 
-You might also notice `Some(America/Los_Angeles)` inside `hour()`, which is the session time zone, here inherited from my laptop. The pickup column is a `timestamp_ntz` (a timestamp without a time zone), so the zone doesn't change the answer, but for a `timestamp` column it would, and setting `spark.sql.session.timeZone` explicitly is a habit worth having.
+You can also see `Some(America/Los_Angeles)` in `hour()`. This value is the session time zone, which here comes from the laptop that ran the script. The pickup column is a `timestamp_ntz` (a timestamp without a time zone), so the zone does not change the answer. But for a `timestamp` column, the zone changes the answer. Thus, it is a good practice to set `spark.sql.session.timeZone` explicitly.
 
 ## Step 2: Call an action, and count what it becomes
 
-An **action** is anything that needs a result: `collect()`, `count()`, `show()`, writing a file. Calling one makes the driver finish planning and start scheduling work. The script calls `collect()` and then asks the Spark UI's monitoring REST API (`http://localhost:4040/api/v1`, the same data the web UI shows) what that one call turned into:
+An **action** is an operation that needs a result: `collect()`, `count()`, `show()`, or a write to a file. When you call an action, the driver completes the plan and starts to schedule the work. The script calls `collect()`. Then it asks the monitoring REST API of the Spark UI what that one call became. This API is at `http://localhost:4040/api/v1`, and it gives the same data that the web UI shows:
 
 ```python
 spark.sparkContext.setJobDescription("busiest hours")
@@ -100,14 +108,18 @@ job 4: SUCCEEDED, stages [6, 7, 8]
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch01-jobs.webp">
     <source src="../../media/clips/ch01-jobs.mp4" type="video/mp4">
   </video>
-  <figcaption><code>anatomy.py</code> running against Spark 4.3.0: one <code>collect()</code> and the jobs and stages it became, read from the Spark UI's REST API.</figcaption>
+  <figcaption><code>anatomy.py</code> runs against Spark 4.3.0. One <code>collect()</code> becomes jobs and stages, and the script reads them from the REST API of the Spark UI.</figcaption>
 </figure>
 
-The answer itself is what you'd guess about New York (8 a.m. had 149,208 trips, 6 p.m. had 264,040, and evening trips cost slightly more), but the interesting part is underneath it. One `collect()` became four **jobs**, and those jobs list eight **stages** between them, of which only four actually ran; the rest show up as skipped. The vocabulary:
+The answer is what you can expect for New York. At 8 a.m. there were 149,208 trips, and at 6 p.m. there were 264,040. Evening trips cost a little more.
 
-- A **task** is the unit of work one task slot runs: one partition of data through one stage's operators.
-- A **stage** is a run of operators that can execute without moving data between tasks. Stages are cut at shuffle boundaries, because a shuffle needs every task on one side to finish writing before any task on the other side can read.
-- A **job** is a set of stages submitted to the scheduler together, and is what an action (or, under AQE, a piece of an action) creates.
+But the important part is below the answer. One `collect()` became four **jobs**. These jobs list eight **stages** in total, but only four of the stages ran. The other stages show as skipped.
+
+These are the terms:
+
+- A **task** is the unit of work that one task slot runs: one partition of data through the operators of one stage.
+- A **stage** is a sequence of operators that can run without data movement between tasks. Spark divides stages at shuffle boundaries. The reason is that a shuffle needs all tasks on one side to complete their writes before a task on the other side can read.
+- A **job** is a set of stages that Spark submits to the scheduler together. An action creates a job. Under AQE, a part of an action can also create a job.
 
 ```mermaid
 flowchart LR
@@ -131,17 +143,21 @@ flowchart LR
   S5 -->|"shuffle: 24 rows"| S8
 ```
 
-The reason for four jobs where the plan suggests one is that AQE runs a query one **query stage** at a time: it materializes the first shuffle, looks at how big the output actually is, re-plans the rest, and submits the next piece as a new job. Each later job lists the earlier stages again (that's why job 4 names stages 6, 7 and 8), but their shuffle output already exists on disk, so the scheduler skips them; a skipped stage costs nothing. Job 2 is the odd one out: before range-partitioning for the sort, Spark runs a small job that samples the keys to choose partition boundaries, which is the price of `orderBy` producing a globally sorted result rather than one sorted run per partition.
+The plan shows one job, but there are four. The reason is that AQE runs a query one **query stage** at a time. It materializes the first shuffle and measures the size of the output. Then it makes a new plan for the rest of the query, and it submits the next part as a new job. Each later job lists the earlier stages again, so job 4 names stages 6, 7 and 8. But the shuffle output of these stages is already on the disk, so the scheduler skips them, and a skipped stage costs nothing.
+
+Job 2 is different from the other jobs. Before the range partitioning for the sort, Spark runs a small job that samples the keys. It uses the samples to choose the partition boundaries. This job is the cost of a global sort from `orderBy`. Without the job, each partition has only its own sorted run.
 
 ## Step 3: Where 200 partitions went
 
-The plan promised `hashpartitioning(..., 200)`, yet every stage after the first ran exactly one task. That's AQE again. After stage 1, the shuffle held 96 rows (a few kilobytes), so splitting them across 200 reduce tasks would have scheduled 200 tasks to process almost nothing each; AQE's partition coalescing (`spark.sql.adaptive.coalescePartitions.enabled`, on by default) merged adjacent shuffle partitions until each one reached a sensible size, which for data this small means one. You can see the result in a final plan as `AQEShuffleRead ... coalesced`, and [Chapter 3](ch03-quick-start.md) prints one.
+The plan showed `hashpartitioning(..., 200)`. But each stage after the first stage ran exactly one task. AQE is the cause again. After stage 1, the shuffle held 96 rows (a few kilobytes). With 200 reduce tasks for these rows, Spark schedules 200 tasks, and each task gets almost no work.
 
-That 96 is itself informative. The first stage's 16 tasks each computed partial counts for the hours they saw and wrote them to the shuffle, so if every task had seen trips from all 24 hours there would be 16 × 24 = 384 partial rows. There were 96, which is 4 × 24. Four tasks found data, and twelve found none.
+AQE partition coalescing (`spark.sql.adaptive.coalescePartitions.enabled`, on by default) merges shuffle partitions that are next to each other. It merges them until each partition has a useful size. For data this small, the result is one partition. You can see the result in a final plan as `AQEShuffleRead ... coalesced`, and [Chapter 3](ch03-quick-start.md) prints one.
+
+The number 96 also gives information. Each of the 16 tasks in the first stage calculated partial counts for the hours in its data. Each task wrote these counts to the shuffle. If each task sees trips from all 24 hours, the shuffle gets 16 × 24 = 384 partial rows. There were 96, which is 4 × 24. Four tasks found data, and twelve found none.
 
 ## Step 4: Sixteen tasks, four row groups
 
-Asking the REST API for the scan stage's task list shows exactly which:
+The task list of the scan stage from the REST API shows which tasks found data:
 
 ```text
   task  0  rows         0   215 ms
@@ -165,18 +181,30 @@ yellow_tripdata_2026-06.parquet: 65,465,637 bytes, 4 row groups, 3,837,248 rows
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch01-tasks.webp">
     <source src="../../media/clips/ch01-tasks.mp4" type="video/mp4">
   </video>
-  <figcaption>The scan stage task by task: sixteen tasks, four of which read a row group.</figcaption>
+  <figcaption>The scan stage, task by task. Of the sixteen tasks, four read a row group.</figcaption>
 </figure>
 
-Spark plans file scans by size, before reading any data. It computes a target split size of `min(spark.sql.files.maxPartitionBytes, max(spark.sql.files.openCostInBytes, totalBytes / cores))`, which with the 128 MB default, 65 MB of input and 16 cores comes to about 4 MB, and slices the file into 16 byte ranges of that size, one task each. A Parquet file, though, can only be decoded a **row group** at a time (a row group is a horizontal chunk of rows with all its columns stored together, and this file was written with 1,048,576 rows per group), so each row group is read by whichever task's byte range contains the group's midpoint. Four row groups means four tasks with work and twelve that open the file, read its footer, find no row group of their own and finish. Those empty tasks still took around 210 ms each, against about 430 ms for the busy ones; this was the first query in a fresh JVM, and my suspicion is that most of that is start-up cost (class loading, JIT compilation) rather than I/O, since an empty task reads only a footer; but they're the clearest possible demonstration that parallelism in Spark is decided by how the input is laid out, not by how many cores you have.
+Spark plans file scans by size, before it reads data. It calculates a target split size of `min(spark.sql.files.maxPartitionBytes, max(spark.sql.files.openCostInBytes, totalBytes / cores))`. With the 128 MB default, 65 MB of input and 16 cores, this size is about 4 MB. Spark divides the file into 16 byte ranges of that size, and it gives one range to each task.
 
-The practical version of this, which [Part IV](../roadmap.md) works through properly: a scan can't be more parallel than its row groups, small files and huge row groups both hurt, and when a stage is slow the first thing to look at in the UI is whether its tasks did similar amounts of work.
+But Spark can decode a Parquet file only one **row group** at a time. A row group is a horizontal section of rows, with all its columns stored together. The writer of this file put 1,048,576 rows in each row group. Thus, the task that reads a row group is the task whose byte range contains the midpoint of the group.
+
+Four row groups give four tasks with work. The other twelve tasks open the file, read its footer, find no row group of their own, and stop. But these empty tasks took about 210 ms each, and the busy tasks took about 430 ms. This was the first query in a new JVM.
+
+A possible cause is start-up cost (the JVM loads classes and does JIT compilation), not I/O, because an empty task reads only a footer. This cause is not verified. But the empty tasks clearly show that the layout of the input sets parallelism in Spark, not the number of cores.
+
+[Part IV](../roadmap.md) gives the practical rules in detail. In summary:
+
+- A scan cannot have more parallel tasks than row groups.
+- Small files and very large row groups both decrease performance.
+- If a stage is slow, first use the UI to find if its tasks did similar quantities of work.
 
 ## Step 5: The cost of a small query, and Project Feather
 
-Everything above is scheduling overhead that pays for itself on large data. On small data it's most of the cost. Spark 4.3 ships the first part of Project Feather, a set of changes aimed at interactive and local workloads, and the piece that matters here is **single-task execution** (`spark.sql.optimizer.singleTaskExecution.enabled`, off by default in 4.3.0). When the planner can see that a query's input is small enough to process in one task, it plans it as a single task and drops the shuffles entirely, since moving data between tasks is pointless when there's only one.
+All of the work above is overhead from the scheduler. On large data, this overhead gives more value than it costs. On small data, the overhead is most of the cost. Spark 4.3 includes the first part of Project Feather, a set of changes for interactive and local workloads. The important part here is **single-task execution** (`spark.sql.optimizer.singleTaskExecution.enabled`, off by default in 4.3.0).
 
-`feather.py` runs a query over the 265-row zone lookup file twenty times with the flag off and twenty times with it on, after a warm-up of both, and counts jobs and tasks from the REST API:
+If the planner sees that the input of a query is small enough for one task, it plans the query as a single task. It also removes all the shuffles, because data movement between tasks has no purpose when there is only one task.
+
+`feather.py` runs a query over the 265-row lookup file for zones twenty times with the flag off, and twenty times with the flag on. Before these runs, it does a warm-up run of the two settings. It counts jobs and tasks from the REST API:
 
 ```python
 def zones_by_borough():
@@ -194,14 +222,16 @@ spark.sql.optimizer.singleTaskExecution.enabled=true:    49.3 ms per query, 2.0 
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch01-feather.webp">
     <source src="../../media/clips/ch01-feather.mp4" type="video/mp4">
   </video>
-  <figcaption><code>feather.py</code>: the same small query with single-task execution off and on (timings vary a few milliseconds between runs).</figcaption>
+  <figcaption><code>feather.py</code> runs the same small query with single-task execution off, and then on. The times change by a few milliseconds between runs.</figcaption>
 </figure>
 
-Across three runs of the script the default stayed between 82 and 87 ms and single-task execution between 48 and 50 ms. Both settings include one job that has nothing to do with the query, because reading a CSV with `header=true` runs a one-task job to read the first line for the column names (a bare `spark.read.option("header", True).csv(...)` with no action after it runs exactly one job). What's left is four jobs (scan, then the AQE stages for the aggregate and the sort, like the taxi query above) collapsing into one. The 33 ms saved per query is nothing for a batch job and a lot for a test suite that builds hundreds of tiny DataFrames, which is exactly who Feather is for; the [Ultimate Guide to Spark 4.3](https://systemsnull.net/posts/data-engineering-ai/ultimate-guide-spark-43) covers the rest of it, including the Arrow-backed cache.
+In three runs of the script, the default stayed between 82 and 87 ms. Single-task execution stayed between 48 and 50 ms. Both settings include one job that is not part of the query. When Spark reads a CSV file with `header=true`, it runs a one-task job that reads the first line to get the column names. A bare `spark.read.option("header", True).csv(...)` with no action after it runs exactly one job.
 
-## Step 6: Where Python actually runs
+Thus, single-task execution changes the other four jobs into one job. These four jobs are the scan and the AQE stages for the aggregate and the sort, as in the taxi query above. Single-task execution saves 33 ms per query. This time is not important for a batch job. But it is important for a test suite that builds hundreds of small DataFrames, and Feather is for these users. The [Ultimate Guide to Spark 4.3](https://systemsnull.net/posts/data-engineering-ai/ultimate-guide-spark-43) gives the other parts of Feather, which include the Arrow-backed cache.
 
-So far every operator in the plan was something the JVM executes itself, and your Python code only ran on the driver side, building the plan. That changes as soon as a query calls a Python function on its rows:
+## Step 6: Where Python runs
+
+Up to this point, the JVM executed each operator in the plan itself. Your Python code ran only on the driver side, where it built the plan. This changes when a query calls a Python function on its rows:
 
 ```python
 @F.udf("string")
@@ -222,7 +252,9 @@ banded = trips.groupBy(fare_band("fare_amount").alias("band")).count().orderBy("
   under $10      850,512
 ```
 
-The plan now has an `ArrowEvalPython` operator, and while the query ran there were 17 Python processes on the machine that hadn't existed before it: a `pyspark.daemon` that the executor starts on first use, and 16 workers forked from it, one per running task. The executor streams each task's `fare_amount` values to its worker in Arrow batches, the worker calls `fare_band` row by row, and the results come back the same way. (The operator says Arrow because `spark.sql.execution.pythonUDF.arrow.enabled` is on by default in 4.3, so even a plain `@udf` crosses the boundary in Arrow batches rather than pickled rows.)
+The plan now has an `ArrowEvalPython` operator. While the query ran, the machine had 17 Python processes that did not exist before the query. One process is a `pyspark.daemon`, which the executor starts when it first needs it. The other 16 processes are workers that the daemon forks, one for each task that runs.
+
+The executor streams the `fare_amount` values of each task to its worker in Arrow batches. The worker calls `fare_band` one row at a time, and the results come back in the same way. The operator name has Arrow in it because `spark.sql.execution.pythonUDF.arrow.enabled` is on by default in 4.3. Thus, even a plain `@udf` sends data across the boundary in Arrow batches, not in pickled rows.
 
 ```mermaid
 flowchart LR
@@ -235,23 +267,25 @@ flowchart LR
   eval <-->|"Arrow batches over a local socket"| w
 ```
 
-This is the single most important thing to know about PySpark performance, and [Chapter 20](../roadmap.md) is about little else: DataFrame operations written with built-in functions run in the JVM with no Python involved at all, and a Python UDF costs a process boundary, serialization in both directions, and Python's own speed. Here the built-in equivalent is a `F.when(...)` chain, which would never leave the JVM. Spark 4.3 also has an experimental optimizer rule that rewrites simple Python UDFs like this one into native expressions (`spark.sql.experimental.optimizer.transpilePyUDFs`), which is about as direct an admission as you'll get that the boundary is expensive.
+This is the most important fact about PySpark performance, and [Chapter 20](../roadmap.md) is almost only about it. DataFrame operations with built-in functions run in the JVM, and Python does no part of the work. A Python UDF adds three costs: a process boundary, serialization in the two directions, and the speed of Python itself.
+
+Here, the built-in equivalent is a `F.when(...)` chain, which does not go out of the JVM. Spark 4.3 also has an experimental optimizer rule that changes simple Python UDFs like this one into native expressions (`spark.sql.experimental.optimizer.transpilePyUDFs`). This rule clearly shows that the boundary is expensive.
 
 ## The whole chapter, on one page
 
-- **Transformations build a plan; actions run it.** Nothing reads data until something needs a result, which is what lets Spark prune columns and push filters into the scan before you've asked.
-- **Read plans bottom up.** The scan's `ReadSchema` and `PushedFilters` show what's read from disk; each `Exchange` is a shuffle.
-- **Shuffles cut stages; stages contain tasks; actions submit jobs.** Under AQE one action becomes several jobs, and stages that already ran are skipped rather than recomputed.
-- **AQE rewrites the plan once it has seen data**, and coalescing turned 200 planned shuffle partitions into one here.
-- **Scan parallelism comes from the input's layout.** Sixteen tasks over a file with four row groups means four do the work.
-- **Small queries are mostly overhead**, and Spark 4.3's single-task execution removes most of it when you turn it on.
-- **Python UDFs run in separate Python processes**; built-in functions don't.
+- **Transformations make a plan, and actions run it.** Spark reads no data until an operation needs a result. That is why Spark can prune columns and push filters into the scan before you ask for a result.
+- **Read plans from the bottom to the top.** The `ReadSchema` and `PushedFilters` of the scan show what Spark reads from the disk. Each `Exchange` is a shuffle.
+- **Shuffles divide stages, stages contain tasks, and actions submit jobs.** Under AQE, one action becomes a number of jobs. Spark skips the stages that already ran, and it does not calculate them again.
+- **AQE changes the plan after it sees data.** Here, partition coalescing changed 200 planned shuffle partitions into one partition.
+- **The layout of the input sets the scan parallelism.** Sixteen tasks over a file with four row groups means that four tasks do the work.
+- **Small queries are mostly overhead.** Single-task execution in Spark 4.3 removes most of this overhead when you enable it.
+- **Python UDFs run in separate Python processes.** Built-in functions do not.
 
-All of it comes back to the opening point: you describe a result, and Spark decides how to compute it, so the useful skill is reading what it decided. The next chapter installs Spark properly, and [Chapter 3](ch03-quick-start.md) asks a harder question of the same data in both DataFrames and SQL.
+All of these points go back to the first point of the chapter. You describe a result, and Spark decides how to calculate it. Thus, the useful skill is to read what Spark decided. The next chapter installs Spark correctly. Then [Chapter 3](ch03-quick-start.md) asks a more difficult question of the same data, in DataFrames and in SQL.
 
 ## Further reading
 
 - [Spark's cluster mode overview](https://spark.apache.org/docs/4.3.0/cluster-overview.html), the official description of drivers, executors and cluster managers.
-- [The monitoring REST API](https://spark.apache.org/docs/4.3.0/monitoring.html#rest-api), the endpoints the scripts in this chapter read.
-- [Adaptive query execution](https://spark.apache.org/docs/4.3.0/sql-performance-tuning.html#adaptive-query-execution), including every partition-coalescing setting.
-- [NYC TLC trip record data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page), where the data comes from, with the data dictionary for each column.
+- [The monitoring REST API](https://spark.apache.org/docs/4.3.0/monitoring.html#rest-api), the endpoints that the scripts in this chapter read.
+- [Adaptive query execution](https://spark.apache.org/docs/4.3.0/sql-performance-tuning.html#adaptive-query-execution), with all the settings for partition coalescing.
+- [NYC TLC trip record data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page), the source of the data, with the data dictionary for each column.
