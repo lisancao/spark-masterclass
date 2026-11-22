@@ -1,0 +1,41 @@
+local-cluster[2,1,1024]: two executor JVMs with one core each, on one host
+
+spark.locality.wait=3s (default): job 2 took 6.7 s; cached blocks per executor {'0': 1, '1': 7}; task locality {'PROCESS_LOCAL': 7, 'NODE_LOCAL': 1}
+    + 0.0 s  executor 1  partition 0  PROCESS_LOCAL
+    + 0.0 s  executor 0  partition 1  PROCESS_LOCAL
+    + 1.4 s  executor 1  partition 2  PROCESS_LOCAL
+    + 2.4 s  executor 1  partition 3  PROCESS_LOCAL
+    + 3.5 s  executor 1  partition 4  PROCESS_LOCAL
+    + 3.5 s  executor 0  partition 5  NODE_LOCAL
+    + 4.5 s  executor 1  partition 6  PROCESS_LOCAL
+    + 5.5 s  executor 1  partition 7  PROCESS_LOCAL
+
+spark.locality.wait=0: job 2 took 5.4 s; cached blocks per executor {'0': 1, '1': 7}; task locality {'PROCESS_LOCAL': 5, 'NODE_LOCAL': 3}
+    + 0.0 s  executor 1  partition 0  PROCESS_LOCAL
+    + 0.0 s  executor 0  partition 1  PROCESS_LOCAL
+    + 1.7 s  executor 0  partition 2  NODE_LOCAL
+    + 1.8 s  executor 1  partition 3  PROCESS_LOCAL
+    + 2.9 s  executor 1  partition 4  PROCESS_LOCAL
+    + 2.9 s  executor 0  partition 5  NODE_LOCAL
+    + 4.0 s  executor 1  partition 6  PROCESS_LOCAL
+    + 4.1 s  executor 0  partition 7  NODE_LOCAL
+
+spark.locality.wait=10s: job 2 took 7.3 s; cached blocks per executor {'0': 7, '1': 1}; task locality {'PROCESS_LOCAL': 8}
+    + 0.0 s  executor 1  partition 1  PROCESS_LOCAL
+    + 0.0 s  executor 0  partition 0  PROCESS_LOCAL
+    + 1.1 s  executor 0  partition 2  PROCESS_LOCAL
+    + 2.1 s  executor 0  partition 3  PROCESS_LOCAL
+    + 3.2 s  executor 0  partition 4  PROCESS_LOCAL
+    + 4.2 s  executor 0  partition 5  PROCESS_LOCAL
+    + 5.2 s  executor 0  partition 6  PROCESS_LOCAL
+    + 6.2 s  executor 0  partition 7  PROCESS_LOCAL
+
+3s, legacyResetOnTaskLaunch=true: job 2 took 7.3 s; cached blocks per executor {'0': 1, '1': 7}; task locality {'PROCESS_LOCAL': 8}
+    + 0.0 s  executor 0  partition 1  PROCESS_LOCAL
+    + 0.0 s  executor 1  partition 0  PROCESS_LOCAL
+    + 1.1 s  executor 1  partition 2  PROCESS_LOCAL
+    + 2.1 s  executor 1  partition 3  PROCESS_LOCAL
+    + 3.2 s  executor 1  partition 4  PROCESS_LOCAL
+    + 4.2 s  executor 1  partition 5  PROCESS_LOCAL
+    + 5.3 s  executor 1  partition 6  PROCESS_LOCAL
+    + 6.3 s  executor 1  partition 7  PROCESS_LOCAL

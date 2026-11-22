@@ -1,0 +1,8 @@
+SizeEstimator.estimate on Java 17.0.21.1, heap 1g (compressed object pointers on)
+  one Trip (long, int, double, 3-char String)        raw data           23 B   on the heap           88 B     3.8x
+  a 10-character String                              raw data           10 B   on the heap           56 B     5.6x
+  Array[Int] of 1,000,000                            raw data    4,000,000 B   on the heap    4,000,016 B     1.0x
+  java.util.ArrayList[Integer] of 1,000,000          raw data    4,000,000 B   on the heap   20,000,040 B     5.0x
+  Scala List[Int] of 1,000,000                       raw data    4,000,000 B   on the heap   40,000,016 B    10.0x
+  java.util.HashMap[Integer,Integer] of 1,000,000    raw data    8,000,000 B   on the heap   78,180,224 B     9.8x
+  Array[Trip] of 1,000,000 (one shared String)       raw data   23,000,000 B   on the heap   44,000,064 B     1.9x
