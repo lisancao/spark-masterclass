@@ -1,0 +1,96 @@
+plan message: 1571 bytes, UDF command: 776 bytes
+
+root {
+  filter {
+    input {
+      project {
+        input {
+          read {
+            data_source {
+              format: "text"
+              schema: ""
+              options {
+                key: "wholetext"
+                value: "false"
+              }
+              paths: "~/spark-masterclass-parts/part10/code/data/logs/access.log"
+            }
+          }
+        }
+        expressions {
+          alias {
+            expr {
+              unresolved_extract_value {
+                child {
+                  unresolved_function {
+                    function_name: "split"
+                    arguments {
+                      unresolved_attribute {
+                        unparsed_identifier: "value"
+                        is_metadata_column: false
+                      }
+                    }
+                    arguments {
+                      literal {
+                        string: " "
+                      }
+                    }
+                    arguments {
+                      literal {
+                        integer: -1
+                      }
+                    }
+                  }
+                }
+                extraction {
+                  literal {
+                    integer: 6
+                  }
+                }
+              }
+            }
+            name: "path"
+          }
+        }
+      }
+    }
+    condition {
+      unresolved_function {
+        function_name: "=="
+        arguments {
+          common_inline_user_defined_function {
+            function_name: "_area"
+            deterministic: true
+            arguments {
+              unresolved_attribute {
+                unparsed_identifier: "path"
+                is_metadata_column: false
+              }
+            }
+            python_udf {
+              output_type {
+                string {
+                  collation: "UTF8_BINARY"
+                }
+              }
+              eval_type: 101
+              command: "\200\005\225\375\002\000\000\000\000\000\000\214"
+              python_ver: "3.12"
+            }
+          }
+        }
+        arguments {
+          literal {
+            string: "api"
+          }
+        }
+      }
+    }
+  }
+}
+
+rows: 70
+
+Connect: spark.range(3).select('nope') returned a DataFrame; no error yet
+Connect: bad.columns -> AnalysisException [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter wi
+Classic: select('nope') -> AnalysisException [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter wi

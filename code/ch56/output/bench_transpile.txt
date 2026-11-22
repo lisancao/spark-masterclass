@@ -1,0 +1,5 @@
+
+  pickled @udf (100)   median   0.02 s   short 850,512  long 2,969,921  invalid 16,815
+  Arrow @udf (101)     median   0.02 s   short 850,512  long 2,969,921  invalid 16,815
+  transpiled           median   0.02 s   short 850,512  long 2,969,921  invalid 16,815
+  native               median   0.02 s   short 850,512  long 2,969,921  invalid 16,815

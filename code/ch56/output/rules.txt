@@ -1,0 +1,55 @@
+=== Metrics of Executed Rules org.apache.spark.sql.internal.BaseSessionStateBuilder$$anon$1 ===
+Total number of runs: 313
+Total time: 32.491894 ms
+Total number of effective runs: 2
+Total time of effective runs: 13.245305 ms
+=== Metrics of Executed Rules org.apache.spark.sql.internal.BaseSessionStateBuilder$$anon$1 ===
+Total number of runs: 219
+Total time: 33.990703 ms
+Total number of effective runs: 2
+Total time of effective runs: 6.448363 ms
+=== Applying Rule org.apache.spark.sql.catalyst.optimizer.PushDownPredicates ===
+!Filter (area#11 = api)                                            Project [ip#6, path#7, status#8, _area(path#7)#9 AS area#11]
+!+- Project [ip#6, path#7, status#8, _area(path#7)#9 AS area#11]   +- Filter (_area(path#7)#9 = api)
+    +- Relation [ip#6,path#7,status#8] parquet                        +- Relation [ip#6,path#7,status#8] parquet
+=== Result of Batch Operator Optimization before Inferring Filters ===
+!Filter (area#11 = api)                                            Project [ip#6, path#7, status#8, _area(path#7)#9 AS area#11]
+!+- Project [ip#6, path#7, status#8, _area(path#7)#9 AS area#11]   +- Filter (_area(path#7)#9 = api)
+    +- Relation [ip#6,path#7,status#8] parquet                        +- Relation [ip#6,path#7,status#8] parquet
+=== Applying Rule org.apache.spark.sql.execution.python.ExtractPythonUDFs ===
+!Project [ip#6, path#7, status#8, _area(path#7)#9 AS area#11]   Project [ip#6, path#7, status#8, pythonUDF0#13 AS area#11]
+!+- Filter (_area(path#7)#9 = api)                              +- ArrowEvalPython [_area(path#7)#9], [pythonUDF0#13], 101
+!   +- Relation [ip#6,path#7,status#8] parquet                     +- Project [ip#6, path#7, status#8]
+!                                                                     +- Filter (pythonUDF0#12 = api)
+!                                                                        +- ArrowEvalPython [_area(path#7)#9], [pythonUDF0#12], 101
+!                                                                           +- Relation [ip#6,path#7,status#8] parquet
+=== Result of Batch Extract Python UDFs ===
+!Project [ip#6, path#7, status#8, _area(path#7)#9 AS area#11]   Project [ip#6, path#7, status#8, pythonUDF0#13 AS area#11]
+!+- Filter (_area(path#7)#9 = api)                              +- ArrowEvalPython [_area(path#7)#9], [pythonUDF0#13], 101
+!   +- Relation [ip#6,path#7,status#8] parquet                     +- Project [ip#6, path#7, status#8]
+!                                                                     +- Filter (pythonUDF0#12 = api)
+!                                                                        +- ArrowEvalPython [_area(path#7)#9], [pythonUDF0#12], 101
+!                                                                           +- Relation [ip#6,path#7,status#8] parquet
+=== Metrics of Executed Rules org.apache.spark.sql.internal.BaseSessionStateBuilder$$anon$2 ===
+Total number of runs: 262
+Total time: 82.849197 ms
+Total number of effective runs: 2
+Total time of effective runs: 20.002524 ms
+=== Metrics of Executed Rules org.apache.spark.sql.execution.QueryExecution$PhysicalRuleExecutor ===
+Total number of runs: 19
+Total time: 4.926466 ms
+Total number of effective runs: 1
+Total time of effective runs: 1.714754 ms
+== Physical Plan ==
+*(2) Project [ip#6, path#7, status#8, pythonUDF0#13 AS area#11]
++- ArrowEvalPython [_area(path#7)#9], [pythonUDF0#13], 101
+   +- *(1) Project [ip#6, path#7, status#8]
+      +- *(1) Filter (pythonUDF0#12 = api)
+         +- ArrowEvalPython [_area(path#7)#9], [pythonUDF0#12], 101
+            +- FileScan parquet [ip#6,path#7,status#8] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/tmp/ch56-4ymtxefh/access], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<ip:string,path:string,status:int>
+=== Metrics of Analyzer/Optimizer Rules ===
+Total number of runs: 1947
+Total time: 1.185444759 seconds
+Rule                                                                                               Effective Time / Total Time                     Effective Runs / Total Runs
+org.apache.spark.sql.catalyst.analysis.ResolveDataSource                                           564868994 / 565169244                           2 / 13
+org.apache.spark.sql.catalyst.analysis.Analyzer$ResolveReferences                                  35378367 / 58234957                             4 / 13

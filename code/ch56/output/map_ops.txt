@@ -1,0 +1,41 @@
+--- mapInPandas, then a filter on its output
+*(2) Filter (isnotnull(status#12) AND (status#12 = 200))
++- MapInPandas <lambda>(ip#6, path#7, status#8)#9, [ip#10, path#11, status#12], false
+   +- *(1) ColumnarToRow
+      +- FileScan parquet [ip#6,path#7,status#8] ... PushedFilters: []
+
+--- a filter, then mapInPandas
+MapInPandas <lambda>(ip#6, path#7, status#8)#14, [ip#15, path#16, status#17], false
++- *(1) Filter (isnotnull(status#8) AND (status#8 = 200))
+   +- *(1) ColumnarToRow
+      +- FileScan parquet [ip#6,path#7,status#8] ... PushedFilters: [IsNotNull(status), EqualTo(status,200)]
+
+--- groupBy().applyInPandas()
+AdaptiveSparkPlan isFinalPlan=false
++- FlatMapGroupsInPandas [status#8], <lambda>(ip#6, path#7, status#8)#18, [ip#19, path#20, status#21]
+   +- Sort [status#8 ASC NULLS FIRST], false, 0
+      +- Exchange hashpartitioning(status#8, 200), ENSURE_REQUIREMENTS, [plan_id=74]
+         +- Project [status#8, ip#6, path#7, status#8]
+            +- FileScan parquet [ip#6,path#7,status#8] ... PushedFilters: []
+
+--- Python data source, simple mode
+*(1) Project [path#22]
++- *(1) Filter isnotnull(kind#23)
+   +- BatchScan files[path#22, kind#23, size#24L] (Python) RuntimeFilters: []
+
+--- Python data source, formatted mode (scan node only)
+* Project (3)
++- * Filter (2)
+   +- BatchScan files (1)
+(1) BatchScan files
+Output [3]: [path#22, kind#23, size#24L]
+PushedFilters: [EqualTo(kind,json)]
+ReadSchema: struct<path:string,kind:string,size:bigint>
+(2) Filter [codegen id : 1]
+Input [3]: [path#22, kind#23, size#24L]
+Condition : isnotnull(kind#23)
+(3) Project [codegen id : 1]
+Output [1]: [path#22]
+Input [3]: [path#22, kind#23, size#24L]
+
+[Row(path='events/events_2026-10-01.json'), Row(path='events/events_2026-10-02.json'), Row(path='events/events_2026-10-03.json')]

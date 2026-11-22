@@ -1,0 +1,32 @@
+spark.sql.execution.pythonUDF.arrow.enabled = true 
+
+udf(useArrow=False)    BatchEvalPython [_area(path#7)#9], [pythonUDF0#28]
+udf (default)          ArrowEvalPython [_area(path#7)#12], [pythonUDF0#29], 101
+pandas_udf, Series     ArrowEvalPython [strip_q(path#7)#14], [pythonUDF0#30], 200
+pandas_udf, iterator   ArrowEvalPython [strip_q_iter(path#7)#16], [pythonUDF0#31], 204
+arrow_udf              ArrowEvalPython [strip_q_arrow(path#7)#18], [pythonUDF0#32], 250
+mapInPandas            MapInPandas <lambda>(ip#6, path#7, status#8)#20, [ip#21, path#22
+mapInArrow             MapInArrow <lambda>(ip#6, path#7, status#8)#24, [ip#25, path#26,
+
+Fusion:
+
+nested, same type    upper(area(path))
+  ArrowEvalPython [<lambda>(_area(path#7)#33)#34], [pythonUDF0#54], 101
+
+siblings, same type  area(path), upper(ip)
+  ArrowEvalPython [_area(path#7)#36, <lambda>(ip#6)#37], [pythonUDF0#55, pythonUDF1#56], 101
+
+nested, 101 over 200 area(strip_q(path))
+  ArrowEvalPython [_area(pythonUDF0#57)#41], [pythonUDF0#58], 101
+  ArrowEvalPython [strip_q(path#7)#40], [pythonUDF0#57], 200
+
+JVM expr between     upper(concat(area(path), '!'))
+  ArrowEvalPython [<lambda>(concat(pythonUDF0#59, !))#44], [pythonUDF0#60], 101
+  ArrowEvalPython [_area(path#7)#43], [pythonUDF0#59], 101
+
+iterator siblings    strip_q_iter(path), strip_q_iter(ip)
+  ArrowEvalPython [strip_q_iter(ip#6)#47], [pythonUDF0#62], 204
+  ArrowEvalPython [strip_q_iter(path#7)#46], [pythonUDF0#61], 204
+
+same call twice      area(path), area(path)
+  ArrowEvalPython [_area(path#7)#50], [pythonUDF0#63], 101
