@@ -381,6 +381,8 @@ Review then tests the fix in ways that the author did not. Two comments from the
 
 The second comment shows why a fix for wrong results can be a behavior change. Some users can depend on the wrong behavior. The migration guide note tells them what changes.
 
+The [contributing guide](https://spark.apache.org/contributing.html) of Spark asks for one more field on a bug of this kind. It says that a data correctness bug must have the label `correctness`. It also says: "Correctness and data loss issues should be considered Blockers for their target versions". At the time of the snapshot, SPARK-60206 had the priority Major and only the label `pull-request-available`. When you report wrong rows, add the `correctness` label.
+
 Triage decides where the fix goes. A correctness fix is a candidate for the maintenance branches of each affected release, here `branch-4.2` and `branch-4.3`. The committers decide that when they merge. At the time of the snapshot, the pull request was open, and the JIRA had no fix version.
 
 ## The whole chapter, on one page
