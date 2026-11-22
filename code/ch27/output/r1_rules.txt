@@ -1,43 +1,3 @@
--------------------------------------------
-Batch: 0
--------------------------------------------
-+---+---+---------+
-|  k|  v|timestamp|
-+---+---+---------+
-+---+---+---------+
-
--------------------------------------------
-Batch: 0
--------------------------------------------
-+---+-----+
-|  k|count|
-+---+-----+
-+---+-----+
-
--------------------------------------------
-Batch: 1
--------------------------------------------
-+---+-----+
-|  k|count|
-+---+-----+
-+---+-----+
-
--------------------------------------------
-Batch: 0
--------------------------------------------
-+---+---+---------+
-|  k|  v|timestamp|
-+---+---+---------+
-+---+---+---------+
-
--------------------------------------------
-Batch: 1
--------------------------------------------
-+---+---+---------+
-|  k|  v|timestamp|
-+---+---+---------+
-+---+---+---------+
-
 Each probe runs for up to 12 s with trigger(realTime='5 seconds'):
   Kafka -> console, stateless            ran
   Kafka -> console, groupBy count        ran
@@ -48,9 +8,8 @@ Each probe runs for up to 12 s with trigger(realTime='5 seconds'):
   Kafka -> foreachBatch                  STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST
   Kafka -> Python UDF -> console         STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
   Kafka -> PySpark transformWithState    STDS_FAILED_TO_READ_OPERATOR_METADATA  (from the running query)
-  Kafka -> orderBy (range shuffle)       STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
+  Kafka -> repartitionByRange            STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
   stream-stream join                     STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
-
 The trigger and the configuration:
   trigger(realTime='1 second')           INVALID_STREAMING_REAL_TIME_MODE_TRIGGER_INTERVAL
   HDFS state store set explicitly        STREAMING_REAL_TIME_MODE.SQL_CONFIGURATION_NOT_SUPPORTED

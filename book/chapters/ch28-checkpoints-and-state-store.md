@@ -235,19 +235,53 @@ The HDFS-backed provider keeps all state in executor memory, so the state of a q
 
 **First, with the default settings.** Each version is a zip file, and the data files of RocksDB (SST files) go to a shared `SSTs/` folder:
 
-C2_ZIP
+```text
+1. spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled = false (default)
+1.zip  (3775 B)
+2.zip  (3870 B)
+3.zip  (3954 B)
+4.zip  (4038 B)
+SSTs/000008-26f213a0-e61b-465e-b354-499a8f2b92d4.sst  (1249 B)
+SSTs/000009-e39b7904-e766-4a5c-9f5a-91902fe12822.sst  (1251 B)
+SSTs/000010-ef6c6f2f-d414-4f14-832d-365f8e250b03.sst  (1264 B)
+SSTs/000011-f687fba3-fefd-4cb3-bed5-d3032748d7e2.sst  (1251 B)
+_metadata/schema  (195 B)
+
+4.zip holds: ['000004.log', 'CURRENT', 'MANIFEST-000005', 'OPTIONS-000007', 'metadata']
+its metadata file: v1
+  numKeys 4, columnFamilyMapping {}, sstFiles:
+    000008.sst -> SSTs/000008-26f213a0-e61b-465e-b354-499a8f2b92d4.sst  (1249 B)
+    000009.sst -> SSTs/000009-e39b7904-e766-4a5c-9f5a-91902fe12822.sst  (1251 B)
+    000010.sst -> SSTs/000010-ef6c6f2f-d414-4f14-832d-365f8e250b03.sst  (1264 B)
+    000011.sst -> SSTs/000011-f687fba3-fefd-4cb3-bed5-d3032748d7e2.sst  (1251 B)
+```
 
 The zip holds the small files of RocksDB: `CURRENT`, the `MANIFEST`, the `OPTIONS` and the write-ahead log (`000004.log`). It also holds a `metadata` file that lists the SST files of the version. The SST files are not in the zip. Each one has a name with a unique ID, and each version lists the SST files that it uses. Many versions can use a file that did not change. Thus, a commit copies only the new SST files.
 
 **Second, with changelog checkpointing.** With `spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled=true`, a commit writes only the changed keys to a `.changelog` file, like a delta of the HDFS provider:
 
-C2_CHANGELOG
+```text
+2. spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled = true
+1.changelog  (95 B)
+2.changelog  (95 B)
+3.changelog  (95 B)
+4.changelog  (96 B)
+_metadata/schema  (195 B)
+```
 
 A commit is now faster, because it writes one small file. The maintenance task uploads a full snapshot zip from time to time, and a restart applies the changelogs after the last snapshot. The default in Spark 4.3.0 is `false` for micro-batch queries. Real-time Mode sets it to `true` for its queries ([Chapter 27](ch27-real-time-mode.md)).
 
 **Third, with state checkpoint format version 2.** `spark.sql.streaming.stateStore.checkpointFormatVersion=2` gives each version of each partition a unique ID:
 
-C2_V2
+```text
+3. spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled = true and spark.sql.streaming.stateStore.checkpointFormatVersion = 2
+1_05b26bf2-acf6-4fdd-a735-accf5547ad66.changelog  (103 B)
+2_6402497a-3820-4b4a-a4a8-830dcaeebad7.changelog  (186 B)
+3_3355fc5a-61fa-4459-8a89-20ae7331c76a.changelog  (225 B)
+4_84e140b0-d1e9-4c9c-bb6f-2bdee7ef839f.changelog  (271 B)
+_metadata/schema  (195 B)
+commits/3: v2 | {"nextBatchWatermarkMs":0,"stateUniqueIds":{"0":[["84e140b0-d1e9-4c9c-bb6f-2bdee7ef839f"],["7ed6b745-eb47-404c-af72-b6935ce548b1"]]}}
+```
 
 The file names now have the form `<version>_<unique ID>.changelog`, and `commits/N` records the unique ID of each partition. If Spark runs a batch again after a failure, the second run writes files with new IDs. Thus, the second run cannot read a stale file of the first run. The changelogs become larger with each version, because format 2 writes the lineage of earlier IDs into each changelog (`StateStoreChangelog.scala`). Real-time Mode requires format 2.
 
@@ -265,7 +299,19 @@ The file names now have the form `<version>_<unique ID>.changelog`, and `commits
 
 A `groupBy` keeps one value for each key. A `transformWithState` processor keeps many state variables for each key, and timers. RocksDB keeps them apart in **column families**. The script reads the latest zip of the `Sessionizer` checkpoint from Chapter 26:
 
-C2_TWS
+```text
+4. The transformWithState checkpoint of Chapter 26 (t2_sessions.py), partition 0:
+  5.zip: numKeys 4
+  columnFamilyMapping: {"$eventTimers_keyToTimestamp": 4, "$eventTimers_timestampToKey": 5, "default": 1, "seen": 3, "session": 2}
+  operator files outside the partitions:
+    state/0/_metadata/v2/0  (713 B)
+    state/0/_stateSchema/default/0_4902d7e8-dcc3-4b55-9e1b-f72b606f6414  (2049 B)
+  _metadata/v2/0: timeMode EventTime, outputMode Append
+    session                        ValueState  ttl False
+    $eventTimers_keyToTimestamp    TimerState  ttl False
+    seen                           MapState    ttl False
+    schema file: 0/_stateSchema/default/0_4902d7e8-dcc3-4b55-9e1b-f72b606f6414
+```
 
 The `Sessionizer` declared two variables, `session` and `seen`, and each one has a column family. Spark adds two column families for event-time timers:
 

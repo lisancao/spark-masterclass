@@ -64,4 +64,4 @@ for k in ("spark.sql.streaming.stateStore.providerClass",
     print(f"  {k.replace('spark.sql.streaming.stateStore.', '...stateStore.')} = {conf.get(k, '(not recorded)')}")
 print("  state/0/0:", sorted(p.name.split("_")[0] + ("_<id>" if "_" in p.name else "") + p.suffix
                             for p in (w / "rtm" / "state" / "0" / "0").iterdir()
-                            if p.is_file() and not p.name.startswith(".")))
+                            if p.is_file() and not p.name.startswith(".") and p.suffix != ".crc"))

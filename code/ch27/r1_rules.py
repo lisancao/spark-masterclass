@@ -52,7 +52,7 @@ probes = {
     "Kafka -> Python UDF -> console":    lambda: console(kafka().select(F.udf(lambda s: s, "string")("v"))),
     "Kafka -> PySpark transformWithState": lambda: console(kafka().groupBy("k").transformWithState(
                                               Count(), "k STRING, n LONG", "Update", "None")),
-    "Kafka -> orderBy (range shuffle)":  lambda: console(kafka().repartitionByRange(2, "k")),
+    "Kafka -> repartitionByRange":       lambda: console(kafka().repartitionByRange(2, "k")),
     "stream-stream join":                lambda: console(kafka().alias("a").withWatermark("timestamp", "1 minute").join(
                                               kafka().alias("b").withWatermark("timestamp", "1 minute"),
                                               F.expr("a.k = b.k AND b.timestamp BETWEEN a.timestamp AND a.timestamp + INTERVAL 1 MINUTE"))),

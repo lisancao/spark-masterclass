@@ -38,7 +38,24 @@ df.writeStream.format("console").outputMode("update").trigger(realTime="5 second
 
 The output mode must be `update`, and the duration must be 5 seconds or more. `r1_rules.py` starts a set of queries with `trigger(realTime="5 seconds")`. Each query runs for up to 12 seconds, and the script prints whether it ran or the error condition:
 
-R1_OUT
+```text
+Each probe runs for up to 12 s with trigger(realTime='5 seconds'):
+  Kafka -> console, stateless            ran
+  Kafka -> console, groupBy count        ran
+  Kafka -> console, dropDuplicates       ran
+  Kafka -> memory sink                   STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST
+  Kafka -> console, append mode          STREAMING_REAL_TIME_MODE.OUTPUT_MODE_NOT_SUPPORTED
+  rate source -> console                 STREAMING_REAL_TIME_MODE.INPUT_STREAM_NOT_SUPPORTED  (from the running query)
+  Kafka -> foreachBatch                  STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST
+  Kafka -> Python UDF -> console         STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
+  Kafka -> PySpark transformWithState    STDS_FAILED_TO_READ_OPERATOR_METADATA  (from the running query)
+  Kafka -> repartitionByRange            STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
+  stream-stream join                     STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST  (from the running query)
+The trigger and the configuration:
+  trigger(realTime='1 second')           INVALID_STREAMING_REAL_TIME_MODE_TRIGGER_INTERVAL
+  HDFS state store set explicitly        STREAMING_REAL_TIME_MODE.SQL_CONFIGURATION_NOT_SUPPORTED
+  checkpointFormatVersion=1              STREAMING_REAL_TIME_MODE.SQL_CONFIGURATION_NOT_SUPPORTED
+```
 
 The results give the rules of Real-time Mode in Spark 4.3.0:
 
@@ -69,7 +86,16 @@ Two results do not agree with the documentation, and the part notes record them 
 
 `r4_pipeline.py` runs `groupBy("user").count()` on a topic with 4 partitions and 3 shuffle partitions. The trigger is `realTime="10 seconds"`. While the second batch runs, the script prints the physical plan of the query. It also prints the stages of the application from the REST API of the Spark UI:
 
-R4_PLAN
+```text
+Real-time Mode, the physical plan (expression ids removed):
+  WriteToDataSourceV2 MicroBatchWrite[epoch: 1, writer: ConsoleWriter[numRows=20, truncate=true]]
+  +- ProjectAggregationBuffer Vector(_groupingexpression), 3, [_groupingexpression], [count(1)], [count(1)], 1, [_grouping
+     +- StatefulStreamlineAggregate Vector(_groupingexpression), 3, [_groupingexpression], [merge_count(1)], [count(1)], 1
+        +- Exchange hashpartitioning(_groupingexpression, 3), REQUIRED_BY_STATEFUL_OPERATOR, isPipelined=true, [plan_id=10
+           +- ProjectAggregationBuffer 3, [_groupingexpression], [partial_count(1)], [count(1)], 0, [_groupingexpression, 
+              +- *(1) Project [cast(key as string) AS _groupingexpression]
+                 +- RealTimeStreamScan[...] class org.apache.spark.sql.kafka010.KafkaSourceProvider$KafkaScan [batchDurati
+```
 
 The plan differs from a micro-batch aggregation in three places:
 
@@ -79,9 +105,20 @@ The plan differs from a micro-batch aggregation in three places:
 
 The stages show the pipelined shuffle at work:
 
-R4_STAGES
+```text
+Real-time Mode, 4 s into the second 10 s batch: stages in the REST API (status, tasks: active/complete)
+  stage   0  COMPLETE  tasks 0/4 of 4  start at NativeMethodAccessorImpl.java:0
+  stage   1  COMPLETE  tasks 0/3 of 3  start at NativeMethodAccessorImpl.java:0
+  stage   2  ACTIVE    tasks 4/0 of 4  start at NativeMethodAccessorImpl.java:0
+  stage   3  ACTIVE    tasks 3/0 of 3  start at NativeMethodAccessorImpl.java:0
+Micro-batch, after a few batches: stages in the REST API (status, tasks: active/complete)
+  stage  14  COMPLETE  tasks 0/4 of 4  start at NativeMethodAccessorImpl.java:0
+  stage  15  COMPLETE  tasks 0/3 of 3  start at NativeMethodAccessorImpl.java:0
+  stage  16  COMPLETE  tasks 0/4 of 4  start at NativeMethodAccessorImpl.java:0
+  stage  17  COMPLETE  tasks 0/3 of 3  start at NativeMethodAccessorImpl.java:0
+```
 
-In Real-time Mode, stage 0 (the scan, 4 tasks) and stage 1 (the aggregation, 3 tasks) are both active at the same time. No task is complete. In micro-batch mode, each batch runs its two stages one after the other, and each stage completes. The difference is easy to see on a timeline:
+In Real-time Mode, stages 0 and 1 are the first batch, and they are complete. Stages 2 and 3 are the second batch: the scan (4 tasks) and the aggregation (3 tasks). Both stages are active at the same time, and no task of them is complete. In micro-batch mode, each batch runs its two stages one after the other, and each stage completes. The difference is easy to see on a timeline:
 
 ```mermaid
 gantt
@@ -106,9 +143,15 @@ This design has a cost in cores. Each task holds its core for the full batch. Th
 
 The checkpoint of the query shows the state configuration that Real-time Mode applied:
 
-R4_CONF
+```text
+What the Real-time checkpoint recorded (offsets/0, conf):
+  ...stateStore.providerClass = org.apache.spark.sql.execution.streaming.state.RocksDBStateStoreProvider
+  ...stateStore.rocksdb.changelogCheckpointing.enabled = (not recorded)
+  ...stateStore.checkpointFormatVersion = (not recorded)
+  state/0/0: ['1_<id>.changelog']
+```
 
-The session set none of these values. Real-time Mode set them as **soft defaults** when the query started. They are the RocksDB provider, changelog checkpointing and state checkpoint format 2. [Chapter 28](ch28-checkpoints-and-state-store.md) explains each one. A value that you set yourself stays, except for a value that Real-time Mode cannot use. Step 1 showed that an explicit HDFS provider or format 1 fails at `start()`.
+The session did not set a state store provider, but the checkpoint records RocksDB. The other two configurations are not in `offsets/0`, but the state file shows them. A `.changelog` file means changelog checkpointing, and the unique ID in its name means state checkpoint format 2. Real-time Mode set these three values as **soft defaults** when the query started. [Chapter 28](ch28-checkpoints-and-state-store.md) explains each one. A value that you set yourself stays, except for a value that Real-time Mode cannot use. Step 1 showed that an explicit HDFS provider or format 1 fails at `start()`.
 
 ## Step 4: Latency, measured from Kafka to Kafka
 
