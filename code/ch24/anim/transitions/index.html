@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Operator counts from data.json (plans-cpu.txt, plans-gluten.txt). The chain is simplified. Timing is schematic.
+      // beat open (0.0): two lanes, the same query
+      A.title("Where the batches become rows", "the hourly query: Spark 4.3.0 on the CPU, and Gluten with Velox");
+      const OPS = ["scan", "filter", "partial agg", "shuffle", "final agg", "sort"];
+      const XS = [0.12, 0.26, 0.40, 0.54, 0.68, 0.82];
+      const lane = (y, name, kinds, stat) => {
+        A.text(name, { x: 0.02, y: y - A.dy(95), size: 32, weight: 700, anchor: "left" });
+        A.text(stat, { x: 0.98, y: y - A.dy(95), size: 26, color: "var(--a-mute)", anchor: "right" });
+        A.line({ x1: 0.06, y1: y, x2: 0.95, y2: y, color: "var(--a-line)" });
+        OPS.forEach((o, i) => A.box({ x: XS[i], y, w: 200, h: 84, kind: kinds[i], title: o, size: 26 }));
+      };
+      const Y1 = 0.38, Y2 = 0.70;
+      lane(Y1, "CPU, Spark 4.3.0", ["soft", "paper", "paper", "paper", "paper", "paper"], "0 engine, 8 Spark operators, 1 transition");
+      lane(Y2, "Gluten 1.7.0 on Spark 4.1.1", ["ok", "ok", "ok", "ok", "ok", "ok"], "10 engine, 0 Spark operators, 1 transition");
+      // the transition markers
+      const t1 = A.box({ x: 0.19, y: Y1, w: 60, h: 120, kind: "accent", title: "C2R", size: 20 });
+      const t2 = A.box({ x: 0.92, y: Y2, w: 60, h: 120, kind: "accent", title: "C2R", size: 20 });
+      cap("The same query, and in each plan one transition", 0.2, 4.7);
+      // a batch (bar) or a row (dot)
+      const bar = (x, y) => A.el("", { x, y, css: { width: A.px(26) + "px", height: A.px(70) + "px", background: "var(--a-acc)", opacity: 0, borderRadius: A.px(4) + "px" } });
+      // beat cpu (4.8): batches leave the scan, become rows right away
+      for (let b = 0; b < 4; b++) {
+        const t = 5.0 + b * 0.9, d = bar(XS[0], Y1);
+        A.tl.set(d, { opacity: 0.9 }, t);
+        A.tl.to(d, { x: A.X(0.19 - XS[0]), duration: 0.5, ease: "none" }, t);
+        A.tl.set(d, { opacity: 0 }, t + 0.5);
+        for (let r = 0; r < 5; r++) {
+          const dot = A.dot({ x: 0.19, y: Y1 + (r - 2) * A.dy(16), r: 7, color: "var(--a-fg)" });
+          A.tl.set(dot, { opacity: 0.85 }, t + 0.5);
+          A.tl.to(dot, { x: A.X(0.95 - 0.19), duration: 2.6, ease: "none", delay: r * 0.06 }, t + 0.5);
+          A.tl.set(dot, { opacity: 0 }, t + 3.2 + r * 0.06);
+        }
+      }
+      cap("On the CPU, batches become rows just above the scan", 4.8, 9.5);
+      // beat engine (9.6): batches stay batches until the top
+      for (let b = 0; b < 4; b++) {
+        const t = 9.8 + b * 0.9, d = bar(XS[0], Y2);
+        A.tl.set(d, { opacity: 0.9 }, t);
+        A.tl.to(d, { x: A.X(0.92 - XS[0]), duration: 2.4, ease: "none" }, t);
+        A.tl.set(d, { opacity: 0 }, t + 2.4);
+        for (let r = 0; r < 5; r++) {
+          const dot = A.dot({ x: 0.92, y: Y2 + (r - 2) * A.dy(16), r: 7, color: "var(--a-fg)" });
+          A.tl.set(dot, { opacity: 0.85 }, t + 2.4);
+          A.tl.to(dot, { x: A.X(0.985 - 0.92), duration: 0.4, ease: "none" }, t + 2.4);
+          A.tl.set(dot, { opacity: 0 }, t + 2.8);
+        }
+      }
+      cap("With Velox, batches stay batches until the result goes to the driver", 9.6, 15.1);
+      // beat read (15.5)
+      A.tl.fromTo([t1, t2], { scale: 1 }, { scale: 1.15, duration: 0.4, yoyo: true, repeat: 1 }, 15.4);
+      cap("Count the transitions in the plan before you time a query", 15.2);
+      A.in(A.note("operator counts from plans-cpu.txt and plans-gluten.txt; chain simplified, timing schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>
