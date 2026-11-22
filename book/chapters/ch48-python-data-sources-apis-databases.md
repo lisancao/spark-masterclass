@@ -12,7 +12,7 @@ This chapter builds two sources against local servers that the scripts start the
 Between the two sources, the chapter looks at what Spark does with the values that `read()` yields, and when to yield Arrow batches. The scripts are in [`code/ch48`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch48). All output comes from `code/ch48/output/`, from runs on `pyspark==4.3.0` in local mode on a 16-core machine.
 
 !!! note "New in 4.3"
-    The Python Data Source API did not change in 4.3.0 (see the note in [Chapter 47](ch47-python-data-sources-readers.md)). The `VARIANT` output in Step 6 needs Spark 4.1 or later. The JDBC source of Spark 4.3.0 has built-in dialects for MySQL, PostgreSQL, DB2, SQL Server, Derby, Oracle, Teradata, H2, Snowflake and Databricks (`JdbcDialects.scala` at `v4.3.0`). It has no SQLite dialect.
+    The Python Data Source API did not change in 4.3.0 (see the note in [Chapter 47](ch47-python-data-sources-readers.md)). The `VARIANT` output in Step 6 needs Spark 4.1 or later. The JDBC source of Spark 4.3.0 includes ten built-in dialects (`JdbcDialects.scala` at `v4.3.0`). They are MySQL, PostgreSQL, DB2, SQL Server, Derby, Oracle, Teradata, H2, Snowflake and Databricks. It has no SQLite dialect.
 
 ## Step 1: The driver loop, and why it fails
 
@@ -355,7 +355,7 @@ RecordBatch with id as int64, schema says int:
 the same rows, correct batches: [Row(id=0, sensor='s0', value=0.0), Row(id=1, sensor='s1', value=0.5)]
 ```
 
-Use batches when a library already gives you Arrow data or columns: a database driver with an Arrow interface, Parquet or Feather files, or a pandas DataFrame. For an API that returns JSON, the rows are Python objects before you can make a batch, so most of the gain is not available.
+Use batches when a library already gives you Arrow data or columns. Examples are a database driver with an Arrow interface, Parquet or Feather files, and a pandas DataFrame. For an API that returns JSON, the rows are Python objects before you can make a batch, so most of the gain is not available.
 
 ## Step 9: The time zone of the worker
 
@@ -433,7 +433,14 @@ def to_spark_value(v, t):
     return str(v)
 ```
 
-`shopdb.py` builds `shop.db` with an `orders` table of 1,207 rows. The table has the values that real tables collect over the years: amounts such as `'N/A'` and `''`, quantities such as `'two'`, three formats of timestamp, and five spellings of a boolean. The schema and some values:
+`shopdb.py` builds `shop.db` with an `orders` table of 1,207 rows. The table has the values that real tables collect over the years:
+
+- Amounts such as `'N/A'` and `''`.
+- Quantities such as `'two'`.
+- Three formats of timestamp.
+- Five spellings of a boolean.
+
+The schema and some values:
 
 ```text
 shop.db: 1207 orders

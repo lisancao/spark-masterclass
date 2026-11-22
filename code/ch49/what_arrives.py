@@ -99,3 +99,31 @@ for c in CONDITIONS:
 open(LOG, "w").close()
 plan(spark.sql("SELECT * FROM t WHERE id = 7"))
 print("\nexplain() alone: pushFilters() calls:", len(open(LOG).read().splitlines()))
+
+
+# 4. Spark matches the filters you yield back by object identity, not by value.
+class CopyReader(ProbeReader):
+    def pushFilters(self, filters):
+        import copy
+        for f in filters:
+            yield copy.deepcopy(f)               # an equal filter, but a different object
+
+
+class CopyProbe(Probe):
+    @classmethod
+    def name(cls):
+        return "copyprobe"
+
+    def reader(self, schema):
+        return CopyReader(self.options)
+
+
+spark.dataSource.register(CopyProbe)
+try:
+    spark.read.format("copyprobe").option("log", LOG).load().where("id = 7").collect()
+    print("yield a copy: accepted")
+except Exception as e:
+    import re, textwrap
+    cond, msg = re.findall(r"\[(DATA_SOURCE_[A-Z_]+)\] ([^\n]*)", str(e))[-1]
+    print("\nyield a copy of a filter:")
+    print(textwrap.fill(f"[{cond}] {msg}", 86, initial_indent="    ", subsequent_indent="    "))

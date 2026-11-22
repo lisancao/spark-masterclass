@@ -30,3 +30,13 @@ kind = 'a' OR id = 1               pushFilters() not called
 id > 1 AND (kind = 'a' OR id = 2)  IsNotNull(id), GreaterThan(id, int:1)
 
 explain() alone: pushFilters() calls: 1
+
+yield a copy of a filter:
+    [DATA_SOURCE_EXTRANEOUS_FILTERS] CopyReader.pushFilters() returned filters that
+    are not part of the input. Make sure that each returned filter is one of the input
+    filters by reference. Input filters:
+    [FilterRef(filter=IsNotNull(attribute=('id',)), id=134871703285216),
+    FilterRef(filter=EqualTo(attribute=('id',), value=7), id=134871703280944)].
+    Extraneous filters: [FilterRef(filter=EqualTo(attribute=('id',), value=7),
+    id=134871703282960), FilterRef(filter=IsNotNull(attribute=('id',)),
+    id=134871703279648)].
