@@ -102,11 +102,11 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 
 | # | Chapter | Covers |
 |---|---|---|
-| 50 | Python data sources I: readers and partition planning | A parallel reader for a custom format |
-| 51 | Python data sources II: APIs, databases and Arrow batches | JDBC ranges vs a Python source |
-| 52 | Python data sources III: filter pushdown | Which filters Spark offers a source, and what goes wrong when a source accepts them |
-| 53 | Python data sources IV: writers and streaming | Commit protocols, offsets, idempotent sinks |
-| 54 | Shipping a source: packaging, testing and debugging | Registration, tests, logging inside workers |
+| 50 | [Python data sources I: readers and partition planning](chapters/ch50-python-data-sources-readers.md) | A parallel reader for a custom format |
+| 51 | [Python data sources II: APIs, databases and Arrow batches](chapters/ch51-python-data-sources-apis-databases.md) | JDBC ranges vs a Python source |
+| 52 | [Python data sources III: filter pushdown](chapters/ch52-python-data-sources-pushdown.md) | Which filters Spark offers a source, and what goes wrong when a source accepts them |
+| 53 | [Python data sources IV: writers and streaming](chapters/ch53-python-data-sources-writers-streaming.md) | Commit protocols, offsets, idempotent sinks |
+| 54 | [Shipping a source: packaging, testing and debugging](chapters/ch54-shipping-a-python-data-source.md) | Registration, tests, logging inside workers |
 | 55 | [A DSv2 connector in Java](chapters/ch55-dsv2-connector-java.md) | Capability table that bridges to the Python API |
 | 56 | [Catalyst extensions: rules and native functions](chapters/ch56-catalyst-extensions.md) | **4.3:** the hand-written rule vs built-in UDF transpilation |
 | 57 | [Spark Connect plugins](chapters/ch57-connect-plugins.md) | Relation, command and expression plugins |
