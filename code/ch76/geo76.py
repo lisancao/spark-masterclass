@@ -16,7 +16,7 @@ CITIBIKE = DATA / "citibike"
 OUT = Path(__file__).resolve().parent / "output"
 
 
-def err(e, width=70):
+def err(e, width=90):
     """A one-line description of a Spark error: the condition and the start of the message."""
     from pyspark.errors import PySparkException
     if isinstance(e, PySparkException) and e.getCondition():
@@ -27,10 +27,11 @@ def err(e, width=70):
         return f"{e.getCondition()}: " + msg[:width]
     cause = re.findall(r"Caused by: ([\w.$]+(?:: [^\n]{0,60})?)", str(e))
     if cause:
-        return f"{type(e).__name__}, caused by {cause[-1]}"
-    java = re.search(r"(?m)^(?:: )?(?:[\w$]+\.)*([\w$]+(?:Exception|Error)): ([^\n]*(?::\n[^\n]*)?)", str(e))
+        return f"{type(e).__name__}, caused by " + re.sub(r"@[0-9a-f]+", "@...", cause[-1])
+    java = re.search(r"(?m)^(?:: )?(?:[\w$]+\.)*([\w$]+(?:Exception|Error)): ([^\n]*)\n?([^\n]*)", str(e))
     if java:
-        return f"{java.group(1)}: {' '.join(java.group(2).split())[:width]}"
+        msg = java.group(2) + (" " + java.group(3) if java.group(2).endswith(":") else "")
+        return f"{java.group(1)}: {' '.join(msg.split())[:width]}"
     return f"{type(e).__name__}: {str(e).splitlines()[0][:width]}"
 
 

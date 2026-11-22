@@ -26,11 +26,11 @@ Row(count(1)=2279, typeof(geog)='geography(4326)')
 format-version: 3
 zones schema fields: [('location_id', 'int'), ('zone', 'string'), ('geom', 'geometry(EPSG:2263)')]
 stations schema fields: [('pid', 'long'), ('trips', 'long'), ('geog', 'geography(OGC:CRS84, spherical)')]
-  v2 table with GEOMETRY(2263)   IllegalStateException: Invalid schema for v2:
+  v2 table with GEOMETRY(2263)   IllegalStateException: Invalid schema for v2: - Invalid type for geom: geometry(EPSG:2263) is
   GEOMETRY(ANY) column           UnsupportedOperationException: Cannot convert Spark geometry with mixed SRID to Iceberg
 
 file-level bounds of the geometry column (Iceberg metadata table, field id 3):
   readable_metrics.geom          Py4JJavaError, caused by java.lang.IllegalStateException: Unknown type for binary field. Type name: org.apache.iceberg
-  00000-6-06472ae2-1d00-46... rows 128: 16-byte bounds, x [913175.109, 1067382.508]  y [120121.881, 265000.636]
-  00001-7-06472ae2-1d00-46... rows 135: 16-byte bounds, x [922745.647, 1060539.825]  y [130242.304, 272844.294]
+  00000-6-44e107ce-9cb7-4e... rows 128: 16-byte bounds, x [913175.109, 1067382.508]  y [120121.881, 265000.636]
+  00001-7-44e107ce-9cb7-4e... rows 135: 16-byte bounds, x [922745.647, 1060539.825]  y [130242.304, 272844.294]
   filter on a geometry column    263

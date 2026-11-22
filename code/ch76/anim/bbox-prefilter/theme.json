@@ -1,0 +1,59 @@
+{
+ "name": "paper",
+ "doc": "paper: the Apache Spark Design System look. Paper and ink, one orange accent, DM Sans and DM Mono.",
+ "bg": "#FAF6F0",
+ "fg": "#1B1F23",
+ "ink": "#1B1F23",
+ "mute": "#6B6258",
+ "acc": "#E25A1C",
+ "ok": "#2F7D5B",
+ "warn": "#C7820B",
+ "panel": "#F2EDE4",
+ "line": "#E9E2D4",
+ "light": "#FAF6F0",
+ "code_bg": "#15171A",
+ "code_fg": "#E6E1D9",
+ "sans": "DM Sans",
+ "mono": "DM Mono",
+ "box": {
+  "paper": {
+   "fill": "#F2EDE4",
+   "stroke": "#1B1F23",
+   "title": "#1B1F23",
+   "sub": "#6B6258"
+  },
+  "accent": {
+   "fill": "#E25A1C",
+   "stroke": "#E25A1C",
+   "title": "#fff",
+   "sub": "#FBE3D6"
+  },
+  "ink": {
+   "fill": "#1B1F23",
+   "stroke": "#1B1F23",
+   "title": "#FAF6F0",
+   "sub": "#C9C1B5"
+  },
+  "ghost": {
+   "fill": "none",
+   "stroke": "#1B1F23",
+   "title": "#1B1F23",
+   "sub": "#6B6258"
+  },
+  "soft": {
+   "fill": "#F8E5D8",
+   "stroke": "#E25A1C",
+   "title": "#1B1F23",
+   "sub": "#6B6258"
+  },
+  "ok": {
+   "fill": "#E3EFE8",
+   "stroke": "#2F7D5B",
+   "title": "#1B1F23",
+   "sub": "#6B6258"
+  }
+ },
+ "W": 1080,
+ "H": 1920,
+ "safeBottom": 0
+}
