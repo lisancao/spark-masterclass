@@ -1,0 +1,46 @@
+== 1. constructors and the SRID of the result
+  st_geomfromwkb(<wkb>)                      geometry(0)
+  st_geomfromwkb(<wkb>, 3857)                geometry(3857)
+  st_geogfromwkb(<wkb>)                      geography(4326)
+  st_setsrid(st_geomfromwkb(<wkb>), 4326)    geometry(4326)
+  st_setsrid(st_geogfromwkb(<wkb>), 4269)    geography(4269)
+
+== 2. st_asbinary: the same point, two byte orders
+  NDR (default): 0101000000000000000000F03F0000000000000040
+  XDR          : 00000000013FF00000000000004000000000000000
+  XDR read back: 0101000000000000000000F03F0000000000000040
+
+== 3. casts between the types
+  GEOGRAPHY(4326) -> GEOMETRY(4326)  geometry(4326)
+  GEOMETRY(4326) -> GEOGRAPHY(4326)  geography(4326)
+  GEOMETRY(3857) -> GEOMETRY(ANY)    geometry(any)
+  GEOMETRY(3857) -> GEOMETRY(4326)   DATATYPE_MISMATCH.CAST_WITHOUT_SUGGESTION
+  GEOMETRY(0) -> BINARY              DATATYPE_MISMATCH.CAST_WITHOUT_SUGGESTION
+  BINARY -> GEOMETRY(0)              DATATYPE_MISMATCH.CAST_WITHOUT_SUGGESTION
+  GEOMETRY(0) -> STRING              DATATYPE_MISMATCH.CAST_WITHOUT_SUGGESTION
+
+== 4. the WKB rules at parse time
+  case                           GEOMETRY                       GEOGRAPHY
+  point (1 2)                    ok, 21 bytes                   ok, 21 bytes
+  point (NaN NaN), POINT EMPTY   ok, 21 bytes                   ok, 21 bytes
+  point (inf 2)                  Invalid coordinate value found Invalid coordinate value found
+  point (200 95)                 ok, 21 bytes                   Invalid coordinate value found
+  closed square, 5 points        ok, 93 bytes                   ok, 93 bytes
+  open ring                      Ring is not closed             Ring is not closed
+  ring of 3 points               Too few points in ring         Too few points in ring
+  linestring, 1 point            Too few points in linestring   Too few points in linestring
+  truncated (3 bytes)            Unexpected end of WKB buffer   Unexpected end of WKB buffer
+
+== 5. values in Python
+  geom: Geometry srid 3857 bytes 0101000000000000000000f03f0000000000000040
+  geog: Geography srid 4326
+  createDataFrame with GeometryType(4326): 4326
+  a value with SRID 0 in a GEOMETRY(4326) column GEO_ENCODER_SRID_MISMATCH_ERROR: Failed to encode GEOMETRY value because provided SRID 0 of a value to 
+
+== 6. SRIDs that the JVM accepts and PySpark 4.3.0 cannot describe
+  3857: JVM type geometry(3857), df.schema GeometryType(3857)
+  2263: JVM type geometry(2263), df.schema CANNOT_PARSE_DATATYPE: Unable to parse datatype. [ST_INVALID_CRS_VALUE] Invalid or unsupporte
+  32618: JVM type geometry(32618), df.schema CANNOT_PARSE_DATATYPE: Unable to parse datatype. [ST_INVALID_CRS_VALUE] Invalid or unsupporte
+  4269: JVM type geometry(4269), df.schema CANNOT_PARSE_DATATYPE: Unable to parse datatype. [ST_INVALID_CRS_VALUE] Invalid or unsupporte
+  2263 as BINARY, collected: Row(srid=2263, wkb='0101000000000000000000F03F0000000000000040')
+  JVM registry entries: EPSG:2263
