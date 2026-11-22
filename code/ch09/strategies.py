@@ -100,39 +100,71 @@ for hint, op in cases:
 print("\n== 4. a non-equi join")
 bands = spark.createDataFrame([("short", 0.0, 15.0), ("medium", 15.0, 40.0), ("long", 40.0, 1e9)],
                               "band STRING, lo DOUBLE, hi DOUBLE")
+print("bands estimated size:", str(bands._jdf.queryExecution().optimizedPlan().stats().sizeInBytes()),
+      "bytes (local Python data becomes an RDD with no statistics)")
 nj = trips.join(bands, (trips.fare_amount >= bands.lo) & (trips.fare_amount < bands.hi))
 print("fare in [lo, hi) ->", join_ops(nj), f"{median_s(lambda: nj.groupBy('band').count()):.2f} s")
-spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
-nj2 = trips.join(bands, (trips.fare_amount >= bands.lo) & (trips.fare_amount < bands.hi))
-print("same, broadcast off ->", join_ops(nj2), f"{median_s(lambda: nj2.groupBy('band').count()):.2f} s")
-spark.conf.unset("spark.sql.autoBroadcastJoinThreshold")
-
-# 5. Two large sides: every trip joined to a per-trip table on a trip id.
-print("\n== 5. two large sides (3.8 M x 3.8 M rows on a trip id)")
-left = trips.select(F.col("_metadata.row_index").alias("trip_id"), "PULocationID", "fare_amount")
-right = trips.select(F.col("_metadata.row_index").alias("trip_id"), "tip_amount")
-for hint in ("", "broadcast", "shuffle_hash", "merge"):
-    def build(h=hint):
-        r = right.hint(h) if h else right
-        return left.join(r, "trip_id").agg(F.sum("tip_amount"))
-    print(f"  {hint or 'no hint':<13} {join_ops(build())}  {median_s(build):.2f} s")
+nb = trips.join(F.broadcast(bands), (trips.fare_amount >= bands.lo) & (trips.fare_amount < bands.hi))
+print("same, broadcast(bands) ->", join_ops(nb), f"{median_s(lambda: nb.groupBy('band').count()):.2f} s")
+vb = spark.sql("SELECT * FROM VALUES ('short', 0.0D, 15.0D), ('medium', 15.0D, 40.0D), ('long', 40.0D, 1e9D) "
+               "AS v(band, lo, hi)")
+print("bands as SQL VALUES, size:", str(vb._jdf.queryExecution().optimizedPlan().stats().sizeInBytes()), "bytes ->",
+      join_ops(trips.join(vb, (trips.fare_amount >= vb.lo) & (trips.fare_amount < vb.hi))))
 
 # 6. AQE changes a sort-merge join into a broadcast join when a side turns out small.
+# The static planner gets no broadcast (threshold -1). AQE gets its own threshold of 10 MB.
 print("\n== 6. AQE changes the strategy at run time")
-busy = spark.sql("""SELECT PULocationID, count(*) AS n FROM trips GROUP BY PULocationID HAVING count(*) > 100000""")
-aj = trips.join(busy, "PULocationID").agg(F.count("*"))
-print("before it runs:", join_ops(aj))
-aj.collect()
-final = plan(aj, "simple")
-print("after it runs: ", re.findall(r"\b(BroadcastHashJoin|SortMergeJoin)\b", final.split("== Initial Plan ==")[0]))
-print([l.strip()[:80] for l in final.splitlines() if "AQEShuffleRead" in l or "BroadcastQueryStage" in l][:3])
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
+spark.conf.set("spark.sql.adaptive.autoBroadcastJoinThreshold", "10MB")
+print("autoBroadcastJoinThreshold:", spark.conf.get("spark.sql.autoBroadcastJoinThreshold"),
+      "| adaptive.autoBroadcastJoinThreshold:", spark.conf.get("spark.sql.adaptive.autoBroadcastJoinThreshold"))
+
+
+def final_join(df):
+    df.collect()
+    p = plan(df, "simple")
+    fin, ini = p.split("== Initial Plan ==")
+    pat = r"\b(BroadcastHashJoin|SortMergeJoin)\b"
+    return re.findall(pat, ini), re.findall(pat, fin), [l.strip()[:40] for l in fin.splitlines() if "AQEShuffleRead" in l]
+
+
+def busy_join():   # zones with more than 100,000 pickups: the HAVING runs in the same stage as the join
+    busy = trips.groupBy("PULocationID").count().where("count > 100000").select(F.col("PULocationID").alias("z"))
+    return trips.join(busy, trips.PULocationID == F.col("z")).agg(F.count("*"))
+
+
+def big_fare_join():   # pickups in zones that had a fare over 400: the filtered side is its own shuffle stage
+    big = trips.where(F.col("fare_amount") > 400).select(F.col("PULocationID").alias("z"))
+    return trips.join(big, trips.PULocationID == F.col("z")).agg(F.count("*"))
+
+
+for label, build in (("busy zones (HAVING)", busy_join), ("fares over 400 (filter)", big_fare_join)):
+    ini, fin, reads = final_join(build())
+    print(f"  {label:<24} initial {ini}  final {fin}  {reads}")
 spark.conf.set("spark.sql.adaptive.enabled", "false")
-aj2 = trips.join(busy, "PULocationID").agg(F.count("*"))
-print("AQE off:", join_ops(aj2), f"{median_s(lambda: trips.join(busy, 'PULocationID').agg(F.count('*'))):.2f} s")
+print("  fares over 400, AQE off:", f"{median_s(big_fare_join):.2f} s")
 spark.conf.unset("spark.sql.adaptive.enabled")
-print("AQE on: ", f"{median_s(lambda: trips.join(busy, 'PULocationID').agg(F.count('*'))):.2f} s")
+print("  fares over 400, AQE on: ", f"{median_s(big_fare_join):.2f} s")
+for k in ("spark.sql.autoBroadcastJoinThreshold", "spark.sql.adaptive.autoBroadcastJoinThreshold"):
+    spark.conf.unset(k)
 
 # 7. A hint that cannot apply.
 print("\n== 7. a hint that cannot apply")
 fj = spark.sql("SELECT /*+ BROADCAST(t) */ count(*) FROM trips t FULL JOIN zones z ON t.PULocationID = z.LocationID")
 print("BROADCAST(t) on a FULL join ->", join_ops(fj))
+
+
+# 5. Two large sides: every trip joined to a per-trip table on a trip id.
+print("\n== 5. two large sides (3.8 M x 3.8 M rows on a trip id)")
+left = trips.select(F.col("_metadata.row_index").alias("trip_id"), "PULocationID", "fare_amount")
+right = trips.select(F.col("_metadata.row_index").alias("trip_id"), "tip_amount")
+for hint in ("merge", "shuffle_hash", "", "broadcast"):   # the broadcasts last: they can exhaust the driver heap
+    def build(h=hint):
+        r = right.hint(h) if h else right
+        return left.join(r, "trip_id").agg(F.sum("tip_amount"))
+    try:
+        print(f"  {hint or 'no hint':<13} {join_ops(build())}  {median_s(build):.2f} s")
+    except Exception as e:   # the broadcast of 3.8 M rows does not fit the default 1 GB driver
+        cause = re.findall(r"(java\.lang\.OutOfMemoryError[^\n]*|SparkOutOfMemoryError[^\n]*)", str(e))
+        msg = cause[0] if cause else str(e).split("SparkException: ")[-1].splitlines()[0]
+        print(f"  {hint or 'no hint':<13} {join_ops(build())}  ERROR {msg[:62]}")

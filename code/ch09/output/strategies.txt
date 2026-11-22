@@ -1,6 +1,6 @@
 == 1. join types
   inner     [(2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x')]
-  left      [(None, 'a_null', None), (1, 'a1', None), (2, 'a2', 'b2'), (3, 'a3', 'b3x'), (3, 'a3', 'b3')]
+  left      [(None, 'a_null', None), (1, 'a1', None), (2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x')]
   right     [(None, None, 'b_null'), (2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x'), (4, None, 'b4')]
   full      [(None, None, 'b_null'), (None, 'a_null', None), (1, 'a1', None), (2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x'), (4, None, 'b4')]
   left_semi [(2, 'a2'), (3, 'a3')]
@@ -11,3 +11,41 @@
   columns after join on 'k': ['k', 'a', 'b'] | on a.k == b.k: ['k', 'a', 'k', 'b']
 
 == 2. the default strategy
+zones estimated size: 12331 bytes | threshold: 10485760b
+trips x zones -> ['BroadcastHashJoin']
+AdaptiveSparkPlan isFinalPlan=false
++- BroadcastHashJoin [PULocationID#7], [LocationID#38], Inner, BuildRight, false, false
+   :- Filter isnotnull(PULocationID#7)
+   :  +- FileScan parquet [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count
+   +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, false] as bigint)),false
+      +- Filter isnotnull(LocationID#38)
+         +- FileScan csv [LocationID#38,Borough#39,Zone#40,service_zone#41] Batched: false, DataFilt
+
+
+== 3. trips x zones, each strategy (count per borough; median of 3 after a warmup)
+  BROADCAST(z)             ['BroadcastHashJoin']  0.17 s
+  SHUFFLE_HASH(z)          ['ShuffledHashJoin']  0.54 s
+  MERGE(z)                 ['SortMergeJoin']  0.75 s
+  SHUFFLE_REPLICATE_NL(z)  ['CartesianProduct']  8.61 s
+
+== 4. a non-equi join
+bands estimated size: 9223372036854775807 bytes (local Python data becomes an RDD with no statistics)
+fare in [lo, hi) -> ['CartesianProduct'] 2.04 s
+same, broadcast(bands) -> ['BroadcastNestedLoopJoin'] 0.17 s
+bands as SQL VALUES, size: 132 bytes -> ['BroadcastNestedLoopJoin']
+
+== 6. AQE changes the strategy at run time
+autoBroadcastJoinThreshold: -1 | adaptive.autoBroadcastJoinThreshold: 10MB
+  busy zones (HAVING)      initial ['SortMergeJoin']  final ['SortMergeJoin']  [':  +- AQEShuffleRead coalesced', '+- AQEShuffleRead coalesced']
+  fares over 400 (filter)  initial ['SortMergeJoin']  final ['BroadcastHashJoin']  [':- AQEShuffleRead local', '+- AQEShuffleRead local']
+  fares over 400, AQE off: 0.33 s
+  fares over 400, AQE on:  0.46 s
+
+== 7. a hint that cannot apply
+BROADCAST(t) on a FULL join -> ['SortMergeJoin']
+
+== 5. two large sides (3.8 M x 3.8 M rows on a trip id)
+  merge         ['SortMergeJoin']  0.55 s
+  shuffle_hash  ['ShuffledHashJoin']  0.48 s
+  no hint       ['BroadcastHashJoin']  ERROR Not enough memory to build and broadcast the table to all work
+  broadcast     ['BroadcastHashJoin']  ERROR Not enough memory to build and broadcast the table to all work

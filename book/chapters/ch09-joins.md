@@ -21,7 +21,19 @@ a = spark.createDataFrame([(1, "a1"), (2, "a2"), (3, "a3"), (None, "a_null")], "
 b = spark.createDataFrame([(2, "b2"), (3, "b3"), (3, "b3x"), (4, "b4"), (None, "b_null")], "k INT, b STRING")
 ```
 
-@@OUT ch09/strategies.txt == 1@@
+```text
+== 1. join types
+  inner     [(2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x')]
+  left      [(None, 'a_null', None), (1, 'a1', None), (2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x')]
+  right     [(None, None, 'b_null'), (2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x'), (4, None, 'b4')]
+  full      [(None, None, 'b_null'), (None, 'a_null', None), (1, 'a1', None), (2, 'a2', 'b2'), (3, 'a3', 'b3'), (3, 'a3', 'b3x'), (4, None, 'b4')]
+  left_semi [(2, 'a2'), (3, 'a3')]
+  left_anti [(None, 'a_null'), (1, 'a1')]
+  cross     20 rows
+  k = k     3 rows | k <=> k: 4 rows
+  select('k') after a.k == b.k: AMBIGUOUS_REFERENCE: Reference `k` is ambiguous, could be: [`k`, `k`]. SQLSTATE: 42704
+  columns after join on 'k': ['k', 'a', 'b'] | on a.k == b.k: ['k', 'a', 'k', 'b']
+```
 
 - **`inner`** keeps the pairs that match. Key 3 matches two rows on the right, so it gives two rows.
 - **`left`** and **`right`** also keep the rows of one side with no match, with NULL for the other side.
@@ -41,7 +53,25 @@ A join with a column expression keeps both key columns. Then `select("k")` is am
 j = trips.join(zones, trips.PULocationID == zones.LocationID)
 ```
 
-@@OUT ch09/strategies.txt == 2@@
+```text
+== 2. the default strategy
+zones estimated size: 12331 bytes | threshold: 10485760b
+trips x zones -> ['BroadcastHashJoin']
+AdaptiveSparkPlan isFinalPlan=false
++- BroadcastHashJoin [PULocationID#7], [LocationID#38], Inner, BuildRight, false, false
+   :- Filter isnotnull(PULocationID#7)
+   :  +- FileScan parquet [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count
+   +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, false] as bigint)),false
+      +- Filter isnotnull(LocationID#38)
+         +- FileScan csv [LocationID#38,Borough#39,Zone#40,service_zone#41] Batched: false, DataFilt
+```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch09-types.webp">
+    <source src="../../media/clips/ch09-types.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>strategies.py</code> runs against Spark 4.3.0. The zones are 12 KB by the estimate, under the 10 MB threshold, so the planner selects a broadcast hash join.</figcaption>
+</figure>
 
 The estimated size of `zones` is less than `spark.sql.autoBroadcastJoinThreshold` (10 MB). Thus the planner selects a **broadcast hash join**. The plan shows the two parts:
 
@@ -81,7 +111,13 @@ SELECT /*+ {hint} */ z.Borough, count(*) AS n
 FROM trips t JOIN zones z ON t.PULocationID = z.LocationID GROUP BY z.Borough
 ```
 
-@@OUT ch09/strategies.txt == 3@@
+```text
+== 3. trips x zones, each strategy (count per borough; median of 3 after a warmup)
+  BROADCAST(z)             ['BroadcastHashJoin']  0.17 s
+  SHUFFLE_HASH(z)          ['ShuffledHashJoin']  0.54 s
+  MERGE(z)                 ['SortMergeJoin']  0.75 s
+  SHUFFLE_REPLICATE_NL(z)  ['CartesianProduct']  8.61 s
+```
 
 | Strategy | Hint | Data movement | Needs |
 |---|---|---|---|
@@ -91,7 +127,7 @@ FROM trips t JOIN zones z ON t.PULocationID = z.LocationID GROUP BY z.Borough
 | Broadcast nested loop join | (no equality, one small side) | copy the small side, compare all pairs | any condition |
 | Cartesian product | `SHUFFLE_REPLICATE_NL` | copy blocks of both sides, compare all pairs | any condition |
 
-TIMINGS_STEP3
+On these sizes, the broadcast hash join is the fastest, at 0.16 seconds. The shuffled hash join takes 0.56 seconds and the sort-merge join 0.73 seconds, because both shuffle the 3.8 million trips. The sort-merge join also sorts both sides. The Cartesian product takes 8.50 seconds, about 50 times as long as the broadcast join. It compares each trip with each of the 265 zones, about a billion pairs, and it evaluates the condition on each pair.
 
 ## Step 4: A join with no equality
 
@@ -103,17 +139,41 @@ bands = spark.createDataFrame([("short", 0.0, 15.0), ("medium", 15.0, 40.0), ("l
 nj = trips.join(bands, (trips.fare_amount >= bands.lo) & (trips.fare_amount < bands.hi))
 ```
 
-@@OUT ch09/strategies.txt == 4@@
+```text
+== 4. a non-equi join
+bands estimated size: 9223372036854775807 bytes (local Python data becomes an RDD with no statistics)
+fare in [lo, hi) -> ['CartesianProduct'] 2.04 s
+same, broadcast(bands) -> ['BroadcastNestedLoopJoin'] 0.17 s
+bands as SQL VALUES, size: 132 bytes -> ['BroadcastNestedLoopJoin']
+```
 
-TEXT_STEP4
+The bands DataFrame has three rows, but its estimated size is 9,223,372,036,854,775,807 bytes, the largest `long`. `spark.createDataFrame` from local Python data makes a plan over an RDD in Classic mode, and Spark has no statistics for it. Thus the planner cannot broadcast it, and the join becomes a `CartesianProduct` (2.05 seconds).
+
+With `F.broadcast(bands)`, the join is a `BroadcastNestedLoopJoin`: each task compares its trips with the three bands, and the query takes 0.20 seconds. The same three rows from a SQL `VALUES` clause are a local relation with a size of 132 bytes. The planner selects the broadcast without a hint.
+
+A range join on a large right side has no good strategy. Add an equality if the data has one, for example a day or a bucket. Spark can hash on it, and the range stays as an extra condition.
 
 ## Step 5: Two large sides
 
 When both sides are large, a broadcast is not possible or not cheap. `strategies.py` joins each trip to a second table with one row for each trip, on a trip ID (`_metadata.row_index`):
 
-@@OUT ch09/strategies.txt == 5@@
+```text
+== 5. two large sides (3.8 M x 3.8 M rows on a trip id)
+  merge         ['SortMergeJoin']  0.55 s
+  shuffle_hash  ['ShuffledHashJoin']  0.48 s
+  no hint       ['BroadcastHashJoin']  ERROR Not enough memory to build and broadcast the table to all work
+  broadcast     ['BroadcastHashJoin']  ERROR Not enough memory to build and broadcast the table to all work
+```
 
-TEXT_STEP5
+The result shows that the size estimate can be dangerous:
+
+- **With no hint, the planner selects a broadcast hash join, and the driver runs out of memory.** The estimate for the right side comes from the size of the Parquet file, scaled by the share of the selected columns. The result is under the 10 MB threshold. In memory, the same 3.8 million rows are much larger, and the broadcast does not fit the default driver memory.
+- **A broadcast hint fails in the same way.**
+- **The sort-merge join and the shuffled hash join both work,** in 0.55 and 0.48 seconds. Each of the 200 partitions is small, so the hash tables fit in memory, and the sort costs little.
+
+The script runs the two broadcasts last. An earlier run had the broadcasts first. The failed broadcasts left the driver heap full, and the sort-merge join after them also failed with `java.lang.OutOfMemoryError`. In local mode, the driver and the executor share one JVM heap.
+
+If the estimate is wrong for your data, set `spark.sql.autoBroadcastJoinThreshold` lower, or give the large side a `MERGE` hint. `ANALYZE TABLE ... COMPUTE STATISTICS` gives better estimates for catalog tables.
 
 ## Step 6: How Spark selects a strategy
 
@@ -129,22 +189,42 @@ For a condition with no equality, only the last two strategies are possible. A b
 
 The join type limits which side can be broadcast. A left outer join can broadcast only the right side, because each left row must stay in its task to produce its NULL row. A full outer join cannot use a broadcast hash join:
 
-@@OUT ch09/strategies.txt == 7@@
+```text
+== 7. a hint that cannot apply
+BROADCAST(t) on a FULL join -> ['SortMergeJoin']
+```
 
 `BROADCAST(t)` asks for a broadcast of the trips in a full join. The planner ignores the hint and uses a sort-merge join.
 
 ## Step 7: AQE changes the strategy at run time
 
-The estimates come before the query runs. AQE (Chapter 18) plans again after each shuffle, with the real sizes. `strategies.py` joins the trips to an aggregate: the zones with more than 100,000 pickups. The planner cannot estimate the size of an aggregate with a `HAVING`, so it plans a sort-merge join:
+The estimates come before the query runs. AQE (Chapter 18) plans again after each shuffle stage, with the real sizes. To show this, `strategies.py` turns off the broadcast for the static planner (`spark.sql.autoBroadcastJoinThreshold = -1`). It gives AQE its own threshold of 10 MB (`spark.sql.adaptive.autoBroadcastJoinThreshold`). Then it joins the trips to two small results:
 
 ```python
-busy = spark.sql("""SELECT PULocationID, count(*) AS n FROM trips GROUP BY PULocationID HAVING count(*) > 100000""")
-aj = trips.join(busy, "PULocationID").agg(F.count("*"))
+def busy_join():   # zones with more than 100,000 pickups: the HAVING runs in the same stage as the join
+    busy = trips.groupBy("PULocationID").count().where("count > 100000").select(F.col("PULocationID").alias("z"))
+    return trips.join(busy, trips.PULocationID == F.col("z")).agg(F.count("*"))
+
+def big_fare_join():   # pickups in zones that had a fare over 400: the filtered side is its own shuffle stage
+    big = trips.where(F.col("fare_amount") > 400).select(F.col("PULocationID").alias("z"))
+    return trips.join(big, trips.PULocationID == F.col("z")).agg(F.count("*"))
 ```
 
-@@OUT ch09/strategies.txt == 6@@
+```text
+== 6. AQE changes the strategy at run time
+autoBroadcastJoinThreshold: -1 | adaptive.autoBroadcastJoinThreshold: 10MB
+  busy zones (HAVING)      initial ['SortMergeJoin']  final ['SortMergeJoin']  [':  +- AQEShuffleRead coalesced', '+- AQEShuffleRead coalesced']
+  fares over 400 (filter)  initial ['SortMergeJoin']  final ['BroadcastHashJoin']  [':- AQEShuffleRead local', '+- AQEShuffleRead local']
+  fares over 400, AQE off: 0.33 s
+  fares over 400, AQE on:  0.46 s
+```
 
-TEXT_STEP7
+Both joins start as a sort-merge join. Only the second one changes:
+
+- **The fares over 400.** The filtered trips are a separate shuffle stage. When that stage ends, AQE sees that its output is small. It plans again, and it changes the join into a broadcast hash join. `AQEShuffleRead local` means that the tasks read the shuffle files of the large side where the map tasks wrote them, with no exchange by key.
+- **The busy zones.** The `HAVING` filter runs after the final aggregate, in the same stage as the join. AQE gets sizes only at the end of a shuffle stage. Thus it never sees the size of the small result, and the join stays a sort-merge join.
+
+The conversion did not make this query faster: 0.46 seconds with AQE against 0.33 seconds without it. Both shuffles had already run when AQE changed the join. The conversion saves the sort and the merge, but it cannot give back the shuffle of the large side. AQE helps most in two cases. In the first, the small side finishes before Spark shuffles the large side. In the second, the static estimate was so wrong that the planner chose a much slower strategy.
 
 ## Step 8: A skewed key
 
@@ -173,11 +253,11 @@ To measure the effect, `skew.py` makes a join with one very hot key. It writes 3
 `skew.py` runs the join with `spark.sql.adaptive.skewJoin.enabled` off and on. It reads the task times of the join stage from the Spark UI REST API (`taskSummary` with the 0.5 and 1.0 quantiles).
 
 - **Skew join off.** The median task takes 1,390 ms, and the slowest takes 4,919 ms. The slowest task reads 12,093,305 rows: the 12 million rows with key 0. The other tasks wait for it.
-- **Skew join on.** AQE finds the large partition after the shuffle, splits it, and copies the matching partition of the other side to each split. The plan shows `SortMergeJoin(skew=true)` and `AQEShuffleRead coalesced and skewed`. The slowest task takes 2,114 ms, and the query takes 2.73 seconds against 3.71 seconds.
+- **Skew join on.** AQE finds the large partition after the shuffle, and splits it. It copies the partition of the other side to each split. The plan shows `SortMergeJoin(skew=true)` and `AQEShuffleRead coalesced and skewed`. The slowest task takes 2,114 ms, and the query takes 2.73 seconds against 3.71 seconds.
 
-A partition is skewed when it is larger than `spark.sql.adaptive.skewJoin.skewedPartitionFactor` (5) times the median partition, and also larger than `skewedPartitionThresholdInBytes` (256 MB by default). The data of this example is smaller than 256 MB, so the script sets the threshold, and the target size of a split (`spark.sql.adaptive.advisoryPartitionSizeInBytes`), to 16 MB.
+A skewed partition is larger than `skewedPartitionFactor` (5) times the median partition. It is also larger than `skewedPartitionThresholdInBytes` (256 MB by default). Both keys start with `spark.sql.adaptive.skewJoin.`. The data of this example is smaller than 256 MB. Thus the script sets the threshold to 16 MB. It also sets the target size of a split (`spark.sql.adaptive.advisoryPartitionSizeInBytes`) to 16 MB.
 
-The split is not complete here. The slowest task still reads 9,070,277 rows. AQE splits a skewed partition at the boundaries of the map outputs, so it cannot make a split smaller than the part of one key that one map task wrote.
+The split is not complete here. The slowest task still reads 9,070,277 rows. AQE splits a skewed partition at the boundaries of the map outputs. Thus a split cannot be smaller than the part of the key that one map task wrote.
 
 ## Step 10: Salting
 
@@ -188,7 +268,7 @@ The split is not complete here. The slowest task still reads 9,070,277 rows. AQE
   median of 3: 2.26 s
 ```
 
-Salting spreads the hot key by hand. The fact rows with key 0 get a random salt from 0 to 15. The dimension row for key 0 is copied 16 times, one copy for each salt. The join key is then `(k, salt)`:
+Salting spreads the hot key by hand. The fact rows with key 0 get a random salt from 0 to 15. The script copies the dimension row for key 0 16 times, one copy for each salt. The join key becomes `(k, salt)`:
 
 ```python
 f = facts.withColumn("salt", F.when(F.col("k") == 0, (F.rand(7) * S).cast("int")).otherwise(F.lit(0)))
@@ -228,7 +308,9 @@ Salting costs work: a copy of each hot dimension row for each salt, and code tha
 
 Some hot keys should not join at all. NULL keys never match an equality, and the optimizer knows this. For an inner join, it adds `isnotnull(k)` to each side, so the 12 million NULL rows go away before the shuffle. For a left join, the NULL rows of the left side must stay. Then a NULL key is a hot key for the shuffle, and a filter or a salt by hand is necessary.
 
-A bucketed table is stored already partitioned by a key. `skew.py` writes the trips and a per-zone average with `bucketBy(16, "PULocationID")` and `saveAsTable`. The join of the two tables has one `Exchange`, the one for the final aggregate. The same join on plain DataFrames has three. With the same number of buckets on the same key, each task reads one bucket of each table, and the rows of one key are already together. The bucketed join took 0.16 seconds against 0.35 seconds.
+A bucketed table keeps its rows partitioned by a key in the files. `skew.py` writes the trips and a per-zone average with `bucketBy(16, "PULocationID")` and `saveAsTable`. The join of the two tables has one `Exchange`, the one for the final aggregate. The same join on plain DataFrames has three.
+
+The two tables have the same number of buckets on the same key. Thus each task reads one bucket of each table, and the rows of one key are already together. The bucketed join took 0.16 seconds against 0.35 seconds.
 
 Buckets cost work when you write the data, and they help only joins and aggregates on the bucket key. Table formats such as Iceberg give the same effect with storage-partitioned joins (Chapter 31).
 
@@ -332,12 +414,12 @@ Before 4.3, the same answer needed a window or a range join. `asof.py` runs thre
 The three methods are:
 
 1. **`ASOF JOIN`**, as in Step 12.
-2. **A window over a union.** Put the drop-offs and the pickups in one stream, sort by zone and time, and carry the last drop-off time forward with `last(..., ignorenulls=True)` over a frame that ends one row before the current row (Chapter 7).
+2. **A window over a union.** Put the drop-offs and the pickups in one stream, and sort by zone and time. Carry the last drop-off time forward with `last(..., ignorenulls=True)`, over a frame that ends one row before the current row (Chapter 7).
 3. **A range join and a `max`.** Join each pickup to the drop-offs in the same zone in the 10 minutes before it, and keep the latest.
 
-The window gives the same 109,379 matches and the same sum of waits as `ASOF JOIN`. The range join gives a different answer, for two reasons. It misses each wait of more than 10 minutes, and it groups by zone and time, so two pickups at the same second become one row.
+The window gives the same 109,379 matches and the same sum of waits as `ASOF JOIN`. The range join gives a different answer, for two reasons. It misses each wait of more than 10 minutes. It also groups by zone and time, so two pickups at the same second become one row.
 
-The window is the fastest: 0.47 seconds against 6.44 seconds for `ASOF JOIN`. The range join is the slowest, because each pickup first joins to all the drop-offs in its 10 minutes, and only then does `max` keep one of them.
+The window is the fastest: 0.47 seconds against 6.44 seconds for `ASOF JOIN`. The range join is the slowest. Each pickup first joins to all the drop-offs in its 10 minutes, and only then `max` keeps one of them.
 
 ```text
 == 5b. one busy zone (237), more days: ASOF JOIN against the window (median of 3)

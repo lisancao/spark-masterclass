@@ -193,7 +193,7 @@ Tapes: `code/film/ch05.tape` to `ch10.tape`, rendered with `film render code/fil
 | ch07-topn | qualify.py steps 3-4 | Upper limits on rank functions get a WindowGroupLimit. QUALIFY needs a window function. |
 | ch08-loop | scripting.py steps 4-5 | One script with five passes is twenty queries. Handlers catch errors by name and SQLSTATE. |
 | ch08-udf | functions.py steps 1-2 | The SQL function becomes a CASE WHEN in the plan. The Python function adds ArrowEvalPython. |
-| ch09-types | strategies.py steps 1-2 | Join types on a tiny table, then trips by zones: a broadcast hash join. |
+| ch09-types | strategies.py step 2 | Trips by zones: the zones are small, so the planner broadcasts them. |
 | ch09-asof | asof.py step 2 | New in 4.3: ASOF JOIN finds the last drop-off before each pickup. |
 | ch10-gaps | timeseries.py step 5 | A quiet zone has three rows for 24 hours. The fill makes the rest. |
 | ch10-nearest | geo.py step 8 | All pairs and NEAREST BY compare every pair. The grid compares fewer, and misses four. |
