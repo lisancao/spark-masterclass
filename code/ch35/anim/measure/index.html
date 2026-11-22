@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Numbers: data.json (grains.txt, define.txt).
+      const D = {"source": "code/ch35/output/grains.txt (the month, by borough, the second aggregation) and define.txt (the expression)", "formula": "SUM(fare_amount) / SUM(trip_distance)", "month": "6.3138", "borough": [["Manhattan", "7.0777"], ["Queens", "4.5503"], ["Brooklyn", "6.1579"], ["Bronx", "5.138"], ["Staten Island", "4.1866"], ["EWR", "42.1885"]], "avg_of_measures": "11.5498"};
+      A.mount();
+      // beat open (0.0)
+      A.title("MEASURE(): one formula, any grain");
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.93, size: 38 }); A.in(c, t0); if (t1) A.out(c, t1); };
+      const q1 = A.text("SELECT borough, MEASURE(fare_per_mile)", { x: 0.06, y: 0.24, size: 36, mono: true, anchor: "left" });
+      const q2 = A.text("FROM taxi.trip_metrics GROUP BY borough", { x: 0.06, y: 0.29, size: 36, mono: true, anchor: "left" });
+      const yb = A.box({ x: 0.5, y: 0.42, w: 1100, h: 90, kind: "soft", title: "catalog YAML: fare_per_mile = " + D.formula, size: 30 });
+      cap("The catalog holds the formula of each measure", 0.8, 3.2);
+      // beat rewrite (3.4): the analyzer puts the formula into the query
+      const f1 = A.text("SELECT borough, " + D.formula, { x: 0.06, y: 0.24, size: 36, mono: true, anchor: "left", color: "var(--a-acc)" });
+      gsap.set(f1, { opacity: 0 });
+      A.tl.to(q1, { opacity: 0, duration: 0.4 }, 3.6);
+      A.tl.to(f1, { opacity: 1, duration: 0.4 }, 3.6);
+      A.tl.fromTo(yb, { scale: 1.06 }, { scale: 1, duration: 0.4 }, 3.4);
+      cap("The analyzer replaces MEASURE() with that formula", 3.4, 6.4);
+      // beat grains (6.6): the same formula at two grains
+      const m = A.box({ x: 0.2, y: 0.6, w: 420, h: 130, kind: "ok", title: "the month: " + D.month, size: 34 });
+      A.in(m, 6.6);
+      const rows = D.borough.map((r) => r);
+      const t = A.table(["borough", "fare_per_mile"], rows, { x: 0.64, y: 0.70, w: 600, size: 24 });
+      A.in(t, 6.9);
+      cap("Each GROUP BY computes it again from the rows", 6.6, 9.6);
+      // beat trap (9.8): averaging the borough results again
+      const bad = A.box({ x: 0.2, y: 0.8, w: 420, h: 110, kind: "accent", title: "AVG of these rows: " + D.avg_of_measures, size: 30 });
+      A.in(bad, 9.8);
+      cap("An AVG over these results is wrong again", 9.8);
+      A.finish(13);
+    </script>
+  </body>
+</html>

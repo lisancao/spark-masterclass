@@ -64,6 +64,14 @@ Both answers on the left are wrong:
 - **The average of ratios.** The fare per mile of the month is the total fare divided by the total distance: 6.3158. The average of the eight borough ratios is 10.9201. Each borough counts the same in an average. Thus, EWR, with 131 trips and a ratio of 42.19, has the same weight as Manhattan, with more than three million trips.
 - **The sum of distinct counts.** A zone that has pickups on 30 days is in 30 daily counts. The sum of the daily counts is 7083, but only 258 zones had a pickup in June.
 
+<figure markdown>
+  ![Bar chart of fare per mile for each borough, with the average of the ratios and the ratio of the totals](../media/figures/ch35-ratios-light.svg#only-light)
+
+  ![Bar chart of fare per mile for each borough, with the average of the ratios and the ratio of the totals](../media/figures/ch35-ratios-dark.svg#only-dark)
+
+  <figcaption>The fare per mile of each borough, and the two answers of Step 1. The average of the eight ratios gives EWR the same weight as Manhattan.</figcaption>
+</figure>
+
 Neither query has a bug that Spark can find. The SQL is correct. The error is in the sense of the numbers: these measures are *non-additive*. A count and a sum are additive, so the sum of the group values is the total. A ratio of sums and a distinct count are not. To get them at a new grain, you must compute them again from the rows, with the original formula.
 
 ## Step 2: Define the metric view
@@ -102,11 +110,13 @@ $$
 
 The YAML has five keys, all in version `0.1`:
 
-- `version` must be there. Spark 4.3 accepts only `0.1`.
-- `source` is a table or view name, or a SQL query. Spark tries to parse the text as a name first, and as a query if that fails (`Source.apply` in `MetricViewCanonical.scala`).
-- `filter` is a condition that Spark applies to the source in each query of the view.
-- `dimensions` are the columns that a query can group by and filter on. Each has a name and an expression on the source.
-- `measures` are the aggregates. Each has a name and an expression that must aggregate the source rows.
+| Key | What it holds |
+|---|---|
+| `version` | Must be there. Spark 4.3 accepts only `0.1`. |
+| `source` | A table or view name, or a SQL query. Spark tries to parse the text as a name first, and as a query if that fails (`Source.apply` in `MetricViewCanonical.scala`). |
+| `filter` | A condition that Spark applies to the source in each query of the view. |
+| `dimensions` | The columns that a query can group by and filter on. Each has a name and an expression on the source. |
+| `measures` | The aggregates. Each has a name and an expression that must aggregate the source rows. |
 
 The view hides the source columns. A query sees only the dimensions and the measures.
 
@@ -139,6 +149,14 @@ created taxi.trip_metrics
 ```
 
 The catalog keeps the full YAML as the view text, and the type `METRIC_VIEW`. The table properties `metric_view.from.*` and `metric_view.where` describe the source and the filter for catalog browsers. Each column also has metadata: `metric_view.type` says `dimension` or `measure`, and `metric_view.expr` holds the expression. The type of each measure comes from the analyzer. When you create the view, the analyzer resolves the expressions against the source. `COUNT(1)` is a `bigint`, and the ratio of two sums of doubles is a `double`.
+
+<figure markdown>
+  ![The YAML of the metric view and the column metadata and table properties that the catalog stores](../media/figures/ch35-stored-light.svg#only-light)
+
+  ![The YAML of the metric view and the column metadata and table properties that the catalog stores](../media/figures/ch35-stored-dark.svg#only-dark)
+
+  <figcaption>The YAML (in a short form) and what the catalog keeps from it. Each column has a type and a <code>metric_view.type</code>. The table properties describe the source and the filter.</figcaption>
+</figure>
 
 This metadata is the semantic layer. A BI tool, a notebook user or an agent can read `DESCRIBE TABLE EXTENDED` and find what "fare per mile" means, without the code of a dashboard.
 
@@ -261,6 +279,13 @@ flowchart LR
   y --> rw
   rw --> p["Aggregate [borough]<br/>sum(fare_amount) / sum(trip_distance)<br/>Filter: day_type = 'weekend'<br/>Project: dimensions<br/>Filter: view filter<br/>taxi.trips"]:::q
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch35-anim-measure.webp">
+    <source src="../../media/clips/ch35-anim-measure.mp4" type="video/mp4">
+  </video>
+  <figcaption>The analyzer replaces <code>MEASURE(fare_per_mile)</code> with the formula from the catalog. Each grain computes the ratio from the rows. An average of the borough rows gives 11.5498, not 6.3138.</figcaption>
+</figure>
 
 ## Step 6: What a metric view does not prevent
 
@@ -386,11 +411,13 @@ The queries:
 
 The results give the commands that work in Spark 4.3:
 
-- **To change a definition, drop the view and create it again.** `CREATE OR REPLACE VIEW ... WITH METRICS` fails with `TABLE_OR_VIEW_ALREADY_EXISTS`. The same statement fails in the same way on Spark 4.2.0 and 4.2.1 (part notes). Readers of the view see an error between the `DROP` and the `CREATE`.
-- **`SHOW CREATE TABLE` is not supported** on a metric view (`UNSUPPORTED_SHOW_CREATE_TABLE.ON_METRIC_VIEW`). Read the YAML from `DESCRIBE TABLE EXTENDED`, in the `View Text` row (Step 3).
-- **`ALTER VIEW ... RENAME TO` works**, and the measures still work after it.
-- **`ALTER VIEW ... AS SELECT` breaks the view.** Spark accepts the statement and replaces the YAML with the SQL text. Then each query fails with `INVALID_METRIC_VIEW_YAML`.
-- **`DROP TABLE` removed the metric view** in this Hive catalog, and the `DROP VIEW` after it found nothing. Use `DROP VIEW` for metric views, so that the command says what it removes.
+| Command | Result in Spark 4.3 | What to do |
+|---|---|---|
+| `CREATE OR REPLACE VIEW ... WITH METRICS` | Fails with `TABLE_OR_VIEW_ALREADY_EXISTS`. The same statement fails in the same way on Spark 4.2.0 and 4.2.1 (part notes). | To change a definition, drop the view and create it again. Readers of the view see an error between the `DROP` and the `CREATE`. |
+| `SHOW CREATE TABLE` | Not supported on a metric view (`UNSUPPORTED_SHOW_CREATE_TABLE.ON_METRIC_VIEW`). | Read the YAML from `DESCRIBE TABLE EXTENDED`, in the `View Text` row (Step 3). |
+| `ALTER VIEW ... RENAME TO` | Works, and the measures still work after it. | |
+| `ALTER VIEW ... AS SELECT` | Breaks the view. Spark accepts the statement and replaces the YAML with the SQL text. Then each query fails with `INVALID_METRIC_VIEW_YAML`. | Do not use it on a metric view. |
+| `DROP TABLE` | Removed the metric view in this Hive catalog, and the `DROP VIEW` after it found nothing. | Use `DROP VIEW` for metric views, so that the command says what it removes. |
 
 ## Step 9: Qualify the source name
 
