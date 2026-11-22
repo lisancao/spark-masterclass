@@ -8,7 +8,9 @@ Run with the Python of the engine's Spark version, for example:
   .venv/bin/python ch24/plans.py cpu                  # Spark 4.3.0, no engine
 Add --defaults to keep Spark's default settings (ANSI on, TIMESTAMP_NTZ inference on).
 """
+import os
 import sys
+import threading
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -32,9 +34,20 @@ todo["udf"] = udf_query(spark)
 for name, df in todo.items():
     if only and name not in only:
         continue
-    df.collect()
+    done = threading.Event()
+    threading.Thread(target=lambda d=df: (d.collect(), done.set()), daemon=True).start()
+    limit = int(os.environ.get("QUERY_TIMEOUT", 600))
+    if not done.wait(limit):                  # a hang is a result too: print the plan anyway
+        spark.sparkContext.cancelAllJobs()
+        print(f"\n{name}: NO RESULT after {limit} s (jobs cancelled), the planned operators:")
+        for depth, op, _ in walk(df):
+            print(f"  {MARK[kind(op)]} {'  ' * depth}{op}")
+        continue
     nodes = walk(df)
     e, s, t = native_share(nodes)
     print(f"\n{name}: {e} engine operators, {s} Spark operators, {t} transitions")
     for depth, op, _ in nodes:
         print(f"  {MARK[kind(op)]} {'  ' * depth}{op}")
+
+sys.stdout.flush()
+os._exit(0)                                   # do not wait for cancelled tasks at exit
