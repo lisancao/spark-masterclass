@@ -1,0 +1,37 @@
+Thrift server up: jdbc:hive2://localhost:15102, UI http://localhost:4142
+== 1. beeline, a JDBC client
+$ beeline -u jdbc:hive2://localhost:15102 -n $USER -e "..."
++------------+------------+--------------+
+| namespace  | tableName  | isTemporary  |
++------------+------------+--------------+
+| taxi       | zones      | false        |
++------------+------------+--------------+
++------------+--------+
+|  Borough   | zones  |
++------------+--------+
+| Queens     | 69     |
+| Manhattan  | 69     |
+| Brooklyn   | 61     |
++------------+--------+
+
+== 2. each connection is its own session
++---------+
+| Result  |
++---------+
++---------+
++------------+-----------+--------------+
+| namespace  | viewName  | isTemporary  |
++------------+-----------+--------------+
+|            | mine      | true         |
++------------+-----------+--------------+
+-- a second connection:
++------------+-----------+--------------+
+| namespace  | viewName  | isTemporary  |
++------------+-----------+--------------+
++------------+-----------+--------------+
+
+== 3. PyHive, a Python client with no JVM
+session: ('spark_catalog', 'default', '4.3.0 98bc0212c94705434471627068f41e374ccab143')
+columns: ['Zone']
+rows:    [('Newark Airport',)]
+a SET in this connection: [('spark.sql.shuffle.partitions', '4')]

@@ -1,0 +1,46 @@
+== 1. CAST(NULL AS <type>): the SQL type name and the PySpark class
+  DDL                         typeof()                    PySpark class
+  BOOLEAN                     boolean                     BooleanType
+  TINYINT                     tinyint                     ByteType
+  SMALLINT                    smallint                    ShortType
+  INT                         int                         IntegerType
+  BIGINT                      bigint                      LongType
+  FLOAT                       float                       FloatType
+  DOUBLE                      double                      DoubleType
+  DECIMAL(10,2)               decimal(10,2)               DecimalType
+  STRING                      string                      StringType
+  STRING COLLATE UTF8_LCASE   string collate UTF8_LCASE   StringType
+  CHAR(3)                     string                      StringType
+  VARCHAR(10)                 string                      StringType
+  BINARY                      binary                      BinaryType
+  DATE                        date                        DateType
+  TIMESTAMP                   timestamp                   TimestampType
+  TIMESTAMP_NTZ               timestamp_ntz               TimestampNTZType
+  TIME(6)                     error: UNSUPPORTED_TIME_TYPE
+  TIMESTAMP_NTZ(9)            error: FEATURE_NOT_ENABLED
+  INTERVAL DAY TO SECOND      interval day to second      DayTimeIntervalType
+  INTERVAL YEAR TO MONTH      interval year to month      YearMonthIntervalType
+  ARRAY<INT>                  array<int>                  ArrayType
+  MAP<STRING,INT>             map<string,int>             MapType
+  STRUCT<a:INT,b:STRING>      struct<a:int,b:string>      StructType
+  VARIANT                     variant                     VariantType
+  GEOMETRY(4326)              geometry(4326)              GeometryType
+  GEOGRAPHY(4326)             geography(4326)             GeographyType
+
+== 2. CHAR and VARCHAR in a table keep their length and check it
++--------+----------+-------+
+|col_name|data_type |comment|
++--------+----------+-------+
+|code    |char(3)   |NULL   |
+|label   |varchar(5)|NULL   |
++--------+----------+-------+
+
+  read back: [('A  ', 3)] (CHAR pads to its length)
+  insert 'ABCD' into CHAR(3): EXCEED_LIMIT_LENGTH
+
+== 3. TIME and the nanosecond types sit behind internal flags in 4.3.0
+  TIME literal, flags off:      TIME'10:07:00' -> time(6)
+  spark.sql.timeType.enabled             = false
+  after SET spark.sql.timeType.enabled=true: CAST(NULL AS TIME(6)) -> time(6)
+  spark.sql.timestampNanosTypes.enabled  = false
+  after SET spark.sql.timestampNanosTypes.enabled=true: CAST(NULL AS TIMESTAMP_NTZ(9)) -> timestamp_ntz(9)

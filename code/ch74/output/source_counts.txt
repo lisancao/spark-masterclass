@@ -1,0 +1,26 @@
+== 1. one config, as the source declares it (v4.3.0, sql/catalyst/src/main/scala/org/apache/spark/sql/internal/SQLConf.scala)
+  1190:  val SHUFFLE_PARTITIONS = buildConf("spark.sql.shuffle.partitions")
+  1191-    .doc("The default number of partitions to use when shuffling data for joins or aggregations.")
+  1192-    .version("1.1.0")
+  1193-    .intConf
+  1194-    .checkValue(_ > 0, "The value of spark.sql.shuffle.partitions must be positive")
+  1195-    .createWithDefault(200)
+  1196-
+  1197-  val SHUFFLE_SPREAD_NULL_JOIN_KEYS_ENABLED =
+  1198-    buildConf("spark.sql.shuffle.spreadNullJoinKeys.enabled")
+
+== 2. how many configs each file declares
+  file                                                            total  internal
+  sql/catalyst/src/main/scala/org/apache/spark/sql/internal/SQLConf.scala    789       478
+  sql/catalyst/src/main/scala/org/apache/spark/sql/internal/StaticSQLConf.scala     36        21
+  core/src/main/scala/org/apache/spark/internal/config/*.scala      559        62
+
+== 3. the files that declare configs, outside those three places (top 10)
+    93  resource-managers/kubernetes/core/src/main/scala/org/apache/spark/deploy/k8s/Config.scala
+    62  resource-managers/yarn/src/main/scala/org/apache/spark/deploy/yarn/config/package.scala
+    46  sql/connect/server/src/main/scala/org/apache/spark/sql/connect/config/Connect.scala
+    29  streaming/src/main/scala/org/apache/spark/streaming/StreamingConf.scala
+    18  sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveUtils.scala
+     8  connector/kafka-0-10/src/main/scala/org/apache/spark/streaming/kafka010/package.scala
+     8  connector/kafka-0-10-sql/src/main/scala/org/apache/spark/sql/kafka010/package.scala
+     7  connector/profiler/src/main/scala/org/apache/spark/profiler/package.scala
