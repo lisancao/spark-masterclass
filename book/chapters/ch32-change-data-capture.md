@@ -8,7 +8,9 @@ Spark has two halves of CDC. The read half asks a table which rows changed betwe
 
 Spark 4.3 adds history tables (SCD Type 2) to Auto CDC, and a SQL syntax for it.
 
-**A change feed is a list of instructions, not a list of rows. Apply each event by its key and in the order of its sequence number, and not in the order of arrival. Auto CDC does this for you. It merges each micro-batch into the target. It also keeps a small state table, so that a late event goes into its correct position. In Spark 4.3, it can keep only the latest row (SCD Type 1) or the full history (SCD Type 2).** This chapter shows each part of that sentence with the same change events for three customers who live in Toronto, Ottawa and Hanoi.
+**A change feed is a list of instructions, not a list of rows. Apply each event by its key and in the order of its sequence number, and not in the order of arrival. Auto CDC does this for you. It merges each micro-batch into the target. It also keeps a small state table, so that a late event goes into its correct position. In Spark 4.3, it can keep only the latest row (SCD Type 1) or the full history (SCD Type 2).**
+
+This chapter shows each part of that sentence with the same change events for three customers who live in Toronto, Ottawa and Hanoi.
 
 The code is in [`code/ch32`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch32). Each output block comes from `code/ch32/output/`. The pipelines write Iceberg tables with the Iceberg runtime for Spark 4.3 that Chapter 29 describes, an unreleased build.
 
@@ -352,7 +354,7 @@ customers_city_history (SQL, TRACK HISTORY ON (city)):
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch32-history.webp">
     <source src="../../media/clips/ch32-history.mp4" type="video/mp4">
   </video>
-  <figcaption>The SCD Type 2 history after the three files: the late Ottawa event sits between Toronto and Hanoi, and the delete closes the history of <code>c-02</code>.</figcaption>
+  <figcaption>The SCD Type 2 history after the three files. The late Ottawa event is between Toronto and Hanoi, and the delete closes the history of <code>c-02</code>.</figcaption>
 </figure>
 
 Each target applied the events by `seq`, not by arrival:
