@@ -36,6 +36,14 @@ The DataFrame definition succeeds. The error occurs in a task, when the task rea
 
 `try_divide` returns NULL for those trips, and `avg` ignores NULL values. Thus the average uses 3,834,081 trips, which is all trips except the 3,167 with a zero fare. The result is a decision that you can see in the code: the trips with no fare do not have a tip ratio.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch06-anim-ansi.webp">
+    <source src="../../media/clips/ch06-anim-ansi.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: under ANSI mode, the task stops at the first zero fare, and the job fails. With <code>try_divide</code>, that row becomes NULL, and <code>avg</code> ignores it. The row values are schematic. The counts are from <code>ansi.py</code>.</figcaption>
+</figure>
+
+
 ```mermaid
 sequenceDiagram
   participant Py as Python
@@ -120,9 +128,11 @@ only showing top 8 rows
 
 Each Spark error has three parts that a program can read:
 
-- `getCondition()` gives the error class, for example `CAST_INVALID_INPUT`. Use it in an `except` block to decide what to do.
-- `getSqlState()` gives the SQL standard code. `22018` is "invalid character value for cast".
-- `getMessageParameters()` gives the values in the message. Here it gives the bad value, `'thirty'`.
+| Method | Gives | Value here | Use |
+|---|---|---|---|
+| `getCondition()` | the error class | `CAST_INVALID_INPUT` | Use it in an `except` block to decide what to do. |
+| `getSqlState()` | the SQL standard code | `22018`, "invalid character value for cast" | Compare it with other SQL engines. |
+| `getMessageParameters()` | the values in the message | the bad value, `'thirty'` | Write it to the log. |
 
 The table shows `try_cast` on the same column. `thirty` becomes NULL. But `-3` and `200` are valid integers, so `try_cast` keeps them. A cast checks the type, not the range. Step 15 adds the range check.
 
@@ -379,10 +389,14 @@ A collation is a set of rules to compare and sort strings. Spark 4.0 added colla
 
 The name of a collation tells you its rules:
 
-- `UTF8_BINARY` is the default. It compares bytes.
-- `UTF8_LCASE` compares bytes after it changes the letters to lower case.
-- `UNICODE` uses the ICU library and the Unicode sort order.
-- The suffix `_CI` ignores case, `_AI` ignores accents, and `_RTRIM` ignores trailing spaces.
+| Name or suffix | Rule |
+|---|---|
+| `UTF8_BINARY` | The default. It compares bytes. |
+| `UTF8_LCASE` | It compares bytes after it changes the letters to lower case. |
+| `UNICODE` | It uses the ICU library and the Unicode sort order. |
+| `_CI` | It ignores case. |
+| `_AI` | It ignores accents. |
+| `_RTRIM` | It ignores trailing spaces. |
 
 The deliveries file has 166 rows and 29 spellings of 9 cities. `strings.py` counts the distinct values under each collation, without and with `trim`:
 
@@ -404,6 +418,15 @@ deliveries: 166 rows, 29 raw spellings
 
 Only an accent-insensitive collation on trimmed values finds the 9 cities. Each other row shows one problem.
 
+<figure markdown>
+![Bar chart of distinct city values under each collation.](../media/figures/ch06-collations-light.svg#only-light)
+
+![Bar chart of distinct city values under each collation.](../media/figures/ch06-collations-dark.svg#only-dark)
+
+<figcaption>Distinct values of <code>city</code> under each collation, from the table above. Only <code>trim</code> followed by an accent-insensitive collation gives the 9 cities.</figcaption>
+</figure>
+
+
 **The same letters, different bytes.** `UTF8_LCASE` leaves three groups for Montréal. The bytes show why:
 
 ```text
@@ -418,6 +441,15 @@ the same letters, different bytes:
 ```
 
 The first two rows show the same word, but the bytes are different. The first has `C3 89`, the single character `É`. The second has `65 CC 81`, a plain `e` followed by a combining accent. Unicode calls these two forms "canonically equivalent".
+
+<figure markdown>
+![The bytes of two forms of Montreal.](../media/figures/ch06-bytes-light.svg#only-light)
+
+![The bytes of two forms of Montreal.](../media/figures/ch06-bytes-dark.svg#only-dark)
+
+<figcaption>The bytes of the first two rows. The first form has one character for <code>É</code>. The second form has a plain <code>e</code> and a combining accent.</figcaption>
+</figure>
+
 
 Text from macOS file names, PDF files and some keyboards often uses the second form. `UTF8_LCASE` compares bytes, so it sees two words. The `UNICODE` collations compare canonically equivalent strings as equal.
 
@@ -879,6 +911,15 @@ unmapped countries: ['Mars']
 ```
 
 C003 has no age in the source, so its age is NULL and it has no reason. C004 has an age of `-3`, which is a valid integer, so its age is NULL and its reason is `bad_age`. The two NULL values have different causes, and `reject_reason` keeps the difference.
+
+<figure markdown>
+![The forty rows and the count of each reject reason.](../media/figures/ch06-reject-reasons-light.svg#only-light)
+
+![The forty rows and the count of each reject reason.](../media/figures/ch06-reject-reasons-dark.svg#only-dark)
+
+<figcaption>All 40 rows stay. Five rows have a reason, and one row can have several reasons. The counts are from the output above.</figcaption>
+</figure>
+
 
 All 40 rows stay. You can count the problems for each check. You can send the rows with a reason to a quarantine table. You can still load the good columns of a row that is partly bad. A left anti join finds the values that need a new mapping entry: only `Mars` here.
 

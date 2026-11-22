@@ -224,11 +224,22 @@ groupBy rows: 2 | input rows: 8
 
 Each row keeps its own columns and gets the total of its borough. Thus you can divide a row by its group total in one expression, with no join back to an aggregate.
 
+<figure markdown>
+![The eight rows as a groupBy result and as a window result.](../media/figures/ch07-groupby-window-light.svg#only-light)
+
+![The eight rows as a groupBy result and as a window result.](../media/figures/ch07-groupby-window-dark.svg#only-dark)
+
+<figcaption>The same 8 rows with <code>groupBy</code> and with a window. <code>groupBy</code> gives one row for each borough. The window gives each input row its borough total.</figcaption>
+</figure>
+
+
 A window specification has three parts:
 
-- **`PARTITION BY`** divides the rows into independent groups. A window never looks across two partitions.
-- **`ORDER BY`** sorts the rows in each partition. Ranks, offsets and running totals need an order.
-- **The frame** selects which rows of the partition each row uses, relative to the current row. Step 9 explains frames.
+| Part | What it does |
+|---|---|
+| `PARTITION BY` | It divides the rows into independent groups. A window never looks across two partitions. |
+| `ORDER BY` | It sorts the rows in each partition. Ranks, offsets and running totals need an order. |
+| The frame | It selects which rows of the partition each row uses, relative to the current row. Step 9 explains frames. |
 
 In SQL, these parts go in `OVER (...)`. In Python, `Window.partitionBy(...).orderBy(...)` makes the specification, and `.over(w)` applies a function to it.
 
@@ -256,14 +267,18 @@ w_rank = Window.partitionBy("borough").orderBy(F.desc("trips"))
 +-------+----------+-----+----------+----+----------+--------+---------+------+
 ```
 
-The functions are different only on ties:
+The functions are different only on ties. The table shows the Queens values, with the two tied 30s in the middle:
 
-- **`row_number`** gives each row a different number. For tied rows, the order is not defined. Two runs can give the two Queens 30s different numbers. Add a second `ORDER BY` column (here `day`) if the result must be stable.
-- **`rank`** gives tied rows the same number and then skips. Queens goes 1, 2, 2, 4.
-- **`dense_rank`** gives tied rows the same number and does not skip: 1, 2, 2, 3.
-- **`percent_rank`** is `(rank - 1) / (rows - 1)`, from 0 to 1.
-- **`cume_dist`** is the fraction of rows with a value that is the same or better. For the Queens 30s, that is 3 of 5 rows, so 0.6.
-- **`ntile(n)`** divides the partition into `n` groups of almost equal size.
+| Function | Queens, by trips | On ties |
+|---|---|---|
+| `row_number` | 1, 2, 3, 4, 5 | a different number for each row |
+| `rank` | 1, 2, 2, 4, 5 | the same number, then a skip |
+| `dense_rank` | 1, 2, 2, 3, 4 | the same number, no skip |
+| `percent_rank` | 0.0, 0.25, 0.25, 0.75, 1.0 | `(rank - 1) / (rows - 1)` |
+| `cume_dist` | 0.2, 0.6, 0.6, 0.8, 1.0 | the fraction of rows with the same or a better value |
+| `ntile(2)` | 1, 1, 1, 2, 2 | `n` groups of almost equal size |
+
+For tied rows, the order of `row_number` is not defined. Two runs can give the two Queens 30s different numbers. Add a second `ORDER BY` column (here `day`) if the result must be stable. `cume_dist` for the Queens 30s is 3 of 5 rows, so 0.6.
 
 ## Step 8: lag and lead
 
@@ -388,6 +403,15 @@ DataFrame rangeBetween on seconds, same answer: [5, 20, 15, 10, 40, 70, 80, 70]
 
 On 5 June, the Bronx `last_3_rows` is 35, because it adds 1, 2 and 5 June. These are three rows, but they cover five days. `last_3_days` is 15, because no other Bronx row is in the range from 3 to 5 June. For "the last three days", use `RANGE`, because data often has days with no rows.
 
+<figure markdown>
+![The ROWS and RANGE frames of two rows on a calendar.](../media/figures/ch07-rows-range-light.svg#only-light)
+
+![The ROWS and RANGE frames of two rows on a calendar.](../media/figures/ch07-rows-range-dark.svg#only-dark)
+
+<figcaption>The frames of two rows on a calendar. <code>ROWS 2 PRECEDING</code> counts rows, so it can cover five days. <code>RANGE</code> with a 2-day interval covers three days, and it can contain fewer rows.</figcaption>
+</figure>
+
+
 The DataFrame API has `rowsBetween` and `rangeBetween`. `rangeBetween` takes numbers, not intervals. Thus the script orders by the date as seconds, and it uses `-2 * 86400` as the start. The result is the same as the SQL.
 
 Spark has constants for the boundaries: `Window.unboundedPreceding`, `Window.currentRow` and `Window.unboundedFollowing`. Thus a running total in Python is `w.rowsBetween(Window.unboundedPreceding, Window.currentRow)`.
@@ -472,8 +496,11 @@ Read the plan from the bottom:
 
 The two counts at the end show how to keep this cost low. Two functions over the same specification share one `Window` operator, so `row_number` and `lag` cost one shuffle and one sort. Each different specification adds work:
 
-- A different `ORDER BY` with the same `PARTITION BY` adds a `Sort` and a `Window`, but no shuffle.
-- A different `PARTITION BY` adds an `Exchange`, a `Sort` and a `Window`.
+| A new window column with | `Exchange` | `Sort` | `Window` |
+|---|---|---|---|
+| the same specification | no | no | no (it shares the operator) |
+| a different `ORDER BY`, the same `PARTITION BY` | no | yes | yes |
+| a different `PARTITION BY` | yes | yes | yes |
 
 The three specifications in the script give three `Window` operators, three sorts and two shuffles. When you write many window columns, use as few different specifications as possible.
 
@@ -490,6 +517,16 @@ flowchart BT
   w2 -->|"shuffle by DOLocationID"| e2["Exchange"]:::ex
   e2 --> so3["Sort"]:::win --> w3["Window<br/>row_number"]:::win
 ```
+
+The animation shows the three operators on the 8-row table.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch07-anim-window.webp">
+    <source src="../../media/clips/ch07-anim-window.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the <code>Exchange</code> sends each borough to one partition. The <code>Sort</code> orders each partition by day. The <code>Window</code> operator gives the running sums from the output of the <code>WINDOW</code> clause.</figcaption>
+</figure>
+
 
 A window with no `PARTITION BY` has one partition, the full table:
 

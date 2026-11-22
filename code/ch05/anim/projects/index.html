@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 5: a withColumn loop adds one Project per call; withColumns adds one. Numbers: code/ch05/output/plans.txt.
+      const D = {"cols": 400, "loop_ms": "7,582.4 ms", "once_ms": "703.5 ms", "loop_projects": 401};
+      A.mount();
+      // beat open (0.0)
+      A.title("Why a withColumn loop gets slow");
+      const LX = 0.28, RX = 0.72, YB = 0.83, G = A.dy(68), W = 360, H = 54, N = 6;
+      const lt = A.text("withColumn in a loop", { x: LX, y: 0.22, size: 34, weight: 700, color: "var(--a-acc)" });
+      const rt = A.text("one withColumns call", { x: RX, y: 0.22, size: 34, weight: 700, color: "var(--a-info, var(--a-fg))" });
+      A.in([lt, rt], 0.2);
+      function node(x, i, label, kind = "paper") { return A.box({ x, y: YB - i * G, w: W, h: H, kind, title: label, size: 28, radius: 10 }); }
+      function flash(x, i, t) { const o = A.box({ x, y: YB - i * G, w: W, h: H, kind: "accent", radius: 10 }); A.tl.set(o, { opacity: 0 }, 0); A.tl.to(o, { opacity: 0.5, duration: 0.12 }, t); A.tl.to(o, { opacity: 0, duration: 0.25 }, t + 0.18); return o; }
+      const lrel = node(LX, 0, "Relation", "soft"), lsel = node(LX, 1, "Project: select");
+      const rrel = node(RX, 0, "Relation", "soft"), rsel = node(RX, 1, "Project: select");
+      A.in([lrel, lsel, rrel, rsel], 0.4);
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.915, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      // beat loop (0.9): each call adds a node, then the analyzer walks the whole plan
+      cap("Each call adds a Project, and the driver analyzes the new plan", 0.9, 6.9);
+      const lp = [];
+      for (let k = 0; k < N; k++) {
+        const t = 1.0 + k * 0.95;
+        const n = node(LX, k + 2, "Project: + c" + k);
+        lp.push(n);
+        A.in(n, t, { dur: 0.25 });
+        for (let i = 0; i <= k + 2; i++) flash(LX, i, t + 0.3 + i * 0.05);
+      }
+      // beat once (7.0)
+      cap("withColumns adds one Project for all the columns", 7.0, 9.4);
+      const rp = node(RX, 2, "Project: + c0 ... c5");
+      A.in(rp, 7.2, { dur: 0.3 });
+      for (let i = 0; i <= 2; i++) flash(RX, i, 7.6 + i * 0.05);
+      // beat collapse (9.5): CollapseProject merges the loop's stack
+      cap("The optimizer then merges the stack into one Project", 9.5, 11.6);
+      A.tl.to([lsel, ...lp], { y: (i) => i * G * A.UH, duration: 0.9, ease: "power2.inOut" }, 9.7);
+      A.out(lp.slice(0), 10.5, { dur: 0.3 });
+      const lone = node(LX, 1, "one Project", "accent");
+      const rone = node(RX, 1, "one Project", "accent");
+      A.out([rp], 10.0, { dur: 0.3 });
+      A.tl.to(rsel, { opacity: 0, duration: 0.3 }, 10.4);
+      A.tl.to(lsel, { opacity: 0, duration: 0.3 }, 10.6);
+      A.in([lone, rone], 10.6, { dur: 0.3 });
+      // beat cost (11.7): measured driver time at 400 columns
+      const lm = A.text(D.loop_ms, { x: LX, y: 0.40, size: 72, weight: 700, color: "var(--a-acc)" });
+      const rm = A.text(D.once_ms, { x: RX, y: 0.40, size: 72, weight: 700 });
+      A.in([lm, rm], 11.7);
+      cap("Same tasks, but driver time at 400 columns differs", 11.7);
+      A.in(A.note("six calls drawn; timings measured at 400 columns, median of 7 runs"), 0.5);
+      A.finish(14);
+    </script>
+  </body>
+</html>

@@ -41,6 +41,15 @@ b = spark.createDataFrame([(2, "b2"), (3, "b3"), (3, "b3x"), (4, "b4"), (None, "
 - **`left_semi`** keeps the left rows that have a match, without the columns of the right side, and each left row at most one time. It is `WHERE EXISTS`.
 - **`left_anti`** keeps the left rows that have no match. It is `WHERE NOT EXISTS`.
 
+<figure markdown>
+![A grid of the rows that each join type keeps.](../media/figures/ch09-join-types-light.svg#only-light)
+
+![A grid of the rows that each join type keeps.](../media/figures/ch09-join-types-dark.svg#only-dark)
+
+<figcaption>The rows that each join type keeps, from the output above. Each column is one possible result row. A dot shows that the join type keeps that row.</figcaption>
+</figure>
+
+
 The NULL keys never match. `NULL = NULL` is NULL, not true, so `a.k == b.k` gives 3 rows. The null-safe operator `eqNullSafe` (`<=>` in SQL) treats two NULLs as equal, and it gives 4 rows. Use it when NULL is a real value of the key, for example "no zone".
 
 A join with a column expression keeps both key columns. Then `select("k")` is ambiguous, and the analyzer refuses it. A join on a column name (`"k"` or a list of names) keeps one key column. Use the name form when the key columns have the same name.
@@ -102,6 +111,16 @@ flowchart LR
   end
 ```
 
+The animation shows the data movement of the two strategies.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch09-anim-movement.webp">
+    <source src="../../media/clips/ch09-anim-movement.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the broadcast hash join sends a copy of the zones to each task, and the trips stay. The sort-merge join shuffles both sides by the key. The times are from Step 3. The dots and the partitions are schematic.</figcaption>
+</figure>
+
+
 ## Step 3: The five strategies on the same join
 
 A hint forces a strategy. `strategies.py` runs the same count by borough with each hint:
@@ -118,6 +137,15 @@ FROM trips t JOIN zones z ON t.PULocationID = z.LocationID GROUP BY z.Borough
   MERGE(z)                 ['SortMergeJoin']  0.75 s
   SHUFFLE_REPLICATE_NL(z)  ['CartesianProduct']  8.61 s
 ```
+
+<figure markdown>
+![Bar chart of the time of the same join with each hint.](../media/figures/ch09-strategy-times-light.svg#only-light)
+
+![Bar chart of the time of the same join with each hint.](../media/figures/ch09-strategy-times-dark.svg#only-dark)
+
+<figcaption>The time of the same join with each hint, from the output above. The Cartesian product compares all pairs.</figcaption>
+</figure>
+
 
 | Strategy | Hint | Data movement | Needs |
 |---|---|---|---|
@@ -259,6 +287,7 @@ A skewed partition is larger than `skewedPartitionFactor` (5) times the median p
 
 The split is not complete here. The slowest task still reads 9,070,277 rows. AQE splits a skewed partition at the boundaries of the map outputs. Thus a split cannot be smaller than the part of the key that one map task wrote.
 
+
 ## Step 10: Salting
 
 ```text
@@ -278,6 +307,14 @@ f.join(d, ["k", "salt"])
 ```
 
 With AQE skew join off, the salted join has an even stage. The slowest task takes 1,887 ms against a median of 1,730 ms, and it reads 2,140,324 rows. The sum is the same as before. The query takes 2.26 seconds, the fastest of the three.
+
+<figure markdown>
+![The median and the slowest task of the join stage in three runs.](../media/figures/ch09-skew-tasks-light.svg#only-light)
+
+![The median and the slowest task of the join stage in three runs.](../media/figures/ch09-skew-tasks-dark.svg#only-dark)
+
+<figcaption>The median task and the slowest task of the join stage, from the outputs of Steps 9 and 10. The stage waits for the slowest task. Salting gives the most even stage.</figcaption>
+</figure>
 
 ```mermaid
 flowchart LR

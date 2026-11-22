@@ -114,6 +114,22 @@ inferred == parquet types: {'DOLocationID': 'bigint', 'PULocationID': 'bigint', 
 
 Each time is the median of five runs after one warm-up run, on 16 cores in `local[*]`. A lock made sure that no other benchmark ran at the same time.
 
+<figure markdown>
+![Bar chart of the query times with and without a schema.](../media/figures/ch13-infer-cost-light.svg#only-light)
+
+![Bar chart of the query times with and without a schema.](../media/figures/ch13-infer-cost-dark.svg#only-dark)
+
+<figcaption>The times from the output above. Without a schema, each query adds an inference pass. <code>samplingRatio</code> makes inference cheaper, but it can miss a rare shape.</figcaption>
+</figure>
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch13-anim-inference.webp">
+    <source src="../../media/clips/ch13-anim-inference.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: without a schema, job 1 parses every record and merges the type of <code>amount</code> from <code>double</code> to <code>string</code>. Then the action parses all the records again. With a schema, there is one pass.</figcaption>
+</figure>
+
+
 - Inference alone (0.60 s) costs more than the full count with a schema (0.39 s). Inference is a full parse of the data, and it also merges a type for each value.
 - The sum without a schema (1.19 s) costs almost three times the sum with a schema (0.42 s). It is an inference pass and a second parse.
 - `samplingRatio=0.1` makes inference cheaper (0.19 s), but the job still reads all the lines. It parses only the lines of the sample.
@@ -140,6 +156,15 @@ Inference parses each record into a type, and then merges the types of all recor
   ISO time           -> string
   ISO date           -> string
 ```
+
+<figure markdown>
+![The type that inference gives for nine pairs of values.](../media/figures/ch13-type-merge-light.svg#only-light)
+
+![The type that inference gives for nine pairs of values.](../media/figures/ch13-type-merge-dark.svg#only-dark)
+
+<figcaption>The merge rules on the test records of <code>infer.py</code>. Two values of different kinds give <code>string</code>. The text stays, but the type goes.</figcaption>
+</figure>
+
 
 The rules are these:
 
@@ -388,6 +413,15 @@ sum(amount): 1573.4  NULL amounts: 0
 ```
 
 Each of the 61 records is in one of the two tables, and the one quarantined record is the truncated line of day 3. No amount is `NULL`, so the `coalesce` read each shape. The SparkTutor exercise computes the same numbers with Python's `json` module, line by line. That is a good test design for a pipeline: compute the expected counts with a second, simple tool, and compare.
+
+<figure markdown>
+![Each record of the three files as silver or quarantine.](../media/figures/ch13-balance-light.svg#only-light)
+
+![Each record of the three files as silver or quarantine.](../media/figures/ch13-balance-dark.svg#only-dark)
+
+<figcaption>Each square is one record, from the output above. The one quarantined record is the truncated last line of day 3.</figcaption>
+</figure>
+
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch13-quarantine.webp">
