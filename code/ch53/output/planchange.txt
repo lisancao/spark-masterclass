@@ -1,0 +1,8 @@
+=== Applying Rule jext.PngRule ===
+!Project [is_png(content#3)#4 AS png#5]                                   Project [coalesce(is_png(content#3), false) AS png#5]
+ +- Relation [path#0,modificationTime#1,length#2L,content#3] binaryFile   +- Relation [path#0,modificationTime#1,length#2L,content#3] binaryFile
+
+=== Applying Rule org.apache.spark.sql.catalyst.optimizer.ConvertToCatalyst ===
+!Project [transpiledpythonudf(plus_one, plus_one(id#8L)#9L, cast((transpiledudfparameter(0, Some(LongType), false) + cast(1 as bigint)) as bigint)) AS y#10L]   Project [cast((id#8L + cast(1 as bigint)) as bigint) AS y#10L]
+ +- Range (0, 3, step=1, splits=Some(16))                                                                                                                       +- Range (0, 3, step=1, splits=Some(16))
+

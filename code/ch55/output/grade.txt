@@ -1,0 +1,13 @@
+PASS  parsing          0.0s  v1 and v2 indexes, BOM, offsets, bad index, priorities, change lines, statuses
+PASS  planning         0.0s  2 attachment partitions, call.wav alone
+PASS  offline_tests    0.1s  8 tests, 9 broken versions caught
+PASS  design_review    0.0s  all sections present
+PASS  batch            7.2s  10 cases, 15 attachment rows, 44 changes
+PASS  variant          0.7s  meta is VARIANT and queryable
+PASS  pushdown         2.7s  flag off works, pushed filters skip folders, no leak through CaseFiles
+PASS  writer           4.1s  append, failed task, duplicate, clash, overwrite, round trip
+PASS  streaming        6.2s  6 + 1 + 1 batches, stream == batch, 48 rows
+PASS  logs             3.0s  8 distinct warnings from executors
+
+10 of 10 stages passed
+All tests passed!

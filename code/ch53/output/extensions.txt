@@ -1,0 +1,73 @@
+
+== 1. The function is registered
++-----------------------------------------------------------------+
+|function_desc                                                    |
++-----------------------------------------------------------------+
+|Function: is_png                                                 |
+|Class: jext.IsPng                                                |
+|Usage: is_png(bytes) - true if bytes start with the PNG signature|
+|Extended Usage:\n    No example/argument for is_png.\n           |
++-----------------------------------------------------------------+
+
+
+== 2. is_png on literals
++----+------+-----+-----+-----+-------+------------+
+| sig|longer|short|empty|wrong|null_in|untyped_null|
++----+------+-----+-----+-----+-------+------------+
+|true|  true|false|false|false|   NULL|        NULL|
++----+------+-----+-----+-----+-------+------------+
+
+
+== 3. Errors at analysis
+SELECT is_png('not binary') -> AnalysisException: [DATATYPE_MISMATCH.TYPE_CHECK_FAILURE_WITH_HINT] Cannot resolve "is_png(not binary)" due to data type mismatch: is_png expects BINARY, got string. SQL
+SELECT is_png(X'00', X'01') -> IllegalArgumentException: is_png takes 1 argument, got 2
+
+== 4. On real files, from Python
+binaryFile without recursiveFileLookup: 0 rows
++-------------------+-------------+-----+
+|file               |call_function|expr |
++-------------------+-------------+-----+
+|corrupt.png        |true         |true |
+|gradient_32x32.png |true         |true |
+|gray_20x10.png     |true         |true |
+|logo_rgba_12x12.png|true         |true |
+|readme.txt         |false        |false|
+|red_16x8.png       |true         |true |
++-------------------+-------------+-----+
+
+
+== 5. Code generation: CodegenFallback vs StaticInvoke
+Project [is_png(content#52) AS is_png(content)#69]
+*(1) Project [static_invoke(jext.IsPng.check(content#52)) AS static_invoke(jext.IsPng.check(content))#70]
+
+== 6. The expression can run on the driver
+optimized: LocalRelation [p#72]
+result: [Row(p=False)]
+
+== 7. The rule replaces the Python UDF is_png
+looks_like_png (not rewritten):
+*(1) Project [path#49]
++- *(1) Filter pythonUDF0#74: boolean
+   +- ArrowEvalPython [looks_like_png(content#52)#73], [pythonUDF0#74], 101
+      +- FileScan binaryFile [path#49,content#52] Batched: false, DataFilters: [], Format: BINARYFILE, Location: InMemoryFileIndex(1 paths)[file:<repo>/code/data/messy/images], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<path:string,content:binary>
+
+is_png (rewritten by jext.PngRule):
+*(1) Project [path#49]
++- Filter coalesce(is_png(content#52), false)
+   +- FileScan binaryFile [path#49,content#52] Batched: false, DataFilters: [coalesce(is_png(content#52), false)], Format: BINARYFILE, Location: InMemoryFileIndex(1 paths)[file:<repo>/code/data/messy/images], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<path:string,content:binary>
+
+
+== 8. NULL: the rewrite keeps the UDF's answer
+Python looks_like_png  values [False, False, True, True, True, True, True] | rows where NOT holds: 2
+rewritten is_png       values [False, False, True, True, True, True, True] | rows where NOT holds: 2
+native is_png alone    values [False, None, True, True, True, True, True] | rows where NOT holds: 1
+rewrites so far: 5
+
+== 9. UDFs the rule must leave alone
+another name       -> still in Python: ['ArrowEvalPython']
+a string result    -> still in Python: ['ArrowEvalPython']
+nondeterministic   -> still in Python: ['ArrowEvalPython']
+
+== 10. The check rule
+groupBy('content').count() -> IllegalArgumentException: Grouping by a BINARY column (content) compares whole file contents; group by sha2(content, 256) instead
+groupBy(sha2(content, 256)) is allowed: 6 groups

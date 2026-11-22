@@ -1,0 +1,19 @@
+
+== 1. extend UnaryExpression
+javac: /src/jext/IsPng.java:27: error: IsPng is not abstract and does not override abstract method withNewChildInternal(Expression) in UnaryLike
+javac: /src/jext/IsPng.java:66: error: children() in IsPng cannot override children() in UnaryExpression
+javac: /src/jext/IsPng.java:67: error: name clash: withNewChildrenInternal(IndexedSeq<Expression>) in IsPng and withNewChildrenInternal(IndexedSeq) in UnaryExpression 
+
+== 2. not Serializable
+Task not serializable
+NotSerializableException: jext.IsPng
+
+== 3. eval returns null, nullable follows the child
+NullPointerException: Cannot invoke "java.lang.Boolean.booleanValue()" because "<local2>" is null
+GeneratedClass$SpecificUnsafeProjection.apply(Unknown Source)
+
+== 4. no checkInputDataTypes
+ClassCastException: class org.apache.spark.unsafe.types.UTF8String cannot be cast to class [B (org.apache.spark.unsafe.types.UTF8String is in unnamed 
+
+== 5. BINARY only, no NullType
+DATATYPE_MISMATCH.TYPE_CHECK_FAILURE_WITH_HINT] Cannot resolve "is_png(NULL)" due to data type mismatch: is_png expects BINARY, got void. SQLSTATE: 42
