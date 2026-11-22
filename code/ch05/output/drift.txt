@@ -1,0 +1,75 @@
+== 1. inferred schema, one day at a time
+01 struct<amount:double,event:string,ts:string,user_id:bigint>
+02 struct<amount:string,event:string,items:array<struct<qty:bigint,sku:string>>,ts:string,user:struct<id:bigint,plan:string>>
+03 struct<_corrupt_record:string,amount:struct<currency:string,value:double>,event_type:string,items:array<struct<qty:bigint,sku:string>>,ts:string,user:struct<geo:struct<country:string>,id:bigint,plan:string>>
+
+== 2. samplingRatio over the whole folder (local[4])
+1.0   8 columns, 61 rows: struct<_corrupt_record:string,amount:string,event:string,event_type:string,it...
+0.1   7 columns, 61 rows: struct<_corrupt_record:string,amount:string,event:string,event_type:string,it...
+0.05  5 columns, 61 rows: struct<amount:double,event:string,items:array<struct<qty:bigint,sku:string>>,...
+0.01  0 columns, 61 rows: struct<>
+
+== 3. an enforced schema
++----------------------+----+---------+
+|file                  |rows|amount_ok|
++----------------------+----+---------+
+|events_2026-10-01.json|20  |20       |
+|events_2026-10-02.json|20  |15       |
+|events_2026-10-03.json|21  |0        |
++----------------------+----+---------+
+
+== 4. Parquet: type mismatch and mergeSchema
+double + string files: ERROR [FAILED_READ_FILE.PARQUET_COLUMN_DATA_TYPE_MISMATCH] Encountered
+    Data type mismatches when reading Parquet column [amount]. Expected Spark type double, actual Parquet type BINARY.
+default     struct<amount:double,event:string,ts:string,user_id:bigint,day:int>
+mergeSchema struct<amount:double,event:string,ts:string,user_id:bigint,items:array<struct<qty:bigint,sku:string>>,user:struct<id:bigint,plan:string>,day:int>
+merge double + string: ERROR [CANNOT_MERGE_SCHEMAS] Failed merging schemas:
+    [CANNOT_MERGE_INCOMPATIBLE_DATA_TYPE] Failed to merge incompatible data types "DOUBLE" and "STRING".
+
+== 5. drift against the contract
+day 01:
+   ('added', 'user_id', 'bigint')
+   ('missing', 'items', 'array<struct<qty:bigint,sku:string>>')
+   ('missing', 'user', 'struct<id:bigint,plan:string>')
+day 03:
+   ('added', '_corrupt_record', 'string')
+   ('added', 'event_type', 'string')
+   ('added', 'user.geo', 'struct<country:string>')
+   ('missing', 'event', 'string')
+   ('type_changed', 'amount', 'double -> struct<currency:string,value:double>')
+
+== 6. union, unionByName, allowMissingColumns
+union      : ERROR [NUM_COLUMNS_MISMATCH] UNION can only be performed on inputs with the same number of columns, but the first input has 4 columns and the second input h
+unionByName: ERROR [UNRESOLVED_COLUMN_AMONG_FIELD_NAMES] Cannot resolve column name "event" among (_corrupt_record, amount, event_type, items, ts, user). SQLSTATE: 42703
+d1+d2 allowMissing: double
++- *(1) Project [cast(amount#16 as double) AS amount#221, event#17, ts#19, null AS user_id#218L, items#18, use
+d1+d3 allowMissing: ERROR [INCOMPATIBLE_COLUMN_TYPE] UNION can only be performed on tables with compatible column types. The first column of the second table is "STRUCT<currenc
+
+== 7. try_cast and DataFrame.to
+struct try_cast double: ERROR [DATATYPE_MISMATCH.CAST_WITHOUT_SUGGESTION] Cannot resolve "TRY_CAST(amount AS DOUBLE)" due to data type mismatch: cannot cast "STRUCT<currency: STRIN
+  columns in another order   Row(name='b', id=2, amount=1.5)
+  extra column dropped       Row(id=2, name='b')
+  bigint to int              Row(id=2, name='b')
+  double to string           Row(id=2, amount='1.5')
+  string to double           ERROR [INVALID_COLUMN_OR_FIELD_DATA_TYPE] Column or field `name` is of type "STRING" while it's r...
+  nullable to NOT NULL       ERROR [NULLABLE_COLUMN_OR_FIELD] Column or field `id` is nullable while it's required to be non-n...
+  missing nullable column    Row(id=2, missing=None)
+  missing NOT NULL column    ERROR [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `mi...
+aligned day 1 + day 3: 41 rows, struct<event:string,user:struct<id:bigint,plan:string>,amount:double,i...
++----------+-----------+-----+
+|event_null|amount_null|count|
++----------+-----------+-----+
+|     false|      false|   20|
+|      true|       true|   21|
++----------+-----------+-----+
+
+== 8. column names from the wild
+  select('order id')         ['order id']
+  selectExpr('order id')     ERROR [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or fu...
+  selectExpr('`order id`')   ['order id']
+  select('user.name')        ERROR [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or fu...
+  select('`user.name`')      ['user.name']
+  select('amount')           ['amount']
+  withColumnsRenamed         ['order_id', 'user_name', 'Amount']
+  JSON amount + Amount       ERROR [COLUMN_ALREADY_EXISTS] The column `amount` already exists. C...
+  CSV header                 ['id', 'name1', 'name2', '_c3', 'total amount']

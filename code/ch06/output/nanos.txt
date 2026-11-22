@@ -1,0 +1,38 @@
+== the file
+  event_ts      INT64 Timestamp(isAdjustedToUTC=false, timeUnit=nanoseconds, is_from_converted_type=false, force_set_converted_type=false)
+  event_ts_utc  INT64 Timestamp(isAdjustedToUTC=true, timeUnit=nanoseconds, is_from_converted_type=false, force_set_converted_type=false)
+  id            INT64 None
+
+== 1. preview flag off (the default)
+spark.sql.timestampNanosTypes.enabled = false
+read: ERROR [PARQUET_TYPE_ILLEGAL] Illegal Parquet type: INT64 (TIMESTAMP(NANOS,false)). SQLSTATE: 42846
+CAST to TIMESTAMP_NTZ(9): ERROR [FEATURE_NOT_ENABLED] The feature Nanosecond-precision timestamp types is not enabled. Consider setting the config spark
+
+== 2. preview flag on
+Row(typeof(event_ts)='timestamp_ntz(9)', typeof(event_ts_utc)='timestamp_ltz(9)')
++---+-----------------------------+------------------+----------------+
+|id |event_ts                     |fraction          |micros          |
++---+-----------------------------+------------------+----------------+
+|1  |2026-06-01 10:00:00.123456789|10:00:00.123456789|1780308000123456|
+|2  |2026-06-01 10:00:00.12345679 |10:00:00.123456790|1780308000123456|
++---+-----------------------------+------------------+----------------+
+
+Row(nanos=2, micros=1)
+Row(later=True, diff=datetime.timedelta(0))
+Row(t='timestamp_ltz(9)', v='2026-06-01 10:00:00.123456789')
+Row(literal_type='timestamp_ntz(9)')
+
+== 3. what PySpark (Classic) can bring back
+  df.schema                  ERROR [CANNOT_PARSE_DATATYPE] Unable to parse datatype. [CANNOT_PARSE_DATATY
+  collect()                  ERROR [CANNOT_PARSE_DATATYPE] Unable to parse datatype. timestamp_ntz(9).
+  toPandas()                 ERROR [CANNOT_PARSE_DATATYPE] Unable to parse datatype. timestamp_ntz(9).
+  toArrow()                  ERROR [CANNOT_PARSE_DATATYPE] Unable to parse datatype. [CANNOT_PARSE_DATATY
+  cast to string, collect()  [Row(s='2026-06-01 10:00:00.123456789'), Row(s='2026-06-01 10:00:00.12345679')]
+  cast to micros, collect()  [Row(t=datetime.datetime(2026, 6, 1, 10, 0, 0, 123456)), Row(t=datetime.datetime(2026, 6, 1, 10,
+
+== 4. writing it back keeps nanoseconds
+  event_ts      INT64 Timestamp(isAdjustedToUTC=false, timeUnit=nanoseconds, is_from_converted_type=false, force_set_converted_type=false)
+  event_ts_utc  INT64 Timestamp(isAdjustedToUTC=true, timeUnit=nanoseconds, is_from_converted_type=false, force_set_converted_type=false)
+  id            INT64 None
+  values: [Timestamp('2026-06-01 10:00:00.123456789'), Timestamp('2026-06-01 10:00:00.123456790')]
+time_bucket on nanos: ERROR [DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE] Cannot resolve "ti

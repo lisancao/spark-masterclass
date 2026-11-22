@@ -1,0 +1,86 @@
+== 1. tip / fare over every June trip
+defined the DataFrame: ['r']
+avg(tip / fare): DIVIDE_BY_ZERO SQLSTATE 22012
+trips with fare_amount = 0: 3167
+avg(try_divide(tip, fare)) = 0.1732 over 3,834,081 trips
+
+== 2. ANSI on and off
+  query                                        ANSI on                              ANSI off
+  SELECT 10 / 0                                DIVIDE_BY_ZERO                       None
+  SELECT 10.0D / 0                             DIVIDE_BY_ZERO                       None
+  SELECT 7 % 0                                 REMAINDER_BY_ZERO                    None
+  SELECT 2147483647 + 1                        ARITHMETIC_OVERFLOW                  -2147483648
+  SELECT CAST(3000000000 AS INT)               CAST_OVERFLOW                        -1294967296
+  SELECT CAST('12a' AS INT)                    CAST_INVALID_INPUT                   None
+  SELECT element_at(array(1, 2), 5)            INVALID_ARRAY_INDEX_IN_ELEMENT_AT    None
+  SELECT array(1, 2)[5]                        INVALID_ARRAY_INDEX                  None
+  SELECT to_date('2026-06-04', 'dd/MM/yyyy')   CANNOT_PARSE_TIMESTAMP               None
+  SELECT CAST('2026-02-30' AS DATE)            CAST_INVALID_INPUT                   None
+
+== 3. try_ functions
++----+----+----+---+----+----+----+----+-------+----+
+|   a|   b|   c|  d|   e|   f|   g|   h|      i|   j|
++----+----+----+---+----+----+----+----+-------+----+
+|NULL|NULL|NULL| 13|NULL|NULL|NULL|NULL|1234.50|NULL|
++----+----+----+---+----+----+----+----+-------+----+
+
+27 try_ functions in 4.3.0:
+  try_add                 try_aes_decrypt         try_avg                 try_divide              try_element_at
+  try_make_interval       try_make_timestamp      try_make_timestamp_ltz  try_make_timestamp_ntz  try_mod
+  try_multiply            try_parse_json          try_parse_url           try_reflect             try_subtract
+  try_sum                 try_to_binary           try_to_date             try_to_number           try_to_time
+  try_to_timestamp        try_url_decode          try_validate_utf8       try_variant_array_append  try_variant_get
+  try_variant_insert      try_variant_set
+
+== 4. what a cast accepts
++--------------+------+---------+----------+
+|             s|as_int|as_double|as_decimal|
++--------------+------+---------+----------+
+|  {"s":" 12 "}|    12|     12.0|     12.00|
+|   {"s":"+12"}|    12|     12.0|     12.00|
+|  {"s":"0012"}|    12|     12.0|     12.00|
+|  {"s":"12.7"}|  NULL|     12.7|     12.70|
+|   {"s":"1e3"}|  NULL|   1000.0|   1000.00|
+| {"s":"1,234"}|  NULL|     NULL|      NULL|
+|   {"s":" 12"}|  NULL|     NULL|      NULL|
+|{"s":"\t12\n"}|    12|     12.0|     12.00|
++--------------+------+---------+----------+
+
+== 5. booleans
++------+-----+
+|     x|    b|
++------+-----+
+|   yes| true|
+|     Y| true|
+|     t| true|
+|     1| true|
+| TRUE | true|
+|    no|false|
+|     n|false|
+|     0|false|
+| false|false|
+|    on| NULL|
+| maybe| NULL|
++------+-----+
+
+== 6. where the error appears
+defined: ['customer_id', 'age']
+collect(): CAST_INVALID_INPUT 22018
+   [CAST_INVALID_INPUT] The value 'thirty' of the type "STRING" cannot be cast to "INT" because it is malformed. 
+  parameters: {'expression': "'thirty'", 'sourceType': '"STRING"', 'targetType': '"INT"', 'ansiConfig': '"spark.sql.ansi.enabled"'}
++-----------+------+-------+
+|customer_id|   age|age_int|
++-----------+------+-------+
+|       C001|    34|     34|
+|       c002|   41 |     41|
+|       C003|  NULL|   NULL|
+|       C004|    -3|     -3|
+|       C005|    29|     29|
+|       C006|thirty|   NULL|
+|       C007|   200|    200|
+|       C008|    52|     52|
++-----------+------+-------+
+only showing top 8 rows
+== 7. conditions
+ERROR [CANNOT_CONVERT_COLUMN_INTO_BOOL] Cannot convert column into bool (offending column: >(age, and(city, 30))): p
+parenthesized: 2
