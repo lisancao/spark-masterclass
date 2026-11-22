@@ -44,7 +44,9 @@ print(f"\n4.zip holds: {sorted(zipfile.ZipFile(z).namelist())}")
 meta = zipfile.ZipFile(z).read("metadata").decode().splitlines()
 print("its metadata file:", meta[0])
 m = json.loads(meta[1])
-print(json.dumps({k: m[k] for k in m if k in ("sstFiles", "numKeys", "columnFamilyMapping")}, indent=1)[:900])
+print(f"  numKeys {m['numKeys']}, columnFamilyMapping {m['columnFamilyMapping']}, sstFiles:")
+for f in sorted(m["sstFiles"], key=lambda f: f["localFileName"]):
+    print(f"    {f['localFileName']} -> SSTs/{f['dfsSstFileName']}  ({f['sizeBytes']} B)")
 
 print(f"\n2. {CL} = true")
 ck = run("changelog", {CL: "true"})

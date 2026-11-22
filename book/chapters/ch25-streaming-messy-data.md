@@ -496,7 +496,7 @@ The key schema error, in full (first lines):
   If you want to force running the query without schema validation, please set spark.sql.streaming.stateStore.stateSchemaCheck to false.
 ```
 
-"Number and type of fields." Spark compares the number and the types of the key fields, not their names or their meaning. That is why two of the changes that ran are the most dangerous rows of the table:
+"Number and type of fields." Spark compares the number and the types of the key fields, not their names or what the values are for. That is why two of the changes that ran are the most dangerous rows of the table:
 
 - **`group by page, not user_id` ran.** `page` and `user_id` are both strings, so the key schema has the same shape. The query now puts page counts into the state of user counts.
 - **`count -> sum of a different column` ran.** The sum of page lengths is a `bigint`, the same type as a count. The query adds lengths to the old counts.
@@ -521,7 +521,7 @@ The page experiment again, then its state read back with the state data source:
 The window 09:20 has page keys and the old user key `u4` in one state. Nothing failed, and the output of this query is wrong.
 
 !!! caution "Use a new checkpoint for new state"
-    Do not use the old checkpoint after you change the meaning of the state.
+    Do not use the old checkpoint after you change what a state field holds.
 
     Spark compares only the number and the types of the state fields, so it accepts a change that keeps the types.
 
@@ -574,7 +574,7 @@ Some extensions are natural:
 - **`dropDuplicatesWithinWatermark` keeps state bounded.** `dropDuplicates` keeps each key for all time.
 - **One event from the future moves the watermark and drops each later event, with no error.** Reject future events before the watermark, use a server time, and alarm on late rows.
 - **The global watermark follows the slowest input** (`min`). `max` loses the data of the slow input.
-- **Spark compares the number and the types of state fields on restart, not their meaning.** A change that keeps the types runs with wrong state. The checkpoint keeps its state store provider.
+- **Spark compares the number and the types of state fields on restart, not what the values are for.** A change that keeps the types runs with wrong state. The checkpoint keeps its state store provider.
 
 ## Further reading
 

@@ -35,18 +35,18 @@ def stages(label):
               f" of {s['numTasks']}  {s['name'][:40]}")
 
 
-threading.Thread(target=produce, args=("pipe_in", 50, 25), daemon=True).start()
+threading.Thread(target=produce, args=("pipe_in", 50, 30), daemon=True).start()
 q = (counts.writeStream.format("console").outputMode("update")
-     .option("checkpointLocation", str(w / "rtm")).trigger(realTime="30 seconds").start())
-time.sleep(10)
+     .option("checkpointLocation", str(w / "rtm")).trigger(realTime="10 seconds").start())
+time.sleep(14)
 buf = io.StringIO()
 with contextlib.redirect_stdout(buf):
     q.explain()
 print("Real-time Mode, the physical plan (expression ids removed):")
 for line in buf.getvalue().splitlines():
     if line.strip() and not line.startswith("=="):
-        print("  " + re.sub(r"#\d+L?", "", line)[:96])
-stages("Real-time Mode, 10 s into a 30 s batch")
+        print("  " + re.sub(r"\[[^\[\]]{60,}\]", "[...]", re.sub(r"#\d+L?", "", line))[:120])
+stages("Real-time Mode, 4 s into the second 10 s batch")
 q.stop()
 
 q = (counts.writeStream.format("noop").outputMode("update")
@@ -54,3 +54,14 @@ q = (counts.writeStream.format("noop").outputMode("update")
 time.sleep(8)
 q.stop()
 stages("\nMicro-batch, after a few batches")
+
+print("\nWhat the Real-time checkpoint recorded (offsets/0, conf):")
+import json
+conf = json.loads((w / "rtm" / "offsets" / "0").read_text().splitlines()[1])["conf"]
+for k in ("spark.sql.streaming.stateStore.providerClass",
+          "spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled",
+          "spark.sql.streaming.stateStore.checkpointFormatVersion"):
+    print(f"  {k.replace('spark.sql.streaming.stateStore.', '...stateStore.')} = {conf.get(k, '(not recorded)')}")
+print("  state/0/0:", sorted(p.name.split("_")[0] + ("_<id>" if "_" in p.name else "") + p.suffix
+                            for p in (w / "rtm" / "state" / "0" / "0").iterdir()
+                            if p.is_file() and not p.name.startswith(".")))

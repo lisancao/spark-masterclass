@@ -1,0 +1,16 @@
+Real-time Mode, the physical plan (expression ids removed):
+  WriteToDataSourceV2 MicroBatchWrite[epoch: 0, writer: ConsoleWriter[numRows=20, truncate=true]]
+  +- ProjectAggregationBuffer Vector(_groupingexpression), 3, [_groupingexpression], [count(1)], [count(1)], 1, [_grouping
+     +- StatefulStreamlineAggregate Vector(_groupingexpression), 3, [_groupingexpression], [merge_count(1)], [count(1)], 1
+        +- Exchange hashpartitioning(_groupingexpression, 3), REQUIRED_BY_STATEFUL_OPERATOR, isPipelined=true, [plan_id=48
+           +- ProjectAggregationBuffer 3, [_groupingexpression], [partial_count(1)], [count(1)], 0, [_groupingexpression, 
+              +- *(1) Project [cast(key as string) AS _groupingexpression]
+                 +- RealTimeStreamScan[...] class org.apache.spark.sql.kafka010.KafkaSourceProvider$KafkaScan [batchDurati
+Real-time Mode, 10 s into a 30 s batch: stages in the REST API (status, tasks: active/complete)
+  stage   0  ACTIVE    tasks 0/0 of 4  start at NativeMethodAccessorImpl.java:0
+  stage   1  ACTIVE    tasks 0/0 of 3  start at NativeMethodAccessorImpl.java:0
+Micro-batch, after a few batches: stages in the REST API (status, tasks: active/complete)
+  stage  16  COMPLETE  tasks 0/4 of 4  start at NativeMethodAccessorImpl.java:0
+  stage  17  COMPLETE  tasks 0/3 of 3  start at NativeMethodAccessorImpl.java:0
+  stage  18  COMPLETE  tasks 0/4 of 4  start at NativeMethodAccessorImpl.java:0
+  stage  19  COMPLETE  tasks 0/3 of 3  start at NativeMethodAccessorImpl.java:0

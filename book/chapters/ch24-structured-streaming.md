@@ -429,7 +429,7 @@ Read the table one row at a time:
 - **The watermark of a batch comes from the batches before it.** Batch 1 runs with watermark 07:49, which batch 0 calculated. Spark calculates the watermark at the end of each batch and uses it in the next batch. Step 7 shows the two numbers in the checkpoint.
 - **Batch 1 wrote six windows.** All the windows that end at or before 07:49 (from 06:30 up to 07:40 to 07:50) are now complete. The state keeps three open windows after that.
 - **From batch 2, the watermark moves five minutes each batch,** because each file holds five minutes of newer pickups. A window goes out every second batch.
-- **Batch 12 is a no-data batch.** No file arrived, but the watermark moved after batch 11, and a window became complete. Spark runs a batch with no input when the new watermark lets it write output or remove state. The setting is `spark.sql.streaming.noDataMicroBatches.enabled`, and it is `true` by default. `availableNow` runs this batch before it stops.
+- **Batch 12 is a no-data batch.** No file arrived, but the watermark moved after batch 11, and a window became complete. Spark runs a batch with no input when the new watermark lets it write output or remove state. The configuration is `spark.sql.streaming.noDataMicroBatches.enabled`, and it is `true` by default. `availableNow` runs this batch before it stops.
 - **The state stays at three rows.** Without the watermark, it grows with each new window (Step 3).
 
 The `dropped` column needs care. It is `numRowsDroppedByWatermark` of the stateful operator, and the total is 55. But the script also compares the written windows with a batch count of all the trips:
@@ -623,7 +623,7 @@ Three facts come from this output:
 
 - **Batch 3 ran two times, with the same result.** The second time, Midtown Center had 44 trips again, not 54. The state store went back to the version after batch 2, and the source gave the same file.
 - **The sink saw batch 3 two times.** Spark gives each batch the same `batch_id` when it runs the batch again. This sink writes to `batch_id=3` with `mode("overwrite")`, so the second write replaces the first. A sink that only appends gets the rows of batch 3 two times. This is the second half of exactly-once: the engine processes each batch exactly one time, but the sink must make a repeated write harmless. Step 8 and [Chapter 25](ch25-streaming-messy-data.md) show sinks that do this.
-- **The new setting for shuffle partitions had no effect.** The session said 8, but `numShufflePartitions` stayed 4, because the offset log fixed it. The state has four partitions by key. A different number of partitions sends each key to a different store.
+- **The new value for shuffle partitions had no effect.** The session said 8, but `numShufflePartitions` stayed 4, because the offset log fixed it. The state has four partitions by key. A different number of partitions sends each key to a different store.
 
 `numStateStoreInstances` is 12, not 4. The batch function runs three actions on its DataFrame: a write, a `collect()` and a `count()`. Each action runs the plan of the batch again. Each run opens the four state stores, and the metric counts all three runs. Step 8 measures this effect.
 
