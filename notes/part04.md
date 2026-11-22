@@ -1,5 +1,108 @@
 # Part IV notes: Performance (chapters 18 to 23, old numbering)
 
+## Coverage table
+
+| Lesson | Topic | Where |
+|---|---|---|
+| LS06 optimization_tuning | key configs, runtime vs static, `CANNOT_MODIFY_CONFIG` | ch19 Step 1 |
+| LS06 | `repartition`, `coalesce`, the `coalesce(1)` trap | ch19 Step 3 |
+| LS06 | AQE coalescing, `isFinalPlan` only after `collect()` | ch18 Steps 6, 7 |
+| LS06 | `cache`/`persist`/`unpersist`, lazy cache, storage levels, `MEMORY_AND_DISK_DESER`, no `_SER` | ch19 Step 5 |
+| LS06 | Arrow by default, `toArrow`, `maxRecordsPerBatch`, `useArrow=False` diagnosis | ch20 Steps 2, 6; ch21 Step 3 |
+| LS06 | tuning checklist, Connect-safe `spark_partition_id`, the Spark UI | ch19 Steps 3, 9 |
+| LS06 | 4.3: Feather, transpilation | ch23; ch20 Step 4 |
+| LS06 | order-independent shuffle checksums | left out: not a performance topic of this part; belongs with determinism (final ch43) |
+| MD16 plans_partitions_caching | reading plans, `PushedFilters`, explain modes | ch18 Steps 1 to 3 |
+| MD16 | file partitions, small files, splittable codecs | ch19 Step 2 |
+| MD16 | caching and file lists, `refreshByPath` | ch19 Step 5 |
+| MD16 | `partitionBy` layout and pruning, type inference of folder names | ch19 Step 4 |
+| MD24 arrow_performance | Python value to Spark type conversion table (re-measured on 4.3) | ch20 Step 7 (UDF return values), ch21 Step 4 (UDTF yields) |
+| MD24 | worker time zone trap, `timestamp_ntz` | ch20 Step 7 |
+| MD24 | data source `records_to_arrow_batches`, yielded RecordBatch, schema checks | left out: Python data source specific; Part IX (final ch50 to 54) |
+| MD30 python_udtfs | where a UDTF fits | ch21 Step 1 |
+| MD30 | lifecycle, `terminate`, `cleanup`, empty partition failure | ch21 Step 2 |
+| MD30 | Arrow decided at `udtf()` time, eval types | ch21 Step 3 |
+| MD30 | yield conversion table Arrow vs not | ch21 Step 4 |
+| MD30 | scalar args, `lateralJoin`, SQL `LATERAL`, `LEFT JOIN LATERAL` row loss and `ON true` | ch21 Step 5 |
+| MD30 | `TABLE` args, `PARTITION BY`/`ORDER BY`, `asTable()`, parser trap | ch21 Step 6 |
+| MD30 | `analyze()`, `AnalyzeResult`, required partitioning | ch21 Step 7 |
+| MD30 | `arrow_udtf`, lateral restriction | ch21 Step 8 |
+| MD30 | 4.3 re-checks: transpilation and UDTFs, JSON_TABLE | ch21 Steps 9, 10 |
+| MD30 | `SkipRestOfInputTableException`, `asDeterministic()` | left out: one-line API details, in the PySpark docs |
+| MD32 tuning_python | where the time goes, the plan-node catalogue with eval types | ch20 Steps 1, 2 |
+| MD32 | benchmark built-in vs pandas vs Arrow vs pickled (re-measured, plus transpiled) | ch20 Step 3 |
+| MD32 | call counts with an accumulator, double evaluation, `asNondeterministic`, `count()` | ch20 Step 5 |
+| MD32 | Python filter blocks pushdown (plus transpiled filter) | ch20 Step 5 |
+| MD32 | 4.2 columnar-input hang (SPARK-58241) | left out: fixed in 4.3.0 per the 4.3 git log (commit a84fcaae64d); the columnar path itself is in ch20 Step 6 |
+| MD32 | UDF profiler | ch20 Step 8 |
+| MD32 | repartition after a gzip read | ch19 Step 2 (gzip makes one task; repartition after the read) |
+| MD32 | salting `applyInPandas` | ch20 Step 9 |
+| MD32 | settings table, `spark.python.*` static | ch20 Step 10 |
+| MD41 memory_and_blobs | unified memory model, read live, off-heap, `INVALID_DRIVER_MEMORY` | ch19 Step 6 |
+| MD41 | measured sort spill, two spill metrics, AQE coalescing and spill | ch19 Step 7 |
+| MD41 | `binaryFile`, `maxLength`, 2 GiB limit, 300 MiB OOM on 1 GiB | ch19 Step 8 |
+| MD41 | Arrow batch sizing into Python | ch20 Step 6 |
+| MD41 | byte-range chunking, archives by entry, blob layout table | left out: belongs with blobs and archives (final ch11, ch17) and Python data sources (Part IX); ch19 points to them |
+| MD45 parquet_internals | file layout, magic, footer length, hexdump | ch22 Step 1 |
+| MD45 | Thrift compact reader, field ids, Spark schema JSON, pyarrow cross-check | ch22 Step 2 |
+| MD45 | pages, dictionary fallback, v2 encodings | ch22 Step 3 |
+| MD45 | codec size table | ch22 Step 7 |
+| MD45 | filter path, row-group/dictionary/bloom/column-index filters, `numOutputRows` measure, layouts and ablation | ch22 Steps 4, 5 |
+| MD45 | INT96 not pushable while listed | ch22 Step 6 |
+| MD45 | nanosecond timestamps (4.3 re-check) | ch22 Step 8 |
+| MD45 | splits keep row groups by midpoint | ch19 Step 2 and Chapter 1 |
+| MD45 | RLE/bit-packed hexdump decoder, rep/def levels, shredded VARIANT skipping, `inFilterThreshold`, aggregate pushdown with DSv2, `V1Writes` sort trap | left out: depth beyond the part's scope; VARIANT shredding is final ch15, VARIANT bytes are final ch61 |
+| Project Feather (4.3) | the 4.3 source, which queries qualify | ch23 Steps 1, 2 |
+| Feather | effects on plans, AQE, the UI | ch23 Steps 3, 4 |
+| Feather | crossover across data sizes | ch23 Step 5 |
+| Feather | cold start | ch23 Step 6 |
+| Feather | Spark Connect | ch23 Step 7 |
+| Feather | Arrow cache serializer | ch23 Step 8; ch19 Step 5 note |
+
+## Claim-to-source table
+
+Numbers quoted in the chapters come from the saved outputs below; source claims from the 4.3.0 tag of `~/repos/spark`.
+
+| Chapter | Claim | Source |
+|---|---|---|
+| ch18 | explain modes, parsed/analyzed/optimized plans, cost estimates | `code/ch18/output/explain_modes.txt` |
+| ch18 | 272 rules ran, 9 changed the plan | `code/ch18/output/optimizer.txt` |
+| ch18 | nested pruning, JSON pushes nothing | `code/ch18/output/file_scan.txt` |
+| ch18 | coalesce, join conversion with `nonEmptyPartitionRatioForBroadcastJoin`, skew split (87 tasks), actions and `isFinalPlan`, AQE defaults | `code/ch18/output/aqe.txt` |
+| ch18 | AQE wraps a plan only with an Exchange, a subquery, or a required distribution | `InsertAdaptiveSparkPlan.shouldApplyAQE` |
+| ch18 | `maxReducerPartitionsPerTask` (SPARK-58004), `convertSortMergeJoinToShuffledHashJoin` (SPARK-58084) new in 4.3 | earlier writer; `SQLConf.scala` version fields 4.3.0 |
+| ch19 | settings and `CANNOT_MODIFY_CONFIG` | `code/ch19/output/config.txt` |
+| ch19 | predicted vs actual input partitions; row groups and busy partitions | `code/ch19/output/file_partitions.txt`; `FilePartition.scala` |
+| ch19 | repartition variants; coalesce(1) 67.99 s vs repartition(1) 19.81 s vs 17.70 s | `code/ch19/output/repartition.txt` (locked) |
+| ch19 | partitionBy layouts, files read per filter, folder type inference | `code/ch19/output/layout.txt` |
+| ch19 | cache lazy, 747 MiB, 450/480/531 ms, 3283/27/518 ms, levels, file list | `code/ch19/output/caching.txt` (locked) |
+| ch19 | memory pools per heap; 1/(2N) to 1/N | `code/ch19/output/memory.txt`; `UnifiedMemoryManager.scala`, `ExecutionMemoryPool.scala` |
+| ch19 | spill table | `code/ch19/output/spill.txt` (locked) |
+| ch19 | binaryFile limits and OOM | `code/ch19/output/blobs.txt`; `BinaryFileFormat.scala` |
+| ch19 | UI tour: jobs, 3,520 MiB / 971 MiB spill, storage 95 MiB | `code/ch19/output/ui_tour.txt`; Environment highlights non-defaults: `environmentpage.js` |
+| ch20 | plan nodes and eval types | `code/ch20/output/plan_nodes.txt`; `pyspark/util.py` `PythonEvalType` |
+| ch20 | benchmark | `code/ch20/output/bench.txt` (locked) |
+| ch20 | transpiler conditions and accepted constructs | `pyspark/sql/udf.py` lines 200 to 310, `pyspark/sql/transpile.py`; `code/ch20/output/transpile.txt` |
+| ch20 | call counts, pushdown, profiler | `code/ch20/output/calls.txt` |
+| ch20 | batch sizes, columnar input path, conversion table, worker time zone | `code/ch20/output/arrow_batches.txt`; `ArrowEvalPythonExec.scala`, `ColumnarArrowEvalPythonEvaluatorFactory.scala` |
+| ch20 | Arrow default for UDF/UDTF since 4.2; `convertToArrowArraySafely` default since 4.1 | `python/docs/source/migration_guide/pyspark_upgrade.rst` |
+| ch20 | salting | `code/ch20/output/salting.txt` (locked) |
+| ch21 | lifecycle, Arrow choice, conversion, lateral, TABLE, analyze, arrow_udtf | `code/ch21/output/udtf_core.txt` |
+| ch21 | JSON_TABLE syntax and limits | `docs/sql-ref-syntax-qry-select-json-table.md`; `code/ch21/output/json_table.txt` (locked) |
+| ch21 | UDTFs excluded from transpiler and Feather | `udf.py` (`SQL_BATCHED_UDF` check), `MarkSingleTaskExecution.unsupportedPatterns` |
+| ch22 | hexdump, footer, pages | `code/ch22/output/footer.txt` |
+| ch22 | layouts, ablation, timestamps, v2 pages, nanos | `code/ch22/output/skipping.txt` |
+| ch22 | codecs | `code/ch22/output/skipping_codecs.txt` (locked) |
+| ch22 | parquet-mr 1.17.0, INT96 default | jar names in `pyspark/jars`; `SQLConf.scala` `outputTimestampType` |
+| ch23 | the rule, the scan check, the batch position | `MarkSingleTaskExecution.scala`, `DataSourceScanExec.scala` 318 to 352 and 780 to 795, `SparkOptimizer.scala` line 111, `SQLConf.scala` 7950 to 8053 |
+| ch23 | eligibility table | `code/ch23/output/eligibility.txt` |
+| ch23 | plans, UI, task times | `code/ch23/output/plans_aqe.txt` |
+| ch23 | crossover | `code/ch23/output/crossover.txt` (locked) |
+| ch23 | cold start | `code/ch23/output/cold.txt` (locked) |
+| ch23 | Connect | `code/ch23/output/connect.txt` (locked) |
+| ch23 | Arrow cache | `code/ch23/output/arrow_cache.txt` (locked); SPARK-57268 commit 7e43efecc45 |
+| ch23 | SPARK-57851 and SPARK-55206 commits | `git log v4.3.0` (0b5312e1b69, 454b5cb0249) |
+
 ## Technical names and technical verbs
 
 Technical names (nouns, in code format where they are identifiers): Spark, PySpark, Catalyst, AQE, JVM, executor, driver, task, stage, job, partition, shuffle, `Exchange`, query stage, row group, column chunk, page, footer, dictionary, bloom filter, column index, statistics, codec, Arrow batch, pandas, UDF, UDTF, Python worker, accumulator, cache, storage level, spill, heap, setting, Spark UI, REST API, Spark Connect, session, Project Feather, single-task execution, transpiler, JSON_TABLE, lateral join, `TABLE` argument, plan node names (`HashAggregate`, `SortMergeJoin`, `BroadcastHashJoin`, `ArrowEvalPython`, `BatchEvalPython`, `ArrowEvalPythonUDTF`, `InMemoryTableScan`, `AQEShuffleRead`, `FileScan`), config keys, file formats (Parquet, CSV, JSON, gzip, bzip2, INT96, `TIMESTAMP_MICROS`).
@@ -13,11 +116,11 @@ Rules broken on purpose: none. Words allowlisted per chapter with `--allow` (tec
 | Chapter | Findings | Extra allow words |
 |---|---|---|
 | ch18 | 0 | none |
-| ch19 | 0 | setting caching repartitioning packing timing cleaning |
-| ch20 | see below | |
-| ch21 | see below | |
-| ch22 | see below | |
-| ch23 | see below | |
+| ch19 | 0 | setting caching repartitioning packing timing cleaning (the same list is passed for ch20 to ch23) |
+| ch20 | 0 | setting caching repartitioning packing timing cleaning |
+| ch21 | 0 | same |
+| ch22 | 0 | same, plus skipping |
+| ch23 | 0 | same |
 
 ## Environment
 
