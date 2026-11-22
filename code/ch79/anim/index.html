@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // From code/ch79/output: configuration.txt (3 partitions, 3 files), flowconf.txt (decorator 2, still 3 files).
+      A.mount();
+      const [title, sub] = A.title("Where a spec value goes", "values from real runs: spec 3, decorator 2, files written 3");
+      const spec = A.box({x: 0.13, y: 0.42, w: 320, h: 130, kind: "paper", title: "spec", sub: "partitions: \"3\"", size: 32});
+      const sess = A.box({x: 0.45, y: 0.28, w: 330, h: 110, kind: "ghost", title: "pipeline session", sub: "module code, SQL text", size: 30});
+      const graph = A.box({x: 0.45, y: 0.50, w: 330, h: 110, kind: "ghost", title: "graph default", sub: "for each flow", size: 30});
+      const deco = A.box({x: 0.45, y: 0.72, w: 360, h: 120, kind: "soft", title: "decorator spark_conf", sub: "partitions: \"2\"", size: 28});
+      const flow = A.box({x: 0.80, y: 0.39, w: 330, h: 120, kind: "ghost", title: "one flow", sub: "analysis", size: 30});
+      const write = A.box({x: 0.80, y: 0.64, w: 330, h: 110, kind: "ghost", title: "the write", sub: "uses the session value", size: 28});
+      const l1 = A.line({x1: 0.23, y1: 0.40, x2: 0.33, y2: 0.29});
+      const l2 = A.line({x1: 0.23, y1: 0.45, x2: 0.33, y2: 0.50});
+      const l3 = A.line({x1: 0.57, y1: 0.50, x2: 0.67, y2: 0.40});
+      const l4 = A.line({x1: 0.58, y1: 0.72, x2: 0.67, y2: 0.42});
+      const l5 = A.line({x1: 0.57, y1: 0.30, x2: 0.67, y2: 0.62});
+      gsap.set([l1, l2, l3, l4, l5], {opacity: 0});
+      const dot = (x1, y1, x2, y2, t, col) => { const d = A.dot({x: x1, y: y1, r: 14, color: col});
+        A.tl.set(d, {opacity: 1}, t); A.tl.to(d, {x: A.X(x2 - x1), y: A.Y(y2 - y1), duration: 0.9, ease: "power1.inOut"}, t);
+        A.tl.to(d, {opacity: 0, duration: 0.2}, t + 0.9); };
+      const cap = (s, t0, t1) => { const c = A.text(s, {y: 0.90, size: 36}); A.in(c, t0); if (t1) A.out(c, t1); };
+      // beat two-paths (1.0)
+      cap("The CLI sends the value to the session and to the graph.", 1.0, 4.4);
+      A.tl.to([l1, l2], {opacity: 1, duration: 0.4}, 1.2);
+      dot(0.23, 0.40, 0.33, 0.29, 1.6, "var(--a-acc)"); dot(0.23, 0.45, 0.33, 0.50, 1.6, "var(--a-acc)");
+      // beat flow (4.6)
+      cap("Each flow merges the graph value, then its own spark_conf.", 4.6, 8.4);
+      A.tl.to([l3, l4], {opacity: 1, duration: 0.4}, 4.8);
+      dot(0.57, 0.50, 0.67, 0.40, 5.2, "var(--a-acc)"); dot(0.58, 0.72, 0.67, 0.42, 6.0, "var(--a-ok)");
+      // beat write (8.6)
+      cap("In the test, the write used 3 partitions, not 2: 3 files.", 8.6);
+      A.tl.to(l5, {opacity: 1, duration: 0.4}, 8.8);
+      dot(0.57, 0.30, 0.67, 0.62, 9.2, "var(--a-acc)");
+      const res = A.text("3 files", {x: 0.80, y: 0.64 + A.dy(85), size: 34, mono: true, color: "var(--a-acc)"}); A.in(res, 10.2);
+      A.finish(13);
+    </script>
+  </body>
+</html>
