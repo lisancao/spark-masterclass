@@ -1,0 +1,86 @@
+
+== JSON Lines: one record per line ==
++---+----+
+|id |name|
++---+----+
+|1  |a   |
+|2  |b   |
++---+----+
+
+
+== a pretty-printed array without multiLine, and with it ==
+[
+  {
+    "id": 1,
+    "name": "a"
+  },
+  {
+    "id": 2,
+    "name": "b"
+  }
+]
+columns: ['_corrupt_record']
+cache().count(): [UNSUPPORTED_FEATURE.QUERY_ONLY_CORRUPT_RECORD_COLUMN]
++---+----+
+|id |name|
++---+----+
+|1  |a   |
+|2  |b   |
++---+----+
+
+JSON Lines folder, scan tasks: 16
+one 6.8 MB array file, multiLine, scan tasks: 1
+
+== inference is a job of its own ==
+read.json(events), no schema:       1 job(s) before any action
+read.schema(ddl).json(events):      0 job(s)
+samplingRatio=0.1:                  1 job(s)
+
+== the schema that inference gives the three days ==
+root
+ |-- _corrupt_record: string (nullable = true)
+ |-- amount: string (nullable = true)
+ |-- event: string (nullable = true)
+ |-- event_type: string (nullable = true)
+ |-- items: array (nullable = true)
+ |    |-- element: struct (containsNull = true)
+ |    |    |-- qty: long (nullable = true)
+ |    |    |-- sku: string (nullable = true)
+ |-- ts: string (nullable = true)
+ |-- user: struct (nullable = true)
+ |    |-- geo: struct (nullable = true)
+ |    |    |-- country: string (nullable = true)
+ |    |-- id: long (nullable = true)
+ |    |-- plan: string (nullable = true)
+ |-- user_id: long (nullable = true)
+
+
+== how inference merges two values of one field ==
+  int + int          -> bigint
+  int + double       -> double
+  int + big int      -> decimal(20,0)
+  number + string    -> string
+  number + bool      -> string
+  number + object    -> string
+  object + object    -> struct<x:bigint,y:string>
+  array + scalar     -> string
+  null + int         -> bigint
+  only null          -> string
+  empty array        -> array<string>
+  ISO time           -> string
+  ISO date           -> string
+
+== options that change inference ==
+  defaults                       struct<i:bigint,n:string,t:string,v:double>
+  {'prefersDecimal': True}       struct<i:bigint,n:string,t:string,v:decimal(2,1)>
+  {'primitivesAsString': True}   struct<i:string,n:string,t:string,v:string>
+  {'inferTimestamp': True}       struct<i:bigint,n:string,t:timestamp,v:double>
+  {'dropFieldIfAllNull': True}   struct<i:bigint,t:string,v:double>
+
+== options that make the parser accept non-standard JSON ==
+  allowComments                       /* note */ {"v": 1}    false: corrupt  true: v=1      default: corrupt
+  allowUnquotedFieldNames             {v: 1}                 false: corrupt  true: v=1      default: corrupt
+  allowSingleQuotes                   {'v': 1}               false: corrupt  true: v=1      default: v=1
+  allowNumericLeadingZeros            {"v": 007}             false: corrupt  true: v=007    default: corrupt
+  allowNonNumericNumbers              {"v": NaN}             false: corrupt  true: v=NaN    default: v=NaN
+  allowBackslashEscapingAnyCharacter  {"v": "a\$b"}          false: corrupt  true: v=a$b    default: corrupt

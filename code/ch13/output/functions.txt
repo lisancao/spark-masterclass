@@ -1,0 +1,157 @@
+app.log lines: 134  JSON lines: 20
+first: {"ts": "2026-10-01T11:00:00Z", "level": "INFO", "logger": "order.Service", "msg": "processed", "order": 100, "ms": 91}
+
+== schema_of_json needs a literal sample ==
+schema_of_json(lit(sample)): STRUCT<level: STRING, logger: STRING, ms: BIGINT, msg: STRING, order: BIGINT, ts: STRING>
+schema_of_json('processed'): the string is the JSON text, not a column name:
+   : com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'processed': was exp
+schema_of_json(col('line')): DATATYPE_MISMATCH.NON_FOLDABLE_INPUT
+one sample hides the keys it does not have: STRUCT<a: BIGINT> for {"a": 1, "b": 2} rows too
+
+== from_json with the sampled schema ==
+root
+ |-- level: string (nullable = true)
+ |-- logger: string (nullable = true)
+ |-- ms: long (nullable = true)
+ |-- msg: string (nullable = true)
+ |-- order: long (nullable = true)
+ |-- ts: string (nullable = true)
+
++-----+-------------+---+---------+-----+--------------------+
+|level|logger       |ms |msg      |order|ts                  |
++-----+-------------+---+---------+-----+--------------------+
+|INFO |order.Service|91 |processed|100  |2026-10-01T11:00:00Z|
+|INFO |order.Service|521|processed|101  |2026-10-01T11:01:00Z|
+|INFO |order.Service|666|processed|102  |2026-10-01T11:02:00Z|
++-----+-------------+---+---------+-----+--------------------+
+only showing top 3 rows
+
+== from_json on bad text: a struct of NULLs, or the corrupt column ==
++--------------------------+------------+
+|line                      |j           |
++--------------------------+------------+
+|{"order": 1, "ms": 20}    |{1, 20}     |
+|{"order": 2, "ms": "slow"}|{2, NULL}   |
+|{"order": 3               |{NULL, NULL}|
++--------------------------+------------+
+
++-----+----+--------------------------+
+|order|ms  |_corrupt_record           |
++-----+----+--------------------------+
+|1    |20  |NULL                      |
+|2    |NULL|{"order": 2, "ms": "slow"}|
+|NULL |NULL|{"order": 3               |
++-----+----+--------------------------+
+
+mode=DROPMALFORMED: PARSE_MODE_UNSUPPORTED
+mode=FAILFAST: MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION
+
+== fixed in 4.3 (SPARK-58707): select only the corrupt field of from_json ==
++--------------------------+
+|_corrupt_record           |
++--------------------------+
+|NULL                      |
+|{"order": 2, "ms": "slow"}|
+|{"order": 3               |
++--------------------------+
+
+
+== no schema at all: get_json_object and json_tuple ==
++-----+-----+-------+
+|level|order|missing|
++-----+-----+-------+
+|INFO |100  |NULL   |
+|INFO |101  |NULL   |
++-----+-----+-------+
+only showing top 2 rows
++----+---+---+
+|c0  |c1 |c2 |
++----+---+---+
+|INFO|100|91 |
+|INFO|101|521|
++----+---+---+
+only showing top 2 rows
++-----------+-------------------+
+|line       |get_json_object $.a|
++-----------+-------------------+
+|{"a": null}|NULL               |
+|{}         |NULL               |
++-----------+-------------------+
+
+
+== new in 4.3: JSON_TABLE ==
+root
+ |-- ts: timestamp (nullable = true)
+ |-- level: string (nullable = true)
+ |-- order_id: long (nullable = true)
+ |-- ms: integer (nullable = true)
+ |-- has_error: boolean (nullable = true)
+
++-------------------+-----+--------+---+---------+
+|ts                 |level|order_id|ms |has_error|
++-------------------+-----+--------+---+---------+
+|2026-10-01 11:00:00|INFO |100     |91 |false    |
+|2026-10-01 11:01:00|INFO |101     |521|false    |
+|2026-10-01 11:02:00|INFO |102     |666|false    |
++-------------------+-----+--------+---+---------+
+only showing top 3 rows
+rows: 20
++-------------------+---+---+---+
+|ts                 |n  |sku|qty|
++-------------------+---+---+---+
+|2026-10-03T12:00:00|1  |P4 |1  |
+|2026-10-03T12:01:00|1  |P1 |1  |
+|2026-10-03T12:02:00|1  |P1 |1  |
+|2026-10-03T12:03:00|1  |P4 |1  |
+|2026-10-03T12:04:00|1  |P4 |1  |
++-------------------+---+---+---+
+only showing top 5 rows
+item rows: 61
+item rows from inline(items) in drift.py: 61
+
+== JSON_TABLE: missing, JSON null and bad text ==
++-----------+----+--------+
+|doc        |a   |a_exists|
++-----------+----+--------+
+|{"a": 1}   |1   |true    |
+|{"a": null}|NULL|true    |
+|{}         |NULL|false   |
++-----------+----+--------+
+
+a value that does not cast, with the default NULL ON ERROR: CAST_INVALID_INPUT
+ERROR ON ERROR on bad text: MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION
+a wildcard that is not at the end of the row path: DATATYPE_MISMATCH.INVALID_JSON_TABLE_PATH
+
+== JSON_TABLE in the plan ==
+== Physical Plan ==
+* Project (4)
++- Generate (3)
+   +- * Project (2)
+      +- Scan text  (1)
+(3) Generate Arguments: json_table(line#320, $.items[*], JsonTableColumn(n,LongType,None,Ordinality),
+
+== new in 4.3: explodeEmbeddedArray reads {'Records': [...]} one element at a time ==
+multiLine, no option: rows 2  columns ['Records']
+root
+ |-- Records: variant (nullable = true)
+
+rows: 3
++------------+------+
+|eventName   |bucket|
++------------+------+
+|GetObject   |logs  |
+|PutObject   |logs  |
+|DeleteObject|logs  |
++------------+------+
+
+with singleVariantColumn too: EXPLODE_EMBEDDED_ARRAY_CONFLICTING_OPTION
+
+== writing JSON: NULL fields, timestamps, to_json ==
+default:               {"ts":"2026-10-01T11:00:00Z","level":"INFO","order":100,"ms":91}
+ignoreNullFields=false: {"ts":"2026-10-01T11:00:00Z","level":"INFO","order":100,"ms":91,"note":null}
++---------------------+
+|to_json              |
++---------------------+
+|{"order":100,"ms":91}|
++---------------------+
+only showing top 1 row

@@ -25,15 +25,20 @@ def section(title):
 
 
 # A partner's export: three days of events in a zip, with a README and the folder macOS adds.
+# Fixed entry times, so that the archive bytes (and the "bytes as text" rows below) are the same on each run.
+def entry(name):
+    return zipfile.ZipInfo(name, date_time=(2026, 10, 4, 0, 0, 0))
+
+
 with zipfile.ZipFile(drop / "events.zip", "w", zipfile.ZIP_DEFLATED) as z:
     for f in sorted((MESSY / "events").glob("*.json")):
-        z.write(f, f"export/{f.name}")
-    z.writestr("export/README.txt", "Exported by the partner portal.\n")
-    z.writestr("__MACOSX/export/._events_2026-10-01.json", b"\x00\x05\x16\x07")
+        z.writestr(entry(f"export/{f.name}"), f.read_bytes(), zipfile.ZIP_DEFLATED)
+    z.writestr(entry("export/README.txt"), "Exported by the partner portal.\n", zipfile.ZIP_DEFLATED)
+    z.writestr(entry("__MACOSX/export/._events_2026-10-01.json"), b"\x00\x05\x16\x07", zipfile.ZIP_DEFLATED)
 with tarfile.open(drop / "logs.tar.gz", "w:gz") as t:
     for name in ("access.log", "app.log"):
         t.add(MESSY / "logs" / name, f"logs/{name}")
-with gzip.open(drop / "events_2026-10-01.json.gz", "wb") as g:
+with gzip.GzipFile(drop / "events_2026-10-01.json.gz", "wb", mtime=0) as g:
     g.write((MESSY / "events" / "events_2026-10-01.json").read_bytes())
 
 section("the drop")
