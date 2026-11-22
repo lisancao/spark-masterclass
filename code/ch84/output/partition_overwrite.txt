@@ -122,3 +122,8 @@
 == 7. a path with partitionBy, mode('overwrite')
    option static   folders after: ['day=2026-06-02']
    option dynamic  folders after: ['day=2026-06-01', 'day=2026-06-02', 'day=2026-06-03']
+
+== 8. during a dynamic overwrite: the new files wait in a staging folder
+  files seen under the table folder while the job ran (outside _temporary):
+    .spark-staging-<id>/day=2026-06-02/part-00000-<id>.c000.snappy.parquet
+  after the commit: ['._SUCCESS.crc', '_SUCCESS', 'day=2026-06-01', 'day=2026-06-02', 'day=2026-06-03']

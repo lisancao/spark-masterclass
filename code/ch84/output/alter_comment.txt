@@ -180,3 +180,15 @@
 |day                    |date     |NULL              |
 +-----------------------+---------+------------------+
 
+> ALTER TABLE lake.taxi.daily ADD PARTITION (day = '2026-06-04')
+  AnalysisException: [INVALID_PARTITION_OPERATION.PARTITION_MANAGEMENT_IS_UNSUPPORTED]
+  The partition command is invalid. Table `lake`.`taxi`.`daily` does not support ...
+> INSERT INTO lake.taxi.daily VALUES (1, 2.0, DATE'2026-06-01')
+> TRUNCATE TABLE lake.taxi.daily
+> SELECT count(*) AS rows FROM lake.taxi.daily
++----+
+|rows|
++----+
+|0   |
++----+
+

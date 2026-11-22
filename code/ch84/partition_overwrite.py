@@ -102,3 +102,44 @@ for mode in ["static", "dynamic"]:
         .partitionBy("day").parquet(str(out))
     days = sorted(p.name for p in out.iterdir() if p.is_dir())
     print(f"   option {mode:<8} folders after: {days}")
+
+print("\n== 8. during a dynamic overwrite: the new files wait in a staging folder")
+import threading  # noqa: E402
+import time  # noqa: E402
+from pyspark.sql.functions import udf  # noqa: E402
+
+fresh("by_day")
+spark.conf.set("spark.sql.sources.partitionOverwriteMode", "DYNAMIC")
+
+
+@udf("bigint")
+def slow(x):
+    time.sleep(0.5)                # slow down the tasks, so that the folder can be seen mid-write
+    return x
+
+
+spark.udf.register("slow", slow)
+seen, stop = [], threading.Event()
+
+
+def watch():
+    root = WH / "by_day"
+    while not stop.is_set():
+        for p in root.rglob("*.parquet"):
+            rel = str(p.relative_to(root))
+            if rel.startswith(".spark-staging") and "_temporary" not in rel:
+                seen.append(rel)
+        time.sleep(0.05)
+
+
+t = threading.Thread(target=watch)
+t.start()
+spark.sql("INSERT OVERWRITE TABLE by_day SELECT borough, slow(trips), day FROM (" + RERUN + ")")
+stop.set()
+t.join()
+import re  # noqa: E402
+names = sorted({re.sub(r"[0-9a-f]{8}-[0-9a-f-]{27}", "<id>", s) for s in seen})
+print("  files seen under the table folder while the job ran (outside _temporary):")
+for n in names:
+    print("   ", n)
+print("  after the commit:", sorted(p.name for p in (WH / "by_day").iterdir()))

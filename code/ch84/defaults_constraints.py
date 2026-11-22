@@ -89,3 +89,8 @@ for cat, t, u in [("spark_catalog (parquet)", "t_s", "USING parquet"), ("lake (I
             msg = str(e).split("does not support ")[-1].split(".")[0]
             print(f"  {name:<12} {type(e).__name__}: does not support {msg}")
 q("ALTER TABLE fares ADD CONSTRAINT positive CHECK (fare > 0)")
+
+print("\n== 7. NOT NULL and DEFAULT on the Iceberg table (format version 2)")
+q("CREATE TABLE lake.db.nn (id INT NOT NULL, v INT)")
+q("INSERT INTO lake.db.nn VALUES (NULL, 1)")
+q("CREATE TABLE lake.db.dflt (id INT, c STRING DEFAULT 'x')", err_lines=3)

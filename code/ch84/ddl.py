@@ -18,14 +18,14 @@ def error_text(e, width=88, lines=2):
 
 
 def runner(spark):
-    def q(sql, n=30, show=True, width=88):
+    def q(sql, n=30, show=True, width=88, err_lines=2):
         """Print the statement, run it, and show its rows (if any). An error prints its first lines."""
         lines = [l.strip() for l in sql.strip().splitlines()]
         print("> " + "\n     ".join(lines))
         try:
             df = spark.sql(sql)
         except Exception as e:  # noqa: BLE001
-            print(error_text(e, width, 2))
+            print(error_text(e, width, err_lines))
             return None
         if show and df.columns:
             df.show(n, truncate=False)

@@ -21,12 +21,12 @@
 
 == 2. ADD COLUMNS with a DEFAULT: old files stay, old rows read the default
   files before:
-    part-00000-<uuid>-c000.snappy.parquet  (1645 B)
     part-00000-<uuid>-c000.snappy.parquet  (1630 B)
+    part-00000-<uuid>-c000.snappy.parquet  (1645 B)
 > ALTER TABLE fares ADD COLUMNS (tip DECIMAL(10,2) DEFAULT 0.00)
   files after:
-    part-00000-<uuid>-c000.snappy.parquet  (1645 B)
     part-00000-<uuid>-c000.snappy.parquet  (1630 B)
+    part-00000-<uuid>-c000.snappy.parquet  (1645 B)
 > SELECT trip_id, fare, tip FROM fares ORDER BY trip_id
 +-------+-----+----+
 |trip_id|fare |tip |
@@ -137,3 +137,13 @@
 > ALTER TABLE fares ADD CONSTRAINT positive CHECK (fare > 0)
   AnalysisException: [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported:
   Table `spark_catalog`.`default`.`fares` does not support ADD CONSTRAINT. Please check ...
+
+== 7. NOT NULL and DEFAULT on the Iceberg table (format version 2)
+> CREATE TABLE lake.db.nn (id INT NOT NULL, v INT)
+> INSERT INTO lake.db.nn VALUES (NULL, 1)
+  SparkRuntimeException: [NOT_NULL_ASSERT_VIOLATION] NULL value appeared in non-nullable
+  field: id If the schema is inferred from a Scala tuple/case class, or a Java bean, ...
+> CREATE TABLE lake.db.dflt (id INT, c STRING DEFAULT 'x')
+  Py4JJavaError: An error occurred while calling o39.sql. :
+  java.lang.IllegalStateException: Invalid schema for v2: - Invalid initial default for
+  c: non-null default (x) is not supported until v3 at ...
