@@ -92,6 +92,13 @@ The output shows the rules:
 - **`terminate` runs once, after the last `eval`.** Its rows join to the last input row of the partition. In the output, the `<end>` rows are next to `doc 1`, `doc 3` and `doc 5`.
 - **`cleanup` runs last.** It also runs after a failure, so it is the place to close a connection or delete a temporary file. `terminate` does not run after a failure.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch21-anim-lifecycle.webp">
+    <source src="../../media/clips/ch21-anim-lifecycle.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the first partition of the lifecycle run. One <code>Words</code> instance gets two <code>eval</code> calls, then a `terminate` call and a `cleanup` call. The rows and the total of 27 rows come from <code>udtf_core.txt</code>. The timing is schematic.</figcaption>
+</figure>
+
 Six rows of four words gave 24 rows, and three `terminate` rows gave 27.
 
 ### `terminate` and an empty partition
@@ -122,6 +129,12 @@ spark.sql.execution.pythonUDTF.arrow.enabled = true
   defined after the session    ArrowEvalPythonUDTF AfterSession(1)#33, [n#34], 301
   useArrow=False               BatchEvalPythonUDTF AfterSession(1)#35, [n#36]
 ```
+
+<figure markdown>
+  ![Arrow or not](../media/figures/ch21-arrow-decision-light.svg#only-light)
+  ![Arrow or not](../media/figures/ch21-arrow-decision-dark.svg#only-dark)
+  <figcaption>The order of the definitions in <code>udtf_core.py</code>, and the plan node of each UDTF from <code>udtf_core.txt</code>.</figcaption>
+</figure>
 
 If you define the class before the session, the plan has `BatchEvalPythonUDTF`. If you define it after, the plan has `ArrowEvalPythonUDTF` (eval type 301, `SQL_ARROW_TABLE_UDF`). A module of UDTFs that you import before you create the session gets the slower form without a warning. Give `useArrow=` explicitly, or create the UDTFs after the session.
 
@@ -340,6 +353,12 @@ noop write, median of 5 runs after a warm-up:
 
 JSON_TABLE on a truncated document, the default (NULL ON ERROR) and ERROR ON ERROR:
 ```
+
+<figure markdown>
+  ![Time of the three methods for JSON](../media/figures/ch21-jsontime-light.svg#only-light)
+  ![Time of the three methods for JSON](../media/figures/ch21-jsontime-dark.svg#only-dark)
+  <figcaption>The medians from <code>json_table.txt</code>. The two methods that run in the JVM are faster than the Python UDTF.</figcaption>
+</figure>
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch21-jsontable.webp">
