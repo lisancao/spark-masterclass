@@ -790,6 +790,13 @@ tws = (spark.readStream.schema(SCHEMA).json(str(inbox4)).withWatermark("ts", "10
 ```
 
 <figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch41-legacy.webp">
+    <source src="../../media/clips/ch41-legacy.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>t6_legacy.py</code> on Spark 4.3.0. The old API closes four sessions from drops 1 to 3. Then its open sessions move into <code>transformWithState</code>, which closes three more from drop 4. The wait for Spark is cut out.</figcaption>
+</figure>
+
+<figure markdown>
   ![Move open sessions from applyInPandasWithState to transformWithState](../media/figures/ch41-migrate-light.svg#only-light)
   ![Move open sessions from applyInPandasWithState to transformWithState](../media/figures/ch41-migrate-dark.svg#only-dark)
   <figcaption markdown="span">The move in `t6_legacy.txt`. The old checkpoint is read, not restarted. Its open sessions become the initial state of a new checkpoint, and the new source starts after drop 3.</figcaption>
