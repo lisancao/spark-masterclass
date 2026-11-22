@@ -1,0 +1,10 @@
+ptrace_scope: 1
+samples by process command line:
+   1456  python3 -m pyspark.daemon pyspark.worker
+    348  .venv/bin/python ch43/pyspy_app.py
+top leaf frames in the forked Python workers:
+    926  slow (pyspy_app.py:11)
+    192  slow (pyspy_app.py:10)
+     30  _compile_source (<frozen zipimport>:637)
+     25  _call_with_frames_removed (<frozen importlib._bootstrap>:488)
+     22  _compile_bytecode (<frozen importlib._bootstrap_external>:753)

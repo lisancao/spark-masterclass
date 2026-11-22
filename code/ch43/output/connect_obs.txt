@@ -1,0 +1,27 @@
+client operation IDs: ok 4bcca073  failed 63a9c4dd
+
+live server local-1795343084699, /connect/sessions and /connect/operations:
+  session 04690712  user agent  operations 2  finished False
+  session b5c2f72d  user analyst  operations 1  finished False
+  operation 4bcca073  session b5c2f72d  CLOSED   jobs ['0', '1', '2']  sql ['0']  2349 ms
+  operation 63a9c4dd  session 04690712  CLOSED   jobs ['3']  sql ['1']  201 ms
+  operation 3fbe2e6d  session 04690712  CLOSED   jobs ['4', '5']  sql ['2']  159 ms
+
+/connect/operations/detail?jobTag=... for the failed operation:
+  jobTag: SparkConnect_OperationTag_User_agent_Session_04690712-baa9-46d0-82e4-39f...
+  statement: common { plan_id: 5 } project { input { common { plan_id: 4 } read { data_source
+  detail: INTERNAL: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parame
+jobs with the client tag 'daily-report': [0, 1, 2]
+  the tag as the server stores it: SparkConnect_SessionTag_User_analyst_Session_b5c2f72d-1ebb-46c3-80fd-ee7463b682ba_Tag_daily-report
+  other tags on the job: 3
+
+History Server on port 18028, applications:
+  local-1795343084699      Spark Connect server     completed True
+  local-1795343055903      observed                 completed True
+
+History Server, the Connect records of local-1795343084699 after the server stopped:
+  session 04690712  user agent  operations 2  finished True
+  session b5c2f72d  user analyst  operations 1  finished True
+  operation 4bcca073  session b5c2f72d  CLOSED   jobs ['0', '1', '2']  sql ['0']  2349 ms
+  operation 63a9c4dd  session 04690712  CLOSED   jobs ['3']  sql ['1']  201 ms
+  operation 3fbe2e6d  session 04690712  CLOSED   jobs ['4', '5']  sql ['2']  159 ms

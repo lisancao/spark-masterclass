@@ -1,0 +1,44 @@
+eventlog_v2_local-1795343055903/
+  .appstatus_local-1795343055903.crc                          8 bytes
+  appstatus_local-1795343055903                               0 bytes
+  events_1_local-1795343055903.zstd                       53888 bytes
+first bytes of the events file: 28 b5 2f fd
+
+60 events, 49 top-level fields (the union of all event types)
++--------------------------------------------+-----+
+|Event                                       |count|
++--------------------------------------------+-----+
+|SparkListenerTaskEnd                        |14   |
+|SparkListenerTaskStart                      |14   |
+|o.a.s.s.e.ui.SparkListenerDriverAccumUpdates|7    |
+|SparkListenerStageCompleted                 |5    |
+|SparkListenerStageSubmitted                 |5    |
+|SparkListenerJobEnd                         |2    |
+|SparkListenerJobStart                       |2    |
+|o.a.s.s.e.ui.SparkListenerSQLExecutionEnd   |2    |
+|o.a.s.s.e.ui.SparkListenerSQLExecutionStart |2    |
+|SparkListenerApplicationEnd                 |1    |
+|SparkListenerApplicationStart               |1    |
+|SparkListenerBlockManagerAdded              |1    |
+|SparkListenerEnvironmentUpdate              |1    |
+|SparkListenerExecutorAdded                  |1    |
+|SparkListenerLogStart                       |1    |
+|SparkListenerResourceProfileAdded           |1    |
++--------------------------------------------+-----+
+
+one TaskEnd event:
+  keys: ['Event', 'Stage ID', 'Stage Attempt ID', 'Task Type', 'Task End Reason', 'Task Info', 'Task Executor Metrics', 'Task Metrics']
+  Task Metrics keys: ['Executor Deserialize Time', 'Executor Deserialize CPU Time', 'Executor Run Time', 'Executor CPU Time', 'Peak Execution Memory', 'Peak On Heap Execution Memory'] ...
+  accumulable: {"ID": 64, "Name": "time to execute Python code", "Update": "302", "Value": "302", "Internal": true, "Count Failed Values": true, "Metadata": "sql"}
+  Executor Run Time: 1449
++--------+--------------+-----+------+-------+--------+-----------+----+------+---------+--------------+
+|stage_id|description   |tasks|run_ms|rows_in|max_rows|median_rows|skew|spill |python_ms|flags         |
++--------+--------------+-----+------+-------+--------+-----------+----+------+---------+--------------+
+|0       |skewed_scoring|2    |450   |60000  |30000   |30000      |1.0 |0     |0        |[]            |
+|1       |skewed_scoring|4    |9227  |60000  |55364   |1638       |33.8|0     |6840     |[skew, python]|
+|2       |skewed_scoring|4    |124   |98     |27      |24         |1.1 |0     |0        |[]            |
+|3       |spilling_sort |2    |145   |30000  |15000   |15000      |1.0 |0     |0        |[]            |
+|4       |spilling_sort |2    |571   |30000  |15163   |15000      |1.0 |367016|0        |[spill]       |
++--------+--------------+-----+------+-------+--------+-----------+----+------+---------+--------------+
+
+event log totals equal the REST API totals: True

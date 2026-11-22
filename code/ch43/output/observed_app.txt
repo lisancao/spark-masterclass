@@ -1,0 +1,30 @@
+
+REST /stages:
+  stage 0  skewed_scoring  tasks 2  run   450 ms  in  60000 rows  spill       0 B
+  stage 1  skewed_scoring  tasks 4  run  9227 ms  in  60000 rows  spill       0 B
+  stage 2  skewed_scoring  tasks 4  run   124 ms  in     98 rows  spill       0 B
+  stage 3  spilling_sort   tasks 2  run   145 ms  in  30000 rows  spill       0 B
+  stage 4  spilling_sort   tasks 2  run   571 ms  in  30000 rows  spill  367016 B
+
+REST taskSummary for stage 1 (quantiles 0, .25, .5, .75, 1):
+  shuffle records read: [1360, 1607, 1669, 55364, 55364]
+  executor run time ms: [214, 242, 1449, 7322, 7322]
+
+REST /sql execution 0 (skewed_scoring): nodes with metrics
+  Range            number of output rows        60,000
+  ArrowEvalPython  time to execute Python code  6.8 s (184 ms, 302 ms, 6.2 s (stage 1.0: tas
+  ArrowEvalPython  data sent to Python workers  1000.4 KiB (20.4 KiB, 24.8 KiB, 931.3 KiB (s
+  ArrowEvalPython  number of output rows        60,000
+  HashAggregate    number of output rows        98
+  HashAggregate    number of output rows        98
+  OverwriteByExpre number of output rows        98
+
+/metrics/prometheus: 337 lines, for example
+   metrics_observed_driver_BlockManager_memory_maxMem_MB_Value{type="gauges"} 434
+   metrics_observed_driver_DAGScheduler_job_allJobs_Value{type="gauges"} 2
+/metrics/executors/prometheus: 42 lines, for example
+   metrics_executor_diskUsed_bytes{application_id="local-1795343055903", application_name="observed", executor_id="driver"} 0
+   metrics_executor_totalTasks_total{application_id="local-1795343055903", application_name="observed", executor_id="driver"} 14
+/metrics/json keys: ['counters', 'gauges', 'histograms', 'meters', 'timers'] version 4.0.0
+
+event log folder: ['eventlog_v2_local-1795343055903']
