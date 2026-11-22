@@ -184,7 +184,7 @@ Run is COMPLETED.
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch34-trace.webp">
     <source src="../../media/clips/ch34-trace.mp4" type="video/mp4">
   </video>
-  <figcaption>The pipeline commands of a dry run, as the CLI sent them: one graph, one output and one flow for each dataset and the sink, and the start of the run.</figcaption>
+  <figcaption>The pipeline commands of a dry run, as the CLI sent them. There is one graph, one output and one flow for each dataset and the sink, and the start of the run.</figcaption>
 </figure>
 
 The CLI sends four types of command (the `PipelineCommand` message in `sql/connect/common/src/main/protobuf/spark/connect/pipelines.proto`):

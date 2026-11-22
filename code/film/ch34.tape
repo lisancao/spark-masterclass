@@ -22,5 +22,5 @@ Type "clear" Enter
 Show
 Type "# the server log of run 2: tables first, then flows in topological order" Enter
 Sleep 500ms
-Type "grep -E 'Materializing|Starting flow' ch34/output/server_log.txt | sed -E 's/.*(table|flow) //' | head -18" Enter
+Type "grep -v checkpoint ch34/output/server_log_short.txt | sed -E 's/^INFO //' | head -18 | cut -c1-90" Enter
 Sleep 10s
