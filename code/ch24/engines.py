@@ -126,7 +126,7 @@ def queries(spark):
                           F.round(F.sum("fare_amount"), 0).alias("fares"),
                           F.round(F.avg("tip_amount"), 3).alias("avg_tip"))
                      .orderBy("Borough")),
-        # a high-cardinality aggregate (about 40k groups), then a top-N
+        # a high-cardinality aggregate (zone pairs), then a top-N
         "routes": (year.groupBy("PULocationID", "DOLocationID")
                    .agg(F.count("*").alias("trips"),
                         F.round(F.avg("trip_distance"), 2).alias("avg_miles"))
