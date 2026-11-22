@@ -9,23 +9,23 @@ format('HELLO') also works: 2 rows
 
 CaseInsensitiveDict: 5 5 True row 
 
-driver (this script)         pid 64676
+driver (this script)         pid 617044
 
 --- after load()
-DataSource.__init__          pid 65443
-DataSource.schema            pid 65443
+DataSource.__init__          pid 620466
+DataSource.schema            pid 620466
 [Row(id=0, opt="'42'"), Row(id=1, opt="'42'"), Row(id=2, opt="'42'")]
 --- after the first collect()
-DataSource.reader            pid 65639
-DataSourceReader.__init__    pid 65639
-DataSourceReader.partitions  pid 65639
-read(partition 2)            pid 65913
-read(partition 0)            pid 66290
-read(partition 1)            pid 66293
+DataSource.reader            pid 621038
+DataSourceReader.__init__    pid 621038
+DataSourceReader.partitions  pid 621038
+read(partition 0)            pid 621403
+read(partition 2)            pid 621920
+read(partition 1)            pid 621919
 --- after a second action on the same DataFrame
-read(partition 1)            pid 66290
-read(partition 0)            pid 66293
-read(partition 2)            pid 65913
+read(partition 2)            pid 621920
+read(partition 0)            pid 621919
+read(partition 1)            pid 621403
 
 The plan names the scan as a Python scan:
 == Physical Plan ==

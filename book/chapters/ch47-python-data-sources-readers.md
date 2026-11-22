@@ -19,6 +19,25 @@ This chapter builds the protocol from the smallest source to a parallel reader f
 !!! note "New in 4.3"
     The Python Data Source API in Spark 4.3.0 is the same as in Spark 4.2.0. Between the `v4.2.0` and `v4.3.0` tags, the Python data source code has only one change. SPARK-58019 is a follow-up that converts Arrow list columns to Python rows in bulk for data source writes. Filter pushdown is from 4.1 (SPARK-51271). Admission control and `Trigger.AvailableNow` for stream readers are from 4.2 (SPARK-55304).
 
+    Single-task execution (`spark.sql.optimizer.singleTaskExecution.enabled`, new in 4.3 and off by default) does not apply to a Python data source. The rule `MarkSingleTaskExecution` marks only file scans and local relations. `feather_check.py` turns the flag on. A Python source with three partitions still runs three tasks, and its `groupBy` still has an `Exchange`. The zones CSV file under the same flag has no `Exchange`:
+
+    ```text
+    Three  scan partitions: 3, Exchange operators in groupBy plan: 1
+    One    scan partitions: 1, Exchange operators in groupBy plan: 1
+    the zones CSV file, scan partitions: 1, Exchange operators in groupBy plan: 0
+    ```
+
+## Why not `createDataFrame`?
+
+The first version of a reader is usually a loop in the driver script. The loop reads the records into a Python list and calls `spark.createDataFrame(rows)`. This works for small data, but it has four problems:
+
+- One Python process reads all of the data, so the read has no parallelism.
+- All of the rows go through the memory of the driver.
+- The result is a DataFrame of this script only. Another user, a SQL query or a stream cannot use the loop by name.
+- The loop has no write side. Spark cannot save to the source with `df.write.format(...)`.
+
+A data source solves each problem. The tasks read in parallel. The rows go from each task into Spark directly. The source has a name in DataFrames and in SQL. [Chapter 48](ch48-python-data-sources-apis-databases.md) shows the driver loop against an API, and how it fails.
+
 ## The parts of a Python data source
 
 A source has three kinds of objects. Each kind has one job:
@@ -92,23 +111,23 @@ show_log("after a second action on the same DataFrame")
 ```
 
 ```text
-driver (this script)         pid 64676
+driver (this script)         pid 617044
 
 --- after load()
-DataSource.__init__          pid 65443
-DataSource.schema            pid 65443
+DataSource.__init__          pid 620466
+DataSource.schema            pid 620466
 [Row(id=0, opt="'42'"), Row(id=1, opt="'42'"), Row(id=2, opt="'42'")]
 --- after the first collect()
-DataSource.reader            pid 65639
-DataSourceReader.__init__    pid 65639
-DataSourceReader.partitions  pid 65639
-read(partition 2)            pid 65913
-read(partition 0)            pid 66290
-read(partition 1)            pid 66293
+DataSource.reader            pid 621038
+DataSourceReader.__init__    pid 621038
+DataSourceReader.partitions  pid 621038
+read(partition 0)            pid 621403
+read(partition 2)            pid 621920
+read(partition 1)            pid 621919
 --- after a second action on the same DataFrame
-read(partition 1)            pid 66290
-read(partition 0)            pid 66293
-read(partition 2)            pid 65913
+read(partition 2)            pid 621920
+read(partition 0)            pid 621919
+read(partition 1)            pid 621403
 ```
 
 <figure markdown>
@@ -151,7 +170,7 @@ sequenceDiagram
 
 These moments give three rules that apply to every source in this part:
 
-- **All of the state on `self` must pickle.** Spark creates the reader one time during planning and sends a pickled copy to each task. A socket, a lock or an open file on `self` stops the read at the first action (Step 4 shows the error).
+- **All of the state on `self` must pickle.** Spark creates the reader one time during planning and sends a pickled copy to each task. A socket, a lock or an open file on `self` stops the read at the first action (Step 6 shows the error).
 
 - **A class in your `__main__` script travels by value.** Cloudpickle sends its code with it, so the workers do not need your file on disk. A class from an installed module travels by reference. Thus each worker must be able to import that module. [Chapter 51](ch51-shipping-a-python-data-source.md) shows this failure.
 
@@ -178,7 +197,7 @@ print("CaseInsensitiveDict:", opts["rows"], opts.get("ROWS"), "rows" in opts, op
 CaseInsensitiveDict: 5 5 True row
 ```
 
-Convert and validate each option yourself. If an option is not correct, raise `ValueError` with a message that names the option and the value that you received. The user sees that message inside the Spark error, so the message is the user interface of your source. `counter.py` puts the checks in one helper:
+Convert and validate each option yourself. If an option is not correct, raise `ValueError` with a message that names the option and the value that you received. The user sees that message inside the Spark error, so the message is the user interface of your source. `counter_source.py` puts the checks in one helper:
 
 ```python
 def whole_number(options, key, default, minimum):
@@ -213,7 +232,7 @@ def plan_ranges(rows, partitions):
     return ranges
 ```
 
-The `counter` source makes `rows` numbered rows in `partitions` ranges. Its reader builds each row from the schema's column names:
+The `counter` source (`counter_source.py`) makes `rows` numbered rows in `partitions` ranges. Its reader builds each row from the schema's column names:
 
 ```python
 class CounterReader(DataSourceReader):
@@ -270,9 +289,19 @@ A user schema, in another order:
 +-----+---+
 ```
 
-A reader that always yields `(id, label)` fails on that schema. Spark puts `"row-0"` into the `id` column, and the task fails with `ArrowInvalid` (the last line of the error table in Step 6). If the two columns had the same type, you would get swapped values and no error. Thus, always build rows from the schema that you receive. Also reject a column that your source does not produce, with a clear message. Do not return `None` for it.
+A reader that always yields `(id, label)` fails on that schema. Spark tries to put a label such as `"row-2"` into the `id` column, and the task fails with `ArrowInvalid`. The last line of the error table in Step 6 shows this error. The row in the message changes between runs, because any task can fail first. If the two columns have the same type, the result is worse: swapped values and no error. `counter.py` shows this with a `names` source that always yields `(first, last)`, and a user schema of `last string, first string`:
 
-A user schema is also the only way to ask a Python source for fewer columns. Step 8 shows why.
+```text
++----+--------+
+|last|   first|
++----+--------+
+| Ada|Lovelace|
++----+--------+
+```
+
+Thus, always build rows from the schema that you receive. Also reject a column that your source does not produce, with a clear message. Do not return `None` for it.
+
+A user schema is also the only way to ask a Python source for fewer columns. Step 10 shows why.
 
 A registered source is also available to SQL in the same session:
 
@@ -329,7 +358,7 @@ schema asks for a column we lack   fails at action: PYTHON_DATA_SOURCE_ERROR
     ValueError: counter has no column(s) ['colour']
 user schema, fixed tuple order     fails at action: PYTHON_EXCEPTION
     An exception was thrown from the Python worker
-    ArrowInvalid: Could not convert 'row-0' with type str: tried to convert to int64
+    ArrowInvalid: Could not convert 'row-2' with type str: tried to convert to int64
 ```
 
 <figure markdown>
@@ -358,11 +387,67 @@ flowchart LR
   load --> act --> task
 ```
 
-Two results in the table need attention. First, the missing option did not fail at `load()`. The reader checks the options, and Spark creates the reader at the first action. Thus a DataFrame that will fail can still show its `columns`. To make a missing option fail earlier, check it in `DataSource.__init__` ([Chapter 48](ch48-python-data-sources-apis-databases.md) does this).
+Two results in the table need attention. First, the absent option did not fail at `load()`. The reader checks the options, and Spark creates the reader at the first action. Thus a DataFrame that will fail can still show its `columns`. To make an absent option fail earlier, check it in `DataSource.__init__` ([Chapter 48](ch48-python-data-sources-apis-databases.md) does this).
 
 Second, the dict row failed with `DATA_SOURCE_INVALID_RETURN_TYPE`. Spark accepts tuples, lists, `Row` objects and `pyarrow.RecordBatch` objects from `read()`, and nothing else. In each case, read the last lines of the Python traceback first. They show the error in your code.
 
-## Step 7: A reader for a custom format
+## Step 7: Do a test of a source without Spark
+
+Each failure in Step 6 costs a JVM start and a Spark error with a long stack trace. Most of these mistakes are in plain Python code, so a plain Python test can find them first. `test_without_spark.py` imports `counter_source.py` and starts no JVM. Three facts make this possible:
+
+- `CaseInsensitiveDict` is a plain Python class. Your test can give options to a source in the same form that Spark gives them.
+- `StructType` objects need no session. But `StructType.fromDDL()` needs an active Spark session, so a test that uses it fails at once.
+- `pyspark.cloudpickle` is the same serializer that Spark uses for the reader and the partitions. A round trip through it shows a pickle error in the test, not in a task.
+
+The helper `read_without_spark()` does the work of Spark in one process. It also makes the checks that Spark makes, so the test fails for the same mistakes:
+
+```python
+def read_without_spark(source_cls, options, schema=SCHEMA):
+    """Plan and read like Spark does, in this process, with the same checks Spark makes."""
+    source = source_cls(CaseInsensitiveDict({k: str(v) for k, v in options.items()}))
+    reader = source.reader(schema)
+    parts = reader.partitions()
+    if not isinstance(parts, list):
+        raise TypeError(f"partitions() must return a list, got {type(parts).__name__}")
+    if not all(isinstance(p, InputPartition) for p in parts):
+        raise TypeError("every partition must be an InputPartition")
+    parts = parts or [InputPartition(None)]                # what Spark does with []
+    reader, parts = cloudpickle.loads(cloudpickle.dumps((reader, parts)))   # the trip to a task
+    rows = []
+    for p in parts:
+        for row in reader.read(p):
+            if not isinstance(row, (tuple, list, Row)):
+                raise TypeError(f"read() yielded a {type(row).__name__}, not a tuple")
+            if len(row) != len(schema.fields):
+                raise ValueError(f"row {row!r} has {len(row)} values, schema has {len(schema.fields)}")
+            rows.append(tuple(row))
+    return len(parts), rows
+```
+
+```text
+StructType.fromDDL without a session: [SESSION_OR_CONTEXT_NOT_EXISTS] SparkContext or SparkSession should be
+plan_ranges: 3 checks pass
+rows=5, partitions=2: (2, [(0, 'row-0'), (1, 'row-1'), (2, 'row-2'), (3, 'row-3'), (4, 'row-4')])
+rows=0: (1, [])
+user schema (label, id): [('row-0', 0), ('row-1', 1)]
+options {}: ValueError: option 'rows' is required
+options {'rows': 'ten'}: ValueError: option 'rows' must be a whole number, got 'ten'
+options {'rows': 3, 'partitions': 0}: ValueError: option 'partitions' must be >= 1, got 0
+generator partitions: TypeError: partitions() must return a list, got generator
+
+No JVM started.
+```
+
+The results agree with the Spark runs in Steps 4 to 6:
+
+- `rows=0` gives one partition and no rows. This is the `InputPartition(None)` rule.
+- The user schema in the other order gives the values in that order.
+- The three bad option sets give the same `ValueError` messages that appeared inside `PYTHON_DATA_SOURCE_ERROR`.
+- The generator fails here with a clear `TypeError`. In Spark, the same mistake gave `DATA_SOURCE_TYPE_MISMATCH` at the first action.
+
+This test does not replace a test in Spark. It cannot find a type that Arrow refuses, or a path that a task cannot open. [Chapter 51](ch51-shipping-a-python-data-source.md) puts both kinds of test into `pytest`. But the plain test starts no JVM, so you can run it after each change.
+
+## Step 8: A reader for a custom format
 
 The `counter` source makes its data. A real source reads something that exists. `docs_source.py` builds `docs`, a source that reads a folder of mixed files (logs, JSON, e-mails, PDFs, PNGs, WAVs) and returns one row for each file. Each row has metadata from the file system. Some fields come from the header bytes of the file: the size of a PNG and the duration of a WAV. The data is the eight sample folders from SparkTutor's messy data set (`code/data/messy`), copied into a scratch folder at the start of the run.
 
@@ -392,7 +477,7 @@ Three details in `list_files` are important:
 
 The tasks must be able to open the paths that the planner listed. In local mode, they share your disk. On a cluster, the folder must be on storage that each executor can reach. For object stores, `pyarrow.fs` (installed with PySpark) can list and open S3 and Google Cloud Storage paths with the same split between planning and reading.
 
-## Step 8: Balance the partitions by bytes
+## Step 9: Balance the partitions by bytes
 
 The 26 files are not equal. `access.log` is about one third of all the bytes:
 
@@ -457,7 +542,7 @@ flowchart LR
   p2 --> t2["task 2: read()"]:::task
 ```
 
-## Step 9: Parse headers, and open a file only when a column needs it
+## Step 10: Parse headers, and open a file only when a column needs it
 
 The custom part of this format is the header bytes. Both formats put the necessary facts at the start of the file:
 
@@ -572,7 +657,7 @@ The only way for a user to ask for less is `.schema(...)` on the reader. With a 
 
 The query `where("kind = 'image'")` also opened 8 files, not 5. Without pushdown, the reader produces all of the rows. After the read, Spark removes the rows that it does not need. [Chapter 49](ch49-python-data-sources-pushdown.md) gives the filter to the reader.
 
-## Step 10: The plan belongs to the DataFrame
+## Step 11: The plan belongs to the DataFrame
 
 Step 2 showed that a second action on the same DataFrame does not call `partitions()` again. For a folder, this rule has a visible effect. The script counts the files, adds a file, and counts again:
 
@@ -583,7 +668,15 @@ partitions() ran 1 time(s) for those three actions
 
 The DataFrame `df` kept the list of files from its first action, so it did not see `late.log`. A new `load()` planned again and found 27 files. The planner ran once in these three actions: for the new `load()`. Spark keeps the planned read in `PythonDataSourceV2.getOrCreateReadInfo`, on the relation object that the DataFrame holds. If you need new data, call `load()` again. When filter pushdown is on, this shared plan can also give wrong results ([Chapter 49](ch49-python-data-sources-pushdown.md)).
 
-Files can also change between planning and reading. `docs` reports the size that `os.stat` gives in the task, so a file that grew shows its new size. A deleted file makes `os.stat` raise `FileNotFoundError` in `read()`, and the task fails with `PYTHON_EXCEPTION`. For a catalog of a busy upload folder, it can be better to skip and count the missing files. That is a design decision for your source.
+Files can also change between planning and reading. `docs` reports the size that `os.stat` gives in the task, so a file that grew shows its new size. A deleted file makes `os.stat` raise `FileNotFoundError` in `read()`, and the task fails. The script removes `privacy.md` and counts the same DataFrame again:
+
+```text
+privacy.md removed, same DataFrame: PYTHON_EXCEPTION
+   FileNotFoundError: [Errno 2] No such file or directory: '<sample>/docs/privacy.md'
+fresh load(): 26 rows
+```
+
+The old plan still named the file, so its task failed. A new `load()` listed the folder again and read 26 files. For a catalog of a busy upload folder, it can be better to skip and count the files that are not there. That is a design decision for your source.
 
 The last lines show the two edge cases. An empty folder gives no partitions, so Spark calls `read()` one time with `InputPartition(None)`, and the `isinstance` check yields nothing. A bad path fails in `__init__` with the message of the source:
 
@@ -591,6 +684,53 @@ The last lines show the two edge cases. An empty folder gives no partitions, so 
 Empty folder: 0 rows
 Bad path: ValueError: option 'path' must be an existing folder, got 'no/such/folder'
 ```
+
+## Step 12: The same source over Spark Connect
+
+All of the runs above used a classic session, where your script and the driver share a machine. With Spark Connect ([Chapter 4](ch04-spark-connect.md)), your script is a thin client. The client sends the registered class to the server, and the server runs all of the Python workers. `on_connect.py` registers a small `folder` source that traces each method, with the process ID and the current folder of the worker. Start the Connect server, then run the script:
+
+```bash
+ch47/server.sh start
+uv run python ch47/on_connect.py
+```
+
+```text
+client: pyspark.sql.connect.session | server: Spark 4.3.0 | client pid 608421
+--- after load()
+(nothing ran)
+df.columns: ['name']
+--- after df.columns
+DataSource.schema          pid 608654  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+count: 2
+--- after count()
+DataSourceReader.__init__  pid 608788  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+read                       pid 608997  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+```
+
+Two things are different from the classic run in Step 2:
+
+- **`load()` does nothing on Connect.** The client only builds a plan. `schema()` runs at the first call that needs the schema, here `df.columns`. Thus an error in `schema()` or in `DataSource.__init__` appears later on Connect than in a classic session. The table in Step 6 gives the classic moment.
+- **Each worker runs in a folder of the server session.** The current folder is `/tmp/spark-<id>/userFiles-<id>/<session id>`, not the folder of your script.
+
+The second fact breaks relative paths. The script makes a folder `inbox` with two files, and then it tries the relative path `inbox` from the folder that contains it:
+
+```text
+A relative path, from the client's folder /tmp/ch47-connect-33bl8qv1
+path='inbox': ValueError: no folder /tmp/spark-<id>/userFiles-<id>/<id>/inbox
+absolute path, count: 3
+```
+
+The planning worker resolved `inbox` against its own folder, and found nothing. The `folder` source raises an error for a folder that does not exist. A source that returns no rows for such a folder gives an empty result and no error. Thus, resolve each path in the client, with `os.path.abspath()`, before you give it to `.option("path", ...)`. The `docs` source resolves the path in `DocsReader.__init__`. That is correct for a classic session only, because on Connect `__init__` also runs on the server.
+
+The rule from Step 11 stays the same on Connect. The same DataFrame keeps its planned read, and a new `load()` plans again:
+
+```text
+c.txt added.
+same DataFrame, count: 2
+fresh load(), same options, count: 3
+```
+
+The Connect server keeps a cache of resolved plans for each session (`spark.connect.session.planCache.enabled`, with `alwaysCacheDataSourceReadsEnabled`, both internal and `true` by default in 4.3.0). In this run, the new `load()` with the same options still saw the new file. Thus the cache did not keep the old planned read for a new DataFrame. Do not depend on that cache for your source. The test above is one run, not a guarantee.
 
 ## The whole chapter, on one page
 
@@ -610,13 +750,17 @@ Bad path: ValueError: option 'path' must be an existing folder, got 'no/such/fol
 
 - **The planned read belongs to the DataFrame.** Later actions run the tasks again but do not plan again, so call `load()` again for new data.
 
+- **Do a test of the source as plain Python first.** `CaseInsensitiveDict`, `StructType` objects and a `cloudpickle` round trip need no JVM.
+
+- **On Spark Connect, the server runs every method.** `schema()` runs when the client first needs the schema, and the workers run in a session folder. Give absolute paths.
+
 - **Errors appear at three moments.** `PYTHON_DATA_SOURCE_ERROR` comes from planning, and `PYTHON_EXCEPTION` comes from `read()` in a task.
 
 All of these rules come from the split at the start of the chapter. Spark plans in one process and reads in other processes. Only pickled objects go between them. [Chapter 48](ch48-python-data-sources-apis-databases.md) applies the same split to two network sources: a paginated API and a database.
 
 ## Further reading
 
-- [Python Data Source API tutorial](https://spark.apache.org/docs/4.3.0/api/python/tutorial/sql/python_data_source.html), the official guide with readers, writers and streaming.
+- [Python Data Source API tutorial](https://spark.apache.org/docs/4.3.0/api/python/tutorial/sql/python_data_source.html), the official guide with readers, writers and streams.
 
 - [`pyspark/sql/datasource.py` at v4.3.0](https://github.com/apache/spark/blob/v4.3.0/python/pyspark/sql/datasource.py), the base classes and their docstrings.
 

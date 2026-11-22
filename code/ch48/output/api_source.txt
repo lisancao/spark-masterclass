@@ -52,7 +52,9 @@ page_size=50: 95 rows in 2 partitions: 3 requests: p0 p0 p1
 retries=0: [PYTHON_EXCEPTION] An exception was thrown from the Python worker: 
            HTTPError: HTTP Error 503: Service Unavailable
 retries=0: 6 requests: p0 p0 p1 p2 p3(503) p4
-duplicate ids: 0
+duplicate ids: 0 | 5 requests: p0 p1 p2 p3 p4
+pages_per_partition=2: 95 rows in 3 partitions: 7 requests: p0 p0 p1 p2 p3(503) p3 p4
+api_token in explain() output: False
 dict for a variant column:
   [PYTHON_EXCEPTION] An exception was thrown from the Python worker:
   PySparkValueError: [MALFORMED_VARIANT] Variant binary is malformed. Please check the dat

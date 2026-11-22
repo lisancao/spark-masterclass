@@ -207,3 +207,14 @@ try:
     docs().option("path", "no/such/folder").load().count()
 except Exception as e:
     print("Bad path:", [l for l in str(e).splitlines() if l.startswith("ValueError")][0])
+
+# A file removed after planning: the task's os.stat() fails.
+os.remove(os.path.join(sample, "docs", "privacy.md"))
+try:
+    df.count()
+except Exception as e:
+    lines = str(e).splitlines()
+    cond = e.getCondition() if hasattr(e, "getCondition") else None
+    print("privacy.md removed, same DataFrame:", cond)
+    print("  ", [l for l in lines if l.startswith("FileNotFoundError")][0].replace(sample, "<sample>"))
+print("fresh load():", docs().load().count(), "rows")

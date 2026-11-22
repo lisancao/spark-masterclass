@@ -17,15 +17,19 @@ A user schema, in another order:
 |row-1|  1|
 +-----+---+
 
+Same types, user schema in another order, reader ignores it:
++----+--------+
+|last|   first|
++----+--------+
+| Ada|Lovelace|
++----+--------+
+
 +---+-----+
 | id|label|
 +---+-----+
 |  3|  n-3|
 |  4|  n-4|
 +---+-----+
-
-without Spark: [(0, 'row-0'), (1, 'row-1'), (2, 'row-2')]
-the reader pickles
 
 When each kind of error appears:
 
@@ -55,4 +59,4 @@ schema asks for a column we lack   fails at action: PYTHON_DATA_SOURCE_ERROR
     ValueError: counter has no column(s) ['colour']
 user schema, fixed tuple order     fails at action: PYTHON_EXCEPTION
     An exception was thrown from the Python worker
-    ArrowInvalid: Could not convert 'row-0' with type str: tried to convert to int64
+    ArrowInvalid: Could not convert 'row-2' with type str: tried to convert to int64

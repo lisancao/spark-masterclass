@@ -52,3 +52,6 @@ partitions() ran 1 time(s) for those three actions
 
 Empty folder: 0 rows
 Bad path: ValueError: option 'path' must be an existing folder, got 'no/such/folder'
+privacy.md removed, same DataFrame: PYTHON_EXCEPTION
+   FileNotFoundError: [Errno 2] No such file or directory: '<sample>/docs/privacy.md'
+fresh load(): 26 rows

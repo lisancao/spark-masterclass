@@ -1,0 +1,34 @@
+Version 1, values pasted into the SQL text:
+  customer = 'Ana'            Spark alone:  120   pushed: 120
+  customer = "x' OR '1'='1"   Spark alone:    1   pushed: 1207
+  customer = "O'Brien"        Spark alone:  121   pushed: fails: OperationalError: near "Brien": syntax error
+
+WHERE                        Spark alone  v2 params  v3 guarded
+amount > 100                         680        759         680
+qty > 3                              601        610         601
+status LIKE 'ship%'                  329        650         329
+amount IS NULL                       104         25         104
+qty IN (2, 4)                        376        376         376
+customer = 'ana'                     121        121         121
+placed_at >= '2026-09-15'            620        404         620
+
+Why: stored values that Spark reads as NULL
+  amount: [('N/A', 'text', 34), ('', 'text', 33), (None, 'null', 25), ('12,50', 'text', 12)]
+  qty: [(2.5, 'real', 15), ('two', 'text', 9)]
+  SQLite: 'N/A' > 100 is 1 | 'Shipped' LIKE 'ship%' is 1
+
+status LIKE 'ship%' AND amount > 100 AND gift: 78 rows
+  one task's SQL:
+    SELECT "order_id", "customer", "status", "amount", "qty", "placed_at", "gift",
+    "note" FROM "orders" WHERE 1 = 1 AND rowid <= ? AND (typeof("status") = 'text')
+    AND (typeof("amount") IN ('integer', 'real')) AND (typeof("status") = 'text' AND
+    substr("status", 1, ?) = ?) AND (typeof("amount") IN ('integer', 'real') AND
+    "amount" > ?)
+  params: [100006, 4, 'ship', 100.0]
+  +- *(1) Filter (isnotnull(gift) AND gift)
+
+A temporary view over the source, three queries:
+  SELECT count(*) FROM orders_v WHERE status = 'shipped'   329
+  SELECT count(*) FROM orders_v                            329
+  SELECT count(*) FROM orders_v WHERE qty > 3              601
+  the right answers: [329, 1207, 601]

@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from pyspark.sql import functions as F
 from pyspark.sql.datasource import DataSource, DataSourceReader, InputPartition
-from common.book import session
+from common.book import session, plan
 from tickets_api import TicketsAPI
 
 api = TicketsAPI()
@@ -48,8 +48,8 @@ def fetch_json(url, timeout, retries):
 
 
 class PagePartition(InputPartition):
-    def __init__(self, page):
-        self.page = page
+    def __init__(self, pages):
+        self.pages = pages                  # one or more page numbers, read in order by one task
 
 
 class TicketsDataSource(DataSource):
@@ -75,22 +75,26 @@ class TicketsReader(DataSourceReader):
         self.page_size = int(options.get("page_size", "20"))
         self.timeout = float(options.get("timeout", "10"))
         self.retries = int(options.get("retries", "3"))
+        self.pages_per_partition = int(options.get("pages_per_partition", "1"))
 
     def page_url(self, page):
         return f"{self.url}?page={page}&page_size={self.page_size}"
 
     def partitions(self):
         first = fetch_json(self.page_url(0), self.timeout, self.retries)
-        return [PagePartition(p) for p in range(math.ceil(first["total"] / self.page_size))]
+        pages = list(range(math.ceil(first["total"] / self.page_size)))
+        k = self.pages_per_partition         # caps the number of concurrent requests
+        return [PagePartition(pages[i:i + k]) for i in range(0, len(pages), k)]
 
     def read(self, partition):
         import json
         from pyspark.sql.types import VariantVal
 
-        body = fetch_json(self.page_url(partition.page), self.timeout, self.retries)
-        for item in body["items"]:
-            yield (item["id"], item["status"], item["subject"],
-                   VariantVal.parseJson(json.dumps(item["meta"])))
+        for page in partition.pages:
+            body = fetch_json(self.page_url(page), self.timeout, self.retries)
+            for item in body["items"]:
+                yield (item["id"], item["status"], item["subject"],
+                       VariantVal.parseJson(json.dumps(item["meta"])))
 
 
 spark.dataSource.register(TicketsDataSource)
@@ -169,10 +173,18 @@ except Exception as e:
     head, last = error_lines(e)
     print("retries=0:", head, "\n          ", last)
 print("retries=0:", api.take_log())
-print("duplicate ids:", df.groupBy("id").count().where("count > 1").count())
+print("duplicate ids:", df.groupBy("id").count().where("count > 1").count(), "|", api.take_log())
+two = spark.read.format("tickets").option("url", api.url).option("pages_per_partition", 2).load()
+print(f"pages_per_partition=2: {two.count()} rows in {two.rdd.getNumPartitions()} partitions:", api.take_log())
+
+# 6. A secret in an option: where does it show?
+secret = spark.read.format("tickets").option("url", api.url).option("api_token", "s3cret-123").load()
+text = plan(secret, "extended") + plan(secret, "formatted")
+print("api_token in explain() output:", "s3cret-123" in text)
+api.take_log()
 
 
-# 6. A dict in a VARIANT column.
+# 7. A dict in a VARIANT column.
 class DictVariant(TicketsDataSource):
     @classmethod
     def name(cls):
