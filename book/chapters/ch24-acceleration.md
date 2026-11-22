@@ -829,7 +829,7 @@ The first result is from Gluten. Without off-heap memory, Gluten does not start,
 
 The second result is from the RAPIDS Accelerator on the RTX 5070 Ti. Before the session, other processes used 412 MiB of the 16,303 MiB on the card. After the first GPU task, which only added 1 to one number, the use was 15,181 MiB. The `routes` query then added only 84 MiB more. The pool holds almost all the memory of the GPU while the session runs, and `spark.stop()` gives it back.
 
-Thus, two Spark applications cannot share one GPU with the default settings. The first application takes the memory, and the second application gets almost none.
+Thus, with the default settings, a second application on the same GPU can get only the memory that remains. This chapter did not run two applications on one GPU. But Step 7 shows the opposite case: a different program held 5.5 GB of the GPU, and the pool was smaller.
 
 Auron has a different model again. It does not use Spark's off-heap pool. It sets `spark.memory.offHeap.enabled=false` in its documentation, and its native memory manager uses a fraction (`spark.auron.memoryFraction`, default 0.6) of the executor memory overhead.
 
