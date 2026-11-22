@@ -328,6 +328,13 @@ FROM sales WHERE borough = 'Queens' ORDER BY trips, day
 (borough#0, day#3 ASC NULLS FIRST, specifiedwindowframe(RangeFrame, unboundedpreceding$(), curre
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch07-frames.webp">
+    <source src="../../media/clips/ch07-frames.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>windows.py</code> runs against Spark 4.3.0. With the default frame, the two rows with 30 trips both get 90, and <code>last_value</code> returns the current row.</figcaption>
+</figure>
+
 - **A `RANGE` frame includes the peers of the current row.** Peers are rows with the same `ORDER BY` value. The two rows with 30 trips both get 90, because each one includes the other. The `ROWS` frame counts physical rows, so it gives 60 and then 90. A running total with ties needs `ROWS`, or a second sort column that makes each value different.
 - **`last_value` with the default frame returns the current row.** The frame ends at the current row, so the last value in the frame is the current value. To get the last value of the partition, give the frame `UNBOUNDED FOLLOWING`. The same applies to `max`, `avg` and the other aggregates.
 
@@ -640,6 +647,13 @@ SELECT Borough, max_by(Zone, trip_distance) AS zone_of_longest,
        max_by(round(trip_distance, 1), trip_distance, 3) AS top3
 FROM june GROUP BY Borough ORDER BY Borough
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch07-topn.webp">
+    <source src="../../media/clips/ch07-topn.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>qualify.py</code> runs against Spark 4.3.0. Upper limits on <code>row_number</code>, <code>rank</code> and <code>dense_rank</code> get a <code>WindowGroupLimit</code> before and after the shuffle.</figcaption>
+</figure>
 
 ```text
 == 6. top-N without a window
