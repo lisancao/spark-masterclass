@@ -17,3 +17,4 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | 48 | gang-timeline, executors-alive | anim-handoff (task times and log lines from dag_submit.txt) | YuniKorn and Volcano table | 0, 0 (chapter allowlist from notes/ch48.md) |
 | 49 | checks, average-of-ratios | anim-sieve (outcomes from dryrun.txt) | none | 4, 4 |
 | 50 | processes, balance | anim-deal (file sizes of the sample folder, totals from docs_source.txt) | file-opens table | 0, 0 (part09a allowlist) |
+| 51 | arrow-timing, key-ranges | anim-requests (request logs from api_source.txt) | pages table | 0, 0 (part09a allowlist) |
