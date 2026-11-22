@@ -22,3 +22,4 @@ Scope: figures, animations, tables and admonitions added to the existing chapter
 - ch27: figures ch27-sessions (t2_sessions.txt), ch27-clock (t3_time.txt); animation ch27-anim-call-order (t2_sessions.txt; new timer from the Sessionizer code; time scale schematic). STE 0 (part05 ch27 allow list).
 - ch28: figures ch28-latency (r2_latency.txt medians), ch28-foreach (r3_foreach_default.txt, r3_foreach_64.txt); animation ch28-anim-pipelined (r4_pipeline.txt task counts, r2_latency.txt medians; time scale schematic). STE 0 (part05 ch28 allow list).
 - ch29: figures ch29-deltabytes (c1_hdfs.txt sizes, lz4delta.py layout), ch29-versions (c1_hdfs.txt decoded files), ch29-repartition (c3_repartition.txt); animation ch29-anim-state-commit (c1_hdfs.txt records; time scale schematic). STE 0 (part05 ch29 allow list).
+- ch30: figures ch30-deltalog (delta_log.txt), ch30-cow-mor (iceberg_log.txt); animation ch30-anim-delta-commits (delta_log.txt; time scale schematic). STE 0.

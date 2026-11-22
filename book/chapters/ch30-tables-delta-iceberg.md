@@ -171,11 +171,24 @@ rows read as delta:   4
 rows read as parquet: 12 (every file still on disk: 3)
 ```
 
+<figure markdown>
+  ![Delta versions and files on disk](../media/figures/ch30-deltalog-light.svg#only-light)
+  ![Delta versions and files on disk](../media/figures/ch30-deltalog-dark.svg#only-dark)
+  <figcaption markdown="span">The three versions from `delta_log.txt` and the files that they add and remove. A Delta reader reads only file C. A Parquet reader reads all three files.</figcaption>
+</figure>
+
 !!! warning "Caution: read a Delta table only as `delta`"
 
     Do not read a Delta folder with `spark.read.parquet(path)` or with `load(path)` and no format. The Parquet reader reads every file in the folder, also the files that the log removed. Here it returned 12 rows for a table of 4 rows, and it gave no error.
 
 The `cdc` action is the change data feed. When `delta.enableChangeDataFeed` is on, each commit that changes rows also writes the changed rows to `_change_data/`. Step 6 reads them.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch30-anim-delta-commits.webp">
+    <source src="../../media/clips/ch30-anim-delta-commits.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the WRITE, the MERGE and the DELETE as commits. Each commit adds a new file and marks the old file as removed. The removed files stay on disk. The row counts come from `delta_log.txt`. The time scale is schematic.</figcaption>
+</figure>
 
 ## Step 5: Time travel, history, VACUUM and checkpoints
 
@@ -476,6 +489,12 @@ Iceberg can do a row-level change in two ways, and a table property selects the 
 |1      |00000-56-f6987e03-d2c8-43b6-a376-d2f5f84eba0b-00001-deletes.parquet|1           |
 +-------+-------------------------------------------------------------------+------------+
 ```
+
+<figure markdown>
+  ![Copy-on-write and merge-on-read](../media/figures/ch30-cow-mor-light.svg#only-light)
+  ![Copy-on-write and merge-on-read](../media/figures/ch30-cow-mor-dark.svg#only-dark)
+  <figcaption markdown="span">A DELETE of one row in each mode, from `iceberg_log.txt`. Copy-on-write writes a new data file. Merge-on-read keeps the data file and adds a position delete file.</figcaption>
+</figure>
 
 The data file is the same file as before, and it still holds four rows. The DELETE wrote a second, small file with content type 1: a **position delete file**. It records the file path and the row position of each deleted row. A reader reads the data file and skips the positions in the delete file. Merge-on-read makes writes fast and reads a little slower. Compaction later writes the deletes into new data files (Chapter 31).
 
