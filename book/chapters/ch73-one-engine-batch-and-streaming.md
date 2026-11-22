@@ -44,6 +44,24 @@ Two lines of change go through the table. The engine changed from RDDs of object
 
 The first streaming API of Spark was **Spark Streaming**, with discretized streams, or **DStreams** ([Zaharia et al., SOSP 2013](https://dl.acm.org/doi/10.1145/2517349.2522737)). A DStream divides a stream into small batches by time. Each batch is an RDD, and each operation on the DStream runs on each RDD. The idea reused the RDD for streaming: the same lineage gives fault tolerance, and the same scheduler runs the batches.
 
+```mermaid
+flowchart LR
+  classDef src fill:#4b5563,fill-opacity:0.72,stroke:#4b5563,color:#ffffff
+  classDef rdd fill:#c0661a,fill-opacity:0.72,stroke:#c0661a,color:#ffffff
+  classDef tbl fill:#2f7d4f,fill-opacity:0.72,stroke:#2f7d4f,color:#ffffff
+  subgraph D["DStream: a sequence of RDDs"]
+    direction LR
+    in1["records"]:::src --> b1["RDD for second 1"]:::rdd
+    in1 --> b2["RDD for second 2"]:::rdd
+    in1 --> b3["RDD for second 3"]:::rdd
+  end
+  subgraph S["Structured Streaming: a table that grows"]
+    direction LR
+    in2["records"]:::src --> t["input table<br/>new rows at the end"]:::tbl --> q["the same DataFrame query,<br/>run incrementally"]:::tbl
+  end
+  D -->|"Spark 2.0"| S
+```
+
 DStreams are still in the Spark 4.3 package. `dstream.py` runs a word count over a queue of three RDDs, one RDD for each one-second batch:
 
 ```python

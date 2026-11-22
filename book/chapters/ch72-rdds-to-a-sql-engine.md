@@ -211,6 +211,21 @@ The columnar cache is larger than the pickled Python cache here. Doubles and tim
 
 The third change is how the operators run. Before Spark 2.0, each physical operator was an iterator. It called the `next()` method of its child, one row at a time, through a virtual function call. Whole-stage code generation removes these calls. It fuses a chain of operators into one generated Java method, and it compiles the method at run time with Janino.
 
+```mermaid
+flowchart TB
+  classDef old fill:#4b5563,fill-opacity:0.72,stroke:#4b5563,color:#ffffff
+  classDef new fill:#2f7d4f,fill-opacity:0.72,stroke:#2f7d4f,color:#ffffff
+  subgraph V["iterator model: one virtual call for each operator, for each row"]
+    direction LR
+    h1["HashAggregate.next()"]:::old --> p1["Project.next()"]:::old --> f1["Filter.next()"]:::old --> s1["Scan.next()"]:::old
+  end
+  subgraph W["whole-stage codegen: one loop for the stage"]
+    direction LR
+    l["for each row in the batch:<br/>read fare_amount, if null or not > 0 continue,<br/>compute hour, update the hash map"]:::new
+  end
+  V -->|"Spark 2.0"| W
+```
+
 `codegen.py` prints the generated code with `explain("codegen")`. Before the query runs, there is no code, because AQE generates the code for each query stage when it makes the stage:
 
 ```text
