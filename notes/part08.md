@@ -23,7 +23,7 @@ Chapters (old numbers in the file names; final numbers in brackets, from `notes/
 
 ## STE check results
 
-`scripts/ste-check <file> description <extra allow words>`; the counts below are the findings left after the rewrite. Each is a literal title or a quotation, which STE does not change.
+`scripts/ste-check <file> description --allow <words>` (the updated wrapper); the counts below are the findings left after the rewrite. Each is a literal title or a quotation, which STE does not change.
 
 | Chapter | Findings | What is left, and why |
 |---|---|---|
@@ -31,7 +31,7 @@ Chapters (old numbers in the file names; final numbers in brackets, from `notes/
 | ch42 | 2 (allow: `packaging`, `planner`) | a 7-sentence paragraph the lint counts from version dots (`pandas>=2.2.0` list); the doc title "Running Spark on Kubernetes" |
 | ch43 | 1 (allow: `planner`) | doc title "Debugging PySpark" |
 | ch44 | 2 | `running` in pasted script output that the prep script does not strip; doc title "Job scheduling" |
-| ch45 | 1 (allow: `attempt`, `attempts`) | doc title "Running Spark on Kubernetes". The wrapper did not pass `attempt` to the lint for three lines; a direct `stecheck` with the same allowlist gives 1. |
+| ch45 | 1 (allow: `attempt`, `attempts`) | doc title "Running Spark on Kubernetes" |
 | ch46 | 4 | talk title "Getting your agents ..." (two times), a quoted slide sentence with "was removed", doc title "programming guide" |
 
 Rules broken on purpose: quotations of the talk's slides keep their wording (ch46), and the tables of study numbers keep the slides' text in quotes.

@@ -40,7 +40,7 @@ The steps below show what each boundary protects, with the server code of 4.3.0 
 
 When a client connects, the server makes a `SessionHolder` (`sql/connect/server/src/main/scala/org/apache/spark/sql/connect/service/SessionHolder.scala`). The key of a session is the pair `(userId, sessionId)`. The holder contains a new `SparkSession` that the server makes with `newSession()` from the server's own session. A `SparkSession` from `newSession()` shares the `SparkContext` and the `SharedState` (the catalog, the cache manager and the listeners). It has its own `SessionState` (SQL configs, temporary views, the function registry). The holder also has its own artifact manager (Chapter 42, Step 9), its own job tags and its own operations.
 
-## Step 2: What is isolated, and what is shared
+## Step 2: What a session isolates, and what sessions share
 
 `isolation.py` opens two sessions on one server. Session A makes a temporary view, sets a SQL config, registers a UDF, makes a global temporary view, writes a table and caches a DataFrame. Then session B tries to see each of these:
 

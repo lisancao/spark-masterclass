@@ -12,7 +12,7 @@ Show
 # beat: dryrun | The dry-run refuses three agent errors before any data
 Type "# five versions of the gold flow: which ones does the dry-run refuse?" Enter
 Sleep 500ms
-Type "ch46/dryrun.sh 2>/dev/null | grep -v '^pyspark.errors\|raise PySpark' | cut -c1-94" Enter
+Type "ch46/dryrun.sh 2>/dev/null | grep --line-buffered -v 'AnalysisException: *$\|raise PySparkException' | cut -c1-94" Enter
 Wait@400s
 Sleep 12s
 
