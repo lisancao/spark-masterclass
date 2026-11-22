@@ -407,6 +407,13 @@ for tz in ["UTC", "America/New_York"]:
   CAST('10:07' AS TIME)  -> ERROR [UNSUPPORTED_TIME_TYPE] The data type TIME is not supported. SQLSTATE: 0A000
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch05-zones.webp">
+    <source src="../../media/clips/ch05-zones.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>type_system.py</code> runs against Spark 4.3.0. The same <code>TIMESTAMP</code> text gives two instants under two session time zones. The <code>TIMESTAMP_NTZ</code> text gives one.</figcaption>
+</figure>
+
 The `TIMESTAMP` text gives two instants, 14,400 seconds (four hours) apart. The `TIMESTAMP_NTZ` text gives the same number in both zones. (`unix_seconds` accepts `TIMESTAMP_NTZ` in 4.3, and it reads the wall clock as UTC.)
 
 The next two lines show a trap in PySpark. `collect()` converts a `TIMESTAMP` to a naive `datetime` in the time zone of the Python process, not the session time zone. The script runs the same query in two child processes, with the session time zone set to UTC in both. The value that `collect()` gives changes with the `TZ` of the process. `toPandas()` uses the session time zone, so it gives the same value in both. Set `spark.sql.session.timeZone` in each job, and compare instants inside Spark, not after `collect()`.
@@ -669,6 +676,13 @@ day 03:
    ('missing', 'event', 'string')
    ('type_changed', 'amount', 'double -> struct<currency:string,value:double>')
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch05-drift.webp">
+    <source src="../../media/clips/ch05-drift.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>drift.py</code> runs against Spark 4.3.0. It compares each day of events with the schema contract and reports the fields that changed.</figcaption>
+</figure>
 
 Day 3 renamed `event` to `event_type`, so the report shows one field as `missing` and one field as `added`. A program cannot know that the two are the same field. A person must decide. Decide for each kind of drift what the job does:
 
