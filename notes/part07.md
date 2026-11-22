@@ -197,7 +197,7 @@ ch39: distinct counts do not add (Step 1); hashing messy values, empty string, t
 | 232 distinct texts, per-row UDF requests, mapInPandas requests and attempts table, rate table, write-once table, second run, VARIANT validation | `code/ch40/output/calling.txt` |
 | `spark.broadcast.UDFCompressionThreshold` | `core/.../internal/config/package.scala` line 2440 at v4.3.0 |
 
-Timings: the cached-vs-not fit comparison is a median of 3 after a warm-up under `$HOME/spark-masterclass/data/.bench.lock`. All other times in the chapters (fit seconds, label propagation rounds, star vs propagation, service runs, search medians in ch36) are single runs on a 16-core machine that other writers used at the same time (load average 20 to 50). The chapters say so where they quote them.
+Timings: the only timing that the text quotes as a result is the cached-vs-not fit comparison in ch35 Step 4, a median of 3 after a warm-up under `$HOME/spark-masterclass/data/.bench.lock`. Other output blocks show times from single runs without the lock (fit seconds, label propagation rounds, star vs propagation, service runs, search medians in ch36), on a 16-core machine that other writers used at the same time (load average 20 to 50). The prose says that these times are not measurements and draws no speed conclusion from them; the results it uses are counts (rounds, requests, plan lines, rows). Films ran without the lock, per the updated brief.
 
 ## Environment
 
