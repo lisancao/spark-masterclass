@@ -52,6 +52,11 @@ FROM UNNEST(array('Manhattan', 'Queens', 'Bronx')) WITH ORDINALITY AS b(name, po
 |> JOIN zones ON zones.Borough = b.name
 |> AGGREGATE count(*) AS zones GROUP BY pos, name
 |> ORDER BY pos""").show()
+try:
+    spark.sql("""FROM UNNEST(array('Queens')) AS b(borough) |> JOIN zones ON zones.Borough = b.borough
+                 |> AGGREGATE count(*) GROUP BY borough""").collect()
+except Exception as e:
+    print("alias column named borough:", err(e)[:60])
 P = """
 FROM zones
 |> WHERE Borough = 'Queens' AND Zone LIKE 'J%'

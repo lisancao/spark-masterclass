@@ -7,6 +7,7 @@
 |  3|    Bronx|   43|
 +---+---------+-----+
 
+alias column named borough: [AMBIGUOUS_REFERENCE] Reference `borough` is ambiguous, coul
 +----------+---------------+-------+---+
 |LocationID|Zone           |word   |n  |
 +----------+---------------+-------+---+
@@ -24,13 +25,13 @@
 LEFT JOIN LATERAL in a pipe: [Row(id=1, arr=[10, 20], x=10), Row(id=1, arr=[10, 20], x=20), Row(id=2, arr=[], x=None)]
 
 == 2. TABLESAMPLE forms on 3,837,248 trips
-  TABLESAMPLE (1 PERCENT)                            rows: 38,440 then 38,552  scan returned: 3,837,248
+  TABLESAMPLE (1 PERCENT)                            rows: 38,394 then 38,468  scan returned: 3,837,248
                                                      plan: ['Sample 0.0, 0.01, false']
   TABLESAMPLE (1 PERCENT) REPEATABLE (42)            rows: 38,421 then 38,421  scan returned: 3,837,248
                                                      plan: ['Sample 0.0, 0.01, false, 42']
   TABLESAMPLE BERNOULLI (1 PERCENT) REPEATABLE (42)  rows: 38,421 then 38,421  scan returned: 3,837,248
                                                      plan: ['Sample 0.0, 0.01, false, 42']
-  TABLESAMPLE (BUCKET 1 OUT OF 100)                  rows: 38,783 then 38,784  scan returned: 3,837,248
+  TABLESAMPLE (BUCKET 1 OUT OF 100)                  rows: 38,069 then 38,394  scan returned: 3,837,248
                                                      plan: ['Sample 0.0, 0.01, false']
   TABLESAMPLE (1000 ROWS)                            rows:  1,000 then  1,000  scan returned:    16,384
                                                      plan: ['CollectLimit 1000']

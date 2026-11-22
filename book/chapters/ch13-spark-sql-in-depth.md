@@ -9,6 +9,7 @@ The scripts are in [`code/ch13`](https://github.com/lisancao/spark-masterclass/t
 - `syntaxes.py`: one question in three syntaxes, the plans, `explain` modes, constant folding and parameters.
 - `windows.py`: window functions, frames and the plans that they make.
 - `qualify.py`: top-N for each group with `QUALIFY`, pipes and aggregates, and the pipe operators.
+- `sampling.py`: `UNNEST` in pipe syntax, and `TABLESAMPLE`, `sample` and `sampleBy` with the rows that each one reads.
 
 ## Step 1: One question, three syntaxes
 
@@ -710,7 +711,7 @@ FROM june GROUP BY Borough ORDER BY Borough
 plan nodes: ['SortAggregate(key=[Borough#39],', 'Exchange', 'SortAggregate(key=[Borough#39],', 'BroadcastExchange']
 ```
 
-The zones are the same as in Step 13. This plan is an aggregate with a partial step and a final step, with no `Window`. The aggregate is a `SortAggregate`, not a `HashAggregate`, because the `k` form keeps an array of rows in its buffer. [Chapter 10](ch10-cleaning-values.md) showed the same fallback for collated keys. Use `max_by` when you need values, and `QUALIFY` when you need full rows.
+The zones are the same as in Step 13. This plan is an aggregate with a partial step and a final step, with no `Window`. The aggregate is a `SortAggregate`, not a `HashAggregate`. The `k` form keeps an array of rows in its buffer. [Chapter 10](ch10-cleaning-values.md) showed the same fallback for collated keys. Use `max_by` when you need values, and `QUALIFY` when you need full rows.
 
 ## Step 16: The pipe operators
 
@@ -842,6 +843,159 @@ Two more aggregates replace work that once needed a window or a subquery. `lista
 
 On this data, the `approx_top_k` counts are the same as the exact counts in Step 17. The result is approximate in general, because the sketch keeps a limited number of values. [Chapter 57](ch57-sketches.md) explains sketches.
 
+## Step 19: UNNEST in pipe syntax
+
+Spark 4.3.0 adds the `UNNEST` clause ([Chapter 28](ch28-complex-types.md), Step 10). Pipe syntax has no `UNNEST` operator of its own. `UNNEST` is a table in the `FROM` clause, so a pipe query can start with it. In the middle of a pipe, `|> JOIN LATERAL UNNEST(...)` joins each row to the elements of its array. The script is `code/ch13/sampling.py`:
+
+```sql
+FROM UNNEST(array('Manhattan', 'Queens', 'Bronx')) WITH ORDINALITY AS b(name, pos)
+|> JOIN zones ON zones.Borough = b.name
+|> AGGREGATE count(*) AS zones GROUP BY pos, name
+|> ORDER BY pos
+```
+
+```sql
+FROM zones
+|> WHERE Borough = 'Queens' AND Zone LIKE 'J%'
+|> EXTEND split(Zone, ' ') AS words
+|> JOIN LATERAL UNNEST(words) WITH ORDINALITY AS w(word, n)
+|> SELECT LocationID, Zone, word, n
+|> ORDER BY LocationID, n
+```
+
+```text
+== 1. UNNEST in pipe syntax
++---+---------+-----+
+|pos|     name|zones|
++---+---------+-----+
+|  1|Manhattan|   69|
+|  2|   Queens|   69|
+|  3|    Bronx|   43|
++---+---------+-----+
+
+alias column named borough: [AMBIGUOUS_REFERENCE] Reference `borough` is ambiguous, coul
++----------+---------------+-------+---+
+|LocationID|Zone           |word   |n  |
++----------+---------------+-------+---+
+|2         |Jamaica Bay    |Jamaica|1  |
+|2         |Jamaica Bay    |Bay    |2  |
+|129       |Jackson Heights|Jackson|1  |
+|129       |Jackson Heights|Heights|2  |
+|130       |Jamaica        |Jamaica|1  |
+|131       |Jamaica Estates|Jamaica|1  |
+|131       |Jamaica Estates|Estates|2  |
+|132       |JFK Airport    |JFK    |1  |
+|132       |JFK Airport    |Airport|2  |
++----------+---------------+-------+---+
+
+LEFT JOIN LATERAL in a pipe: [Row(id=1, arr=[10, 20], x=10), Row(id=1, arr=[10, 20], x=20), Row(id=2, arr=[], x=None)]
+```
+
+- In the first query, the ordinality keeps the order of the list. It is a sort key that you write in the query, not an order that you hope for.
+- In the second query, `EXTEND` makes the array, and the `JOIN LATERAL` uses it on the next line. Each prefix of the pipe is still a query (Step 3).
+- `|> LEFT JOIN LATERAL UNNEST(arr) ON true` keeps the row with the empty array, with a `NULL` element. [Chapter 28](ch28-complex-types.md) shows that this form has a join in its plan.
+
+The first query names the alias column `name`, not `borough`. The `zones` table has a `Borough` column, and Spark names are not case sensitive by default. With `b(borough)`, the `AGGREGATE` fails with `AMBIGUOUS_REFERENCE`, as the output shows.
+
+## Step 20: TABLESAMPLE, sample and sampleBy, and what they read
+
+A sample gives a part of a table. It is a fast way to look at data, or to test a query on less data. `sampling.py` runs each form of `TABLESAMPLE` two times on the 3,837,248 June trips. It counts the rows, and it reads the output rows of the Parquet scan from the SQL metrics:
+
+```text
+== 2. TABLESAMPLE forms on 3,837,248 trips
+  TABLESAMPLE (1 PERCENT)                            rows: 38,394 then 38,468  scan returned: 3,837,248
+                                                     plan: ['Sample 0.0, 0.01, false']
+  TABLESAMPLE (1 PERCENT) REPEATABLE (42)            rows: 38,421 then 38,421  scan returned: 3,837,248
+                                                     plan: ['Sample 0.0, 0.01, false, 42']
+  TABLESAMPLE BERNOULLI (1 PERCENT) REPEATABLE (42)  rows: 38,421 then 38,421  scan returned: 3,837,248
+                                                     plan: ['Sample 0.0, 0.01, false, 42']
+  TABLESAMPLE (BUCKET 1 OUT OF 100)                  rows: 38,069 then 38,394  scan returned: 3,837,248
+                                                     plan: ['Sample 0.0, 0.01, false']
+  TABLESAMPLE (1000 ROWS)                            rows:  1,000 then  1,000  scan returned:    16,384
+                                                     plan: ['CollectLimit 1000']
+```
+
+- **`PERCENT` and `BUCKET x OUT OF y` are the same operator.** The parser changes both into a `Sample` node with a fraction (`AstBuilder.withSample`). `BUCKET 1 OUT OF 100` is the fraction 0.01. It is not a sample of hash buckets.
+- **The `Sample` node keeps each row with the probability of the fraction.** Thus the number of rows changes from one run to the next, and it is near 1% of the rows, not exactly 1%.
+- **`REPEATABLE (seed)` fixes the random seed.** The two runs gave the same 38,421 rows. `BERNOULLI` is the default method, so the third form is the same as the second.
+- **A percent sample reads every row.** The scan returned all 3,837,248 rows for each percent and bucket form. `SampleExec` filters the rows after the scan, so a 1% sample does not make the scan 100 times faster.
+- **`ROWS` is a limit, not a sample.** The parser changes `TABLESAMPLE (1000 ROWS)` into `Limit 1000`. The scan stopped after 16,384 rows, and the rows are the first rows of the scan, not random rows.
+
+<figure markdown>
+![Rows read and rows kept by each sample.](../media/figures/ch13-tablesample.svg)
+<figcaption>Rows that the Parquet scan returned (gray) and rows that the sample kept (orange), from <code>sampling.txt</code>. Only the <code>ROWS</code> form reads less, because it is a limit.</figcaption>
+</figure>
+
+A filter before the sample still goes down to the Parquet scan:
+
+```text
+== 4. sample after a filter: Parquet pushdown still applies
+  rows: 1211  scan returned: 3,145,728  plan: ['Sample 0.0, 0.1, false, 7', 'Filter (isnotnull(payment_type) AND (payment_type = 3))']
+```
+
+Spark 4.3.0 parses three more forms, but it refuses them for this table:
+
+```text
+== 3. forms that Spark refuses
+  TABLESAMPLE SYSTEM (1 PERCENT)                   -> [UNSUPPORTED_FEATURE.TABLESAMPLE_SYSTEM_NO_SCAN] The feature is not supported: TABLESAMPLE SYSTE
+  TABLESAMPLE (100M)                               -> TABLESAMPLE(byteLengthLiteral) is not supported.
+  TABLESAMPLE (BUCKET 1 OUT OF 4 ON PULocationID)  -> TABLESAMPLE(BUCKET x OUT OF y ON colname) is not supported.
+  TABLESAMPLE (150 PERCENT)                        -> [INVALID_TABLESAMPLE_FRACTION] Sampling fraction (1.5) must be on interval [0, 1]. SQLSTATE: 220
+```
+
+`TABLESAMPLE SYSTEM` (since Spark 4.2.0, SPARK-55978) asks the data source for a sample of blocks, so that the source reads less. Only a DSv2 source that implements `SupportsPushDownTableSample` with block sampling can do it. The JDBC source supports it (SPARK-57040, also since 4.2.0). The book's trips are a file source in a temporary view, so Spark refuses the query. It does not change it into a row sample.
+
+`SYSTEM` also refuses `REPEATABLE`, `ROWS` and `BUCKET`. The 4.3.0 docs page for `TABLESAMPLE` does not yet describe `SYSTEM`, `BERNOULLI` or `REPEATABLE`. The grammar and the error conditions in the source do.
+
+The DataFrame API has two methods:
+
+```text
+== 5. DataFrame.sample and sampleBy
+  sample(0.01, seed=42): 38,421 and 38,421   TABLESAMPLE (1 PERCENT) REPEATABLE (42): 38,421
+  plan of sample: ['Sample 0.0, 0.01, false, 42']
+  sample(withReplacement=True, 0.01): 38,090 rows, 181 rows that occur more than one time
+  sample(withReplacement=True, fraction=2.0): 7,674,756
+  sampleBy('payment_type', ...) plan: ['Filter UDF(payment_type, rand(1))']
+  type  all rows fraction  sampled  expected
+     0 1,013,500    0.001    1,089      1014
+     1 2,432,871    0.001    2,387      2433
+     2   357,804     0.01    3,535      3578
+     3    11,205      0.1    1,112      1120
+     4    21,866      0.1    2,216      2187
+     5         2      0.0        0         0
+```
+
+- **`sample(fraction, seed)` is the same `Sample` node** as `TABLESAMPLE (... PERCENT) REPEATABLE (seed)`. With the same seed, it gave the same 38,421 rows.
+- **`withReplacement=True` uses a Poisson sampler.** A row can occur more than one time, and the fraction can be larger than 1. The fraction 2.0 gave about two copies of each row.
+- **`sampleBy(column, fractions, seed)` is a stratified sample.** Each value of the column gets its own fraction. A value that is not in the map gets 0, as payment type 5 shows. The plan is a `Filter` with a UDF and `rand(seed)`, not a `Sample` node (`DataFrameStatFunctions.sampleBy` in the 4.3.0 source). It reads every row too.
+
+Use `sampleBy` to keep the small groups in a sample. A 0.1% uniform sample of the trips would keep about 11 rows of payment type 3. `sampleBy` kept 1,112.
+
+| Form | Plan | Rows read | Same rows each run |
+|---|---|---|---|
+| `TABLESAMPLE (p PERCENT)` | `Sample` | all | no |
+| `TABLESAMPLE (p PERCENT) REPEATABLE (s)` | `Sample` with seed | all | yes, on the same input partitions |
+| `TABLESAMPLE (BUCKET x OUT OF y)` | `Sample` with fraction x/y | all | no |
+| `TABLESAMPLE (n ROWS)` | `Limit` | stops early | the first rows, not random |
+| `TABLESAMPLE SYSTEM (p PERCENT)` | pushed to the source | less, if the source supports it | depends on the source |
+| `df.sample(fraction, seed)` | `Sample` | all | yes, with a seed |
+| `df.sampleBy(col, fractions, seed)` | `Filter` with `rand(seed)` | all | yes, with a seed |
+
+!!! caution "Use a seed only to repeat a sample on the same input"
+    If the files or the number of partitions change, the sample changes.
+
+`TABLESAMPLE` is also a pipe operator:
+
+```sql
+FROM trips |> WHERE payment_type = 2 |> TABLESAMPLE (1 PERCENT) REPEATABLE (3)
+|> AGGREGATE count(*) AS n, round(avg(fare_amount), 2) AS avg_fare
+```
+
+```text
+== 6. TABLESAMPLE as a pipe operator
+[Row(n=3610, avg_fare=19.98)]
+```
+
 ## The whole chapter, on one page
 
 - **DataFrame code, SQL and pipe SQL make the same optimized plan.** The parser gives different trees, and the analyzer and the optimizer remove the differences.
@@ -855,6 +1009,8 @@ On this data, the `approx_top_k` counts are the same as the exact counts in Step
 - **Each different window specification costs a sort, and each different `PARTITION BY` costs a shuffle.** A window with no `PARTITION BY` runs in one task.
 - **`QUALIFY` (4.2) filters on window functions.** For `row_number`, `rank` and `dense_rank` with an upper limit, Spark adds a `WindowGroupLimit` before and after the shuffle.
 - **`max_by(x, y, k)` (4.2) gives top values without a window.**
+- **`UNNEST` (4.3) starts a pipe, or joins with `|> JOIN LATERAL UNNEST(...)`.**
+- **A percent or bucket sample reads every row.** `ROWS` is a limit. `REPEATABLE` and a seed repeat a sample on the same input. `sampleBy` gives each group its own fraction.
 
 [Chapter 14](ch14-procedural-sql.md) adds the procedural parts of SQL: variables, loops, handlers, SQL functions and recursive queries.
 
@@ -865,3 +1021,4 @@ On this data, the `approx_top_k` counts are the same as the exact counts in Step
 - [QUALIFY clause](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-qry-select-qualify.html).
 - [Parameterized SQL](https://spark.apache.org/docs/4.3.0/api/python/reference/pyspark.sql/api/pyspark.sql.SparkSession.sql.html), the `args` argument of `SparkSession.sql`.
 - [EXPLAIN](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-qry-explain.html), the five modes.
+- [UNNEST clause](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-qry-select-unnest.html) and [TABLESAMPLE](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-qry-select-sampling.html).

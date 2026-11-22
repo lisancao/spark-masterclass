@@ -4,8 +4,8 @@ from svgkit import *
 
 OUT = str(Path(__file__).resolve().parents[2] / "book" / "media" / "figures") + "/"
 s = Svg(820, 330, "Rows that the Parquet scan returned against rows that the sample kept")
-rows = [("TABLESAMPLE (1 PERCENT)", 3837248, 38086, "Sample"),
-        ("TABLESAMPLE (BUCKET 1 OUT OF 100)", 3837248, 38353, "Sample"),
+rows = [("TABLESAMPLE (1 PERCENT)", 3837248, 38394, "Sample"),
+        ("TABLESAMPLE (BUCKET 1 OUT OF 100)", 3837248, 38069, "Sample"),
         ("TABLESAMPLE (1000 ROWS)", 16384, 1000, "CollectLimit"),
         ("WHERE payment_type = 3, then 10 PERCENT", 3145728, 1211, "Filter, Sample")]
 X0, MAXW = 330, 420
