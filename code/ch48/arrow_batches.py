@@ -105,9 +105,10 @@ def last_error(e):
     hits = [m.group(1) for l in str(e).splitlines()
             if (m := re.match(r"^\s*(?:[\w.]+\.)?(\w+(?:Error|Exception|Invalid): .*)", l))]
     if hits:
-        return hits[-1][:72]
-    if "AssertionError" in str(e):
-        return "AssertionError (no message)"
+        return hits[-1][:66]
+    if "AssertionError" in str(e):              # a bare assert in PySpark's converters
+        where = re.findall(r'File ".*/(\w+\.py)", line \d+, in (\w+)', str(e))
+        return f"AssertionError in {where[-1][0]}:{where[-1][1]}()" if where else "AssertionError"
     return str(e).splitlines()[0][:72]
 
 
@@ -160,14 +161,14 @@ if "--timing" in sys.argv:
 spark = session("ch48-arrow", spark_sql_session_timeZone="UTC")
 spark.dataSource.register(Probe)
 spark.dataSource.register(Rows)
-print(f"{'declared, yielded':<24} result")
+print(f"{'declared, yielded':<22} result")
 for case in VALUES:
     try:
         expr = "hex(v)" if VALUES[case][0] == "binary" else "cast(v as string)"
         v = spark.read.format("probe").option("case", case).load().selectExpr(expr).first()[0]
-        print(f"{case:<24} {v}")
+        print(f"{case:<22} {v}")
     except Exception as e:
-        print(f"{case:<24} fails: {last_error(e)}")
+        print(f"{case:<22} fails: {last_error(e)}")
 
 print("\nRecordBatch with id as int64, schema says int:")
 try:

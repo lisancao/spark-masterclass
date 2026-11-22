@@ -1,0 +1,31 @@
+declared, yielded      result
+int 7                  7
+int None               None
+int 1.5                1
+int True               fails: ArrowTypeError: Expected integer, got bool
+int '7'                fails: ArrowInvalid: Could not convert '7' with type str: tried to conver
+int 2**40              fails: ArrowInvalid: Value 1099511627776 too large to fit in C integer ty
+double 2               2.0
+decimal(5,2) Decimal   1.25
+decimal(5,2) 1.25      fails: AssertionError in conversion.py:convert_decimal()
+date '2026-10-01'      fails: ArrowTypeError: object of type <class 'str'> cannot be converted t
+timestamp str          fails: AssertionError in conversion.py:convert_timestamp()
+timestamp aware        2026-10-01 10:00:00
+timestamp_ntz aware    fails: AssertionError in conversion.py:convert_timestamp_ntz()
+binary bytes           0001
+binary str             fails: AssertionError in conversion.py:convert_binary()
+array<int> list        [1, 2]
+map<string,int> dict   {k -> 1}
+struct dict            {1, x}
+
+RecordBatch with id as int64, schema says int:
+  [DATA_SOURCE_RETURN_SCHEMA_MISMATCH] Return schema mismatch in the result from 'read'
+  method. Expected: id: int32 sensor: string value: double ts: timestamp[us, tz=UTC]
+  columns, Found: id: int64 sensor: string value: double ts: timestamp[us, tz=UTC]
+  columns. ...
+the same rows, correct batches: [Row(id=0, sensor='s0', value=0.0), Row(id=1, sensor='s1', value=0.5)]
+
+Timestamps: session time zone UTC, three worker time zones:
+  TZ=UTC                  naive -> 2026-10-01 10:00:00   aware -> 2026-10-01 10:00:00
+  TZ=America/Los_Angeles  naive -> 2026-10-01 17:00:00   aware -> 2026-10-01 10:00:00
+  TZ=Asia/Ho_Chi_Minh     naive -> 2026-10-01 03:00:00   aware -> 2026-10-01 10:00:00

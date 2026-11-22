@@ -1,0 +1,34 @@
+requests: 200 rows in 3 partitions
+
+driver (this script)                   pid 234390
+JsonLogWriter.__init__                 pid 239042   no task
+JsonLogWriter.write                    pid 239278   task 0 attempt 0
+JsonLogWriter.write                    pid 239273   task 1 attempt 0
+JsonLogWriter.write                    pid 239281   task 2 attempt 0
+JsonLogWriter.commit: 3 msgs, 3 staged pid 239578   no task
+after append 1: manifest rows 200, files 3, commits 1, part files on disk 3, staged 0
+after append 2: manifest rows 400, files 6, commits 2, part files on disk 6, staged 0
+Spark's JSON reader on the folder: 400 rows
+after overwrite: manifest rows 200, files 3, commits 3, part files on disk 3, staged 0
+files on disk: ['_MANIFEST.json', '_staging', 'part-00000-1d143314-a0.jsonl', 'part-00001-1d143314-a0.jsonl', 'part-00002-1d143314-a0.jsonl']
+
+failed write: PYTHON_EXCEPTION
+abort(): messages that are None: [True, True, True] | staged files before cleanup: 3
+after the failed append: manifest rows 200, files 3, commits 3, part files on disk 3, staged 0
+  JsonLogWriter.abort([None, None, None])
+
+mode error (the default)   UNSUPPORTED_DATA_SOURCE_SAVE_MODE
+mode ignore                UNSUPPORTED_DATA_SOURCE_SAVE_MODE
+write() returns None       PYTHON_EXCEPTION / DATA_SOURCE_TYPE_MISMATCH
+source without writer()    PYTHON_DATA_SOURCE_ERROR / NOT_IMPLEMENTED
+
+maxRecordsPerBatch=10000:
+  arrow write: batches [67] | task 0 attempt 0
+  arrow write: batches [67] | task 1 attempt 0
+  arrow write: batches [66] | task 2 attempt 0
+
+maxRecordsPerBatch=50:
+  arrow write: batches [50, 17] | task 0 attempt 0
+  arrow write: batches [50, 17] | task 1 attempt 0
+  arrow write: batches [50, 16] | task 2 attempt 0
+Parquet back: 200 rows; {200: 98, 302: 24, 404: 41, 500: 37}

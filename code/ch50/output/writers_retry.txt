@@ -1,0 +1,11 @@
+master: local[4,2]
+  JsonLogWriter.__init__ | no task
+  JsonLogWriter.write | task 0 attempt 0
+  JsonLogWriter.write | task 2 attempt 0
+  JsonLogWriter.write | task 1 attempt 0
+  JsonLogWriter.write | task 0 attempt 1
+  JsonLogWriter.write | task 2 attempt 1
+  JsonLogWriter.write | task 1 attempt 1
+  JsonLogWriter.commit: 3 msgs, 6 staged | no task
+manifest files: ['part-00000-cea8bfa3-a1.jsonl', 'part-00001-cea8bfa3-a1.jsonl', 'part-00002-cea8bfa3-a1.jsonl']
+manifest rows 200, files 3, commits 1, part files on disk 3, staged 0
