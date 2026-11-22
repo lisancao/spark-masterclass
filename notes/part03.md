@@ -35,7 +35,7 @@ Rules broken on purpose: none flagged by the checker. Code, plans, outputs and e
 - Avro: `org.apache.spark:spark-avro_2.13:4.3.0`. Protobuf: `org.apache.spark:spark-protobuf_2.13:4.3.0`. Kafka: `org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0` (used only to print the source schema; no broker ran). All from Maven Central through `spark.jars.packages`.
 - Iceberg (ch17 `blobs.py` only): no Iceberg release supports Spark 4.3 (1.12.0 ships runtimes up to 4.1). Used `$BOOK_DATA/jars/iceberg-spark-runtime-4.3_2.13-b1eab64.jar`, built from apache/iceberg PR #18749, commit b1eab64 (same jar as the ch31 writer; see `ch31-iceberg/notes/ch31.md`). Not a release; labelled in the chapter. Hadoop catalog under `data/work/ch17/blobs/warehouse`.
 - Delta Lake: 4.4.1 (`delta-spark_4.2_2.13`) is built for Spark 4.2 and fails on 4.3.0 (verified by the part06 writer). Not used; the chapter says so.
-- Timings: medians of 5 runs after one warm-up, each benchmark under `flock $HOME/spark-masterclass/data/.bench.lock`: `ch13/infer_cost.py`, `ch15/speed.py`. Film renders also under the lock.
+- Timings: medians of 5 runs after one warm-up, each benchmark under `flock $HOME/spark-masterclass/data/.bench.lock`: `ch13/infer_cost.py`, `ch15/speed.py`. Film renders run without the lock (rule change from the integrator).
 
 ## Coverage table
 
@@ -118,7 +118,7 @@ Chapters 11 and 12 were written and committed by the earlier writer (commits 4d8
 
 ## Clips
 
-Rendered with `film render code/film/chNN.tape --format chapter` under the bench lock; each beat is one clip, copied from `code/film/renders/chapter/NN-<beat>.mp4` to `book/media/clips/<beat>.mp4`, with a `.webp` poster. The list is in `book/media/clips/clips-part03.tsv` (source = the per-beat render, so start 0 and end = its length).
+Rendered with `film render code/film/chNN.tape --format chapter`, without the bench lock; each beat is one clip, copied from `code/film/renders/chapter/NN-<beat>.mp4` to `book/media/clips/<beat>.mp4`, with a `.webp` poster. The list is in `book/media/clips/clips-part03.tsv` (source = the per-beat render, so start 0 and end = its length).
 
 | Clip | Chapter | Shows |
 |---|---|---|

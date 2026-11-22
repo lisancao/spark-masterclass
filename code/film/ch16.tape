@@ -1,5 +1,5 @@
 # Spark Masterclass, Chapter 16. Clips for the book page.
-#   flock $HOME/spark-masterclass/data/.bench.lock film render code/film/ch16.tape --format chapter
+#   film render code/film/ch16.tape --format chapter
 Set TypingSpeed 35ms
 Set WaitPattern /❯$/
 
