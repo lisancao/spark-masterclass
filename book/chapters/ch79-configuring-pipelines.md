@@ -522,7 +522,6 @@ Pipeline configuration differs from session configuration in three ways. Chapter
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch79-envs.webp">
-    <source src="../../media/clips/ch79-envs.webp" type="image/webp">
     <source src="../../media/clips/ch79-envs.mp4" type="video/mp4">
   </video>
   <figcaption>A static configuration in the spec fails each flow. Then the same project runs with the dev spec and with the prod spec.</figcaption>

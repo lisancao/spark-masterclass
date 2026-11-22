@@ -242,7 +242,7 @@ $ export SPARK_REMOTE=sc://localhost:15104
 The options do these things:
 
 - `spark.connect.grpc.binding.port=15104` sets the port. The default port is 15002. The book uses a different port for each chapter.
-- `spark.sql.catalogImplementation=hive` keeps the catalog in a Derby database, `metastore_db/`, in the current folder of the server. Without it, the catalog is in memory and forgets the tables when the server stops.
+- `spark.sql.catalogImplementation=hive` keeps the catalog in a Derby database, `metastore_db/`, in the current folder of the server. Without it, the catalog is in memory and forgets the tables when the server stops. Then the next run fails with `LOCATION_ALREADY_EXISTS`, because the folders of the old tables are still in `spark-warehouse/` (`code/ch32/output/run_default.txt`).
 - `spark.ui.port=4144` sets the port of the Spark UI.
 
 !!! warning "Caution: start the server in the project folder"
