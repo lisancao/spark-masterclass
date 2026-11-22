@@ -82,5 +82,25 @@ def clock():
     f.save("ch41-clock")
 
 
+def migrate():
+    # output/t6_legacy.txt: the old query (drops 1-3), its open sessions, the new query (drop 4)
+    f = Fig(860, 330, "Move open sessions from applyInPandasWithState to transformWithState")
+    f.text(20, 22, "t6_legacy.txt: read the old state, do not restart the old checkpoint", size=12.5, anchor="start", color="mute")
+    f.box(20, 50, 200, 90, "applyInPandasWithState", "drops 1 to 3, HDFS store", kind="paper", size=13)
+    f.box(20, 170, 200, 70, "old checkpoint", "4 open sessions: u1 u4 u5 u6", kind="mute", size=13)
+    f.arrow(120, 140, 120, 168)
+    f.box(290, 170, 230, 70, "statestore source", "value.groupState.* by user", kind="blue", size=13)
+    f.arrow(222, 205, 288, 205, label="read")
+    f.box(590, 170, 250, 70, "initialState", "handleInitialState: session, seen, timer", kind="accent", size=12.5)
+    f.arrow(522, 205, 588, 205)
+    f.box(590, 50, 250, 90, "transformWithState", "new checkpoint, RocksDB, drop 4", kind="ok", size=13)
+    f.arrow(715, 168, 715, 142)
+    f.box(590, 260, 250, 40, "closed: u1 gap, u4 timer, u5 timer", "", kind="ghost", size=12)
+    f.box(290, 50, 230, 90, "restart on the old checkpoint", "fails: the operator name does not match", kind="red", size=12)
+    f.arrow(222, 190, 288, 120, color="red", dash="4 3")
+    f.note("Same closed and open sessions as one transformWithState query over all four drops (Step 5)", y=318)
+    f.save("ch41-migrate")
+
+
 if __name__ == "__main__":
-    sessions(); clock()
+    sessions(); clock(); migrate()

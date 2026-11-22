@@ -24,3 +24,10 @@ Sleep 500ms
 Type "python ch41/t3_time.py 2>/dev/null | head -11" Enter
 Wait@240s
 Sleep 10s
+
+# beat: legacy | applyInPandasWithState, then its open sessions move to transformWithState
+Type "# the old API keeps one state value per user; then its open sessions move to TWS" Enter
+Sleep 500ms
+Type "python ch41/t6_legacy.py 2>/dev/null | sed -n '1,11p;42,52p'" Enter
+Wait@300s
+Sleep 12s
