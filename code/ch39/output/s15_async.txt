@@ -2,19 +2,27 @@ published 6269 trips to apt_in (4 partitions)
 
 1. The same copy, synchronous and asynchronous progress tracking (3 runs each, alternated):
 mode    batches  offsets/ files  commits/ files  walCommit  commitOffsets  batch (ms)  wall (s)
-sync         64              64              64         61             68         208      14.4
-async        64               5               5          0              0          49       5.0
+sync         64              64              64         32             32          96       8.6
+async        64               4               4          0              0          32       4.2
 (medians over the runs; walCommit, commitOffsets and batch are medians per run of durationMs)
 
 2. What async progress tracking does not accept:
-   trigger availableNow  IllegalArgumentException: Async progress tracking cannot be used with ...
-   a stateful query      StreamingQueryException: [STREAM_FAILED] ... Stateful streaming queries does not ...
-   foreachBatch sink     IllegalArgumentException: Sink ForeachBatchSink does not support async progress ...
-   Parquet sink          IllegalArgumentException: Sink FileSink[file:~/spark-masterclass- ...
+   trigger availableNow:
+  IllegalArgumentException: Async progress tracking cannot be used with AvailableNow
+  trigger
+   a stateful query:
+  StreamingQueryException: [STREAM_FAILED] ... Stateful streaming queries does not
+  support async progress tracking at this moment. SQLSTATE: XXKST
+   foreachBatch sink:
+  IllegalArgumentException: Sink ForeachBatchSink does not support async progress
+  tracking
+   Parquet sink:
+  IllegalArgumentException: Sink FileSink[file:~/spark-masterclass-
+  parts/streaming/data/work/ch39/s15/bad_Parquet_out] does not support async progress ...
 
 3. Turn it off on a checkpoint that it wrote:
-   offsets/ of the async run: [30, 45, 53, 59]  commits/: [30, 45, 53, 59]
-   restart with async off:StreamingQueryException: [STREAM_FAILED] ... batch 58 doesn't exist SQLSTATE:
+   offsets/ of the async run: [0, 27, 45, 54]  commits/: [0, 27, 45, 54]
+   restart with async off:StreamingQueryException: [STREAM_FAILED] ... batch 53 doesn't exist SQLSTATE:
   XXKST
-   the documented fix: async on with asyncProgressTrackingCheckpointIntervalMs=0, batches [60, 61, 62] ...
+   the documented fix: async on with asyncProgressTrackingCheckpointIntervalMs=0, batches [55, 56, 57] ...
    then async off again: batches [(69, 100), (70, 100)]

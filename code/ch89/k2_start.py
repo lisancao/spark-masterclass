@@ -19,7 +19,7 @@ for i, chunk in enumerate([files[0:2], files[2:4], files[4:6]]):
         time.sleep(2)
     marks.append(now_ms())
     n = publish(spark, "trips", trip_rows(chunk))
-    print(f"delivery {i + 1}: {n} trips, sent after t={marks[-1]}")
+    print(f"delivery {i + 1}: {n} trips, sent after t={marks[-1]}, end offsets then {end_offsets('trips')}")
 ends = end_offsets("trips")
 print("end offsets per partition (kafka-get-offsets):", ends, "total", sum(ends.values()))
 
