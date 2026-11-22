@@ -161,6 +161,13 @@ one spark.sql() call with a 5-pass loop -> 20 SQL executions, 27 jobs
 the same total as one query: 149702 (2 jobs)
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch08-loop.webp">
+    <source src="../../media/clips/ch08-loop.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>scripting.py</code> runs against Spark 4.3.0. One script with a 5-pass loop becomes 20 SQL executions and 27 jobs. The same total as one query runs 2 jobs.</figcaption>
+</figure>
+
 One call to `spark.sql` became 20 SQL executions and 27 jobs. Only 5 of the executions scan the trips. The other 15 are the loop condition, `SET i`, the declarations and the final `SELECT`. Each one is a full query: Spark parses it, analyzes it, optimizes it and runs it. The same total from one query with `BETWEEN 132 AND 136` runs 2 jobs.
 
 ```mermaid
@@ -325,6 +332,13 @@ flowchart LR
   e2 -->|"Arrow batches"| w["Python worker<br/>process"]:::py
   w -->|"results"| c2["executor JVM"]:::jvm
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch08-udf.webp">
+    <source src="../../media/clips/ch08-udf.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>functions.py</code> runs against Spark 4.3.0. The SQL UDF becomes a <code>CASE WHEN</code> in the plan, and the Python UDF adds <code>ArrowEvalPython</code>. The timings on screen come from a run without the bench lock.</figcaption>
+</figure>
 
 `functions.py` compares the SQL UDF with a Python UDF that has the same logic. It filters on `= 'long'`, and it takes the median of three runs after a warmup:
 
