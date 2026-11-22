@@ -172,6 +172,13 @@ ways = {"Python UDF a.dot(b)": dot_udf("qv", "vec"),
   inbox tickets with no words at all: 12 (their vector is all zeros, every score is 0)
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch36-search.webp">
+    <source src="../../media/clips/ch36-search.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>text_search.py</code> runs the policy queries, then scores 240 inbox tickets against 160 labelled tickets with a Python UDF and with <code>vector_inner_product</code>.</figcaption>
+</figure>
+
 The two methods give the same answer. The nearest labelled ticket has the correct label for 223 of the 240 tickets. That is a strong baseline for a method that does not learn weights from labels.
 
 The plans show the difference. The UDF adds an `ArrowEvalPython` operator, so each pair of vectors goes to a Python worker and back. `vector_inner_product` is a built-in SQL function that runs in the JVM.

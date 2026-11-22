@@ -12,7 +12,9 @@ from pyspark.sql import Window, functions as F
 from common.book import session, plan, DATA
 
 spark = session("ch38-components", spark_ui_showConsoleProgress="false", spark_sql_shuffle_partitions="8")
+spark.sparkContext.setLogLevel("OFF")
 spark.sparkContext.setCheckpointDir(str(DATA / "ch38" / "checkpoints"))
+ONLY_LOOP = sys.argv[1:] == ["loop"]      # the film runs only the last two sections
 
 
 def clean(raw):
@@ -75,49 +77,53 @@ def path(n):
     return spark.createDataFrame([(i, i + 1) for i in range(1, n)], "src long, dst long")
 
 
-print("== large-star and small-star on a path of 6 nodes")
-_, r = star_components(path(6), trace=True)
-print(f"   converged after {r} rounds: every node points at node 1")
-
-print("\n== rounds and time: label propagation against large-star / small-star")
-print("   graph                 propagation          stars")
-for name, g in (("path of 50", path(50)), ("path of 200", path(200)),
-                ("random, 5,000 nodes", spark.createDataFrame(
-                    [(random.Random(i).randrange(5000), random.Random(i + 7).randrange(5000)) for i in range(4000)],
-                    "src long, dst long"))):
-    t0 = time.time(); _, r1 = propagation(g); t1 = time.time() - t0
-    t0 = time.time(); _, r2 = star_components(g); t2 = time.time() - t0
-    print(f"   {name:<20} {r1:>4} rounds {t1:>6.1f} s   {r2:>3} rounds {t2:>5.1f} s")
-
-g = spark.createDataFrame([(random.Random(i).randrange(5000), random.Random(i + 7).randrange(5000))
-                           for i in range(4000)], "src long, dst long")
-e, _ = star_components(g)
-nodes = clean(g).select(F.explode(F.array("src", "dst")).alias("id")).distinct()
-comp = nodes.join(e.select(F.col("src").alias("id"), F.col("dst").alias("c")), "id", "left") \
-    .select("id", F.coalesce("c", "id").alias("c"))
+def random_graph(nodes=5000, edges=3000, seed=38):
+    rng = random.Random(seed)
+    return spark.createDataFrame([(rng.randrange(nodes), rng.randrange(nodes)) for _ in range(edges)],
+                                 "src long, dst long")
 
 
-def union_find(edges):
-    parent = {}
-    def find(x):
-        parent.setdefault(x, x)
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-    for a, b in edges:
-        ra, rb = find(a), find(b)
-        if ra != rb:
-            parent[max(ra, rb)] = min(ra, rb)
-    return {x: find(x) for x in parent}
+if not ONLY_LOOP:
+  print("== large-star and small-star on a path of 6 nodes")
+  _, r = star_components(path(6), trace=True)
+  print(f"   converged after {r} rounds: every node points at node 1")
+
+  print("\n== rounds and time: label propagation against large-star / small-star")
+  print("   graph                 propagation          stars")
+  for name, g in (("path of 50", path(50)), ("path of 200", path(200)),
+                  ("random, 5,000 nodes", random_graph())):
+      t0 = time.time(); _, r1 = propagation(g); t1 = time.time() - t0
+      t0 = time.time(); _, r2 = star_components(g); t2 = time.time() - t0
+      print(f"   {name:<20} {r1:>4} rounds {t1:>6.1f} s   {r2:>3} rounds {t2:>5.1f} s")
+
+  g = random_graph()
+  e, _ = star_components(g)
+  nodes = clean(g).select(F.explode(F.array("src", "dst")).alias("id")).distinct()
+  comp = nodes.join(e.select(F.col("src").alias("id"), F.col("dst").alias("c")), "id", "left") \
+      .select("id", F.coalesce("c", "id").alias("c"))
 
 
-ref = union_find([(r.src, r.dst) for r in clean(g).collect()])
-got = {r.id: r.c for r in comp.collect()}
-print(f"   random graph: {len(got):,} nodes in {len(set(got.values())):,} components, "
-      f"same as a driver union-find: {got == ref}")
-print("   large_star plan (one exchange for the window, one for distinct):",
-      plan(large_star(clean(g)), "simple").count("Exchange"), "exchanges")
+  def union_find(edges):
+      parent = {}
+      def find(x):
+          parent.setdefault(x, x)
+          while parent[x] != x:
+              parent[x] = parent[parent[x]]
+              x = parent[x]
+          return x
+      for a, b in edges:
+          ra, rb = find(a), find(b)
+          if ra != rb:
+              parent[max(ra, rb)] = min(ra, rb)
+      return {x: find(x) for x in parent}
+
+
+  ref = union_find([(r.src, r.dst) for r in clean(g).collect()])
+  got = {r.id: r.c for r in comp.collect()}
+  print(f"   random graph: {len(got):,} nodes in {len(set(got.values())):,} components, "
+        f"same as a driver union-find: {got == ref}")
+  print("   exchanges in one large-star round over cleaned edges (cleanup distinct, window, distinct):",
+        plan(large_star(clean(g)), "simple").count("Exchange"), "exchanges")
 
 print("\n== the plan of an iterative loop: four ways to keep the next round")
 g = path(64)

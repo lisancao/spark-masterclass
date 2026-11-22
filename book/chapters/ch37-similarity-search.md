@@ -345,6 +345,13 @@ The fraction of equal values in two signatures estimates the Jaccard similarity.
   numHashTables=25  candidates  71,889 (80.2% of pairs), recall 1.000
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch37-banding.webp">
+    <source src="../../media/clips/ch37-banding.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>indexes.py</code> builds MinHash bands from DataFrame functions and measures candidates and recall for each choice of bands and rows.</figcaption>
+</figure>
+
 The goal is all pairs with a similarity of 0.7 or more (435 pairs):
 
 - **25 bands of 4** find all 435 pairs and compare only 2.5% of the pairs. The prediction for a pair at 0.7 was 0.999.
@@ -394,6 +401,13 @@ index = vectors.withColumn("list", F.array_position(d, F.array_min(d)) - 1).cach
   NEAREST 10 BY DISTANCE: 4,000,000 distances, recall@10 1.000
   plan: ['BroadcastNestedLoopJoin', 'SortAggregate', 'Generate']
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch37-ivf.webp">
+    <source src="../../media/clips/ch37-ivf.mp4" type="video/mp4">
+  </video>
+  <figcaption>The IVF search for each value of <code>nprobe</code>: the share of vectors scored, and the recall against the exact top 10.</figcaption>
+</figure>
 
 `createDataFrame` does not accept a NumPy array as a value for `array<double>`. Convert each row with `tolist()` first. `array_position` is 1-based, so the code subtracts 1 to get a list number from 0.
 
