@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <script src="data.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Plan nodes come from data.js (rdd_vs_df.txt and codegen.txt), expression IDs removed.
+      A.mount();
+      const D = window.DATA;
+      const [title, sub] = A.title("One DataFrame query through Catalyst", "trips and average fare by pickup hour, Spark 4.3");
+      const cap = (s, a, b) => { const c = A.text(s, { y: 0.9, size: 36 }); A.in(c, a); if (b) A.out(c, b); return c; };
+      const phases = [
+        ["Parsed Logical Plan", "parsed", 0.6],
+        ["Analyzed Logical Plan", "analyzed", 4.2],
+        ["Optimized Logical Plan", "optimized", 7.8],
+        ["Physical Plan", "physical", 11.4],
+      ];
+      // the phase strip
+      const strip = phases.map((ph, i) => A.box({ x: 0.2 + i * 0.2, y: 0.24, w: 300, h: 60, kind: "ghost", title: ph[1], size: 28 }));
+      let prev = null;
+      phases.forEach(([key, label, at], i) => {
+        const nodes = D.plans[key];
+        const lines = nodes.map((n, j) => {
+          const before = prev ? prev.map(p => p.text) : null;
+          const fresh = before && !before.includes(n.text);
+          return A.text(n.text, { x: 0.1 + A.dx(30 * n.depth), y: 0.34 + j * A.dy(54), size: 26, mono: true, anchor: "left",
+            color: fresh ? "var(--a-acc)" : "var(--a-fg)" });
+        });
+        A.tl.set(lines, { opacity: 0 }, 0);
+        A.in(lines, at, { stagger: 0.05 });
+        A.tl.to(strip[i], { scale: 1.06, duration: 0.3 }, at);
+        A.tl.set(strip[i], { borderColor: "var(--a-acc)" }, at);
+        if (i < phases.length - 1) A.out(lines, phases[i + 1][2] - 0.3);
+        else A.out(lines, 15.0);
+        prev = nodes;
+      });
+      cap("The parser builds a tree from your DataFrame calls", 0.8, 4.0);
+      cap("The analyzer resolves names and types against the schema", 4.4, 7.6);
+      cap("The optimizer adds a Project and an isnotnull filter", 8.0, 11.2);
+      cap("The planner picks operators: two exchanges, a 2-column scan", 11.6, 14.9);
+      // codegen beat
+      const fused = D.fused.map((t, j) => A.text(t, { x: 0.23, y: 0.42 + j * A.dy(60), size: 28, mono: true, anchor: "left", color: "var(--a-ok)" }));
+      const frame = A.box({ x: 0.5, y: 0.42 + 1.5 * A.dy(60), w: 1150, h: 300, kind: "ok", radius: 14 });
+      frame.style.background = "transparent";
+      const gen = A.text("one generated Java method: hashAgg_doAggregateWithKeys_0", { x: 0.5, y: 0.42 + 4.6 * A.dy(60), size: 28, mono: true, color: "var(--a-mute)" });
+      A.tl.set([...fused, frame, gen], { opacity: 0 }, 0);
+      A.in([frame, ...fused], 15.3, { stagger: 0.12 });
+      A.in(gen, 16.2);
+      cap("Whole-stage codegen fuses the *(1) operators into one loop", 15.4);
+      A.in(A.note("plan text from explain(\"extended\") and explain(\"codegen\"), expression IDs removed"), 0.5);
+      A.finish(20);
+    </script>
+  </body>
+</html>
