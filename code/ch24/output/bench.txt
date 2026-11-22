@@ -1,0 +1,37 @@
+machine: 16 cores, 156 GB RAM, NVIDIA GeForce RTX 5070 Ti, 16303 MiB, 595.99.02
+java: openjdk version "17.0.21.1" 2026-11-17
+cpu on Spark 4.3.0: 47,475,748 rows, median of 5 runs after 1 warmup runs
+  hourly      0.60 s  (min 0.54, max 0.63)  rows df197ceb9f  engine/spark ops 0/8
+  boroughs    0.75 s  (min 0.74, max 1.03)  rows aba10f4b7d  engine/spark ops 0/13
+  routes      0.62 s  (min 0.52, max 1.33)  rows 844c83385d  engine/spark ops 0/7
+  memory: {'jvm_peak_rss_mib': 6849, 'jvm_heap_peak_mib': 4602, 'offheap_execution_peak_mib': 0, 'onheap_execution_peak_mib': 259, 'gpu_idle_mib': 5961, 'gpu_peak_mib': 5961}
+cpu on Spark 4.2.0: 47,475,748 rows, median of 5 runs after 1 warmup runs
+  hourly      0.42 s  (min 0.42, max 0.60)  rows df197ceb9f  engine/spark ops 0/8
+  boroughs    0.69 s  (min 0.67, max 0.73)  rows aba10f4b7d  engine/spark ops 0/13
+  routes      0.53 s  (min 0.49, max 0.58)  rows 844c83385d  engine/spark ops 0/7
+  memory: {'jvm_peak_rss_mib': 6984, 'jvm_heap_peak_mib': 3906, 'offheap_execution_peak_mib': 0, 'onheap_execution_peak_mib': 196, 'gpu_idle_mib': 5961, 'gpu_peak_mib': 5961}
+comet on Spark 4.2.0: 47,475,748 rows, median of 5 runs after 1 warmup runs
+  hourly      0.33 s  (min 0.28, max 0.36)  rows df197ceb9f  engine/spark ops 8/0
+  boroughs    0.81 s  (min 0.70, max 1.54)  rows aba10f4b7d  engine/spark ops 5/8
+  routes      0.36 s  (min 0.32, max 0.41)  rows 844c83385d  engine/spark ops 7/0
+  memory: {'jvm_peak_rss_mib': 2939, 'jvm_heap_peak_mib': 1553, 'offheap_execution_peak_mib': 243, 'onheap_execution_peak_mib': 0, 'gpu_idle_mib': 5961, 'gpu_peak_mib': 5961}
+rapids on Spark 4.2.0: 47,475,748 rows, median of 5 runs after 1 warmup runs
+  hourly      0.66 s  (min 0.62, max 0.68)  rows df197ceb9f  engine/spark ops 8/0
+  boroughs    0.80 s  (min 0.77, max 0.83)  rows 40abd241fc  engine/spark ops 13/0
+  routes      0.70 s  (min 0.65, max 0.77)  rows 844c83385d  engine/spark ops 9/0
+  memory: {'jvm_peak_rss_mib': 2578, 'jvm_heap_peak_mib': 885, 'offheap_execution_peak_mib': 0, 'onheap_execution_peak_mib': 0, 'gpu_idle_mib': 5926, 'gpu_peak_mib': 15282}
+auron on Spark 4.2.0: 47,475,748 rows, median of 5 runs after 1 warmup runs
+  hourly      0.78 s  (min 0.71, max 0.91)  rows df197ceb9f  engine/spark ops 10/0
+  boroughs    0.52 s  (min 0.50, max 0.54)  rows aba10f4b7d  engine/spark ops 13/2
+  routes      0.33 s  (min 0.31, max 0.35)  rows 844c83385d  engine/spark ops 9/0
+  memory: {'jvm_peak_rss_mib': 3220, 'jvm_heap_peak_mib': 750, 'offheap_execution_peak_mib': 0, 'onheap_execution_peak_mib': 0, 'gpu_idle_mib': 5926, 'gpu_peak_mib': 5926}
+cpu on Spark 4.1.1: 47,475,748 rows, median of 5 runs after 1 warmup runs
+  hourly      0.45 s  (min 0.44, max 0.52)  rows df197ceb9f  engine/spark ops 0/8
+  boroughs    0.68 s  (min 0.66, max 0.69)  rows aba10f4b7d  engine/spark ops 0/13
+  routes      0.51 s  (min 0.48, max 0.55)  rows 844c83385d  engine/spark ops 0/7
+  memory: {'jvm_peak_rss_mib': 6437, 'jvm_heap_peak_mib': 3217, 'offheap_execution_peak_mib': 0, 'onheap_execution_peak_mib': 519, 'gpu_idle_mib': 5926, 'gpu_peak_mib': 5926}
+gluten on Spark 4.1.1: 47,475,748 rows, median of 5 runs after 1 warmup runs
+  hourly      0.51 s  (min 0.46, max 0.54)  rows df197ceb9f  engine/spark ops 10/0
+  boroughs    0.68 s  (min 0.62, max 0.71)  rows aba10f4b7d  engine/spark ops 14/1
+  routes      0.40 s  (min 0.38, max 0.52)  rows 844c83385d  engine/spark ops 9/0
+  memory: {'jvm_peak_rss_mib': 1809, 'jvm_heap_peak_mib': 583, 'offheap_execution_peak_mib': 440, 'onheap_execution_peak_mib': 0, 'gpu_idle_mib': 5926, 'gpu_peak_mib': 5926}

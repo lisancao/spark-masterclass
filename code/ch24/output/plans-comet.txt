@@ -1,0 +1,67 @@
+comet on Spark 4.2.0, offload-friendly settings
+hourly: 8 engine operators, 0 Spark operators, 1 transitions
+  . WholeStageCodegenExec
+  T   CometColumnarToRowExec
+  .     InputAdapter
+  E       CometSortExec
+  .         AQEShuffleReadExec
+  E           CometShuffleExchangeExec
+  E             CometHashAggregateExec
+  .               AQEShuffleReadExec
+  E                 CometShuffleExchangeExec
+  E                   CometHashAggregateExec
+  E                     CometProjectExec
+  E                       CometFilterExec
+  E                         CometNativeScanExec
+boroughs: 5 engine operators, 8 Spark operators, 2 transitions
+  . WholeStageCodegenExec
+  T   CometColumnarToRowExec
+  .     InputAdapter
+  E       CometSortExec
+  .         AQEShuffleReadExec
+  E           CometShuffleExchangeExec
+  .             WholeStageCodegenExec
+  S               HashAggregateExec
+  .                 InputAdapter
+  .                   AQEShuffleReadExec
+  S                     ShuffleExchangeExec
+  .                       WholeStageCodegenExec
+  S                         HashAggregateExec
+  S                           ProjectExec
+  S                             BroadcastHashJoinExec
+  T                               CometColumnarToRowExec
+  .                                 InputAdapter
+  E                                   CometProjectExec
+  E                                     CometFilterExec
+  E                                       CometNativeScanExec
+  .                               InputAdapter
+  S                                 BroadcastExchangeExec
+  .                                   WholeStageCodegenExec
+  S                                     FilterExec
+  .                                       InputAdapter
+  S                                         FileSourceScanExec
+routes: 7 engine operators, 0 Spark operators, 1 transitions
+  . WholeStageCodegenExec
+  T   CometColumnarToRowExec
+  .     InputAdapter
+  E       CometTakeOrderedAndProjectExec
+  E         CometHashAggregateExec
+  .           AQEShuffleReadExec
+  E             CometShuffleExchangeExec
+  E               CometHashAggregateExec
+  E                 CometProjectExec
+  E                   CometFilterExec
+  E                     CometNativeScanExec
+udf: NO RESULT after 300 s (jobs cancelled), the planned operators:
+  E CometSortExec
+  E   CometShuffleExchangeExec
+  S     HashAggregateExec
+  S       ShuffleExchangeExec
+  .         WholeStageCodegenExec
+  S           HashAggregateExec
+  S             ProjectExec
+  .               InputAdapter
+  S                 ArrowEvalPythonExec
+  E                   CometProjectExec
+  E                     CometFilterExec
+  E                       CometNativeScanExec

@@ -1,0 +1,24 @@
+comet on Spark 4.2.0, offload-friendly settings
+udf: 5 engine operators, 5 Spark operators, 2 transitions
+  . WholeStageCodegenExec
+  T   CometColumnarToRowExec
+  .     InputAdapter
+  E       CometSortExec
+  .         AQEShuffleReadExec
+  E           CometShuffleExchangeExec
+  .             WholeStageCodegenExec
+  S               HashAggregateExec
+  .                 InputAdapter
+  .                   AQEShuffleReadExec
+  S                     ShuffleExchangeExec
+  .                       WholeStageCodegenExec
+  S                         HashAggregateExec
+  S                           ProjectExec
+  .                             InputAdapter
+  S                               ArrowEvalPythonExec
+  .                                 WholeStageCodegenExec
+  T                                   CometColumnarToRowExec
+  .                                     InputAdapter
+  E                                       CometProjectExec
+  E                                         CometFilterExec
+  E                                           CometNativeScanExec

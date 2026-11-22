@@ -1,0 +1,43 @@
+rapids on Spark 4.2.0, default settings
+hourly: 5 engine operators, 3 Spark operators, 3 transitions
+  T GpuColumnarToRowExec
+  E   GpuSortExec
+  .     GpuShuffleCoalesceExec
+  .       GpuCustomShuffleReaderExec
+  E         GpuShuffleExchangeExec
+  E           GpuHashAggregateExec
+  .             GpuShuffleCoalesceExec
+  .               GpuCustomShuffleReaderExec
+  E                 GpuShuffleExchangeExec
+  E                   GpuHashAggregateExec
+  T                     GpuRowToColumnarExec
+  .                       WholeStageCodegenExec
+  S                         ProjectExec
+  S                           FilterExec
+  T                             ColumnarToRowExec
+  .                               InputAdapter
+  S                                 FileSourceScanExec
+boroughs: 10 engine operators, 3 Spark operators, 3 transitions
+  T GpuColumnarToRowExec
+  E   GpuSortExec
+  .     GpuShuffleCoalesceExec
+  .       GpuCustomShuffleReaderExec
+  E         GpuShuffleExchangeExec
+  E           GpuHashAggregateExec
+  .             GpuShuffleCoalesceExec
+  .               GpuCustomShuffleReaderExec
+  E                 GpuShuffleExchangeExec
+  E                   GpuHashAggregateExec
+  E                     GpuProjectExec
+  E                       GpuBroadcastHashJoinExec
+  T                         GpuRowToColumnarExec
+  .                           WholeStageCodegenExec
+  S                             ProjectExec
+  S                               FilterExec
+  T                                 ColumnarToRowExec
+  .                                   InputAdapter
+  S                                     FileSourceScanExec
+  E                         GpuBroadcastExchangeExec
+  .                           GpuCoalesceBatches
+  E                             GpuFilterExec
+  E                               GpuFileSourceScanExec

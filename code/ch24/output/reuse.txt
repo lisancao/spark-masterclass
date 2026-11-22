@@ -1,0 +1,5 @@
+Spark 4.3.0, the boroughs query
+
+  first collect()             stages run  5, skipped  4, input rows  47,476,013
+  same DataFrame again        stages run  1, skipped  2, input rows           0
+  new DataFrame, same query   stages run  5, skipped  4, input rows  47,476,013

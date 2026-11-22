@@ -1,0 +1,44 @@
+{
+  "engine": "rapids",
+  "spark": "4.2.0",
+  "rows": 47475748,
+  "warmup": 1,
+  "runs": 5,
+  "queries": {
+    "hourly": {
+      "median_s": 0.74,
+      "min_s": 0.685,
+      "max_s": 0.761,
+      "rows_hash": "df197ceb9f",
+      "engine_ops": 8,
+      "spark_ops": 0,
+      "transitions": 1
+    },
+    "boroughs": {
+      "median_s": 0.901,
+      "min_s": 0.845,
+      "max_s": 0.963,
+      "rows_hash": "40abd241fc",
+      "engine_ops": 13,
+      "spark_ops": 0,
+      "transitions": 1
+    },
+    "routes": {
+      "median_s": 0.893,
+      "min_s": 0.806,
+      "max_s": 0.913,
+      "rows_hash": "844c83385d",
+      "engine_ops": 9,
+      "spark_ops": 0,
+      "transitions": 1
+    }
+  },
+  "memory": {
+    "jvm_peak_rss_mib": 2451,
+    "jvm_heap_peak_mib": 865,
+    "offheap_execution_peak_mib": 0,
+    "onheap_execution_peak_mib": 0,
+    "gpu_idle_mib": 1084,
+    "gpu_peak_mib": 15270
+  }
+}

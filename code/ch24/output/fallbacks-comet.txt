@@ -1,0 +1,8 @@
+HashAggregate [COMET: Comet aggregate that merges intermediate buffers requires a Comet child aggregate when the intermediate buffer formats are incompatible with Spark. Incompatible aggregate function(s): count]
+Scan csv  [COMET: Unsupported file format CSV]
+Comet accelerated 8 out of 15 eligible operators (53%). Final plan contains 0 transitions between Spark and Comet. Accelerated expressions: 5 native, 0 codegen dispatch.
+Comet accelerated 5 out of 13 eligible operators (38%). Final plan contains 0 transitions between Spark and Comet. Accelerated expressions: 5 native, 0 codegen dispatch.
+Comet accelerated 0 out of 3 eligible operators (0%). Final plan contains 0 transitions between Spark and Comet. Accelerated expressions: 0 native, 0 codegen dispatch.
+Comet accelerated 3 out of 10 eligible operators (30%). Final plan contains 0 transitions between Spark and Comet. Accelerated expressions: 4 native, 0 codegen dispatch.
+Comet accelerated 6 out of 14 eligible operators (42%). Final plan contains 1 transitions between Spark and Comet. Accelerated expressions: 5 native, 0 codegen dispatch.
+Comet accelerated 4 out of 12 eligible operators (33%). Final plan contains 1 transitions between Spark and Comet. Accelerated expressions: 5 native, 0 codegen dispatch.

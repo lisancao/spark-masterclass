@@ -1,0 +1,44 @@
+{
+  "engine": "gluten",
+  "spark": "4.1.1",
+  "rows": 47475748,
+  "warmup": 1,
+  "runs": 5,
+  "queries": {
+    "hourly": {
+      "median_s": 0.509,
+      "min_s": 0.457,
+      "max_s": 0.536,
+      "rows_hash": "df197ceb9f",
+      "engine_ops": 10,
+      "spark_ops": 0,
+      "transitions": 1
+    },
+    "boroughs": {
+      "median_s": 0.675,
+      "min_s": 0.619,
+      "max_s": 0.712,
+      "rows_hash": "aba10f4b7d",
+      "engine_ops": 14,
+      "spark_ops": 1,
+      "transitions": 2
+    },
+    "routes": {
+      "median_s": 0.403,
+      "min_s": 0.382,
+      "max_s": 0.515,
+      "rows_hash": "844c83385d",
+      "engine_ops": 9,
+      "spark_ops": 0,
+      "transitions": 1
+    }
+  },
+  "memory": {
+    "jvm_peak_rss_mib": 1809,
+    "jvm_heap_peak_mib": 583,
+    "offheap_execution_peak_mib": 440,
+    "onheap_execution_peak_mib": 0,
+    "gpu_idle_mib": 5926,
+    "gpu_peak_mib": 5926
+  }
+}
