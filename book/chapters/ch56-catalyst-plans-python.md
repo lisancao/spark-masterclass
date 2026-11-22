@@ -814,8 +814,17 @@ The input is 2<sup>62</sup>, and the function is `x * 2`. Python has integers wi
 What does transpilation save? `bench_transpile.py` computes the same fare band on 3.8 million taxi trips in four ways, with one warm-up run and then the median of five runs:
 
 ```text
-BENCH_PLACEHOLDER
+3,837,248 trips, local[*] on 16 cores, pyspark 4.3.0
+
+  pickled @udf (100)   median   0.51 s  Python node: True   short 850,512  long 2,969,921  invalid 16,815
+  Arrow @udf (101)     median   0.54 s  Python node: True   short 850,512  long 2,969,921  invalid 16,815
+  transpiled           median   0.14 s  Python node: False  short 850,512  long 2,969,921  invalid 16,815
+  native               median   0.18 s  Python node: False  short 850,512  long 2,969,921  invalid 16,815
 ```
+
+All four ways give the same counts. The two Python UDFs took about half a second each. The transpiled UDF and the native expression took 0.14 s and 0.18 s. Neither plan has a Python node, and the difference between the two numbers is small. Thus, on this query, transpilation removes almost all of the cost of Python.
+
+The machine had 16 cores. The script ran under the benchmark lock of the book, so no other benchmark ran at the same time.
 
 ## The whole chapter, on one page
 
