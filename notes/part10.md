@@ -146,7 +146,7 @@ The lesson's case was the Python data source pushdown leak (`setReadInfo`). That
 - Spark source: `~/repos/spark` at tag `v4.3.0` (a shallow clone; see ch59 Step 6). PR branch `origin/SPARK-60206-metric-view-namespace` for the ch59 excerpts.
 - Scala compiler for ch59: `scala-compiler-2.13.18.jar` from the pyspark 4.3.0 wheel.
 - No external packages (no Delta, Iceberg, Kafka, Avro) in this part.
-- Benchmarks and film renders ran under `flock $HOME/spark-masterclass/data/.bench.lock`. ch56 benchmark: one warm-up, median of five fresh DataFrames. ch58 benchmark: one warm-up, median of five runs of each SQL query.
+- Benchmarks ran under `flock $HOME/spark-masterclass/data/.bench.lock`. The ch56 and ch57 films also ran under it (the rule at the time). After the integrator's rule change, the ch58 and ch59 films ran without the lock; no film timing is quoted in the text. ch56 benchmark: one warm-up, median of five fresh DataFrames. ch58 benchmark: one warm-up, median of five runs of each SQL query.
 - Data: `code/data/logs/access.log` (ch56), `code/data/events/` (ch58, three days, the last line of day 3 is broken on purpose), the June 2026 taxi month under `$BOOK_DATA` (ch56 and ch58 benchmarks). ch57 and ch59 use synthetic rows only.
 - `code/common/book.py` was not changed.
 
@@ -196,6 +196,8 @@ Rules broken on purpose:
 | `ch58-handmade` | ch58 Step 6 |
 | `ch59-repro` | ch59 Step 2 |
 | `ch59-fix` | ch59 Step 8 |
+
+`ch59-fix` is the `fix` beat with its wait for the compile and the two runs (seconds 8 to 90 of the beat) played at 6x speed, so the clip is 36 s, not 104 s; the start and the final output are at normal speed. The `start`/`end` columns of `clips-part10.tsv` give the beat in the full cut.
 
 `ch58.tape` also renders a `layout` beat, which is not embedded (kept for a narrated cut).
 
