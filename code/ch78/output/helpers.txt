@@ -1,0 +1,9 @@
+$ mkdir -p lib && printf "MIN_FARE = 0\n" > lib/rules.py
+$ sed -i "s/^from pyspark import pipelines as dp/&\nfrom lib.rules import MIN_FARE/" transformations/raw.py
+$ spark-pipelines dry-run --remote sc://localhost:15104 2>&1 | grep -E 'Error|Run is'
+2026-11-22 18:16:09: Run is COMPLETED.
+$ PYTHONPATH=/opt/other spark-pipelines dry-run --remote sc://localhost:15104 2>&1 | grep -E 'Error|Run is'
+ModuleNotFoundError: No module named 'lib.rules'
+$ PYTHONPATH=$PWD spark-pipelines dry-run --remote sc://localhost:15104 2>&1 | grep -E 'Error|Run is'
+2026-11-22 18:16:14: Run is COMPLETED.
+$ sed -i "/from lib.rules/d" transformations/raw.py && rm -r lib

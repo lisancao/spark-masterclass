@@ -1,0 +1,77 @@
+$ spark-pipelines run --remote sc://localhost:15104 --refresh borough_daily 2>&1 | ev
+18:13:26: Flow borough_daily is QUEUED.
+18:13:26: Flow 'raw_trips' is EXCLUDED.
+18:13:26: Flow 'zones' is EXCLUDED.
+18:13:26: Flow 'clean_trips' is EXCLUDED.
+18:13:27: Flow borough_daily has COMPLETED.
+18:13:28: Run is COMPLETED.
+$ spark-pipelines run --remote sc://localhost:15104 --refresh zones,borough_daily 2>&1 | ev
+18:13:31: Flow zones is QUEUED.
+18:13:31: Flow borough_daily is QUEUED.
+18:13:31: Flow 'raw_trips' is EXCLUDED.
+18:13:31: Flow 'clean_trips' is EXCLUDED.
+18:13:32: Flow zones has COMPLETED.
+18:13:33: Flow borough_daily has COMPLETED.
+18:13:34: Run is COMPLETED.
+$ spark-pipelines run --remote sc://localhost:15104 --full-refresh raw_trips 2>&1 | ev
+18:13:38: Flow raw_trips is QUEUED.
+18:13:38: Flow 'zones' is EXCLUDED.
+18:13:38: Flow 'clean_trips' is EXCLUDED.
+18:13:38: Flow 'borough_daily' is EXCLUDED.
+18:13:40: Flow raw_trips has COMPLETED.
+18:13:42: Run is COMPLETED.
+$ q
+raw_trips        237,806 rows
+clean_trips      223,444 rows
+zones                265 rows
+borough_daily         14 rows
+$ ls pipeline-storage/_checkpoints/spark_catalog/default/raw_trips/raw_trips
+0
+1
+$ spark-pipelines run --remote sc://localhost:15104 --full-refresh clean_trips --refresh borough_daily 2>&1 | ev
+18:13:51: Flow clean_trips is QUEUED.
+18:13:51: Flow borough_daily is QUEUED.
+18:13:51: Flow 'raw_trips' is EXCLUDED.
+18:13:51: Flow 'zones' is EXCLUDED.
+18:13:52: Flow clean_trips has COMPLETED.
+18:13:53: Flow borough_daily has COMPLETED.
+18:13:54: Run is COMPLETED.
+$ q
+raw_trips        237,806 rows
+clean_trips      223,444 rows
+zones                265 rows
+borough_daily         14 rows
+$ spark-pipelines run --remote sc://localhost:15104 --full-refresh-all 2>&1 | ev
+18:14:00: Flow raw_trips is QUEUED.
+18:14:00: Flow zones is QUEUED.
+18:14:00: Flow clean_trips is QUEUED.
+18:14:00: Flow borough_daily is QUEUED.
+18:14:01: Flow zones has COMPLETED.
+18:14:01: Flow raw_trips has COMPLETED.
+18:14:02: Flow clean_trips has COMPLETED.
+18:14:03: Flow borough_daily has COMPLETED.
+18:14:04: Run is COMPLETED.
+$ q
+raw_trips        237,806 rows
+clean_trips      223,444 rows
+zones                265 rows
+borough_daily         14 rows
+$ ls pipeline-storage/_checkpoints/spark_catalog/default/*/*
+pipeline-storage/_checkpoints/spark_catalog/default/clean_trips/clean_trips:
+0
+1
+2
+pipeline-storage/_checkpoints/spark_catalog/default/raw_trips/raw_trips:
+0
+1
+2
+$ spark-pipelines run --remote sc://localhost:15104 --refresh no_such_table 2>&1 | tail -2 | cut -c1-200
+2026-11-22 18:14:09: Flow 'spark_catalog.default.borough_daily' is EXCLUDED.
+2026-11-22 18:14:09: Run is COMPLETED.
+$ spark-pipelines run --remote sc://localhost:15104 --refresh zones --full-refresh zones 2>&1 | tail -2 | cut -c1-200
+  File "~/spark-masterclass/data/work/sdp/venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/sql/connect/client/core.py", line 2443, in _handle_rpc_error
+pyspark.errors.exceptions.connect.IllegalArgumentException: Datasets specified for refresh and full refresh cannot overlap: `spark_catalog`.`default`.`zones`
+$ spark-pipelines run --remote sc://localhost:15104 --full-refresh-all --full-refresh zones 2>&1 | tail -3
+pyspark.errors.exceptions.base.PySparkException: [CONFLICTING_PIPELINE_REFRESH_OPTIONS] --full-refresh-all option conflicts with --full_refresh
+The --full-refresh-all option performs a full refresh of all datasets, 
+so specifying individual datasets with --full_refresh is not allowed.
