@@ -523,7 +523,7 @@ files under spark-warehouse/ and pipeline-storage/: 0
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch30-dryrun.webp">
     <source src="../../media/clips/ch30-dryrun.mp4" type="video/mp4">
   </video>
-  <figcaption>A dry run of the broken pipeline reports the cycle. After the fix, the next dry run reports the wrong table name. Nothing is written.</figcaption>
+  <figcaption>A dry run of the broken pipeline reports the cycle. After the fix, the next dry run reports the wrong table name. The dry runs write nothing.</figcaption>
 </figure>
 
 The errors come in a fixed order, because the server does its checks in a fixed order (`DataflowGraph.validate` and `GraphValidations.validateSuccessfulFlowAnalysis`):
