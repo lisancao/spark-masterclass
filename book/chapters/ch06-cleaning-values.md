@@ -69,6 +69,13 @@ sequenceDiagram
   SELECT CAST('2026-02-30' AS DATE)            CAST_INVALID_INPUT                   None
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch06-ansi.webp">
+    <source src="../../media/clips/ch06-ansi.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>ansi.py</code> runs against Spark 4.3.0. One zero fare in 3.8 million trips stops the average under ANSI mode, and each error has its own condition.</figcaption>
+</figure>
+
 With ANSI mode off, each query succeeds. Seven queries return NULL, and two return a wrong number. `2147483647 + 1` becomes `-2147483648`, because the integer wraps. `CAST(3000000000 AS INT)` becomes `-1294967296`. A job with ANSI mode off completes, and its numbers are wrong.
 
 !!! warning "CAUTION"
@@ -948,6 +955,13 @@ Row(later=True, diff=datetime.timedelta(0))
 Row(t='timestamp_ltz(9)', v='2026-06-01 10:00:00.123456789')
 Row(literal_type='timestamp_ntz(9)')
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch06-nanos.webp">
+    <source src="../../media/clips/ch06-nanos.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>nanos.py</code> runs against Spark 4.3.0 with the preview flag on. Two events one nanosecond apart stay different as <code>timestamp_ntz(9)</code>.</figcaption>
+</figure>
 
 The output shows what the preview keeps and what it loses:
 
