@@ -1,0 +1,5 @@
+name: crm_on_parquet
+storage: file://@WORK@/pipeline-storage
+libraries:
+  - glob:
+      include: transformations/**

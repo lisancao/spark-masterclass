@@ -1,0 +1,27 @@
+INFO DatasetManager: Materializing metadata for table `bronze_products`.
+INFO DatasetManager: Materializing metadata for table `bronze_customers`.
+INFO DatasetManager: Materializing metadata for table `bronze_orders`.
+INFO DatasetManager: Materializing metadata for table `silver_customers`.
+INFO DatasetManager: Materializing metadata for table `silver_orders`.
+INFO DatasetManager: Materializing metadata for table `quarantine_orders`.
+INFO DatasetManager: Materializing metadata for table `gold_revenue_hardware`.
+INFO DatasetManager: Materializing metadata for table `gold_daily_revenue`.
+INFO DatasetManager: Materializing metadata for table `gold_revenue_merch`.
+INFO DatasetManager: Materializing metadata for table `gold_customer_value`.
+INFO DatasetManager: Materializing metadata for table `check_orders_accounted_for`.
+INFO DatasetManager: Materializing metadata for table `check_gold_reconciles`.
+INFO TriggeredGraphExecution: Starting flow `bronze_customers`
+INFO TriggeredGraphExecution: Starting flow `bronze_orders`
+INFO FlowSystemMetadata: Flow bronze_orders using checkpoint directory: pipeline-storage/_checkpoi
+INFO TriggeredGraphExecution: Starting flow `bronze_products`
+INFO TriggeredGraphExecution: Starting flow `silver_customers`
+INFO TriggeredGraphExecution: Starting flow `shipped_orders_to_feed`
+INFO FlowSystemMetadata: Flow shipped_orders_to_feed using checkpoint directory: pipeline-storage/
+INFO TriggeredGraphExecution: Starting flow `silver_orders`
+INFO TriggeredGraphExecution: Starting flow `quarantine_orders`
+INFO TriggeredGraphExecution: Starting flow `gold_customer_value`
+INFO TriggeredGraphExecution: Starting flow `check_orders_accounted_for`
+INFO TriggeredGraphExecution: Starting flow `gold_revenue_hardware`
+INFO TriggeredGraphExecution: Starting flow `gold_revenue_merch`
+INFO TriggeredGraphExecution: Starting flow `gold_daily_revenue`
+INFO TriggeredGraphExecution: Starting flow `check_gold_reconciles`

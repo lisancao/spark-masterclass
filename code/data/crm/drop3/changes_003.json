@@ -1,0 +1,2 @@
+{"customer_id": "c-03", "name": "Chloe Martin-Roy", "city": "Montreal", "op": "UPSERT", "seq": 9}
+{"customer_id": "c-04", "name": "Dev Patel", "city": "Hanoi", "op": "UPSERT", "seq": 10}

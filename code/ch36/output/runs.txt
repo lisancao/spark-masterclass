@@ -1,0 +1,56 @@
+== run 1
+11:00:48: Flow bronze_products has COMPLETED.
+11:00:48: Flow bronze_customers has COMPLETED.
+11:00:48: Flow bronze_orders has COMPLETED.
+11:00:49: Flow silver_customers has COMPLETED.
+11:00:50: Flow shipped_orders_to_feed has COMPLETED.
+11:00:51: Flow silver_orders has COMPLETED.
+11:00:51: Flow quarantine_orders has COMPLETED.
+11:00:53: Flow check_orders_accounted_for has COMPLETED.
+11:00:53: Flow gold_revenue_hardware has COMPLETED.
+11:00:53: Flow gold_revenue_merch has COMPLETED.
+11:00:53: Flow gold_daily_revenue has COMPLETED.
+11:00:53: Flow gold_customer_value has COMPLETED.
+11:00:55: Flow check_gold_reconciles has COMPLETED.
+11:00:56: Run is COMPLETED.
+part-00000-c6725a08-0b60-4fb9-be4a-cb5aabb3c597-c000.json
+part-00001-04032bc8-d888-4a92-8bcc-b7f3ef3c90a9-c000.json
+rows in the feed: 2
+
+== run 2, after orders_2026-10-03.json arrived
+11:01:03: Flow bronze_customers has COMPLETED.
+11:01:04: Flow bronze_products has COMPLETED.
+11:01:04: Flow bronze_orders has COMPLETED.
+11:01:04: Flow silver_customers has COMPLETED.
+11:01:05: Flow shipped_orders_to_feed has COMPLETED.
+11:01:07: Flow silver_orders has COMPLETED.
+11:01:07: Flow quarantine_orders has COMPLETED.
+11:01:09: Flow check_orders_accounted_for has COMPLETED.
+11:01:09: Flow gold_customer_value has COMPLETED.
+11:01:09: Flow gold_revenue_hardware has COMPLETED.
+11:01:09: Flow gold_revenue_merch has COMPLETED.
+11:01:10: Flow gold_daily_revenue has COMPLETED.
+11:01:12: Flow check_gold_reconciles has COMPLETED.
+11:01:13: Run is COMPLETED.
+rows in the feed: 3
+
+== run --full-refresh-all
+11:01:23: Flow bronze_customers has COMPLETED.
+11:01:23: Flow bronze_products has COMPLETED.
+11:01:24: Flow bronze_orders has COMPLETED.
+11:01:24: Flow silver_customers has COMPLETED.
+11:01:25: Flow shipped_orders_to_feed has COMPLETED.
+11:01:26: Flow quarantine_orders has COMPLETED.
+11:01:26: Flow silver_orders has COMPLETED.
+11:01:27: Flow check_orders_accounted_for has COMPLETED.
+11:01:27: Flow gold_revenue_merch has COMPLETED.
+11:01:27: Flow gold_revenue_hardware has COMPLETED.
+11:01:27: Flow gold_customer_value has COMPLETED.
+11:01:28: Flow gold_daily_revenue has COMPLETED.
+11:01:29: Flow check_gold_reconciles has COMPLETED.
+11:01:30: Run is COMPLETED.
+rows in the feed: 3
+checkpoint versions of the sink flow: 0 1
+batches in the sink log exports/shipping_feed/_spark_metadata: 0 1
+bronze_orders: 15 rows
+silver_orders: 10 rows

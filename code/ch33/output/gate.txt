@@ -1,0 +1,89 @@
+== run 1: two days of orders
+10:30:03: Flow customers_dim has COMPLETED.
+10:30:03: Flow bronze_orders has COMPLETED.
+10:30:04: Flow quarantine_orders has COMPLETED.
+10:30:04: Flow quality_report has COMPLETED.
+10:30:06: Flow silver_orders has COMPLETED.
+10:30:06: Flow revenue_by_currency has COMPLETED.
+10:30:08: Run is COMPLETED.
+bronze_orders: 120 rows
+quarantine_orders: 14 rows
+silver_orders: 103 rows
+revenue_by_currency: 2 rows
++---------------------+----+-----------+------+-----------+
+|_source_file         |rows|quarantined|warned|error_ratio|
++---------------------+----+-----------+------+-----------+
+|orders_2026-10-02.csv|60  |8          |0     |0.1333     |
+|orders_2026-10-01.csv|60  |6          |1     |0.1        |
++---------------------+----+-----------+------+-----------+
+
++---------------------------+----+
+|rule                       |rows|
++---------------------------+----+
+|customer_known             |4   |
+|quantity_positive          |4   |
+|unit_price_is_number       |3   |
+|customer_id_present        |2   |
+|quantity_is_integer        |2   |
+|currency_allowed           |1   |
+|order_ts_not_after_file_day|1   |
+|status_allowed             |1   |
++---------------------------+----+
+
++--------+-----------+--------+----------+---------+--------+----------------------------------------+
+|order_id|customer_id|quantity|unit_price|status   |currency|failed_rules                            |
++--------+-----------+--------+----------+---------+--------+----------------------------------------+
+|O0004   |NULL       |4       |45.84     |placed   |CAD     |[customer_id_present, customer_known]   |
+|O0012   |C099       |3       |26.65     |placed   |CAD     |[customer_known]                        |
+|O0019   |C035       |0       |16.47     |cancelled|USD     |[quantity_positive]                     |
+|O0026   |C023       |3       |N/A       |shipped  |USD     |[unit_price_is_number]                  |
+|O0041   |C021       |NULL    |39.39     |shipped  |CAD     |[quantity_is_integer, quantity_positive]|
++--------+-----------+--------+----------+---------+--------+----------------------------------------+
+only showing top 5 rows
+== orders_2026-10-03.csv arrives (a broken export)
+== run 2
+10:30:40: Flow customers_dim has COMPLETED.
+10:30:40: Flow bronze_orders has COMPLETED.
+10:30:41: Flow quarantine_orders has COMPLETED.
+10:30:41: Flow quality_report has COMPLETED.
+10:30:43: Flow 'silver_orders' has FAILED.
+Error: [USER_RAISED_EXCEPTION] quality gate: a file has more than 20% bad rows SQLSTATE: P0001
+10:30:49: Flow 'silver_orders' has FAILED.
+Error: [USER_RAISED_EXCEPTION] quality gate: a file has more than 20% bad rows SQLSTATE: P0001
+10:31:00: Flow 'silver_orders' has FAILED.
+Error: [USER_RAISED_EXCEPTION] quality gate: a file has more than 20% bad rows SQLSTATE: P0001
+10:31:01: Flow 'revenue_by_currency' SKIPPED due to upstream failure(s).
+pyspark.errors.exceptions.connect.SparkRuntimeException: [USER_RAISED_EXCEPTION] quality gate: a file has more than 20% bad rows SQLSTATE: P0001
+bronze_orders: 180 rows
+quarantine_orders: 59 rows
+silver_orders: 0 rows
+revenue_by_currency: 0 rows
++---------------------+----+-----------+------+-----------+
+|_source_file         |rows|quarantined|warned|error_ratio|
++---------------------+----+-----------+------+-----------+
+|orders_2026-10-02.csv|60  |8          |0     |0.1333     |
+|orders_2026-10-01.csv|60  |6          |1     |0.1        |
+|orders_2026-10-03.csv|60  |45         |0     |0.75       |
++---------------------+----+-----------+------+-----------+
+
+
+== the same two runs with Iceberg tables
+10:32:45: Run is COMPLETED.
+  run 1: silver_orders: 103 rows
+  run 1: revenue_by_currency: 2 rows
+10:33:43: Flow 'silver_orders' has FAILED.
+10:33:49: Flow 'silver_orders' has FAILED.
+10:34:00: Flow 'silver_orders' has FAILED.
+10:34:01: Flow 'revenue_by_currency' SKIPPED due to upstream failure(s).
+  run 2: silver_orders: 0 rows
+  run 2: revenue_by_currency: 0 rows
+
+== Iceberg snapshots of silver_orders
++-------------------+---------+-----+-------+-----+
+|snapshot_id        |operation|added|deleted|total|
++-------------------+---------+-----+-------+-----+
+|4406669090842068835|append   |103  |NULL   |103  |
+|6970610185732106983|delete   |NULL |103    |0    |
++-------------------+---------+-----+-------+-----+
+
+rows now: 0   rows in the last good snapshot: 103

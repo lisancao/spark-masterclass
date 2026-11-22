@@ -1,0 +1,66 @@
+== 1. summary() on string columns
++-------+--------+----------+
+|summary|quantity|unit_price|
++-------+--------+----------+
+|  count|     119|       119|
+|    min|      -2|  1,299.00|
+|    max|     two|       N/A|
++-------+--------+----------+
+
+== 2. a profile in one aggregation: missing, distinct (approximate), most frequent
++-----------+----+-------+--------+-------------------+
+|column     |rows|missing|distinct|top                |
++-----------+----+-------+--------+-------------------+
+|order_id   |120 |0      |117     |O0006              |
+|customer_id|120 |2      |40      |C003               |
+|order_ts   |120 |0      |117     |2026-10-01 08:35:00|
+|quantity   |120 |1      |8       |3                  |
+|unit_price |120 |1      |115     |115.10             |
+|status     |120 |0      |6       |placed             |
+|currency   |120 |0      |3       |CAD                |
++-----------+----+-------+--------+-------------------+
+
+== 3. approximate means approximate
+  exact distinct customer_id:       40
+  approx_count_distinct, rsd 0.05:  37
+  approx_count_distinct, rsd 0.01:  40
+  hll_sketch_estimate:              40
+  percentile_approx(quantity, 0.5): 3
+
+== 4. rules as data
+   {'name': 'order_id_present', 'severity': 'error', 'check': "order_id IS NOT NULL AND trim(order_id) <> ''"}
+   {'name': 'customer_id_present', 'severity': 'error', 'check': "customer_id IS NOT NULL AND trim(customer_id) <> ''"}
+   {'name': 'quantity_is_integer', 'severity': 'error', 'check': 'try_cast(quantity AS INT) IS NOT NULL'}
+   ... 11 rules
++--------+--------+----------+----------------------------------------+
+|order_id|quantity|unit_price|failed_rules                            |
++--------+--------+----------+----------------------------------------+
+|O0004   |4       |45.84     |[customer_id_present, customer_known]   |
+|O0012   |3       |26.65     |[customer_known]                        |
+|O0019   |0       |16.47     |[quantity_positive]                     |
+|O0026   |3       |N/A       |[unit_price_is_number]                  |
+|O0041   |NULL    |39.39     |[quantity_is_integer, quantity_positive]|
+|O0048   |5       |108.86    |[currency_allowed]                      |
++--------+--------+----------+----------------------------------------+
+only showing top 6 rows
+== 5. the NULL trap: a check that is NULL is not a failure unless you say so
++--------+-----+---------+------+
+|quantity|check|not check|failed|
++--------+-----+---------+------+
+|       3| true|    false| false|
+|      -1|false|     true|  true|
+|        | NULL|     NULL|  true|
+|    NULL| NULL|     NULL|  true|
++--------+-----+---------+------+
+
+  rows that fail quantity_positive, with coalesce:    4
+  rows that fail quantity_positive, without coalesce: 2
+
+== 6. metrics while you write: DataFrame.observe and Observation
+  observed in the same job as the write: {'rows': 120, 'quarantined': 14, 'warned': 1}
+  get before an action -> PySparkAssertionError [NO_OBSERVE_BEFORE_GET] Should observe by calling `DataFrame.observe` before `ge
+
+== 7. a gate that never ran
+  gate never used: 106 rows, no error
+  the gate in the plan: ['HashAggregate(keys=[], functions=[])', 'HashAggregate(keys=[], functions=[])']
+  gate in a filter -> USER_RAISED_EXCEPTION [USER_RAISED_EXCEPTION] quality gate failed SQLSTATE: P0001

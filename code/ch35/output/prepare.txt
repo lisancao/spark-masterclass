@@ -1,0 +1,14 @@
+taxi.trips: 3694387 rows
++--------------+-------+
+|pickup_borough|  trips|
++--------------+-------+
+|     Manhattan|3266362|
+|        Queens| 309265|
+|      Brooklyn|  99965|
+|         Bronx|  13816|
+|       Unknown|   3656|
+|           N/A|    983|
+| Staten Island|    209|
+|           EWR|    131|
++--------------+-------+
+

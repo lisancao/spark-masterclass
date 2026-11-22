@@ -1,0 +1,29 @@
+== run --refresh products_by_category
+10:19:43: Flow spark_catalog.default.products_by_category is QUEUED.
+10:19:43: Flow 'spark_catalog.default.ingest_orders' is EXCLUDED.
+10:19:43: Flow 'spark_catalog.default.orders_by_status' is EXCLUDED.
+10:19:43: Flow 'spark_catalog.default.products' is EXCLUDED.
+10:19:43: Flow 'spark_catalog.default.placed_by_customer' is EXCLUDED.
+10:19:43: Flow spark_catalog.default.products_by_category is PLANNING.
+10:19:43: Flow spark_catalog.default.products_by_category is STARTING.
+10:19:43: Flow spark_catalog.default.products_by_category is RUNNING.
+10:19:45: Flow spark_catalog.default.products_by_category has COMPLETED.
+10:19:47: Run is COMPLETED.
+
+== run --full-refresh orders_raw
+10:20:01: Flow spark_catalog.default.ingest_orders is QUEUED.
+10:20:01: Flow 'spark_catalog.default.products_by_category' is EXCLUDED.
+10:20:01: Flow 'spark_catalog.default.products' is EXCLUDED.
+10:20:01: Flow 'spark_catalog.default.orders_by_status' is EXCLUDED.
+10:20:01: Flow 'spark_catalog.default.placed_by_customer' is EXCLUDED.
+10:20:01: Flow spark_catalog.default.ingest_orders is STARTING.
+10:20:02: Flow spark_catalog.default.ingest_orders is RUNNING.
+10:20:03: Flow spark_catalog.default.ingest_orders has COMPLETED.
+10:20:05: Run is COMPLETED.
+orders_raw: 11 rows
+checkpoint folders of ingest_orders: 0 1
+
+== run --full-refresh-all --refresh products
+pyspark.errors.exceptions.base.PySparkException: [CONFLICTING_PIPELINE_REFRESH_OPTIONS] --full-refresh-all option conflicts with --refresh
+The --full-refresh-all option performs a full refresh of all datasets, 
+so specifying individual datasets with --refresh is not allowed.
