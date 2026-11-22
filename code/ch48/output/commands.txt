@@ -20,3 +20,6 @@ sc://spark.example.com:443/;user_id=etl;token=s3cret;use_ssl=True
 
 # SparkConnectHook('spark_connect_path').get_connection_url()
 ValueError: Path {url.path} is not supported in Spark Connect connection URL
+# Jinja on a template field (the DAG's own template environment)
+'{{APP_ID}}'             -> UndefinedError: 'APP_ID' is undefined
+"{{ '{{APP_ID}}' }}"     -> '{{APP_ID}}'

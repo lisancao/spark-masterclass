@@ -63,3 +63,14 @@ try:
     SparkConnectHook("spark_connect_path").get_connection_url()
 except ValueError as e:
     print(f"ValueError: {e}")
+
+# Jinja renders every template field, and conf and yaml_conf are template fields.
+from airflow.sdk import DAG  # noqa: E402
+
+env = DAG("ch48_jinja").get_template_env()
+print("# Jinja on a template field (the DAG's own template environment)")
+for text in ["{{APP_ID}}", "{{ '{{APP_ID}}' }}"]:
+    try:
+        print(f"{text!r:24} -> {env.from_string(text).render()!r}")
+    except Exception as e:
+        print(f"{text!r:24} -> {type(e).__name__}: {e}")

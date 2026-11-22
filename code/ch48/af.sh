@@ -18,5 +18,18 @@ export CH48_TAXI=${CH48_TAXI:-$HOME/spark-masterclass/data/nyc-taxi} CH48_OUT=${
 export AIRFLOW_CONN_SPARK_LOCAL='{"conn_type": "spark", "host": "local[2]"}'
 export AIRFLOW_CONN_SPARK_SQL_LOCAL='{"conn_type": "spark_sql", "host": "local[2]"}'
 export AIRFLOW_CONN_SPARK_CONNECT_CH48='{"conn_type": "spark_connect", "host": "localhost", "port": 15064, "login": "airflow"}'
+# The kind cluster "ch48", for the Kubernetes DAG: one kubeconfig file for spark-submit and for Airflow.
+if kind get clusters 2>/dev/null | grep -qx ch48; then
+  export KUBECONFIG=$WORK/kubeconfig-ch48
+  kind get kubeconfig --name ch48 > "$KUBECONFIG"
+  API=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+  export AIRFLOW_CONN_SPARK_K8S='{"conn_type": "spark", "host": "k8s://'$API'",
+    "extra": {"deploy-mode": "cluster", "namespace": "spark"}}'
+  export AIRFLOW_CONN_SPARK_K8S_JOBS='{"conn_type": "spark", "host": "k8s://'$API'",
+    "extra": {"deploy-mode": "cluster", "namespace": "spark-jobs"}}'
+  export AIRFLOW_CONN_KUBERNETES_DEFAULT='{"conn_type": "kubernetes",
+    "extra": {"kube_config_path": "'$KUBECONFIG'", "namespace": "spark-apps"}}'
+  export AIRFLOW__KUBERNETES_EXECUTOR__IN_CLUSTER=False   # SparkSubmitOperator polls the driver pod with this client
+fi
 mkdir -p "$AIRFLOW_HOME"
 exec airflow "$@"

@@ -1,5 +1,8 @@
-# The namespace for Spark applications, and the service account that the driver pod uses
-# to create and delete its executor pods.
+# The namespaces for Spark applications that spark-submit creates, and the service account that the
+# driver pod uses to create and delete its executor pods.
+#   spark-jobs: the YuniKorn and Celeborn steps.
+#   spark:      the Airflow Kubernetes DAG. With provider 6.3.4, track_driver_via_k8s_api finds the
+#               driver pod only in a namespace with this name (see notes/ch48.md, open findings).
 apiVersion: v1
 kind: Namespace
 metadata: {name: spark-jobs}
@@ -14,3 +17,18 @@ metadata: {name: spark-edit, namespace: spark-jobs}
 roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: edit}
 subjects:
   - {kind: ServiceAccount, name: spark, namespace: spark-jobs}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: spark}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: spark, namespace: spark}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: spark-edit, namespace: spark}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: edit}
+subjects:
+  - {kind: ServiceAccount, name: spark, namespace: spark}

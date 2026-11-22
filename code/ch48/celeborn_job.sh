@@ -59,3 +59,9 @@ rm -f "$KCFG"
 log=$(kubectl --context kind-ch48 -n spark-jobs logs "$(kubectl --context kind-ch48 -n spark-jobs get pods \
   -l spark-app-name="$NAME",spark-role=driver -o name | tail -1)")
 grep -E "^SHUFFLE" <<<"$log" || grep -m1 -E "^[a-zA-Z.]+(Exception|Error):" <<<"$log" | fold -s -w 92
+if [[ $MODE == celeborn ]]; then   # what the Celeborn master logged for this application
+  app=$(kubectl --context kind-ch48 -n spark-jobs get pods -l spark-app-name="$NAME",spark-role=driver \
+    -o jsonpath='{.items[-1:].metadata.labels.spark-app-selector}')
+  kubectl --context kind-ch48 -n celeborn logs celeborn-master-0 -c celeborn | grep "$app" \
+    | sed -E 's/^[0-9/]+ ([0-9:]+),[0-9]+ INFO \[[^]]+\] /CELEBORN \1  /; s/spark-([0-9a-f]{8})[0-9a-f]{24}/spark-\1…/' || true
+fi
