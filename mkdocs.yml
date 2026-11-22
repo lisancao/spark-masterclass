@@ -84,7 +84,13 @@ nav:
       - "16. XML, Avro and Protobuf": chapters/ch16-xml-avro-protobuf.md
       - "17. Documents, images and audio": chapters/ch17-documents-images-audio.md
   - "Part VI: Pipelines and tables":
+      - "30. Tables: Delta and Iceberg": chapters/ch30-tables-delta-iceberg.md
       - "31. Apache Iceberg with Spark": chapters/ch31-iceberg.md
+      - "32. Declarative Pipelines": chapters/ch32-declarative-pipelines.md
+      - "33. Medallion in practice": chapters/ch33-medallion.md
+      - "34. Change data capture": chapters/ch34-change-data-capture.md
+      - "35. Metric views": chapters/ch35-metric-views.md
+      - "36. A pipeline end to end": chapters/ch36-pipeline-end-to-end.md
   - "Part VII: Machine learning and applied algorithms":
       - "37. ML pipelines with MLlib and MLflow": chapters/ch37-mllib-mlflow.md
       - "38. Text analytics without an LLM": chapters/ch38-text-analytics.md

@@ -24,7 +24,9 @@ def sub_word(mo):
     return f'{mo.group(1)} {nums}'
 files = subprocess.run(['git', '-C', wt, 'ls-files'], capture_output=True, text=True).stdout.split()
 changed = 0
+SHARED = {'notes/assignments.md', 'notes/renumber.md', 'notes/chapter-brief.md', 'book/roadmap.md', 'book/coverage.md', 'mkdocs.yml', 'README.md', 'NOTES.md'}
 for f in files:
+    if f in SHARED: continue
     p = os.path.join(wt, f)
     if not re.search(r'\.(md|py|sh|tape|tsv|txt|yml|yaml|toml|java|scala)$', f): continue
     try: s = open(p).read()

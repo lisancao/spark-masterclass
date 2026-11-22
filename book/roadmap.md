@@ -66,13 +66,13 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 
 | # | Chapter | Covers |
 |---|---|---|
-| 30 | Tables: Delta and Iceberg, MERGE and time travel | The transaction log on disk. |
+| 30 | [Tables: Delta and Iceberg, MERGE and time travel](chapters/ch30-tables-delta-iceberg.md) | The transaction log on disk. |
 | 31 | [Apache Iceberg with Spark: the runtime and catalog management](chapters/ch31-iceberg.md) | The `iceberg-spark-runtime` jar, Spark catalogs (`SparkCatalog`, `SparkSessionCatalog`), REST, JDBC and Hadoop catalogs, namespaces, Iceberg SQL extensions and procedures, table maintenance |
-| 32 | Declarative Pipelines: the model and the CLI | The project layout and spec the tutor used to hide; dry-run output |
-| 33 | Medallion in practice: bronze, silver, gold and quality | Incrementality shown across two runs; the event log |
-| 34 | Change data capture: reading changes and Auto CDC | **4.3:** SCD Type 2 on the Toronto, Ottawa, Hanoi changes |
-| 35 | Metric views | A semantic layer in Spark SQL: dimensions, measures and `measure()` |
-| 36 | A pipeline end to end, and how SDP runs it | Under the hood rewritten from the real SDP source, not the regex toy |
+| 32 | [Declarative Pipelines: the model and the CLI](chapters/ch32-declarative-pipelines.md) | The project layout and spec the tutor used to hide; dry-run output |
+| 33 | [Medallion in practice: bronze, silver, gold and quality](chapters/ch33-medallion.md) | Incrementality shown across two runs; the event log |
+| 34 | [Change data capture: reading changes and Auto CDC](chapters/ch34-change-data-capture.md) | **4.3:** SCD Type 2 on the Toronto, Ottawa, Hanoi changes |
+| 35 | [Metric views](chapters/ch35-metric-views.md) | A semantic layer in Spark SQL: dimensions, measures and `measure()` |
+| 36 | [A pipeline end to end, and how SDP runs it](chapters/ch36-pipeline-end-to-end.md) | Under the hood rewritten from the real SDP source, not the regex toy |
 
 ## Part VII: Machine learning and applied algorithms
 *Data: taxi fares, messy documents*
