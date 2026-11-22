@@ -1,0 +1,61 @@
+== 1. the blogs table, with an explicit schema
+root
+ |-- Id: integer (nullable = false)
+ |-- First: string (nullable = true)
+ |-- Last: string (nullable = true)
+ |-- Url: string (nullable = true)
+ |-- Published: string (nullable = true)
+ |-- Hits: integer (nullable = true)
+ |-- Campaigns: array (nullable = true)
+ |    |-- element: string (containsNull = true)
+
+== 2. select, where, withColumns, drop, rename, sort
++---+----------+-------+-----+----------+--------------+--------+
+| Id|first_name|   Last| Hits|Big_Hitter|Published_Date|Channels|
++---+----------+-------+-----+----------+--------------+--------+
+|  5|     Matei|Zaharia|40578|      true|    2014-05-14|       4|
+|  6|   Reynold|    Xin|25568|      true|    2015-03-02|       2|
+|  4| Tathagata|    Das|10568|      true|    2018-05-12|       2|
+|  2|    Brooke|  Wenig| 8908|     false|    2018-05-05|       2|
+|  3|     Denny|    Lee| 7659|     false|    2019-06-07|       4|
++---+----------+-------+-----+----------+--------------+--------+
+
+columns: ['Id', 'first_name', 'Last', 'Hits', 'Big_Hitter', 'Published_Date', 'Channels']
+drop a name that is not there: True
+
+== 3. expr, selectExpr and SQL expressions
++---+-------+----------+-----+
+| Id|   tier|     label|on_fb|
++---+-------+----------+-----+
+|  1|    new| 4535 hits|false|
+|  2|regular| 8908 hits|false|
+|  3|    new| 7659 hits| true|
+|  4|regular|10568 hits| true|
+|  5|   star|40578 hits| true|
+|  6|   star|25568 hits|false|
++---+-------+----------+-----+
+
+expr vs when/otherwise, same optimized plan: True
+
+== 4. the same column name on two sides
+pairs.columns has 2 columns named Hits
+select('Hits'): ERROR [AMBIGUOUS_REFERENCE] Reference `Hits` is ambiguous, could be: [`a`.`Hits`, `b`.`Hit
+select('a.Hits', 'b.Hits'): 15 rows
+
+== 5. other inputs
+from a NumPy array: struct<_1:double,_2:double>
+JSON default:       struct<amount:double>
+JSON prefersDecimal: struct<amount:decimal(4,2)>
+spark.sql.timestampType=TIMESTAMP_LTZ: typeof(TIMESTAMP'2026-06-01 10:00') = timestamp
+spark.sql.timestampType=TIMESTAMP_NTZ: typeof(TIMESTAMP'2026-06-01 10:00') = timestamp_ntz
+
+== 6. VARIANT
++---------------+---+---+----+
+|typeof(payload)| os|ver|tag2|
++---------------+---+---+----+
+|        variant|ios| 17|   b|
++---------------+---+---+----+
+
+== 7. a bad column name, mode: Classic
+df['typo']: ERROR [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with n
+df.select(df['typo']).collect(): ERROR [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with n

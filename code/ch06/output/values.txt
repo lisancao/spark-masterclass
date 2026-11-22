@@ -1,0 +1,156 @@
+== 1. money
++---------+---------+--------+--------+
+|        s|to_number|stripped|      eu|
++---------+---------+--------+--------+
+|$1,234.50|  1234.50| 1234.50|    NULL|
+|      $12|    12.00|   12.00|    NULL|
+|   1234.5|     NULL| 1234.50|12345.00|
+|   -$5.00|     NULL|   -5.00|    NULL|
+|   $7.25 |     NULL|    7.25|    NULL|
+| 1.234,50|     NULL|    1.23| 1234.50|
+|      abc|     NULL|    NULL|    NULL|
++---------+---------+--------+--------+
+
+Row(to_char='$1,234.50', fmt='1,234,567.89', mi=Decimal('-5.00'), pr=Decimal('-5.00'))
+
+== 2. dates
++-------------------+------------+----------+
+|s                  |default_only|parsed    |
++-------------------+------------+----------+
+|2025-03-04         |2025-03-04  |2025-03-04|
+|2025/03/05         |NULL        |2025-03-05|
+|05/03/2025         |NULL        |2025-03-05|
+|4 Mar 2025         |NULL        |2025-03-04|
+|March 4, 2025      |NULL        |2025-03-04|
+|20250306           |NULL        |2025-03-06|
+|2025-03-09T14:30:00|2025-03-09  |2025-03-09|
+|2025-02-30         |NULL        |NULL      |
+|unknown            |NULL        |NULL      |
++-------------------+------------+----------+
+
++----------+-----------+------------+------------+------------+----------+
+| day_first|month_first|minutes_trap|dd_needs_two|d_takes_both|     yy_69|
++----------+-----------+------------+------------+------------+----------+
+|2026-03-04| 2026-04-03|  2026-01-04|        NULL|  2026-03-04|2069-03-04|
++----------+-----------+------------+------------+------------+----------+
+
+YYYY: ERROR [INCONSISTENT_BEHAVIOR_CROSS_VERSION.DATETIME_PATTERN_RECOGNITION] You may get a different
+
+== 3. timestamps
+UTC              Row(no_offset='2026-03-04 09:30 Z', with_offset='2026-03-04 14:30 Z', ntz='2026-03-04 09:30:00')
+America/Toronto  Row(no_offset='2026-03-04 09:30 -05:00', with_offset='2026-03-04 09:30 -05:00', ntz='2026-03-04 09:30:00')
+Row(from_epoch='2026-03-04 09:30:00')
+
+== 4. NULL, empty, markers, NaN
++---+-----+-----+
+|  k| city|score|
++---+-----+-----+
+|  a| NULL|  NaN|
+|  b|     |  1.0|
+|  c|  N/A| NULL|
+|  d|Paris|  2.0|
++---+-----+-----+
+
+city != 'Paris': 2 | city == None: 0 | isNull: 1
++----+---------+----+------+------+---------+
+|  eq|null_safe|  fn|not_in|concat|concat_ws|
++----+---------+----+------+------+---------+
+|NULL|     true|true|  NULL|  NULL|      a-b|
++----+---------+----+------+------+---------+
+
++---+-----+--------+------------+---------------+
+|  k| city|coalesce|nullif_empty|markers_to_null|
++---+-----+--------+------------+---------------+
+|  a| NULL| unknown|        NULL|           NULL|
+|  b|     |        |        NULL|           NULL|
+|  c|  N/A|     N/A|         N/A|           NULL|
+|  d|Paris|   Paris|       Paris|          Paris|
++---+-----+--------+------------+---------------+
+
+coalesce(date, 'n/a'): ERROR [CAST_INVALID_INPUT] The value 'n/a' of the type "STRING" cannot be cast to "DAT
++---+-----+-----+------+-----------+
+|  k|score|isnan|isnull|nan_to_null|
++---+-----+-----+------+-----------+
+|  a|  NaN| true| false|       NULL|
+|  b|  1.0|false| false|        1.0|
+|  c| NULL|false|  true|       NULL|
+|  d|  2.0|false| false|        2.0|
++---+-----+-----+------+-----------+
+
+NaN = NaN: True | sorted: [None, 1.0, 2.0, nan]
+aggregates with NaN:    Row(count(score)=3, avg(score)=nan, max(score)=nan)
+after nanvl:            Row(count(s)=2, avg(s)=1.5, max(s)=2.0)
+fillna(0.0): [0.0, 1.0, 0.0, 2.0]
+
+== 5. clean the customer export
+raw: 40 rows, all strings: {'string'}
++-----------+----------------------+-----------+--------------+----------+------+--------+
+|customer_id|full_name             |signup_date|lifetime_value|newsletter|age   |country |
++-----------+----------------------+-----------+--------------+----------+------+--------+
+|C001       |  ana   maria  nguyen |2025-03-04 |$1,234.50     |yes       |34    |Canada  |
+| c002      |BINH TRAN             |2025/03/05 |1234.5        |Y         | 41   | usa    |
+|C003       |Zoë Tremblay          |05/03/2025 |$12           |0         |NULL  |U.S.    |
+|C004       |José\tGarcía          |4 Mar 2025 |-$5.00        |N         |-3    |Viet Nam|
+|C006       |Emma Smith            |2025-02-30 |abc           |maybe     |thirty|Mars    |
++-----------+----------------------+-----------+--------------+----------+------+--------+
+
+root
+ |-- customer_id: string (nullable = true)
+ |-- name: string (nullable = true)
+ |-- email: string (nullable = true)
+ |-- phone: string (nullable = true)
+ |-- country: string (nullable = true)
+ |-- signup_date: date (nullable = true)
+ |-- lifetime_value: decimal(12,2) (nullable = true)
+ |-- newsletter: boolean (nullable = true)
+ |-- age: integer (nullable = true)
+ |-- city: string (nullable = true)
+ |-- reject_reason: string (nullable = true)
+
++-----------+----------------+-------+-----------+--------------+----------+----+-------------------------------------------------------------+
+|customer_id|name            |country|signup_date|lifetime_value|newsletter|age |reject_reason                                                |
++-----------+----------------+-------+-----------+--------------+----------+----+-------------------------------------------------------------+
+|C001       |Ana Maria Nguyen|CA     |2025-03-04 |1234.50       |true      |34  |NULL                                                         |
+|C002       |Binh Tran       |US     |2025-03-05 |1234.50       |true      |41  |NULL                                                         |
+|C003       |Zoë Tremblay    |US     |2025-03-05 |12.00         |false     |NULL|NULL                                                         |
+|C004       |José García     |VN     |2025-03-04 |-5.00         |false     |NULL|bad_email,bad_phone,bad_age                                  |
+|C006       |Emma Smith      |NULL   |NULL       |NULL          |NULL      |NULL|bad_email,bad_country,bad_date,bad_ltv,bad_newsletter,bad_age|
++-----------+----------------+-------+-----------+--------------+----------+----+-------------------------------------------------------------+
+
+rows kept: 40 | rows with a reject reason: 5
++--------------+-----+
+|        reason|count|
++--------------+-----+
+|       bad_age|    3|
+|      bad_date|    2|
+|     bad_email|    2|
+|   bad_country|    1|
+|       bad_ltv|    1|
+|bad_newsletter|    1|
+|     bad_phone|    1|
+|  missing_name|    1|
++--------------+-----+
+
+unmapped countries: ['Mars']
++--------+-----+
+|    city|count|
++--------+-----+
+|Montréal|   14|
+| Toronto|   10|
+|  Hà Nội|    9|
+|   Paris|    7|
++--------+-----+
+
+
+the plan of the cleanup: one Project per side of one broadcast join
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- Project [customer_id#308, name#309, CASE WHEN email_ok#310 THEN email_clean#311 END AS email#321,
+   +- Project [customer_id#308, city#307, name#309, email_ok#310, email_clean#311, phone_ok#312, pho
+      +- BroadcastHashJoin [country_key#314], [raw#252], LeftOuter, BuildRight, false, false
+         :- Project [upper(customer_id#298) AS customer_id#308, email#300, phone#301, country#302, s
+         :  +- Project [CASE WHEN upper(trim(regexp_replace(customer_id#225, [\s ]+,  , 1), None)) I
+         :     +- FileScan csv [customer_id#225,full_name#226,email#227,phone#228,country#229,signup
+         +- BroadcastExchange HashedRelationBroadcastMode(List(input[0, string, false]),false), [pla
+            +- Filter isnotnull(raw#252)
+               +- FileScan csv [raw#252,code#253] Batched: false, DataFilters: [isnotnull(raw#252)],

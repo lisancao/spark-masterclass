@@ -1,0 +1,98 @@
+== 1. a point in WKB
+bytes: 21 01 01 00 00 00 e5 d0 22 db f9 c6 5e c0 31 08 ac 1c 5a a4 48 40
+      order=01 (little-endian) | type=01000000 (Point) | x: 8 bytes | y: 8 bytes
+schema: [('geog', 'geography(4326)'), ('geom', 'geometry(0)')]
+Row(geog_srid=4326, geom_srid=0, back_to_wkb='0101000000E5D022DBF9C65EC03108AC1C5AA44840')
+Python value: Geography(bytearray(b'\x01\x01\x00\x00\x00\xe5\xd0"\xdb\xf9\xc6^\xc01\x08\xac\x1cZ\xa4H@'), 4326)
+
+== 2. SRIDs
+  st_setsrid(geom, 3857)             GeometryType(3857)
+  st_setsrid(geog, 3857)             ST_INVALID_SRID_VALUE: Invalid or unsupported SRID (spatial reference identifier) value: 
+  st_setsrid(geom, 99999)            ST_INVALID_SRID_VALUE: Invalid or unsupported SRID (spatial reference identifier) value: 
+  CAST(geog AS GEOMETRY(4326))       GeometryType(4326)
+  CAST(geom AS GEOGRAPHY(4326))      DATATYPE_MISMATCH.CAST_WITHOUT_SUGGESTION: Cannot resolve "CAST(geom AS GEOGRAPHY(4326))" due to data type mi
+
+== 3. what st_geogfromwkb and st_geomfromwkb accept
+  GEOGRAPHY, lat 123                 WKB_PARSE_ERROR: Error parsing WKB: Invalid coordinate value found at position 5 SQ
+  GEOMETRY, lat 123                  01010000009A99999999
+  GEOGRAPHY, NaN                     01010000000000000000
+  GEOMETRY, NaN                      01010000000000000000
+  GEOGRAPHY, 3 bytes                 WKB_PARSE_ERROR: Error parsing WKB: Unexpected end of WKB buffer at position 0 SQLS
+  GEOMETRY, 3 bytes                  WKB_PARSE_ERROR: Error parsing WKB: Unexpected end of WKB buffer at position 0 SQLS
+
+== 4. raw coordinates
+166 deliveries; 12 stores
++----------+--------+--------+
+|         s|try_cast| trimmed|
++----------+--------+--------+
+| 16.01392 |16.01392|16.01392|
+|       NaN|     NaN|     NaN|
+|      1.5d|     1.5|     1.5|
+|     49,25|    NULL|    NULL|
+|          |    NULL|    NULL|
+|  Infinity|Infinity|Infinity|
++----------+--------+--------+
+
+== 5. the validation ladder
++------------+-----+
+|      status|count|
++------------+-----+
+|          ok|  134|
+|     swapped|   15|
+| unparseable|    7|
+|outside_area|    4|
+| null_island|    3|
+|out_of_range|    2|
+|     missing|    1|
++------------+-----+
+
++-----------+---------+----------+------------+
+|delivery_id|      lat|       lon|      status|
++-----------+---------+----------+------------+
+|       D050|        0|         0| null_island|
+|       D040| 20.98566|-105.85173|outside_area|
+|       D015|-79.39139|  43.71964|     swapped|
+|       D008| 45.4767N|  73.5301W| unparseable|
++-----------+---------+----------+------------+
+
+== 6. WKB from SQL functions, no Python
+rows with a GEOGRAPHY: 149
+rows where the SQL bytes and the struct.pack bytes are different: 0
+
+== 7. distance with built-in functions
+ST functions in 4.3.0: ['st_asbinary', 'st_geogfromwkb', 'st_geomfromwkb', 'st_setsrid', 'st_srid']
+Montreal to Toronto: Spark 504.262 km, Python 504.262 km
+planar degrees, Vancouver to Hanoi, as if the map were flat: 230.7 degrees; great circle: 10825 km
+
+== 8. the nearest store for each delivery
+pairs compared: all pairs 1788, grid 320
+deliveries with a store: all pairs 149 | grid 145 | NEAREST BY 149
+NEAREST BY and all pairs choose a different store: 0
+grid finds no store (no store within one cell): 4
++---------+----------+------+
+|     name|deliveries|max_km|
++---------+----------+------+
+|Metrotown|        22| 667.6|
+| Cầu Giấy|        14|   5.6|
+| Hải Châu|        14|  81.3|
+|Hoàn Kiếm|        13|   6.9|
+|Thảo Điền|        13|   6.8|
++---------+----------+------+
+only showing top 5 rows
+plans:
+  all pairs  ['BroadcastNestedLoopJoin', 'Window']
+  grid       ['BroadcastHashJoin', 'Generate', 'Window']
+  NEAREST BY ['BroadcastNestedLoopJoin', 'Generate', 'SortAggregate']
+
+== 9. GEOGRAPHY in a Parquet file
+read back: geography(4326) 149 rows
+footer: geo BYTE_ARRAY Geography(crs=OGC:CRS84, algorithm=spherical)
+  write GEOMETRY(ANY)                UNSUPPORTED_DATA_TYPE_FOR_DATASOURCE: The Parquet datasource doesn't support the column `g` of the type 
+
+== 10. limits in 4.3.0
+  GROUP BY geo                       Py4JJavaError, task failed, caused by scala.MatchError
+  ORDER BY geo                       DATATYPE_MISMATCH.INVALID_ORDERING_TYPE: Cannot resolve "geo ASC NULLS FIRST" due to data type mismatch: Th
+  geo = geo                          DATATYPE_MISMATCH.INVALID_ORDERING_TYPE: Cannot resolve "(geo = geo)" due to data type mismatch: The `=` do
+  DISTINCT on WKB bytes              149
+  cache()                            Py4JJavaError (SparkException) not support type: GeographyType(4326).
+  cache() of the WKB bytes           149

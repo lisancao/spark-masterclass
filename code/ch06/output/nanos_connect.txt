@@ -1,0 +1,5 @@
+Spark Connect client 4.3.0
+  df.schema    ERROR [UNSUPPORTED_OPERATION] data type timestamp_ntz_nanos {
+  collect()    ERROR [UNSUPPORTED_OPERATION] data type timestamp_ntz_nanos {
+  toPandas()   ERROR [UNSUPPORTED_OPERATION] data type timestamp_ntz_nanos {
+  toArrow()    ERROR [UNSUPPORTED_OPERATION] data type timestamp_ntz_nanos {

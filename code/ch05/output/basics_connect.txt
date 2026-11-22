@@ -1,0 +1,3 @@
+== 7. a bad column name, mode: Connect
+df['typo']: Column<'typo'>
+df.select(df['typo']).collect(): ERROR [CANNOT_RESOLVE_DATAFRAME_COLUMN] Cannot resolve dataframe column "typo". It's proba

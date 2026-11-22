@@ -1,0 +1,5 @@
+aggregate operators of groupBy(collate(city, c)).count():
+  UTF8_BINARY    ['HashAggregate', 'HashAggregate']
+  UTF8_LCASE     ['SortAggregate', 'SortAggregate']
+  UNICODE        ['SortAggregate', 'SortAggregate']
+  UNICODE_CI_AI  ['SortAggregate', 'SortAggregate']
