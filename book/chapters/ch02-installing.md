@@ -26,6 +26,16 @@ flowchart LR
   end
 ```
 
+The animation shows the same program on each install. Only the location of the driver changes.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch02-anim-drivers.webp">
+    <source src="../../media/clips/ch02-anim-drivers.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the same program runs on the four installs. pip and the tarball start the driver next to your Python. Docker puts the two in a container. Spark Connect sends the plan over gRPC. Each install counts 3,837,248 trips.</figcaption>
+</figure>
+
+
 | | pip (`pyspark`) | Tarball | Docker (`apache/spark`) | Spark Connect (`pyspark-client`) |
 |---|---|---|---|---|
 | What you install | a Python package with the jars of Spark in it | the full distribution | an image | an 11 MB client package |
@@ -35,12 +45,22 @@ flowchart LR
 | Your code can use | all APIs, and also the JVM through Py4J | all APIs, and also `spark-submit`, the shells and the scripts in `sbin/` | all APIs, in the container | the DataFrame and SQL APIs over gRPC, but no JVM objects |
 | Use it for | study, notebooks, tests, work on one machine | clusters that you operate, Scala and Java work | reproducible environments, CI, the server for option 4 | applications, IDEs and notebooks that must not hold a driver |
 
+<figure markdown>
+![Bar chart of the size on disk of the four installs](../media/figures/ch02-install-sizes-light.svg#only-light)
+
+![Bar chart of the size on disk of the four installs](../media/figures/ch02-install-sizes-dark.svg#only-dark)
+<figcaption>Size on disk of each install, from the table above. The thin client is small because it has no jars. It also needs pandas, pyarrow and grpcio.</figcaption>
+</figure>
+
+
 ## Option 1: pip (or uv)
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install "pyspark[connect]==4.3.0"     # [connect] adds pandas, pyarrow and grpcio
+pip install "pyspark[connect]==4.3.0"     # (1)!
 ```
+
+1.  The `[connect]` extra adds pandas, pyarrow and grpcio. The Connect client and the pandas API need these packages.
 
 The [`code/`](https://github.com/lisancao/spark-masterclass/tree/main/code) folder of the book is a uv project that pins exactly this version. Thus, from a clone, the full install is `cd code && uv sync`. PySpark 4.3.0 needs Python 3.11 or newer. uv did not resolve the project until the book increased `requires-python` from 3.10. PySpark also needs a JDK on your `PATH` or in `JAVA_HOME`. Spark 4.x supports Java 17, 21 and 25, and it does not run on Java 8 or 11.
 
@@ -134,10 +154,22 @@ But the thin client has two costs. First, no JVM objects exist on your side: `sp
 
 The decision depends on where your code runs, and on whether your code must share a process with the driver:
 
-- **Study, notebooks on your laptop, unit tests:** use pip. It is one command, and everything works. Here, you want the driver next to your Python.
-- **Spark on machines that you manage:** use the tarball. If these machines run containers, use the Docker image.
-- **Code that runs in a location where a JVM must not run:** use the thin client with a Connect server. Examples are an application server, an IDE plugin, an agent, or a laptop that connects to a shared cluster.
-- **CI:** use the Docker image, pinned by tag. Then the Spark and Java versions are part of the build, not part of the runner.
+| Where your code runs | Install | Why |
+|---|---|---|
+| Study, notebooks on your laptop, unit tests | pip | It is one command, and everything works. Here, you want the driver next to your Python. |
+| Spark on machines that you manage | the tarball, or the Docker image if these machines run containers | You get `spark-submit`, the shells and the `sbin/` scripts. |
+| A location where a JVM must not run: an application server, an IDE plugin, an agent, or a laptop that connects to a shared cluster | the thin client with a Connect server | The driver stays on the server. |
+| CI | the Docker image, pinned by tag | The Spark and Java versions are part of the build, not part of the runner. |
+
+The figure shows what each install puts on your machine, from your code down to the JDK.
+
+<figure markdown>
+![Four columns that show the layers that each install puts on your machine](../media/figures/ch02-what-runs-where-light.svg#only-light)
+
+![Four columns that show the layers that each install puts on your machine](../media/figures/ch02-what-runs-where-dark.svg#only-dark)
+<figcaption>What each install puts on your machine. Only the thin client has no JVM and no JDK. Its driver is on a Connect server.</figcaption>
+</figure>
+
 
 ## Get the data
 
@@ -177,7 +209,17 @@ The data has these problems:
 - A quarter of the rows with no passenger count.
 - Pickups with dates in December 2008 in a June 2026 file. The [next chapter](ch03-quick-start.md) shows them.
 
+<figure markdown>
+![Three panels that show the null passenger counts and the extreme distance and fare values](../media/figures/ch02-data-problems-light.svg#only-light)
+
+![Three panels that show the null passenger counts and the extreme distance and fare values](../media/figures/ch02-data-problems-dark.svg#only-dark)
+<figcaption>The `describe()` summary as a picture. A quarter of the passenger counts are null. One distance and one fare are far outside the usual range.</figcaption>
+</figure>
+
 Spark did not cause these problems. But each problem changes the answer to almost all questions that you can ask. Chapter 3 starts from this point.
+
+
+
 
 ## The whole chapter, on one page
 
