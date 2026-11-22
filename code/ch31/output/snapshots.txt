@@ -1,0 +1,89 @@
+== The snapshots so far
++-------------------+-------------------+---------+---------+---------+-----------+----------+
+|snapshot_id        |parent_id          |operation|add_files|del_files|add_deletes|total_rows|
++-------------------+-------------------+---------+---------+---------+-----------+----------+
+|2208538448136476561|NULL               |append   |30       |NULL     |NULL       |3837231   |
+|2687575925470980249|2208538448136476561|append   |1        |NULL     |NULL       |7928053   |
++-------------------+-------------------+---------+---------+---------+-----------+----------+
+
+== Time travel
+now:                 7928053
+VERSION AS OF first:  3837231
+TIMESTAMP AS OF '2026-11-22 10:03:14.422': 3837231
+option versionAsOf:  3837231
+option snapshot-id:  Time travel option `snapshot-id` is no longer supported, use Spark built-in `versionAsOf` instead
+the old schema too:  ['fare_amount', 'tip_amount']
+
+new in 4.3, the @ suffix on a table name (spark.sql.timeTravel.atSyntax.enabled):
+  lake.nyc.trips@v2208538448136476561: 3837231
+  lake.nyc.trips@20261122100314422: 3837231
+  spark.read.table('lake.nyc.trips@v...'): ParseException, [PARSE_SYNTAX_ERROR] Syntax error at or near '@v'. SQLSTATE:
+
+new in 4.3, a write with a time-travel option fails at analysis:
+  [UNSUPPORTED_FEATURE.TIME_TRAVEL] The feature is not supported: Time travel on the relation: `lake`.`nyc`.`trips`. SQLSTATE: 0A000
+
+== DELETE, copy-on-write (the default)
+rows with fare < 0: 27,877
+== DELETE, merge-on-read
++-------------------+-------------------+---------+---------+---------+-----------+----------+
+|snapshot_id        |parent_id          |operation|add_files|del_files|add_deletes|total_rows|
++-------------------+-------------------+---------+---------+---------+-----------+----------+
+|2208538448136476561|NULL               |append   |30       |NULL     |NULL       |3837231   |
+|2687575925470980249|2208538448136476561|append   |1        |NULL     |NULL       |7928053   |
+|7137102762309835117|2687575925470980249|overwrite|2        |31       |NULL       |7900176   |
+|8009955410757322993|7137102762309835117|delete   |NULL     |NULL     |2          |7900176   |
++-------------------+-------------------+---------+---------+---------+-----------+----------+
+
++-------+-----------+-----+-------+
+|content|file_format|files|records|
++-------+-----------+-----+-------+
+|      1|    PARQUET|    2|    131|
++-------+-----------+-----+-------+
+
+== Tags and branches
+main:               7900045
+branch audit:       7901045
+tag june_load:      3837231
+VERSION AS OF 'audit': 7901045
++---------+------+-------------------+-----------------------+
+|     name|  type|        snapshot_id|max_reference_age_in_ms|
++---------+------+-------------------+-----------------------+
+|    audit|BRANCH|4594477551015905322|                   NULL|
+|june_load|   TAG|2208538448136476561|            31536000000|
+|     main|BRANCH|8009955410757322993|                   NULL|
++---------+------+-------------------+-----------------------+
+
+== Write-audit-publish: spark.wap.branch sends plain INSERTs to the branch
+main: 7900045  audit: 7901055
++--------------+-------------------+-------------------+
+|branch_updated|previous_ref       |updated_ref        |
++--------------+-------------------+-------------------+
+|main          |8009955410757322993|5086202810890533650|
++--------------+-------------------+-------------------+
+
+main after fast_forward: 7901055
+== Roll back main to the second snapshot
++--------------------+-------------------+
+|previous_snapshot_id|current_snapshot_id|
++--------------------+-------------------+
+| 5086202810890533650|2687575925470980249|
++--------------------+-------------------+
+
+main: 7928053
++-------------------+-------------------+
+|        snapshot_id|is_current_ancestor|
++-------------------+-------------------+
+|2208538448136476561|               true|
+|2687575925470980249|               true|
+|7137102762309835117|              false|
+|8009955410757322993|              false|
+|5086202810890533650|              false|
+|2687575925470980249|               true|
++-------------------+-------------------+
+
++--------------+
+|metadata_files|
++--------------+
+|            18|
++--------------+
+

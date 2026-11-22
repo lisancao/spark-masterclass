@@ -23,22 +23,39 @@ def snapshots():
 print("== The snapshots so far")
 snapshots()
 first, second = [r[0] for r in spark.sql(f"SELECT snapshot_id FROM {T}.snapshots ORDER BY committed_at").collect()]
-t_between = spark.sql(f"SELECT committed_at FROM {T}.snapshots WHERE snapshot_id = {first}").first()[0]
+# As a string made by Spark in the session time zone (UTC): a Python datetime would be in local time.
+t_between = spark.sql(f"SELECT CAST(committed_at AS STRING) FROM {T}.snapshots "
+                      f"WHERE snapshot_id = {first}").first()[0]
 
 print("== Time travel")
 print("now:                ", spark.table(T).count())
 print(f"VERSION AS OF first: ", spark.sql(f"SELECT count(*) FROM {T} VERSION AS OF {first}").first()[0])
 print(f"TIMESTAMP AS OF '{t_between}':",
       spark.sql(f"SELECT count(*) FROM {T} TIMESTAMP AS OF '{t_between}'").first()[0])
-print("option snapshot-id: ", spark.read.option("snapshot-id", first).table(T).count())
+print("option versionAsOf: ", spark.read.option("versionAsOf", first).table(T).count())
+try:
+    spark.read.option("snapshot-id", first).table(T).count()
+except Exception as e:
+    print("option snapshot-id: ", err(e, 100))
 print("the old schema too: ", spark.sql(f"SELECT * FROM {T} VERSION AS OF {first}").columns[8:10])
 
-print("\nnew in 4.3, a write with a time-travel option:")
+
+print("\nnew in 4.3, the @ suffix on a table name (spark.sql.timeTravel.atSyntax.enabled):")
+print(f"  {T}@v{first}:", spark.sql(f"SELECT count(*) FROM {T}@v{first}").first()[0])
+ts17 = spark.sql(f"SELECT date_format(committed_at, 'yyyyMMddHHmmssSSS') FROM {T}.snapshots "
+                 f"WHERE snapshot_id = {first}").first()[0]
+print(f"  {T}@{ts17}:", spark.sql(f"SELECT count(*) FROM {T}@{ts17}").first()[0])
+try:
+    print(f"  spark.read.table('{T}@v...'):", spark.read.table(f"{T}@v{first}").count())
+except Exception as e:
+    print(f"  spark.read.table('{T}@v...'): {type(e).__name__}, {err(e, 60)}")
+
+print("\nnew in 4.3, a write with a time-travel option fails at analysis:")
 try:
     spark.table(T).limit(1).writeTo(T).option("versionAsOf", str(first)).append()
     print("  append worked")
 except Exception as e:
-    print("  " + err(e, 100))
+    print("  " + err(e, 140))
 
 print("\n== DELETE, copy-on-write (the default)")
 neg = spark.sql(f"SELECT count(*) FROM {T} WHERE fare < 0").first()[0]

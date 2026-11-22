@@ -1,22 +1,24 @@
 Spark 4.3.0, runtime b1eab64, JDBC catalog
 
-statement                              extensions on  extensions off
-CREATE TABLE                           works          works
-INSERT                                 works          works
-UPDATE                                 works          works
-DELETE                                 works          works
-MERGE                                  works          works
-VERSION AS OF (time travel)            works          works
-CALL a procedure                       works          works
-CREATE VIEW                            works          works
-SELECT from the view                   works          works
-COMMENT ON COLUMN ... IS NULL          works          works
-ALTER TABLE ... CREATE BRANCH          works          PARSE_SYNTAX_ERROR
-ALTER TABLE ... CREATE TAG             works          PARSE_SYNTAX_ERROR
-ALTER TABLE ... ADD PARTITION FIELD    works          PARSE_SYNTAX_ERROR
-ALTER TABLE ... WRITE ORDERED BY       works          PARSE_SYNTAX_ERROR
-ALTER TABLE ... SET IDENTIFIER FIELDS  works          PARSE_SYNTAX_ERROR
+statement                                  extensions on        extensions off
+CREATE TABLE                               works                works
+INSERT                                     works                works
+UPDATE                                     works                works
+DELETE                                     works                works
+MERGE                                      works                works
+VERSION AS OF (time travel)                works                works
+SELECT ... FROM t@v<id> (new in 4.3)       works                works
+spark.read.table('t@v<id>') (new in 4.3)   PARSE_SYNTAX_ERROR   works
+CALL a procedure                           works                works
+CREATE VIEW                                works                works
+SELECT from the view                       works                works
+COMMENT ON COLUMN ... IS NULL              works                works
+ALTER TABLE ... CREATE BRANCH              works                PARSE_SYNTAX_ERROR
+ALTER TABLE ... CREATE TAG                 works                PARSE_SYNTAX_ERROR
+ALTER TABLE ... ADD PARTITION FIELD        works                PARSE_SYNTAX_ERROR
+ALTER TABLE ... WRITE ORDERED BY           works                PARSE_SYNTAX_ERROR
+ALTER TABLE ... SET IDENTIFIER FIELDS      works                PARSE_SYNTAX_ERROR
 
 without the extensions:
-  c.db.v is an Iceberg view: jdbc/db/v/metadata/00000-61ba1af8-35ca-4cea-b853-95396ccd123d.gz.metadata.json
+  c.db.v is an Iceberg view: jdbc/db/v/metadata/00000-c24378e2-ae35-4ebc-bc7b-b0b1ccb99068.gz.metadata.json
   comment on fare: 'fare in USD', then after IS NULL: None

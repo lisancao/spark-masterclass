@@ -18,6 +18,8 @@ STATEMENTS = [
     ("MERGE", "MERGE INTO c.db.t USING (SELECT 3L AS id, 30.0 AS fare) s ON t.id = s.id "
               "WHEN MATCHED THEN UPDATE SET * WHEN NOT MATCHED THEN INSERT *"),
     ("VERSION AS OF (time travel)", "SELECT count(*) FROM c.db.t VERSION AS OF {first}"),
+    ("SELECT ... FROM t@v<id> (new in 4.3)", "SELECT count(*) FROM c.db.t@v{first}"),
+    ("spark.read.table('t@v<id>') (new in 4.3)", "PY:spark.read.table('c.db.t@v{first}').collect()"),
     ("CALL a procedure", "CALL c.system.rewrite_data_files(table => 'db.t')"),
     ("CREATE VIEW", "CREATE VIEW c.db.v AS SELECT id FROM c.db.t"),
     ("SELECT from the view", "SELECT count(*) FROM c.db.v"),
@@ -39,7 +41,10 @@ def run(mode):
     first = None
     for name, sql in STATEMENTS:
         try:
-            spark.sql(sql.format(first=first)).collect()
+            if sql.startswith("PY:"):
+                eval(sql[3:].format(first=first))
+            else:
+                spark.sql(sql.format(first=first)).collect()
             result = "works"
         except Exception as e:
             msg = str(e).strip().splitlines()[0]
@@ -70,9 +75,9 @@ elif __name__ == "__main__":
                              env={**os.environ, "CH31_WORK": str(WORK)}).stdout
         results[mode] = dict(l.split("\t") for l in out.splitlines() if "\t" in l)
     print(f"Spark 4.3.0, runtime b1eab64, JDBC catalog\n")
-    print(f"{'statement':<38} {'extensions on':<14} extensions off")
+    print(f"{'statement':<42} {'extensions on':<20} extensions off")
     for name, _ in STATEMENTS:
-        print(f"{name:<38} {results['on'].get(name, '?'):<14} {results['off'].get(name, '?')}")
+        print(f"{name:<42} {results['on'].get(name, '?'):<20} {results['off'].get(name, '?')}")
     print("\nwithout the extensions:")
     for k in ("#view", "#comment"):
         print("  " + results["off"][k])

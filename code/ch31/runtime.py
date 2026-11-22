@@ -52,3 +52,13 @@ spark = ice_session("ch31-runtime", {"lake": "hadoop"})
 print(f"\nSpark {spark.version}")
 print("SELECT lake.system.iceberg_version():",
       spark.sql("SELECT lake.system.iceberg_version() AS v").first().v)
+
+# The released 1.12.0 runtime for Spark 4.1, as wrong_jar.py downloads it, for comparison.
+official = next(Path.home().glob(".ivy2*/cache/org.apache.iceberg/iceberg-spark-runtime-4.1_2.13/"
+                                 "jars/iceberg-spark-runtime-4.1_2.13-1.12.0.jar"), None)
+if official:
+    on = [n for n in zipfile.ZipFile(official).namelist() if n.endswith(".class")]
+    print(f"\nfor comparison, {official.name}: {official.stat().st_size:,} bytes, {len(on):,} classes")
+    for label, cl in (("1.12.0 for 4.1", on), ("b1eab64 for 4.3", classes)):
+        print(f"  {label:<16} org.eclipse.collections.*: {sum(n.startswith('org/eclipse/collections/') for n in cl):>5,}"
+              f"   software.amazon.*: {sum(n.startswith('software/amazon/') for n in cl)}")

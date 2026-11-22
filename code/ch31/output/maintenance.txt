@@ -1,0 +1,70 @@
+== Metadata tables: the table describes itself
+  lake.nyc.trips.snapshots                 6 rows
+  lake.nyc.trips.history                   6 rows
+  lake.nyc.trips.refs                      3 rows
+  lake.nyc.trips.metadata_log_entries     18 rows
+  lake.nyc.trips.manifests                 2 rows
+  lake.nyc.trips.files                    31 rows
+  lake.nyc.trips.entries                  31 rows
+  lake.nyc.trips.partitions               31 rows
+  lake.nyc.trips.all_data_files           35 rows
+  lake.nyc.trips.all_manifests            15 rows
++--------------------------------------------+-------------------+----+-----+--------+
+|manifest                                    |added_snapshot_id  |spec|added|existing|
++--------------------------------------------+-------------------+----+-----+--------+
+|ab9c7127-84ff-4495-a486-bd42cc72b7b1-m0.avro|2687575925470980249|1   |1    |0       |
+|2c77125d-fc4a-4f5d-acf1-4d7759a7774d-m0.avro|2208538448136476561|0   |30   |0       |
++--------------------------------------------+-------------------+----+-----+--------+
+
++------------------+------------+----------+
+|partition         |record_count|file_count|
++------------------+------------+----------+
+|{2026-06-01, NULL}|111546      |1         |
+|{2026-06-02, NULL}|126260      |1         |
+|{2026-06-03, NULL}|140184      |1         |
++------------------+------------+----------+
+
+== Small files: eight small INSERTs
+before                       disk:  37 data,  33 metadata | live data files  31, manifests  2, snapshots  6
+after 8 INSERTs              disk:  45 data,  57 metadata | live data files  39, manifests 10, snapshots 14
++-------+-----+-------+-------+
+|spec_id|files|   rows|avg_mib|
++-------+-----+-------+-------+
+|      0|   30|3837231|   1.84|
+|      1|    9|4091644|   6.93|
++-------+-----+-------+-------+
+
+== rewrite_data_files: compact, and move old files to the current spec
+CALL lake.system.rewrite_data_files(table => 'nyc.trips')
+  rewritten_data_files_count=38, added_data_files_count=2, rewritten_bytes_count=58040428, failed_data_files_count=0, removed_delete_files_count=0
++-------+-----+-------+-------+
+|spec_id|files|   rows|avg_mib|
++-------+-----+-------+-------+
+|      1|    3|7928875|  39.27|
++-------+-----+-------+-------+
+
+after rewrite_data_files     disk:  47 data,  69 metadata | live data files   3, manifests 11, snapshots 15
+== rewrite_manifests
+CALL lake.system.rewrite_manifests('nyc.trips')
+  rewritten_manifests_count=10, added_manifests_count=1
+after rewrite_manifests      disk:  47 data,  72 metadata | live data files   3, manifests  2, snapshots 16
+== expire_snapshots: the branch and the tag keep their snapshots
++---------+------+-------------------+
+|     name|  type|        snapshot_id|
++---------+------+-------------------+
+|    audit|BRANCH|5086202810890533650|
+|june_load|   TAG|2208538448136476561|
+|     main|BRANCH|5789880525488163208|
++---------+------+-------------------+
+
+CALL lake.system.expire_snapshots(table => 'nyc.trips', older_than => TIMESTAMP '2026-11-22 10:05:48.812832', retain_last => 1)
+  deleted_data_files_count=8, deleted_position_delete_files_count=0, deleted_equality_delete_files_count=0, deleted_manifest_files_count=20, deleted_manifest_lists_count=13, deleted_statistics_files_count=0
+after expire_snapshots       disk:  39 data,  40 metadata | live data files   3, manifests  2, snapshots  3
+CALL lake.system.expire_snapshots(table => 'nyc.trips', older_than => current_timestamp(), retain_last => 1)
+  deleted_data_files_count=34, deleted_position_delete_files_count=2, deleted_equality_delete_files_count=0, deleted_manifest_files_count=5, deleted_manifest_lists_count=2, deleted_statistics_files_count=0
+after DROP BRANCH/TAG, expire disk:   3 data,  36 metadata | live data files   3, manifests  2, snapshots  1
+time travel to an expired snapshot:
+
+== remove_orphan_files: a file that no metadata refers to
+CALL lake.system.remove_orphan_files(table => 'nyc.trips', dry_run => true)
+CALL lake.system.remove_orphan_files(table => 'nyc.trips', older_than => current_timestamp(), dry_run => true)
