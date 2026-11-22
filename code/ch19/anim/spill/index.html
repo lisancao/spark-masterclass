@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from data.json (spill.txt, 2 partitions, AQE off). Buffer sizes and spill count are schematic.
+      // beat open (0.0): one sort task, its buffer, the disk
+      A.title("How a sort spills", "one sort task, 1 GiB heap, 2 shuffle partitions");
+      const BX = 0.5, BY = 0.36, BW = 620, BH = 110;
+      A.text("rows of one shuffle partition", { x: 0.12, y: BY - A.dy(95), size: 28, color: "var(--a-mute)" });
+      A.text("sort buffer (execution memory)", { x: BX, y: BY - A.dy(95), size: 28, color: "var(--a-mute)" });
+      const buf = A.box({ x: BX, y: BY, w: BW, h: BH, kind: "ghost", radius: 10 });
+      const fill = A.el("", { x: BX - A.dx(BW / 2 - 6), y: BY, anchor: "left", css: { width: A.px(BW - 12) + "px", height: A.px(BH - 12) + "px",
+        background: "var(--a-acc)", opacity: 0.85, borderRadius: A.px(6) + "px", transformOrigin: "0 50%" } });
+      gsap.set(fill, { scaleX: 0 });
+      const lim = A.text("the task's share of the pool is full", { x: BX, y: BY + A.dy(85), size: 26, color: "var(--a-acc)", weight: 600 });
+      gsap.set(lim, { opacity: 0 });
+      A.line({ x1: 0.08, y1: 0.66, x2: 0.92, y2: 0.66, color: "var(--a-line)" });
+      A.text("local disk", { x: 0.06, y: 0.62, size: 26, color: "var(--a-mute)", anchor: "left" });
+      // a stream of rows into the buffer
+      const stream = (t0, t1) => {
+        for (let t = t0; t < t1; t += 0.18) {
+          const d = A.dot({ x: 0.06, y: BY + ((t * 37) % 1 - 0.5) * A.dy(60), r: 9, color: "var(--a-fg)" });
+          A.tl.set(d, { opacity: 0.8 }, t);
+          A.tl.to(d, { x: A.X(BX - 0.2 - 0.06), duration: 0.7, ease: "none" }, t);
+          A.tl.set(d, { opacity: 0 }, t + 0.7);
+        }
+      };
+      stream(0.2, 3.6); A.tl.to(fill, { scaleX: 1, duration: 3.6, ease: "none" }, 0.4);
+      cap("Rows arrive, and the sort keeps them in its buffer", 0.2, 4.7);
+
+      // beat spill1 (4.8): buffer full, the sorted run goes to a spill file
+      A.tl.to(lim, { opacity: 1, duration: 0.3 }, 4.0); A.tl.to(lim, { opacity: 0, duration: 0.3 }, 6.2);
+      const runs = [];
+      const spillAt = (t, i) => {
+        const r = A.box({ x: 0.3 + i * 0.2, y: 0.76, w: 260, h: 70, kind: "soft", title: `spill file ${i + 1}`, sub: "sorted run", size: 26 });
+        runs.push(r);
+        A.tl.fromTo(r, { opacity: 0, y: -A.Y(0.4) }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.inOut" }, t + 0.3);
+        A.tl.to(fill, { scaleX: 0, duration: 0.6, ease: "power2.in" }, t + 0.2);
+      };
+      spillAt(4.8, 0);
+      stream(5.8, 8.6); A.tl.to(fill, { scaleX: 1, duration: 2.8, ease: "none" }, 6.0);
+      cap("When no more memory comes, it writes a sorted run to disk", 4.8, 9.5);
+
+      // beat spill2 (9.6): it frees the memory and continues; the input ends with a last run in memory
+      spillAt(9.6, 1);
+      stream(10.6, 12.4); A.tl.to(fill, { scaleX: 0.55, duration: 1.8, ease: "none" }, 10.8);
+      const lastLab = A.text("last run stays in memory", { x: BX, y: BY + A.dy(85), size: 26, color: "var(--a-mute)" });
+      A.in(lastLab, 12.6); A.out(lastLab, 14.4);
+      cap("It frees the memory and continues with the next rows", 9.6, 14.3);
+
+      // beat merge (14.4): the runs merge into one sorted output
+      const out = A.box({ x: 0.86, y: 0.36, w: 230, h: 110, kind: "accent", title: "sorted output", size: 30 });
+      A.in(out, 14.5);
+      for (const r of runs) A.tl.to(r, { x: A.X(0.86) - (r.getBoundingClientRect().left + r.offsetWidth / 2), y: -A.Y(0.4), opacity: 0, scale: 0.5, duration: 1.0, ease: "power2.in" }, 14.8);
+      A.tl.to(fill, { scaleX: 0, duration: 0.8 }, 14.8);
+      const res = A.text("2 sort tasks: 370 MiB spilled in memory, 98 MiB on disk", { x: 0.5, y: 0.53, size: 30, mono: true, color: "var(--a-fg)" });
+      A.in(res, 15.6);
+      cap("At the end, the task merges all runs into one sorted output", 14.4);
+      A.in(A.note("spill totals from spill.txt; buffer sizes and the number of spill files are schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>

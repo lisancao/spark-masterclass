@@ -1,0 +1,3 @@
+{"source": "code/ch19/output/spill.txt, row 'shuffle.partitions 2, AQE false'; output/memory.txt defaults",
+ "pool_mib": 434, "sort_tasks": 2, "memory_spilled_mib": 370, "disk_spilled_mib": 98, "time_s": 5.4,
+ "timing": "schematic", "number_of_spill_files": "schematic (two drawn)"}

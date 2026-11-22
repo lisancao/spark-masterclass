@@ -11,3 +11,4 @@ Scope: figures, animations, tables and admonitions added to the existing chapter
 ## Per chapter
 
 - ch18: figures ch18-estimates (cost-mode estimates, explain_modes.txt), ch18-optimizer (analyzed vs optimized plan, optimizer.txt), ch18-codegen (codegen stages, explain_modes.txt final plan); animation ch18-anim-coalesce (aqe.txt section 1; partition sizes schematic, 40 of 200 planned tasks drawn); table of the four join runs (aqe.txt). STE 0.
+- ch19: figures ch19-rowgroups (file_partitions.txt; equal row-group widths schematic), ch19-coalesce1 (repartition.txt), ch19-memory (memory.txt defaults and the formula), ch19-spill (spill.txt); animation ch19-anim-spill (spill.txt totals; buffer and number of spill files schematic). STE: 0 with the part04 allow list (setting caching repartitioning packing timing cleaning).

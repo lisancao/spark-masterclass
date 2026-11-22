@@ -105,6 +105,12 @@ January to June: 17 partitions, 17 of them return rows
 
 The June file gives 16 partitions, but only 4 of them return rows. The six months have 24 row groups in 17 partitions, so each partition gets at least one row group. For a scan, the worst case is a small file with a few large row groups. A writer sets the size of the row groups, as [Chapter 22](ch22-parquet-inside.md) shows.
 
+<figure markdown>
+  ![Splits and row groups](../media/figures/ch19-rowgroups-light.svg#only-light)
+  ![Splits and row groups](../media/figures/ch19-rowgroups-dark.svg#only-dark)
+  <figcaption>The June file has 16 splits and 4 row groups. A split reads a row group only if it holds the midpoint of that row group. Thus, 4 tasks return rows. The row-group sizes in the figure are schematic.</figcaption>
+</figure>
+
 !!! note "Project Feather changes the June row"
     Spark 4.3 can read a single small file in one task. If `spark.sql.optimizer.singleTaskExecution.enabled` is `true`, the June file is one input partition, not 16. The conditions are in [Chapter 23](ch23-project-feather.md). All the numbers in this chapter use the default, `false`.
 
@@ -155,6 +161,12 @@ SHA-256 of every row of 22,836,530 trips, written to the noop sink, 5 runs after
   coalesce(1)                median 67.99 s  (task counts per stage: [1])
   repartition(1)             median 19.81 s  (task counts per stage: [1, 17])
 ```
+
+<figure markdown>
+  ![Time of the job with coalesce(1) and repartition(1)](../media/figures/ch19-coalesce1-light.svg#only-light)
+  ![Time of the job with coalesce(1) and repartition(1)](../media/figures/ch19-coalesce1-dark.svg#only-dark)
+  <figcaption>The medians from <code>repartition.txt</code>. With <code>coalesce(1)</code>, one task does all the work.</figcaption>
+</figure>
 
 ```mermaid
 flowchart LR
@@ -354,6 +366,14 @@ flowchart TB
 - **User memory** is the other 0.4. Spark does not manage it. Objects that your code makes on the JVM heap use it.
 - **Each task** can get between 1/(2N) and 1/N of the execution memory, if N tasks run at the same time (`ExecutionMemoryPool.scala`). If a task cannot get its minimum, it spills, or it waits.
 
+The figure shows these regions for the default heap of 1024 MiB, with 16 tasks:
+
+<figure markdown>
+  ![Regions of the default 1 GiB heap](../media/figures/ch19-memory-light.svg#only-light)
+  ![Regions of the default 1 GiB heap](../media/figures/ch19-memory-dark.svg#only-dark)
+  <figcaption>The regions of the default heap. The sizes come from the formula and agree with <code>memory.txt</code>. The line between execution and storage is soft.</figcaption>
+</figure>
+
 `memory.py` starts a new JVM for each configuration, because a JVM cannot change its heap size after it starts. Then it reads the pool sizes from the executors endpoint of the REST API:
 
 ```text
@@ -402,6 +422,12 @@ shuffle.partitions   AQE  sort tasks  memory spilled  disk spilled  shuffle writ
                200  true          17         368 MiB        98 MiB        184 MiB    3.8s
 ```
 
+<figure markdown>
+  ![Spill for each partition count](../media/figures/ch19-spill-light.svg#only-light)
+  ![Spill for each partition count](../media/figures/ch19-spill-dark.svg#only-dark)
+  <figcaption>The spill metrics of the sort stage from <code>spill.txt</code>. Only the run with 200 small partitions does not spill.</figcaption>
+</figure>
+
 There are two spill metrics, and they measure different things:
 
 - **Memory spilled** (`memoryBytesSpilled`) is the size of the spilled data in memory, before Spark writes it.
@@ -431,6 +457,13 @@ flowchart LR
   last --> merge
   merge --> out["sorted output"]:::mem
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch19-anim-spill.webp">
+    <source src="../../media/clips/ch19-anim-spill.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: a sort task fills its buffer, writes sorted runs to the disk, and merges the runs at the end. The totals come from <code>spill.txt</code>. The buffer size and the number of spill files are schematic.</figcaption>
+</figure>
 
 ## Step 8: Very large files
 
