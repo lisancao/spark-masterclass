@@ -227,6 +227,17 @@ DataFrame asTable().partitionBy().orderBy(): 19 sessions
 ORDER BY ts, 30 -> INVALID_SQL_SYNTAX.INVALID_TABLE_FUNCTION_TABLE_ARGUMENT_PARTITIONING
 ```
 
+```mermaid
+flowchart LR
+  classDef in fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
+  classDef ex fill:#4b5563,fill-opacity:0.72,stroke:#4b5563,color:#ffffff
+  classDef py fill:#c0661a,fill-opacity:0.72,stroke:#c0661a,color:#ffffff
+  ev["events<br/>(any partitions)"]:::in --> x["Exchange<br/>hash on partition_by_0<br/>(user)"]:::ex --> s["Sort<br/>by user, ts"]:::ex
+  s --> u1["Sessions instance<br/>for u1: eval ... terminate"]:::py
+  s --> u2["Sessions instance<br/>for u2: eval ... terminate"]:::py
+  s --> u3["one instance<br/>for each other user"]:::py
+```
+
 The plan shows how Spark keeps the promise of `PARTITION BY`. It adds an `Exchange` with hash partitioning on a helper column `partition_by_0`, and a `Sort` on that column and `ts`. Then each key is one contiguous run of rows in one task, and Spark starts a new instance of the UDTF for each key. The last session of each user comes from `terminate()`.
 
 The DataFrame form is `Sessions(events.asTable().partitionBy("user").orderBy("ts"), F.lit(30))`, and it gave the same 19 sessions.

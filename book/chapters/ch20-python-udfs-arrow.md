@@ -149,6 +149,20 @@ The conditions, from the 4.3 source:
 - Classic PySpark. The Spark Connect client in 4.3 has no transpiler.
 - The return type is numeric, string, boolean or binary.
 
+```mermaid
+flowchart TB
+  classDef q fill:#6b4a9b,fill-opacity:0.72,stroke:#6b4a9b,color:#ffffff
+  classDef py fill:#c0661a,fill-opacity:0.72,stroke:#c0661a,color:#ffffff
+  classDef jvm fill:#2e7d32,fill-opacity:0.72,stroke:#2e7d32,color:#ffffff
+  a{"udf() called:<br/>transpilePyUDFs on,<br/>ANSI on, useArrow=False,<br/>deterministic?"}:::q -->|"no"| p["Python UDF<br/>(BatchEvalPython or ArrowEvalPython)"]:::py
+  a -->|"yes"| b{"source found,<br/>one statement,<br/>supported syntax,<br/>simple return type?"}:::q
+  b -->|"no: warning"| p
+  b -->|"yes"| c["UDF carries Catalyst options<br/>(one per input type category)"]:::q
+  c --> d{"optimizer: setting still on,<br/>column types match an option?"}:::q
+  d -->|"no"| p
+  d -->|"yes"| e["native expression,<br/>no Python node"]:::jvm
+```
+
 `transpile.py` creates a set of UDFs with the setting on. It records which ones lost their Python node, and the warning for each one that did not:
 
 ```python
