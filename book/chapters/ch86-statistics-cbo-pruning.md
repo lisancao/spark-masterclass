@@ -114,7 +114,7 @@ Statistics in the catalog are not enough. The plan uses only the size until you 
 
 Two things changed:
 
-- **The `Relation` has a row count, and a larger size.** With CBO, the size is the row count multiplied by the size of one row in memory. Spark calculates the row size from `avg_col_len` of each column and a row overhead. Thus 30.6 MiB of compressed Parquet becomes 169.8 MiB. This is closer to what a broadcast must hold in memory ([Chapter 11](ch11-joins.md), Step 6 showed a broadcast that did not fit).
+- **The `Relation` has a row count, and a larger size.** With CBO, the size is the row count multiplied by the size of one row in memory. Spark calculates the row size from `avg_col_len` of each column and a row overhead. Thus 30.6 MiB of compressed Parquet becomes 169.8 MiB. This is closer to what a broadcast must hold in memory ([Chapter 11](ch11-joins.md), Step 5 showed a broadcast that did not fit).
 - **The `Filter` has its own estimate.** `FilterEstimation` uses the column statistics. Without a histogram, it assumes that the values spread evenly between the minimum and the maximum. The range of `total_amount` is -1815.18 to 7053.5, and 500 is near the bottom of it. So the estimate is that 74% of the rows pass: 2.74 million rows. The real answer is 82 rows.
 
 A histogram fixes this. `stats.py` estimates six filters without and with a histogram, and counts the real rows:
@@ -181,7 +181,7 @@ flowchart LR
 
 - **CBO off.** The filtered `fares` is 30.6 MiB to the planner, above the 10 MB threshold. It plans a sort-merge join with two hash exchanges, so it shuffles all 3.7 million trips.
 - **CBO on.** The histogram estimate is 13,800 rows, 647.7 KiB. The planner selects a broadcast hash join and plans no exchange for the join.
-- **AQE did not fix the plan without CBO.** After the shuffle, AQE knows that the filtered side is small. But the 82 rows fill only a few of the 200 shuffle partitions. For this case, the rule `DemoteBroadcastHashJoin` keeps the sort-merge join ([Chapter 32](ch32-query-plans.md), Step 7). AQE can only correct a plan after a stage ran, and here the expensive stage was the shuffle itself.
+- **AQE did not fix the plan without CBO.** After the shuffle, AQE knows that the filtered side is small. But the 82 rows fill only a few of the 200 shuffle partitions. For this case, the rule `DemoteBroadcastHashJoin` keeps the sort-merge join ([Chapter 32](ch32-query-plans.md), Step 6). AQE can only correct a plan after a stage ran, and here the expensive stage was the shuffle itself.
 
 ## Step 5: Join reorder
 
@@ -532,7 +532,7 @@ In 4.3.0, the main name of the subset setting is `spark.sql.sources.v2.bucketing
 
 ## Step 9: Hints
 
-A hint tells the planner what you know and the statistics do not. Spark has two kinds of hints. Join hints select the strategy of one join, and partitioning hints add or change an exchange. Step 4 of [Chapter 11](ch11-joins.md) measured each join strategy on the same query. This step shows what each hint puts in the plan, which hint wins, and what happens to a hint that cannot apply. `hints.py` reads the Parquet folders of the tables as temporary views.
+A hint tells the planner what you know and the statistics do not. Spark has two kinds of hints. Join hints select the strategy of one join, and partitioning hints add or change an exchange. Step 3 of [Chapter 11](ch11-joins.md) measured each join strategy on the same query. This step shows what each hint puts in the plan, which hint wins, and what happens to a hint that cannot apply. `hints.py` reads the Parquet folders of the tables as temporary views.
 
 ### Join hints
 

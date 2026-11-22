@@ -633,7 +633,7 @@ It shows the **Locality Level Summary**, the spill totals and the **Summary Metr
   <figcaption markdown="span">The Executors tab. In local mode, the driver is the only executor.</figcaption>
 </figure>
 
-**SQL / DataFrame.** One row for each query, with its jobs. The detail page draws the final plan as a graph, with the rows between the nodes and the metrics of each node. The graph shows what AQE changed ([Chapter 32](ch32-query-plans.md), Step 7). It is also the place to count the rows that a scan returned ([Chapter 36](ch36-parquet-inside.md), Step 4).
+**SQL / DataFrame.** One row for each query, with its jobs. The detail page draws the final plan as a graph, with the rows between the nodes and the metrics of each node. The graph shows what AQE changed ([Chapter 32](ch32-query-plans.md), Step 6). It is also the place to count the rows that a scan returned ([Chapter 36](ch36-parquet-inside.md), Step 4).
 
 <figure markdown>
   ![The plan graph of one query](../media/figures/ch33-ui-sql-detail.png)
