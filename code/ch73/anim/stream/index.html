@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <script src="data.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="18" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. File names, rows per micro-batch and the top zone come from data.js (same_code.txt).
+      A.mount();
+      const D = window.DATA;
+      const [title, sub] = A.title("One function, a table or a stream", "busiest_zones(df) on June taxi trips, Spark 4.3");
+      const cap = (s, a, b) => { const c = A.text(s, { y: 0.9, size: 36 }); A.in(c, a); if (b) A.out(c, b); return c; };
+      const fmt = n => n.toLocaleString("en-US");
+      const files = [...D.files, "2026-06-04.json"];
+      // inbox column
+      A.text("inbox", { x: 0.12, y: 0.25, size: 30, weight: 700, color: "var(--a-mute)" });
+      const fb = files.map((f, i) => A.box({ x: 0.12, y: 0.34 + i * A.dy(90), w: 300, h: 70, kind: "paper", title: f, size: 22 }));
+      A.tl.set(fb[3], { opacity: 0 }, 0);
+      // the function in the middle
+      const fn = A.box({ x: 0.45, y: 0.47, w: 380, h: 110, kind: "accent", title: "busiest_zones(df)", sub: "the same code", size: 30 });
+      // two lanes on the right
+      A.text("batch: spark.read", { x: 0.8, y: 0.25, size: 28, weight: 700, color: "var(--a-acc)" });
+      A.text("stream: spark.readStream", { x: 0.8, y: 0.55, size: 28, weight: 700, color: "var(--a-ok)" });
+      const res1 = A.box({ x: 0.8, y: 0.36, w: 420, h: 90, kind: "soft", title: `zone ${D.top[0].zone}: ${fmt(D.top[0].trips)} trips`, sub: "one query over 3 files", size: 26 });
+      A.tl.set(res1, { opacity: 0 }, 0);
+      // beat batch (0.6): all three files go at once
+      for (let i = 0; i < 3; i++) A.tl.fromTo(fb[i], { scale: 1.08 }, { scale: 1, duration: 0.4 }, 1.0);
+      A.tl.fromTo(fn, { scale: 1.08 }, { scale: 1, duration: 0.4 }, 1.6);
+      A.in(res1, 2.2);
+      cap("As a batch query, it reads the inbox once", 0.6, 4.2);
+      // beat stream (4.4): one file per micro-batch, state grows
+      const state = A.box({ x: 0.8, y: 0.78, w: 420, h: 70, kind: "ok", title: "state store", sub: "a count and a sum for each zone", size: 24 });
+      A.tl.set(state, { opacity: 0 }, 0);
+      A.in(state, 4.4);
+      let res2 = null;
+      D.batches.forEach((b, i) => {
+        const at = (i < 3 ? 4.8 + i * 1.8 : 12.6);
+        if (i === 3) { A.in(fb[3], 11.8); }
+        A.tl.fromTo(fb[i], { scale: 1.1 }, { scale: 1, duration: 0.4 }, at);
+        A.tl.fromTo(fn, { scale: 1.08 }, { scale: 1, duration: 0.4 }, at + 0.3);
+        A.tl.fromTo(state, { scale: 1.08 }, { scale: 1, duration: 0.4 }, at + 0.6);
+        const lab = A.box({ x: 0.8, y: 0.66, w: 420, h: 70, kind: "paper", title: `micro-batch ${b.id}: ${fmt(b.rows)} rows`, sub: `reads ${files[i]} only`, size: 24 });
+        A.tl.set(lab, { opacity: 0 }, 0);
+        A.in(lab, at + 0.2);
+        A.out(lab, i < 3 ? at + 1.6 : 17.5);
+      });
+      const same = A.text(`after batch 2: zone ${D.top[0].zone}: ${fmt(D.top[0].trips)} trips, the same rows as the batch query`, { x: 0.5, y: 0.82 - A.dy(250), size: 22, color: "var(--a-ok)", mono: true });
+      A.tl.set(same, { opacity: 0 }, 0);
+      cap("As a stream, it reads one new file in each micro-batch", 4.6, 10.0);
+      cap("Same function, same answer", 10.2, 11.6);
+      cap(`A new day lands: only the new file is read, state keeps ${D.state_rows} zones`, 11.8);
+      A.in(A.note("rows per micro-batch and the result from one run, timing schematic"), 0.5);
+      A.finish(18);
+    </script>
+  </body>
+</html>

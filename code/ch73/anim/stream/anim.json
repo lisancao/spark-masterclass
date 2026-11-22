@@ -1,0 +1,10 @@
+{
+ "backend": "hf",
+ "themes": [
+  "ide"
+ ],
+ "formats": [
+  "landscape"
+ ],
+ "title": "Batch and stream"
+}
