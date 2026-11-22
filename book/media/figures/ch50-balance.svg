@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 300" width="780" height="300" role="img"><title>Bytes per task for the 26 sample files, in two plans</title><defs><marker id="m8a919e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a919e"/></marker><marker id="m8a919es" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#8a919e"/></marker></defs><text x="200" y="22.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" fill="#8a919e" text-anchor="middle" font-weight="700">round robin</text>
+<rect x="60" y="195.3008" width="70" height="54.6992" rx="0" fill="#c0661a" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<text x="95" y="226.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">silence.wav</text>
+<rect x="60" y="195.1036" width="70" height="0.1972" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="60" y="192.9616" width="70" height="2.142" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="60" y="170.508" width="70" height="22.453599999999998" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="60" y="169.9572" width="70" height="0.5508" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="60" y="169.3452" width="70" height="0.612" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="60" y="100.85560000000001" width="70" height="68.4896" rx="0" fill="#c0661a" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<text x="95" y="139.1" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">app.log</text>
+<rect x="60" y="99.108" width="70" height="1.7475999999999998" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="60" y="95.00760000000001" width="70" height="4.1004" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<text x="95" y="87.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="middle" font-weight="700">22,793 B</text>
+<text x="95" y="266.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">task 0</text>
+<text x="95" y="280.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">9 files</text>
+<rect x="155" y="222.5008" width="70" height="27.4992" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="155" y="220.5288" width="70" height="1.972" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="155" y="218.652" width="70" height="1.8767999999999998" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="155" y="191.3432" width="70" height="27.308799999999998" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="155" y="190.8264" width="70" height="0.5167999999999999" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="155" y="190.738" width="70" height="0.08839999999999999" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="155" y="189.038" width="70" height="1.7" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="155" y="187.33800000000002" width="70" height="1.7" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="155" y="175.98880000000003" width="70" height="11.3492" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<text x="190" y="168.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="middle" font-weight="700">10,884 B</text>
+<text x="190" y="266.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">task 1</text>
+<text x="190" y="280.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">9 files</text>
+<rect x="250" y="222.5008" width="70" height="27.4992" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="250" y="220.4268" width="70" height="2.074" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="250" y="209.6216" width="70" height="10.8052" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="250" y="197.4156" width="70" height="12.206" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="250" y="197.25240000000002" width="70" height="0.16319999999999998" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="250" y="53.00400000000002" width="70" height="144.2484" rx="0" fill="#c0661a" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<text x="285" y="129.1" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">access.log</text>
+<rect x="250" y="51.304000000000016" width="70" height="1.7" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="250" y="45.33360000000002" width="70" height="5.9704" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<text x="285" y="37.3" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="middle" font-weight="700">30,098 B</text>
+<text x="285" y="266.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">task 2</text>
+<text x="285" y="280.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">8 files</text>
+<line x1="50" y1="250" x2="330" y2="250" stroke="#8a919e" stroke-width="1"/>
+<text x="580" y="22.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" fill="#d9661f" text-anchor="middle" font-weight="700">largest first</text>
+<rect x="440" y="105.7516" width="70" height="144.2484" rx="0" fill="#c0661a" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<text x="475" y="181.9" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">access.log</text>
+<rect x="440" y="105.5544" width="70" height="0.1972" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="440" y="105.3912" width="70" height="0.16319999999999998" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<text x="475" y="97.4" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="middle" font-weight="700">21,266 B</text>
+<text x="475" y="266.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">task 0</text>
+<text x="475" y="280.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">3 files</text>
+<rect x="535" y="181.5104" width="70" height="68.4896" rx="0" fill="#c0661a" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<text x="570" y="219.8" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">app.log</text>
+<rect x="535" y="154.0112" width="70" height="27.4992" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="535" y="131.5576" width="70" height="22.453599999999998" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="535" y="120.20840000000001" width="70" height="11.3492" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="535" y="114.23800000000001" width="70" height="5.9704" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="535" y="112.09600000000002" width="70" height="2.142" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="535" y="110.12400000000002" width="70" height="1.972" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="535" y="108.37640000000002" width="70" height="1.7475999999999998" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="535" y="106.67640000000002" width="70" height="1.7" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="535" y="106.06440000000002" width="70" height="0.612" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="535" y="105.51360000000003" width="70" height="0.5508" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="535" y="105.42520000000003" width="70" height="0.08839999999999999" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<text x="570" y="97.4" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="middle" font-weight="700">21,261 B</text>
+<text x="570" y="266.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">task 1</text>
+<text x="570" y="280.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">12 files</text>
+<rect x="630" y="195.3008" width="70" height="54.6992" rx="0" fill="#c0661a" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<text x="665" y="226.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="600">silence.wav</text>
+<rect x="630" y="167.8016" width="70" height="27.4992" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="630" y="140.49280000000002" width="70" height="27.308799999999998" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="630" y="128.28680000000003" width="70" height="12.206" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="630" y="117.48160000000003" width="70" height="10.8052" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="630" y="113.38120000000004" width="70" height="4.1004" rx="0" fill="#3a5f96" fill-opacity="1" stroke="#ffffff" stroke-width="1"/>
+<rect x="630" y="111.30720000000004" width="70" height="2.074" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="630" y="109.43040000000003" width="70" height="1.8767999999999998" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="630" y="107.73040000000003" width="70" height="1.7" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="630" y="106.03040000000003" width="70" height="1.7" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<rect x="630" y="105.51360000000003" width="70" height="0.5167999999999999" rx="0" fill="#3a5f96" fill-opacity="1"/>
+<text x="665" y="97.5" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="middle" font-weight="700">21,248 B</text>
+<text x="665" y="266.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">task 2</text>
+<text x="665" y="280.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400">11 files</text>
+<line x1="430" y1="250" x2="710" y2="250" stroke="#8a919e" stroke-width="1"/></svg>
