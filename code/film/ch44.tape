@@ -1,38 +1,45 @@
-# Spark Masterclass, Chapter 44: Spark Connect in production. Storyboard: notes/part08.md.
-#   film render code/film/ch44.tape --format chapter
+# Spark Masterclass, Chapter 44: shipping Python dependencies. Storyboard: notes/part08.md.
+#   flock $HOME/spark-masterclass/data/.bench.lock film render code/film/ch44.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
 Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4028 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "source ch44/film_setup.sh" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: isolation | Two sessions on one server: what is isolated, what is shared
-Type "# session A sets state; what does session B on the same server see?" Enter
+# beat: where | What a worker sees, from two folders
+Type "# a UDF prints its worker's interpreter, folder and sys.path" Enter
 Sleep 500ms
-Type "python ch44/isolation.py 2>/dev/null" Enter
-Wait@240s
-Sleep 12s
+Type "python ch44/where.py 2>/dev/null | short" Enter
+Wait@180s
+Sleep 4s
+Type "# the same script, started in a folder that holds messytools/" Enter
+Sleep 500ms
+Type "(cd /tmp/pkg && $CODE/.venv/bin/python $CODE/ch44/where.py 2>/dev/null | short | tail -6)" Enter
+Wait@180s
+Sleep 10s
 
-# beat: lifecycle | Idle timeout, release, restart, interrupt
+# beat: includes | A UDF records its include list one time
 Hide
 Type "clear" Enter
 Show
-Type "# how a session ends: timeout, release, server restart, interruptTag" Enter
+Type "# make a UDF, use it, then addPyFile: which UDF finds the module?" Enter
 Sleep 500ms
-Type "python ch44/lifecycle.py 2>/dev/null | cut -c1-94" Enter
+Type "python ch44/pyfiles.py 2>/dev/null | sed -n '5,11p;11q' | sed 's#<userFiles>/messytools.zip/messytools/__init__.py#zip#g'" Enter
 Wait@240s
 Sleep 12s
 
-# beat: feather | Single-task execution in one session of a shared server
+# beat: artifacts | Two Connect sessions, two versions of one module
 Hide
-Type "clear" Enter
+Type "ch43/server.sh start >/dev/null; clear" Enter
+Wait@180s
 Show
-Type "# new in 4.3: one session turns on single-task execution" Enter
+Type "# two Connect sessions on one server ship two versions of messytools" Enter
 Sleep 500ms
-Type "python ch44/feather_server.py 2>/dev/null" Enter
-Wait@240s
+Type "python ch44/artifacts.py 2>/dev/null | cut -c1-92" Enter
+Wait@180s
 Sleep 12s

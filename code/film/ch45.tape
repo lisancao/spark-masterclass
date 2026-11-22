@@ -1,5 +1,4 @@
-# Spark Masterclass, Chapter 45: the Spark Kubernetes Operator. Storyboard: notes/part08.md.
-#   needs the kind cluster from ch45/cluster.sh up
+# Spark Masterclass, Chapter 45: observability. Storyboard: notes/part08.md.
 #   film render code/film/ch45.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -11,20 +10,19 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: app | A SparkApplication through the operator's states
-Type "# a PySpark SparkApplication on kind, followed through the operator's states" Enter
+# beat: connect | Connect operations in the REST API, live and in the History Server
+Type "# two Connect sessions, then the 4.3 REST endpoints, live and from the History Server" Enter
 Sleep 500ms
-Type "python ch45/run_app.py zones-app.yaml 2>/dev/null | cut -c1-94" Enter
+Type "python ch45/connect_obs.py 2>/dev/null | grep -v 'jobTag:\|statement:\|their tags\|the tag as' | cut -c1-94" Enter
 Wait@300s
 Sleep 12s
 
-# beat: connect | A Connect server in the cluster, a client on the laptop, a driver restart
+# beat: listener | A Python streaming listener sees the drift in each batch
 Hide
-Type "kubectl --context kind-part08 delete sparkapp connect --wait=true >/dev/null; kubectl --context kind-part08 apply -f ch45/connect-server.yaml >/dev/null; until kubectl --context kind-part08 get sparkapp connect -o jsonpath='{.status.currentState.currentStateSummary}' | grep -q RunningHealthy; do sleep 2; done; sleep 5; clear" Enter
-Wait@300s
+Type "clear" Enter
 Show
-Type "# a laptop client, a Connect server in the cluster, then the driver pod dies" Enter
+Type "# a StreamingQueryListener with observe(): nulls in each micro-batch" Enter
 Sleep 500ms
-Type "python ch45/connect_k8s.py 2>/dev/null | cut -c1-94" Enter
-Wait@400s
+Type "python ch45/stream_listener.py 2>/dev/null | grep -v durationMs | cut -c1-94" Enter
+Wait@180s
 Sleep 12s

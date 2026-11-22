@@ -1,4 +1,4 @@
-# Spark Masterclass, Chapter 46: writing Spark pipelines with agents. Storyboard: notes/part08.md.
+# Spark Masterclass, Chapter 46: Spark Connect in production. Storyboard: notes/part08.md.
 #   film render code/film/ch46.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -9,19 +9,30 @@ Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
-# beat: dryrun | The dry-run refuses three agent errors before any data
-Type "# five versions of the gold flow: which ones does the dry-run refuse?" Enter
+
+# beat: isolation | Two sessions on one server: what is isolated, what is shared
+Type "# session A sets state; what does session B on the same server see?" Enter
 Sleep 500ms
-Type "ch46/dryrun.sh 2>/dev/null | grep --line-buffered -v 'AnalysisException: *$\|raise PySparkException' | cut -c1-94" Enter
-Wait@400s
+Type "python ch46/isolation.py 2>/dev/null" Enter
+Wait@240s
 Sleep 12s
 
-# beat: metrics | By-hand SQL against MEASURE() on a metric view
+# beat: lifecycle | Idle timeout, release, restart, interrupt
 Hide
 Type "clear" Enter
 Show
-Type "# the agent's by-hand SQL against MEASURE() on a metric view" Enter
+Type "# how a session ends: timeout, release, server restart, interruptTag" Enter
 Sleep 500ms
-Type "python ch46/metric_view.py 2>/dev/null | grep -v DESCRIBE" Enter
+Type "python ch46/lifecycle.py 2>/dev/null | cut -c1-94" Enter
+Wait@240s
+Sleep 12s
+
+# beat: feather | Single-task execution in one session of a shared server
+Hide
+Type "clear" Enter
+Show
+Type "# new in 4.3: one session turns on single-task execution" Enter
+Sleep 500ms
+Type "python ch46/feather_server.py 2>/dev/null" Enter
 Wait@240s
 Sleep 12s
