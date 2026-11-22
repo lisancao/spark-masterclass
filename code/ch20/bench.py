@@ -43,7 +43,7 @@ band_arrow = F.udf(band, "string")                     # Arrow by default in 4.3
 band_pickled = F.udf(band, "string", useArrow=False)   # rows pickled to the worker
 spark.conf.set("spark.sql.experimental.optimizer.transpilePyUDFs", "true")
 band_transpiled = F.udf(band, "string", useArrow=False)   # read and lowered when it is created
-spark.conf.unset("spark.sql.experimental.optimizer.transpilePyUDFs")
+# The optimizer also reads the setting, so it stays on. UDFs created before it was set stay Python.
 
 VARIANTS = [
     ("built-in when()", lambda c: builtin(c)),

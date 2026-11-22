@@ -1,0 +1,21 @@
+spark.sql.ansi.enabled = true
+
+UDF body                          Python node       reason given (warning)
+if, then a second return          BatchEvalPython   functions with more than one top-level statement are not suppo
+if/else, one statement            none              
+tip / fare                        BatchEvalPython   binary operator Div is not supported by the transpiler
+tip + fare, no type hints         none              
+s.upper()                         BatchEvalPython   a numeric-typed lowering does not match the declared return ty
+len(s)                            none              
+fare is not None and fare > 20    none              
+a lambda bound to a name          none              
+a lambda inside udf()             BatchEvalPython   the source read for this lambda does not define it as a statem
+array return type                 BatchEvalPython   return type array<double> is not supported by the transpiler (
+useArrow=True                     ArrowEvalPython   
+
+the Project of the transpiled band_one_statement (first 300 characters):
+  *(1) Project [CASE WHEN coalesce((isnull(fare_amount#10) OR CASE WHEN isnull(fare_amount#10) THEN cast(raise_error(USER_RAISED_EXCEPTION, map(keys: [errorMessage], values: [Python UDF transpiler: cannot compare NULL with operator `<=`; Python would raise TypeError here. Add an `is not None` guard or
+
+len(None) in the transpiled UDF -> USER_RAISED_EXCEPTION | [USER_RAISED_EXCEPTION] Python UDF transpiler: cannot call len() on NULL; Python would rai
+
+with spark.sql.ansi.enabled=false: True | warning: Python UDF transpilation (spark.sql.experimental.optimizer.transpilePy

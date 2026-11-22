@@ -67,8 +67,10 @@ def over_20(fare: float) -> bool:
 
 
 over_20_t = F.udf(over_20, "boolean", useArrow=False)
-spark.conf.unset("spark.sql.experimental.optimizer.transpilePyUDFs")
 print("  transpiled over_20(fare_amount):", pushed(trips.where(over_20_t("fare_amount"))))
+tq = trips.where(over_20_t("fare_amount"))
+print("  the transpiled filter:", next(l.strip() for l in plan(tq, "simple").splitlines() if "Filter" in l)[:150])
+print("  a Python node in that plan:", any(n in plan(tq, "simple") for n in ("EvalPython",)))
 
 # The UDF profiler (Spark 4.0+): cProfile output for each UDF, kept on the driver.
 spark.conf.set("spark.sql.pyspark.udf.profiler", "perf")

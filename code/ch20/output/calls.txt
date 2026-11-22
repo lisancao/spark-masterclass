@@ -17,22 +17,24 @@ the physical plan of the filter case:
 PushedFilters of the scan:
   built-in  fare_amount > 20:   [IsNotNull(fare_amount), GreaterThan(fare_amount,20.0)]
   Python    is_big(fare_amount): (none)
-  transpiled over_20(fare_amount): (none)
+  transpiled over_20(fare_amount): [IsNotNull(fare_amount)]
+  the transpiled filter: *(1) Filter (isnotnull(fare_amount#4225) AND CASE WHEN isnull(fare_amount#4225) THEN cast(raise_error(USER_RAISED_EXCEPTION, map(keys: [errorMessage],
+  a Python node in that plan: False
 
 spark.profile.show(type='perf'), the first lines:
   ============================================================
   Profile of UDF<id=4242>
   ============================================================
-           9400000 function calls in 18.556 seconds
+           9400000 function calls in 10.637 seconds
   
      Ordered by: internal time, cumulative time
   
      ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-     200000    7.012    0.000    7.012    0.000 {method 'disable' of '_lsprof.Profiler' objects}
-     800000    1.952    0.000    2.593    0.000 ipaddress.py:1213(_parse_octet)
-     200000    1.286    0.000   11.020    0.000 calls.py:78(private_ip)
-     200000    1.146    0.000    4.608    0.000 ipaddress.py:1187(_ip_int_from_string)
-     200000    0.937    0.000    3.086    0.000 ipaddress.py:1337(is_private)
-     200000    0.816    0.000    5.556    0.000 ipaddress.py:1286(__init__)
-     800000    0.694    0.000    0.913    0.000 ipaddress.py:739(__contains__)
-     200000    0.691    0.000    3.285    0.000 {built-in method from_bytes}
+     200000    4.100    0.000    4.100    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+     800000    1.118    0.000    1.507    0.000 ipaddress.py:1213(_parse_octet)
+     200000    0.681    0.000    6.268    0.000 calls.py:80(private_ip)
+     200000    0.650    0.000    2.638    0.000 ipaddress.py:1187(_ip_int_from_string)
+     200000    0.523    0.000    1.798    0.000 ipaddress.py:1337(is_private)
+     200000    0.469    0.000    3.184    0.000 ipaddress.py:1286(__init__)
+     800000    0.434    0.000    0.571    0.000 ipaddress.py:739(__contains__)
+     200000    0.365    0.000    1.872    0.000 {built-in method from_bytes}
