@@ -1,8 +1,8 @@
-"""Chapter 10, part 2: GEOMETRY and GEOGRAPHY. WKB bytes, SRIDs, validation, distance, nearest store,
+"""Chapter 76, Steps 12 to 14 (moved from Chapter 10): points from messy coordinates. WKB bytes, SRIDs, validation, distance, nearest store,
 Parquet storage and the limits of the 4.3.0 types.
 
 Data: SparkTutor's courier deliveries (code/data/geo_deliveries): 166 deliveries, 12 stores.
-Run from code/:  uv run python ch10/geo.py
+Run from code/:  uv run python ch76/geo_points.py
 """
 import math
 import re
@@ -19,8 +19,8 @@ from pyspark.sql import functions as F, Window
 from common.book import session, plan
 
 HERE = Path(__file__).resolve().parents[1] / "data" / "geo_deliveries"
-TMP = Path(tempfile.mkdtemp(prefix="ch10-geo-"))
-spark = session("ch10-geo", spark_sql_session_timeZone="UTC")
+TMP = Path(tempfile.mkdtemp(prefix="ch76-geo-"))
+spark = session("ch76-geo-points", spark_sql_session_timeZone="UTC")
 raw = spark.read.option("header", True).csv(str(HERE / "deliveries.csv"))
 stores = spark.read.option("header", True).option("inferSchema", True).csv(str(HERE / "stores.csv"))
 EARTH_RADIUS_KM = 6371.0

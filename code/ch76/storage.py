@@ -18,7 +18,8 @@ W = work("ch76", clean=False)
 ICEBERG_JAR = DATA / "jars" / "iceberg-spark-runtime-4.3_2.13-b1eab64.jar"
 WH = W / "warehouse"
 shutil.rmtree(WH, ignore_errors=True)
-spark = session("ch76-storage", spark_jars=str(ICEBERG_JAR),
+shutil.rmtree(W / "spark-warehouse", ignore_errors=True)
+spark = session("ch76-storage", spark_jars=str(ICEBERG_JAR), spark_sql_warehouse_dir=str(W / "spark-warehouse"),
                 spark_sql_catalog_ice="org.apache.iceberg.spark.SparkCatalog",
                 spark_sql_catalog_ice_type="hadoop", spark_sql_catalog_ice_warehouse=str(WH))
 spark.read.parquet(str(W / "zones.parquet")).createOrReplaceTempView("zones_src")
