@@ -79,6 +79,11 @@ nav:
       - "31. Apache Iceberg with Spark": chapters/ch31-iceberg.md
   - "Part VIII: Running Spark in production":
       - "48. Orchestrating Spark": chapters/ch48-orchestration.md
+  - "Part IX: Extending Spark":
+      - "55. A DSv2 connector in Java": chapters/ch55-dsv2-connector-java.md
+      - "56. Catalyst extensions": chapters/ch56-catalyst-extensions.md
+      - "57. Spark Connect plugins": chapters/ch57-connect-plugins.md
+      - "58. Capstone: your own connector": chapters/ch58-capstone-connector.md
   - "Part X: Internals":
       - "59. How Catalyst plans Python": chapters/ch59-catalyst-plans-python.md
       - "60. The Python worker protocol": chapters/ch60-python-worker-protocol.md

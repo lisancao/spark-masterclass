@@ -107,10 +107,10 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 | 52 | Python data sources III: filter pushdown | Which filters Spark offers a source, and what goes wrong when a source accepts them |
 | 53 | Python data sources IV: writers and streaming | Commit protocols, offsets, idempotent sinks |
 | 54 | Shipping a source: packaging, testing and debugging | Registration, tests, logging inside workers |
-| 55 | A DSv2 connector in Java | Capability table that bridges to the Python API |
-| 56 | Catalyst extensions: rules and native functions | **4.3:** the hand-written rule vs built-in UDF transpilation |
-| 57 | Spark Connect plugins | Relation, command and expression plugins |
-| 58 | Capstone: your own connector | Format, batch and pushdown, writer, streaming |
+| 55 | [A DSv2 connector in Java](chapters/ch55-dsv2-connector-java.md) | Capability table that bridges to the Python API |
+| 56 | [Catalyst extensions: rules and native functions](chapters/ch56-catalyst-extensions.md) | **4.3:** the hand-written rule vs built-in UDF transpilation |
+| 57 | [Spark Connect plugins](chapters/ch57-connect-plugins.md) | Relation, command and expression plugins |
+| 58 | [Capstone: your own connector](chapters/ch58-capstone-connector.md) | Format, batch and pushdown, writer, streaming |
 
 ## Part X: Internals
 | # | Chapter | Covers |
