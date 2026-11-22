@@ -24,3 +24,4 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | 55 | three-plans, partitioning | anim-countpush (final plan and counts from jdocs.txt; logical plan schematic) | timing runs table | 0, 0 |
 | 56 | rule-plans, bench | anim-rule (plan lines from planchange.txt, values from extensions.txt) | none; corrected '2,000,000' to '20,000,000' in Step 11 to match bench.py and bench.txt | 0, 0 |
 | 57 | any-bytes, plan-rows | anim-plugin (type URLs, rows and error from plugins.txt) | none | 0, 0 |
+| 58 | problems, stream-batches | anim-stream (byte ranges from casefile's own stream reader run on the sample with no Spark, saved as code/ch58/anim/stream_plan.json; row counts agree with demo.txt) | none | 0, 0 (allow: decreasing testing, from part09b notes) |

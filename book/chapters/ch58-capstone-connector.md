@@ -104,6 +104,11 @@ The time of the last line is earlier than the time of the line before it. The sa
 | case-0009 | a lowercase folder, a UTF-8 byte order mark, CRLF line ends, a `+02:00` offset |
 | CASE-0010 | priority `"urgent"`; a blank line and a line with no `->` in the log |
 
+<figure markdown>
+  ![The ten cases of the sample and the problems of each case](../media/figures/ch58-problems.svg)
+  <figcaption>The problems of the sample, and where the connector reports each one. Step 5 shows the tables. Step 10 shows the stream, and Step 13 shows the design review.</figcaption>
+</figure>
+
 The byte order mark (BOM) is in the first three bytes of `case-0009/case.json` (`od -c`):
 
 ```text
@@ -627,6 +632,20 @@ rows streamed: 43 | rows in a batch read: 44
 ```
 
 The stream wrote 43 rows, one fewer than the 44 rows of the batch reader. The last line of the log of CASE-0003 has no newline yet, so the stream does not read it.
+
+The figure shows which micro-batch read each part of each log. The byte ranges come from the stream reader of `casefile.py`, run on the sample with no Spark. Its row counts agree with the output above.
+
+<figure markdown>
+  ![The micro-batch that read each byte range of each change log](../media/figures/ch58-stream-batches.svg)
+  <figcaption>Six micro-batches over the ten logs. A batch can end in the middle of a log. The last 53 bytes of the log of CASE-0003 have no newline, so the stream does not read them.</figcaption>
+</figure>
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch58-anim-stream.webp">
+    <source src="../../media/clips/ch58-anim-stream.mp4" type="video/mp4">
+  </video>
+  <figcaption>The same micro-batches, one after the other. Each batch takes whole lines, up to 400 bytes.</figcaption>
+</figure>
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch58-stream.webp">
