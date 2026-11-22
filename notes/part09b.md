@@ -147,7 +147,7 @@ Written by the earlier writer (commit 0225fc2); I fixed its STE findings (14 to 
 - Maven coordinates (all `provided`): `org.apache.spark:spark-sql_2.13:4.3.0` (ch52, ch53, ch54), `org.apache.spark:spark-connect_2.13:4.3.0` (ch54); `maven-compiler-plugin` 3.13.0 pinned
 - Connect server for ch54: `sbin/start-connect-server.sh` from the pip package, gRPC 10300, UI 4130; reuse experiment on 10301 / UI 4131; in-process server on the default 15002 (the script checks the port first)
 - `SPARK_UI_PORT=4030` for Classic runs
-- Timings (ch53 bench, ch54 reuse, ch52 capability runs) and all film renders ran under `flock $HOME/spark-masterclass/data/.bench.lock`
+- Timings (ch53 bench, ch54 reuse, ch52 capability runs) ran under `flock $HOME/spark-masterclass/data/.bench.lock`. The ch53 film also ran under it; the ch52, ch54 and ch55 films ran without it, after the integrator changed the lock rule (films take no lock)
 
 ## Open findings (not yet checked with the spark-bug routine)
 
