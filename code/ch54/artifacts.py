@@ -17,7 +17,7 @@ def first_line(e):
     return f"{type(e).__name__}: {str(e).splitlines()[0][:120]}"
 
 
-with SparkSession.builder.remote("sc://localhost:15060").getOrCreate() as a:
+with SparkSession.builder.remote("sc://localhost:10300").getOrCreate() as a:
     plan_nodes, _, _ = client_classes()
     try:
         plan_nodes(a.range(3)).collect()
@@ -26,6 +26,6 @@ with SparkSession.builder.remote("sc://localhost:15060").getOrCreate() as a:
     a.addArtifacts(str(JAR))
     print("session A, after addArtifacts: ", plan_nodes(a.range(3)).collect())
 
-b = SparkSession.builder.remote("sc://localhost:15060").create()     # a second, separate session
+b = SparkSession.builder.remote("sc://localhost:10300").create()     # a second, separate session
 print("session B, never uploaded it:  ", plan_nodes(b.range(3)).collect())
 b.stop()

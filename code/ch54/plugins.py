@@ -34,7 +34,7 @@ a.Pack(msg)
 print("type_url:", a.type_url)
 print("Any:    ", a.SerializeToString())
 
-with SparkSession.builder.remote("sc://localhost:15060").getOrCreate() as spark:
+with SparkSession.builder.remote("sc://localhost:10300").getOrCreate() as spark:
     plan_nodes, has_magic, note = client_classes()
 
     head("2. A Connect session has no JVM")
@@ -108,7 +108,7 @@ with SparkSession.builder.remote("sc://localhost:15060").getOrCreate() as spark:
 
 head("9. The server's record of the plugin operations (4.3 REST API)")
 import re  # noqa: E402
-ops = [o for o in ui_api("connect/operations", port=4160) if o["sessionId"] == session_id]
+ops = [o for o in ui_api("connect/operations", port=4130) if o["sessionId"] == session_id]
 ops.sort(key=lambda o: o["startTimestamp"])
 print(len(ops), "operations in this session; those whose recorded statement names a jplug type:")
 for o in ops:

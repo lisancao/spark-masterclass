@@ -1,0 +1,10 @@
+== 1. partitions() that raises NotImplementedError
+   rows: ['InputPartition(value=None)']
+
+== 2. a Logger pickles by name
+   pickled bytes name the logger only: True (56 bytes)
+   in a new process: handlers = []
+
+== 3. raise_error in the input does not test abort()
+   raise_error on the last row         -> USER_RAISED_EXCEPTION | job folders left by a no-op abort(): 0
+   an invalid case_id on the last row  -> ValueError            | job folders left by a no-op abort(): 9

@@ -4,7 +4,7 @@ The Python data source chapters (47 to 51) built `docs`, a source that lists a f
 
 This chapter writes `jdocs`, the same source, directly against DSv2 in Java. It builds the source with Maven against Spark 4.3.0, loads the jar into a PySpark session and examines what the optimizer does with it.
 
-**A Python data source can only accept filters. A DSv2 source in Java can answer the questions of the optimizer. It can say which columns it needs, how many rows it returns and how it partitions its data. It can also calculate part of the query itself, for example a `COUNT(*)` from the folder listing, with no task. Each answer removes work from the plan: a column, a `Filter`, a `Limit`, an `Exchange` or a whole job.**
+**A Python data source can only accept filters. A DSv2 source in Java can answer the questions of the optimizer. It can say which columns it needs, how many rows it returns and how it partitions its data. It can also calculate part of the query itself, for example a `COUNT(*)` from the list of files in the folder, with no task. Each answer removes work from the plan: a column, a `Filter`, a `Limit`, an `Exchange` or a whole job.**
 
 The code is in [`code/ch52`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch52). The Java project is `code/ch52/jdocs`. The PySpark scripts that drive it are next to it, and each output block in this chapter comes from `code/ch52/output/`.
 
@@ -78,7 +78,7 @@ Read the three pairs:
 
 - **Filter and two columns.** The Python scan returns all seven columns. Spark keeps a `Filter isnotnull(kind)` above it. The Python source took `EqualTo(kind,image)`, but it returned the `IsNotNull(kind)` filter that Spark also offered. The Java scan returns two columns and Spark keeps no `Filter`.
 - **`limit(3)`.** Spark keeps `CollectLimit 3` above the Python scan, which reads all 26 files. The Java scan reads three files and Spark keeps no `Limit`.
-- **`count(*)`.** For the Python source, the plan is a scan, a partial count, a shuffle and a final count. The full plan is in `output/capability.txt`. For the Java source, the plan is a `LocalTableScan` of one row that the source calculated during planning.
+- **`count(*)`.** For the Python source, the plan is a scan, a partial count, a shuffle and a final count. The full plan is in `output/capability.txt`. For the Java source, the plan is a `LocalTableScan` of one row that the source calculated when Spark planned the query.
 
 The script also asks the optimizer for its size estimate of each source, before any filter:
 
@@ -92,7 +92,7 @@ A source that reports no statistics gets the default size, `Long.MaxValue` bytes
 
 The script also measures the time of `select("name", "size")`, with a new DataFrame for each run. Other work used the machine when the script ran. In four runs, the median for `pydocs` went from 74 to 131 ms and the median for `jdocs` went from 15 to 75 ms. `jdocs` was faster in each run.
 
-The difference is mostly the cost of the Python worker. `pydocs` uses a Python process during planning and in each task, and `jdocs` stays in the JVM. These timings are not a benchmark. They only show that the Python path has a fixed cost that the Java path does not have.
+The difference is mostly the cost of the Python worker. `pydocs` uses a Python process when Spark plans the query and in each task, and `jdocs` stays in the JVM. These timings are not a benchmark. They only show that the Python path has a fixed cost that the Java path does not have.
 
 ## Step 1: Build the jar with Maven
 
@@ -150,7 +150,7 @@ Apache Maven 3.8.7
 
 Without the block, Maven 3.8.7 uses its built-in compiler plugin 3.1. That version ignores `maven.compiler.release`, and the build fails.
 
-If your connector has its own dependencies, build a shaded jar with the `maven-shade-plugin`. Relocate the libraries that Spark also has, for example Guava or Jackson, so that the two versions cannot collide. `jdocs` has no dependencies other than Spark, so it needs no shading. The book builds with Maven only. A Gradle build of the same sources needs the same `provided` dependency (Gradle calls it `compileOnly`), but the book did not test a Gradle build.
+If your connector has its own dependencies, build a shaded jar with the `maven-shade-plugin`. Relocate the libraries that Spark also has, for example Guava or Jackson, so that the two versions cannot collide. `jdocs` has no dependencies other than Spark, so it needs no relocated packages. The book builds with Maven only. A Gradle build of the same sources needs the same `provided` dependency (Gradle calls it `compileOnly`), but the book did not test a Gradle build.
 
 The scripts load the jar with `spark.jars`, which `common/book.py` passes to the session builder:
 
@@ -158,7 +158,7 @@ The scripts load the jar with `spark.jars`, which `common/book.py` passes to the
 spark = session("ch52-jdocs", spark_jars=str(JAR), spark_sql_session_timeZone="UTC")
 ```
 
-`spark.jars` is a static setting. The jar must be on the classpath of the driver before the JVM starts. Thus, set it in the builder, or with `spark-submit --jars`, never with `spark.conf.set`.
+`spark.jars` is a static configuration. The jar must be on the classpath of the driver before the JVM starts. Thus, set it in the builder, or with `spark-submit --jars`, never with `spark.conf.set`.
 
 In local mode the driver and the executor are one JVM, and PySpark communicates with it through Py4J. This gives a test a direct path into your classes: `spark._jvm.jdocs.Audit.opened()` calls a static method in the same JVM where the tasks ran. `jdocs` has an `Audit` class with counters (files opened, folder listings, scan builders, calls to the statistics methods, the predicates that Spark offered). This path works only in a Classic session in local mode. On a cluster, each executor has its own JVM. Spark Connect has no `_jvm` at all, and [Chapter 54](ch54-connect-plugins.md) shows a replacement.
 
@@ -171,7 +171,7 @@ All of the interfaces below are in `sql/catalyst/src/main/java/org/apache/spark/
 | `DocsSource` | `TableProvider`, `DataSourceRegister` | driver | at `load()`: `inferSchema`, then `getTable` |
 | `DocsTable` | `Table`, `SupportsRead` | driver | `load()` keeps it in a `DataSourceV2Relation` |
 | `DocsScanBuilder` | `ScanBuilder` and the `SupportsPushDown*` interfaces | driver | during optimization: `newScanBuilder`, the pushdown calls, `build()` |
-| `DocsScan` | `Scan`, `Batch`, `SupportsReportStatistics`, `SupportsReportPartitioning`, `SupportsRuntimeV2Filtering` | driver | during physical planning: `toBatch`, `planInputPartitions` |
+| `DocsScan` | `Scan`, `Batch`, `SupportsReportStatistics`, `SupportsReportPartitioning`, `SupportsRuntimeV2Filtering` | driver | when Spark makes the physical plan: `toBatch`, `planInputPartitions` |
 | `CountScan` | `LocalScan` | driver | instead of `DocsScan` when Spark pushes a `COUNT(*)` |
 | `DocsPartition` | `InputPartition` (`Serializable`) | serialized into each task | |
 | `DocsReaderFactory` | `PartitionReaderFactory` (`Serializable`) | serialized to the executors | once for each task: `createReader` |
@@ -188,7 +188,7 @@ flowchart TB
   subgraph opt["first action or explain(): optimization"]
     sb["DocsScanBuilder<br/>pushPredicates, pushAggregation,<br/>pushLimit, pruneColumns, build"]:::drv
   end
-  subgraph phys["physical planning"]
+  subgraph phys["physical plan"]
     scan["DocsScan<br/>estimateStatistics, outputPartitioning,<br/>planInputPartitions"]:::drv
     cnt["CountScan (LocalScan)<br/>rows() on the driver"]:::drv
   end
@@ -286,7 +286,7 @@ explain + collect + count on one DataFrame: scan builders 2 | listings 2
 
 `load()` succeeded and `explain()` failed. If you want bad options to fail at `load()`, examine them in `getTable` or in `inferSchema`. PySpark changed the Java `IllegalArgumentException` into its own `IllegalArgumentException`, and it kept the message. The error classes of Spark (`[SOME_CLASS] ...`) need an entry in the error registry of Spark, which a connector cannot add to. Thus, a standard Java exception with a clear message is the correct choice for a connector.
 
-The last line counts builders. `explain()` and `collect()` on one DataFrame share one optimized plan, so they made one builder and one listing. `count()` makes a new DataFrame with an aggregate, which Spark optimizes again. Thus, each new query gets a new builder, and the builder lists the folder again.
+The last line counts builders. `explain()` and `collect()` on one DataFrame share one optimized plan, so they made one builder and one list of files. `count()` makes a new DataFrame with an aggregate, which Spark optimizes again. Thus, each new query gets a new builder, and the builder lists the folder again.
 
 ## Step 5: Rows in the internal format of Spark
 
@@ -381,7 +381,7 @@ modified > TIMESTAMP '2020-01-01 00:00:00'
 - **Columns that are not nullable get no `IS_NOT_NULL`.** Spark infers `isnotnull(col)` from a comparison only for a nullable column. `jdocs` accepts `IS_NOT_NULL` on the columns that it knows are never null, and it returns the others.
 - **Return each predicate that you do not apply exactly, without changes.** If you keep a predicate and ignore it, the query silently returns too many rows. If you keep a predicate and also return it, the result is correct and Spark evaluates it again after the scan. Parquet uses this second pattern for row groups.
 
-`Filters.accept` is the decision. It takes `IS_NOT_NULL` on the never-null columns, `=` and `IN` on `kind`, `=` and the four comparisons on `size`, and `ENDS_WITH` on `name`. The listing alone decides all of these, before any file opens. `Filters.matches` applies them when `build()` lists the folder.
+`Filters.accept` is the decision. It takes `IS_NOT_NULL` on the never-null columns, `=` and `IN` on `kind`, `=` and the four comparisons on `size`, and `ENDS_WITH` on `name`. The list of files alone decides all of these, before any file opens. `Filters.matches` applies them when `build()` lists the folder.
 
 ## Step 7: Pushdown in the plan
 
@@ -431,7 +431,7 @@ In the first query, the scan took `kind = 'image'` and Spark kept `width > 12`. 
 
 ## Step 8: LIMIT, aggregates and the sequence of pushdown
 
-`SupportsPushDownLimit.pushLimit(int)` returns whether the source takes the limit. `isPartiallyPushed()` (default `true`) tells Spark whether it must apply the limit again. In `jdocs`, one file is one row and each pushed filter is exact. Thus, the scan can cut the listing to `n` files and say that the limit is complete:
+`SupportsPushDownLimit.pushLimit(int)` returns whether the source takes the limit. `isPartiallyPushed()` (default `true`) tells Spark whether it must apply the limit again. In `jdocs`, one file is one row and each pushed filter is exact. Thus, the scan can cut the list of files to `n` files and say that the limit is complete:
 
 ```text
 *(1) Project [name#407]
@@ -465,7 +465,7 @@ flowchart TB
 
 `SupportsPushDownAggregates` has two methods. Spark calls `supportCompletePushDown(agg)` first. If it returns `true` and `pushAggregation(agg)` accepts the aggregate, Spark **removes its own `Aggregate`** and uses the rows of the scan as the final answer. If `supportCompletePushDown` returns `false`, a source can still return partial results (for example, one count for each partition), and Spark aggregates them again.
 
-An `Aggregation` (a Java `record`) has `aggregateExpressions()` (`CountStar`, `Count`, `Sum`, `Min`, `Max`, `Avg` or `GeneralAggregateFunc`) and `groupByExpressions()`. `jdocs` accepts exactly one `CountStar`, with no grouping or grouped by `kind`, because the listing alone answers the two:
+An `Aggregation` (a Java `record`) has `aggregateExpressions()` (`CountStar`, `Count`, `Sum`, `Min`, `Max`, `Avg` or `GeneralAggregateFunc`) and `groupByExpressions()`. `jdocs` accepts exactly one `CountStar`, with no `GROUP BY` or with `GROUP BY kind`. The list of files alone answers these two:
 
 ```java
 private static boolean answerable(Aggregation agg) {
@@ -476,7 +476,7 @@ private static boolean answerable(Aggregation agg) {
 }
 ```
 
-After an accepted aggregate, `build()` returns a `CountScan`. This class is a `LocalScan`, which calculates its rows on the driver as an `InternalRow[]`. Its read schema has the grouping columns first, then the aggregates:
+After an accepted aggregate, `build()` returns a `CountScan`. This class is a `LocalScan`, which calculates its rows on the driver as an `InternalRow[]`. Its read schema has the `GROUP BY` columns first, then the aggregates:
 
 ```text
 count of images: 5 | files opened: 0 | Spark jobs run: 1
@@ -495,7 +495,7 @@ AdaptiveSparkPlan isFinalPlan=false
             +- BatchScan jdocs[kind#463, size#464L] jdocs[files=26, pushed=[]] RuntimeFilters: []
 ```
 
-The first plan counts the images. The filter `kind = 'image'` went to the scan first, so no filter remained, and Spark offered the `COUNT(*)`. The plan has no `BatchScan`, no `HashAggregate` and no `Exchange`. It is a `LocalTableScan` of the row that `CountScan` calculated during planning, and the reader opened no file.
+The first plan counts the images. The filter `kind = 'image'` went to the scan first, so no filter remained, and Spark offered the `COUNT(*)`. The plan has no `BatchScan`, no `HashAggregate` and no `Exchange`. It is a `LocalTableScan` of the row that `CountScan` calculated when Spark planned the query. The reader opened no file.
 
 The REST API counted one Spark job for the `collect()`, which returns the local rows. Before the pushdown, the same count needed a scan stage and a shuffle.
 
@@ -657,7 +657,7 @@ BatchScan jdocs | files opened by jdocs = 5
 - **`SupportsPushDownVariantExtractions`** (`@since 4.1.0`, `@Experimental`) receives the `variant_get` paths that a query extracts. Then a source can read only those fields.
 - **Columnar reads.** A `PartitionReaderFactory` whose `supportColumnarReads(partition)` returns `true` implements `createColumnarReader` and returns `ColumnarBatch` objects. Parquet and ORC do this, and they do no work for each row.
 - **`SupportsReportOrdering`** tells Spark that each partition is already sorted, so that Spark can remove a `Sort`.
-- **`SupportsPushDownFilters`** is the V1 filter version. Spark still supports it, and Python sources use it. Use V2 in new code. The javadoc of `SupportsPushDownV2Filters` says that V1 "is less efficient due to the internal -> external data conversion".
+- **`SupportsPushDownFilters`** is the V1 filter version. Spark still supports it, and Python sources use it. Use V2 in new code. The javadoc of `SupportsPushDownV2Filters` says that V1 is less efficient, because Spark must convert each value from the internal format to the external format.
 
 **New in 4.3** on the `Table` side, `TableCapability.SCAN_MERGING` lets Spark merge two batch scans of one table. The two scans can differ only in their columns and pushed filters. The javadoc calls it a determinism contract. With the same options, a new `ScanBuilder` with the same pushed filters and pruned columns must give an equivalent scan. Spark builds the merged scan itself and never merges a scan that has a pushed aggregate, join, limit, offset, top N or sample. `jdocs` does not declare this capability, and the book did not test it.
 
@@ -672,7 +672,7 @@ BatchScan jdocs | files opened by jdocs = 5
 - **V2 `Predicate`s carry more than V1 filters:** `OR`, functions, arithmetic and column comparisons. Literals arrive as internal values. Return each predicate that you do not apply exactly.
 - **Spark pushes limits and aggregates only when no filter remains after the scan.** A complete aggregate pushdown with a `LocalScan` removes the scan, the aggregate and the shuffle.
 - **`description()` is the only pushdown information that `explain()` shows** for your scan.
-- **Statistics feed join planning.** 4.3 adds `estimateSizeInBytes()` for a cheap size. `KeyGroupedPartitioning` removes shuffles, and Spark does not check it. `SupportsRuntimeV2Filtering` receives DPP filters while the query runs.
+- **Statistics help Spark plan joins.** 4.3 adds `estimateSizeInBytes()` for a cheap size. `KeyGroupedPartitioning` removes shuffles, and Spark does not check it. `SupportsRuntimeV2Filtering` receives DPP filters while the query runs.
 
 To run all of it, do these steps from the `code/` folder:
 

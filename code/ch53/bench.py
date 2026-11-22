@@ -13,6 +13,7 @@ from pyspark.sql import functions as F  # noqa: E402
 warnings.filterwarnings("ignore")
 JAR = Path(__file__).resolve().parent / "jext" / "target" / "jext-0.1.0.jar"
 SIG = b"\x89PNG\r\n\x1a\n"
+N_BLOBS = 20_000_000
 spark = session("ch53-bench", spark_jars=str(JAR), spark_sql_extensions="jext.Extensions")
 print(f"local[*] on {os.cpu_count()} cores, {platform.processor() or platform.machine()},"
       f" Spark {spark.version}, Python {platform.python_version()}")
@@ -29,14 +30,20 @@ def timed(build):
     return statistics.median(times), n
 
 
-def table(rows):
+def python_node(df):
+    p = df._jdf.queryExecution().executedPlan().toString()
+    return next((l.strip(" +-").split(" [")[0] for l in p.splitlines() if "EvalPython" in l), "no Python")
+
+
+def table(variants):
+    rows = [(name, *timed(b), python_node(b())) for name, b in variants]
     base = rows[0][1]
-    for name, s, n in rows:
-        print(f"  {name:44} {s:7.3f} s  {s / base:5.1f}x   ({n:,} rows)")
+    for name, s, n, node in rows:
+        print(f"  {name:44} {s:7.3f} s  {s / base:5.1f}x  {node:16} ({n:,} rows)")
 
 
-# ---- A: is_png over 2,000,000 cached binary values, a third of them PNG signatures
-blobs = (spark.range(2_000_000)
+# ---- A: is_png over N_BLOBS cached binary values, a third of them PNG signatures
+blobs = (spark.range(N_BLOBS)
          .select(F.when(F.col("id") % 3 == 0, F.lit(SIG + b"\x00\x00\x00\rIHDR"))
                   .otherwise(F.lit(b"GIF89a\x01\x00\x01\x00\x80\x00")).alias("b"))
          .cache())
@@ -67,8 +74,8 @@ variants = [
     ("pandas UDF", lambda: blobs.filter(png_pandas("b"))),
     ("Python UDF (Arrow, the 4.3 default)", lambda: blobs.filter(png_check("b"))),
 ]
-print("\nA. is_png over 2,000,000 cached values")
-table([(name, *timed(b)) for name, b in variants])
+print(f"\nA. is_png over {N_BLOBS:,} cached values")
+table(variants)
 
 # ---- B: fare_band over the June 2026 taxi trips
 trips = spark.read.parquet(str(TRIPS))
@@ -80,10 +87,11 @@ def band(fare: float):
             else "under $10" if fare < 10 else "$10 to $30" if fare < 30 else "over $30")
 
 
+# The flag is read twice: when F.udf builds the UDF, and when the optimizer runs.
+# Build the pickled UDF with the flag off, the transpiled one with it on, and time with it on.
+band_pickled = F.udf(band, "string", useArrow=False)
 spark.conf.set(FLAG, "true")
 band_transpiled = F.udf(band, "string", useArrow=False)
-spark.conf.set(FLAG, "false")
-band_pickled = F.udf(band, "string", useArrow=False)
 band_arrow = F.udf(band, "string")
 f = F.col("fare_amount")
 band_builtin = (F.when(f.isNull() | (f <= 0), "invalid").when(f < 10, "under $10")
@@ -97,5 +105,5 @@ variants = [
 ]
 n_trips = trips.count()
 print(f"\nB. fare_band over {n_trips:,} trips (group by band, count)")
-table([(name, *timed(b)) for name, b in variants])
+table(variants)
 spark.stop()

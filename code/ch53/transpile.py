@@ -77,12 +77,19 @@ for fn, rt in ((band_if, "string"), (tip_pct, "double"), (is_png, "boolean")):
     reason = msgs[0].split(": [", 1)[-1].split("', '")[0].strip("'[]") if msgs else "transpiled"
     print(f"   {fn.__name__:8} -> {reason[:120]}")
 
-print("\n== 4. the flag is read when the UDF is built, not when the query runs")
+print("\n== 4. the flag is read twice: when the UDF is built, and when the query is optimized")
 spark.conf.set(FLAG, "false")
 early, _ = define(band, "string", useArrow=False)
 spark.conf.set(FLAG, "true")
-print("   built with the flag off, run with it on: Python node =",
+print("   built with the flag off, optimized with it on: Python node =",
       python_node(trips.select(early("fare_amount"))))
+late, _ = define(band, "string", useArrow=False)
+spark.conf.set(FLAG, "false")
+print("   built with the flag on, optimized with it off: Python node =",
+      python_node(trips.select(late("fare_amount"))))
+spark.conf.set(FLAG, "true")
+print("   built with the flag on, optimized with it on:  Python node =",
+      python_node(trips.select(late("fare_amount"))))
 
 print("\n== 5. ANSI mode off")
 spark.conf.set("spark.sql.ansi.enabled", "false")

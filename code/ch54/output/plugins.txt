@@ -62,11 +62,11 @@ spark.conf.get('jplug.note') = checked by chapter 54
 
 == 9. The server's record of the plugin operations (4.3 REST API)
 14 operations in this session; those whose recorded statement names a jplug type:
-  jplug.PlanNodes  CLOSED    542 ms  jobs []  ''
-  jplug.PlanNodes  CLOSED    219 ms  jobs []  ''
-  jplug.PlanNodes  CLOSED     74 ms  jobs []  'INTERNAL: stage must be analyzed, optimized or physical, got'
-  jplug.PlanNodes  CLOSED    526 ms  jobs ['4']  ''
-  jplug.PlanNodes  CLOSED    991 ms  jobs ['5', '6', '7']  ''
-  jplug.PlanNodes  CLOSED    257 ms  jobs ['8', '9', '10']  ''
-  jplug.Note       CLOSED      7 ms  jobs []  'INTERNAL: [CONNECT_INVALID_PLAN.NO_HANDLER_FOR_EXTENSION] Th'
-  jplug.Note       CLOSED      6 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED   1606 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED    840 ms  jobs []  ''
+  jplug.PlanNodes  CLOSED    239 ms  jobs []  'INTERNAL: stage must be analyzed, optimized or physical, got'
+  jplug.PlanNodes  CLOSED   1104 ms  jobs ['4']  ''
+  jplug.PlanNodes  CLOSED   2066 ms  jobs ['5', '6', '7']  ''
+  jplug.PlanNodes  CLOSED    729 ms  jobs ['8', '9', '10']  ''
+  jplug.Note       CLOSED     17 ms  jobs []  'INTERNAL: [CONNECT_INVALID_PLAN.NO_HANDLER_FOR_EXTENSION] Th'
+  jplug.Note       CLOSED     21 ms  jobs []  ''

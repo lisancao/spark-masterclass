@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Start or stop a Spark 4.3 Connect server with this chapter's jars and plugins.
-# gRPC on 15060, the UI and its REST API on 4160 (so it can run next to other servers).
+# gRPC on 10300, the UI and its REST API on 4130 (so it can run next to other servers).
 #   ch54/server.sh start      plugin jar on the classpath (spark.jars), plugins configured
 #   ch54/server.sh bare       plugins configured, but the plugin jar NOT on the classpath
 #   ch54/server.sh stop
@@ -15,11 +15,11 @@ JARS=$PWD/ch52/jdocs/target/jdocs-0.1.0.jar,$PWD/ch53/jext/target/jext-0.1.0.jar
 [[ ${1:-start} == start ]] && JARS=$JARS,$PWD/ch54/jplug/target/jplug-0.1.0.jar
 "$SPARK_HOME/sbin/start-connect-server.sh" \
   --jars "$JARS" \
-  --conf spark.connect.grpc.binding.port=15060 \
-  --conf spark.ui.port=4160 \
+  --conf spark.connect.grpc.binding.port=10300 \
+  --conf spark.ui.port=4130 \
   --conf spark.sql.extensions=jext.Extensions \
   --conf spark.connect.extensions.relation.classes=jplug.PlanNodesPlugin \
   --conf spark.connect.extensions.expression.classes=jplug.MagicPlugin \
   --conf spark.connect.extensions.command.classes=jplug.NotePlugin >/dev/null
-until curl -sf localhost:4160/api/v1/applications >/dev/null; do sleep 1; done
-echo "Connect server up ($1): sc://localhost:15060, UI http://localhost:4160"
+until curl -sf localhost:4130/api/v1/applications >/dev/null; do sleep 1; done
+echo "Connect server up ($1): sc://localhost:10300, UI http://localhost:4130"

@@ -14,8 +14,10 @@ defaults: spark.sql.experimental.optimizer.transpilePyUDFs = false | spark.sql.a
    tip_pct  -> binary operator Div is not supported by the transpiler
    is_png   -> a numeric-typed lowering does not match the declared return type boolean; the interpreted path would return NULL where t
 
-== 4. the flag is read when the UDF is built, not when the query runs
-   built with the flag off, run with it on: Python node = BatchEvalPython
+== 4. the flag is read twice: when the UDF is built, and when the query is optimized
+   built with the flag off, optimized with it on: Python node = BatchEvalPython
+   built with the flag on, optimized with it off: Python node = BatchEvalPython
+   built with the flag on, optimized with it on:  Python node = none
 
 == 5. ANSI mode off
    warning: Python UDF transpilation (spark.sql.experimental.optimizer.transpilePyUDFs) is only supported when ANSI mode is enabled 
