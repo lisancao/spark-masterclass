@@ -57,6 +57,14 @@ The June 2026 file contains a pickup from New Year's Eve 2008. Most likely, the 
 
 The first three problems are errors, and the filter removes these rows. The last two problems are different, and they need more thought.
 
+<figure markdown>
+![Bar chart of the rows that each rule affects.](../media/figures/ch03-cleaning-rules-light.svg#only-light)
+
+![Bar chart of the rows that each rule affects.](../media/figures/ch03-cleaning-rules-dark.svg#only-dark)
+<figcaption>Rows that each rule affects, from <code>what_cleaning_drops.py</code>. The red rows are errors, and the filter removes them. The blue and orange rows stay in the data.</figcaption>
+</figure>
+
+
 A trip with no passenger count is not an incorrect trip. A quarter of the rows in June have no passenger count. This quantity is too large for meter errors. Probably, it comes from the method that records some trips, and it is not a defect in the trips. The question does not use passengers. Thus, if you remove these rows, you lose a quarter of the month for no reason.
 
 Card payment is important only for tips. The data dictionary of the TLC says that the `tip_amount` field contains credit-card tips, and that the TLC does not record cash tips. Thus, a tip percentage over all trips counts 36.6% of trips as trips with a tip of zero. The correct method is to keep these trips for the trip counts and the fares. Remove them only from the tip calculation.
@@ -76,16 +84,28 @@ by_zone = (clean
     .groupBy("Borough", "Zone")
     .agg(F.count("*").alias("trips"),
          F.round(F.avg("fare_amount"), 2).alias("avg_fare"),
-         F.round(100 * F.sum(F.when(card, F.col("tip_amount"))) /
+         F.round(100 * F.sum(F.when(card, F.col("tip_amount"))) /  # (1)!
                  F.sum(F.when(card, F.col("fare_amount"))), 1).alias("tip_pct"))
     .orderBy(F.desc("trips"))
     .limit(10))
 by_zone.show(truncate=False)
 ```
 
+1.  `F.when` with no `otherwise` gives null for cash trips. `sum` ignores null. Thus, this line adds only the card tips and the card fares.
+
 Look carefully at the line for the tip percentage. `F.when(card, F.col("tip_amount"))` with no `otherwise` returns null for the trips without a card payment. `sum` ignores nulls. Thus, the numerator is the total of card tips, and the denominator is the total of card fares. The cash trips are still part of `trips` and `avg_fare` in the same aggregation. You do not need a second pass or a second DataFrame.
 
 Also, the value is a ratio of sums, not an average of the ratios for each trip. Thus, the fare of each trip sets its weight. A $3 fare with a $3 tip does not count as a 100% tip.
+
+The figure shows the method on four example rows.
+
+<figure markdown>
+![Example rows and the two conditional sums.](../media/figures/ch03-when-sum-light.svg#only-light)
+
+![Example rows and the two conditional sums.](../media/figures/ch03-when-sum-dark.svg#only-dark)
+<figcaption>Schematic: <code>F.when(card, ...)</code> gives null for the cash rows, and <code>sum</code> ignores them. The tip percentage is a ratio of the two sums. <code>count</code> and <code>avg</code> still use all the rows.</figcaption>
+</figure>
+
 
 ```text
 +---------+----------------------------+------+--------+-------+
@@ -103,6 +123,14 @@ Also, the value is a ratio of sums, not an average of the ratios for each trip. 
 |Queens   |LaGuardia Airport           |98621 |46.29   |23.9   |
 +---------+----------------------------+------+--------+-------+
 ```
+
+<figure markdown>
+![Trips, fares and tips of the ten busiest zones.](../media/figures/ch03-top-zones-light.svg#only-light)
+
+![Trips, fares and tips of the ten busiest zones.](../media/figures/ch03-top-zones-dark.svg#only-dark)
+<figcaption>The ten busiest pickup zones from the table above. The two airports have the largest fares. JFK is the only zone with a tip percentage below 20%.</figcaption>
+</figure>
+
 
 Eight of the ten busiest pickup zones are in Manhattan. The Upper East Side (south and north together) has more trips than Midtown. This result can be a surprise. But the Upper East Side is a dense residential area with many short trips, and its average fare is the lowest in the table.
 
@@ -131,7 +159,8 @@ by_zone_sql = spark.sql(f"""
 
 A temporary view is only a name for the plan of a DataFrame in the catalog of this session. Spark does not copy or materialize data. Spark parses the SQL text into the same type of logical plan that the DataFrame calls built.
 
-The f-string is safe here, because the values are constants in the code of the book. For values from a user, use the named parameters of `spark.sql`: `spark.sql("... WHERE fare_amount > :min_fare", args={"min_fare": 0})`. [Chapter 7](ch07-spark-sql-in-depth.md) shows this method.
+!!! warning "Use named parameters for values from a user"
+    The f-string is safe here, because the values are constants in the code of the book. For values from a user, use the named parameters of `spark.sql`: `spark.sql("... WHERE fare_amount > :min_fare", args={"min_fare": 0})`. [Chapter 7](ch07-spark-sql-in-depth.md) shows this method.
 
 ```text
 Same answer: True
@@ -170,6 +199,16 @@ Then the **optimizer** changes the two plans:
 - It normalizes the sequence of operands in commutative expressions. In Python, `Column.__rmul__` builds `col * 100` from `100 * col`. After the optimizer normalizes it, this expression and `100 * sum(...)` in SQL are identical.
 
 After these changes, the two plans pass `sameResult`. All the later parts (the physical plan, the generated code, the tasks) are the same.
+
+The animation shows the two rewrites on the analyzed trees.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch03-anim-plans.webp">
+    <source src="../../media/clips/ch03-anim-plans.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the optimizer removes the view and alias nodes of the SQL plan, and it pushes the filter below the join. Then the two plans are the same. The trees show node names only.</figcaption>
+</figure>
+
 
 Remember this general point: the sequence in which you write transformations is only a suggestion. Spark keeps what the query means, and it discards the sequence. Thus, you do not need to put a filter before a join manually for performance. Also, one API is not faster than the other.
 
