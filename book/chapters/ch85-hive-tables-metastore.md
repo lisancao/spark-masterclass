@@ -361,7 +361,7 @@ The metastore and the folder can disagree. Another job can write a partition fol
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch85-msck.webp">
     <source src="../../media/clips/ch85-msck.mp4" type="video/mp4">
   </video>
-  <figcaption><code>partitions.py</code> adds two folders with no metastore entry. <code>SHOW PARTITIONS</code> does not list them until <code>MSCK REPAIR TABLE</code> runs.</figcaption>
+  <figcaption><code>partitions.py</code> adds two folders with no metastore entry. <code>SHOW PARTITIONS</code> does not list them until <code>MSCK REPAIR TABLE</code> runs. The video does not show the wait while the script runs.</figcaption>
 </figure>
 
 When a folder goes away, the plain command does not remove its partition. The first read also fails, because Spark keeps a list of the files of the table from the last read:

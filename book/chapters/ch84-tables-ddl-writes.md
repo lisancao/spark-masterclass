@@ -831,7 +831,7 @@ In `STATIC` mode, an `INSERT OVERWRITE` with no `PARTITION` clause replaces the 
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch84-overwrite.webp">
     <source src="../../media/clips/ch84-overwrite.mp4" type="video/mp4">
   </video>
-  <figcaption><code>partition_overwrite.py</code> writes June 2 again into a table of three days. In static mode, Spark deletes June 1 and June 3. In dynamic mode, they stay.</figcaption>
+  <figcaption><code>partition_overwrite.py</code> writes June 2 again into a table of three days. In static mode, Spark deletes June 1 and June 3. In dynamic mode, they stay. The video does not show the wait while the jobs run.</figcaption>
 </figure>
 
 A static `PARTITION` value limits the overwrite to that partition in the two modes. An empty result shows the risk of `STATIC` mode most clearly:
