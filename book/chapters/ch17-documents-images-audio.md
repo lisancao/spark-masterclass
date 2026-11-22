@@ -289,6 +289,15 @@ logo_rgba_12x12.png, first pixel: ff 00 00 ff  (B, G, R, A)
 
 A pure red pixel is `00 00 ff`. The image source keeps the bytes in the OpenCV order: blue, green, red, then alpha. A library that expects RGB order (Pillow, most models) sees a blue image. Reverse the channels before you give the pixels to such a library.
 
+<figure markdown>
+![The first pixel of the red image, read in two channel orders.](../media/figures/ch17-bgr-light.svg#only-light)
+
+![The first pixel of the red image, read in two channel orders.](../media/figures/ch17-bgr-dark.svg#only-dark)
+
+<figcaption>The first pixel of <code>red_16x8.png</code>, from the output above. In B, G, R order, the pixel shows red. A library that reads R, G, B shows blue. The swatches show the true colours in both themes.</figcaption>
+</figure>
+
+
 ## Step 8: `origin` and `path` are different strings
 
 To join the image rows to the file sizes from `binaryFile`, the obvious key is the path. It does not work:
@@ -412,6 +421,15 @@ The footer shows four problems with this design:
 - **A row group is the unit of parallelism.** Spark planned 11 scan tasks for the 42 MB file. But one row group cannot split, so one task got all 40 rows, and ten tasks did nothing. A table of blobs has few rows and large row groups, so it reads with little parallelism.
 
 One point is good: column pruning works. A query on `name` and `shelf` reads only those columns, and it does not read the 42 MB of `content`. Metadata queries stay cheap.
+
+<figure markdown>
+![The columns and the scan tasks of one Parquet file of blobs.](../media/figures/ch17-parquet-blobs-light.svg#only-light)
+
+![The columns and the scan tasks of one Parquet file of blobs.](../media/figures/ch17-parquet-blobs-dark.svg#only-dark)
+
+<figcaption>The footer and the scan from the output above. The <code>content</code> column is almost all of the file. One task reads the one row group.</figcaption>
+</figure>
+
 
 ## Step 13: A content-addressed store, with an inline limit
 
@@ -561,10 +579,21 @@ stateDiagram-v2
   Gone --> [*]
 ```
 
-- **After the `DELETE`, a query does not find the row, but the bytes are still on the disk.** A merge-on-read delete writes a small delete file that marks the row. The data file does not change.
-- **Time travel still finds the row.** The old snapshot refers to the old data file.
-- **`rewrite_data_files` writes new data files without the row.** The old file is still on the disk, because old snapshots refer to it.
-- **`expire_snapshots` removes the old snapshots and the files that only they use.** Now no file holds the text, and time travel to the old snapshot fails.
+| After | A query finds the row | Data files that hold the text | Time travel to the old snapshot | Why |
+|---|---|---|---|---|
+| `DELETE` | no | 1 | finds the row | A merge-on-read delete writes a small delete file that marks the row. The data file does not change. |
+| `rewrite_data_files` | no | 1 | finds the row | It writes new data files without the row. The old file is still on the disk, because old snapshots refer to it. |
+| `expire_snapshots` | no | 0 | fails | It removes the old snapshots and the files that only they use. |
+
+The animation shows the same sequence with the snapshots and the files.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch17-anim-forget.webp">
+    <source src="../../media/clips/ch17-anim-forget.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the <code>DELETE</code> adds a delete file, and data file A stays. Then the rewrite adds data file B, and snapshot 1 keeps file A. Then the expire removes file A. The counts are from <code>blobs.py</code>.</figcaption>
+</figure>
+
 
 A real delete of personal data is thus a sequence of four operations. Delete the rows, rewrite the files, expire the snapshots, and delete the file in the content-addressed store. Copies outside the table (exports, caches, logs) are separate work. Delta Lake has the same behavior with deletion vectors: `REORG TABLE ... APPLY (PURGE)` rewrites the files, and `VACUUM` removes them after the retention period.
 
