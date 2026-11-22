@@ -17,6 +17,6 @@ export CH48_TAXI=${CH48_TAXI:-$HOME/spark-masterclass/data/nyc-taxi} CH48_OUT=${
 # Connections, in Airflow's JSON form.
 export AIRFLOW_CONN_SPARK_LOCAL='{"conn_type": "spark", "host": "local[2]"}'
 export AIRFLOW_CONN_SPARK_SQL_LOCAL='{"conn_type": "spark_sql", "host": "local[2]"}'
-export AIRFLOW_CONN_SPARK_CONNECT_CH48='{"conn_type": "spark_connect", "host": "localhost", "port": 15064}'
+export AIRFLOW_CONN_SPARK_CONNECT_CH48='{"conn_type": "spark_connect", "host": "localhost", "port": 15064, "login": "airflow"}'
 mkdir -p "$AIRFLOW_HOME"
 exec airflow "$@"

@@ -7,7 +7,7 @@ import sys
 
 KEEP = [r"^running task", r"new_state=", r"Spark-Submit cmd", r"ZONE_REVENUE",
         r"Fetched \d+ row", r"^(Manhattan|Queens|Brooklyn)\t", r"CONNECT", r"DagRun Finished",
-        r"Identified spark", r"driver pod", r"phase", *sys.argv[1:]]
+        r"Identified spark", r"Returned value was: \[", r"driver pod", r"phase", *sys.argv[1:]]
 LINE = re.compile(r"^\d{4}-\d\d-\d\dT(\d\d:\d\d:\d\d)\.\d+Z \[\w+\s*\] (.*?)(\s+\[[\w.]+\].*)?$")
 held = None
 for raw in sys.stdin:
@@ -28,6 +28,6 @@ for raw in sys.stdin:
     elif "Spark-Submit cmd" in msg:
         msg = re.sub(r"(/tmp|/home)\S*/(ch48|zone_revenue)", r"…/\2", msg)
     msg = re.sub(r"manual__[\dT:.+-]+", "manual__<run>", msg)
-    msg = re.sub(r"/tmp/\S*/out/", "…/out/", msg)
+    msg = re.sub(r"(/tmp|/home|~)\S*/out/", "…/out/", msg)
     if any(re.search(k, msg + tail) for k in KEEP):
         print(f"{t}  {msg}")

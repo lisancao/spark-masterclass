@@ -1,20 +1,20 @@
-09:32:51  running task zone_revenue
-09:32:54  Spark-Submit cmd: spark-submit --master local[2] --conf spark.ui.port=4064 --conf spark.sql.shuffle.partitions=8 --driver-memory 1g --name ch48-zone-revenue …/zone_revenue.py ~/spark-masterclass/data/nyc-taxi …/zone_revenue manual__<run>
-09:33:03  ZONE_REVENUE run=manual__<run> spark=4.3.0 master=local[2]
-09:33:03  ZONE_REVENUE Manhattan       3,374,269 trips  $    90,000,789
-09:33:03  ZONE_REVENUE Queens            319,164 trips  $    22,374,570
-09:33:03  ZONE_REVENUE Brooklyn          106,652 trips  $     4,107,067
-09:33:03  ZONE_REVENUE Bronx              14,955 trips  $       533,102
-09:33:03  ZONE_REVENUE N/A                 2,355 trips  $       258,590
-09:33:03  ZONE_REVENUE Unknown             4,109 trips  $       155,703
-09:33:03  ZONE_REVENUE EWR                   565 trips  $        67,976
-09:33:03  ZONE_REVENUE Staten Island         236 trips  $        12,809
-09:33:03  ZONE_REVENUE 8 rows written to …/out/zone_revenue in 4.8 s
-09:33:03  task state -> success
-09:33:03  running task top_zones
-09:33:15  Manhattan	3374269	90000789
-09:33:15  Queens	319164	22374570
-09:33:15  Brooklyn	106652	4107067
-09:33:15  Time taken: 1.735 seconds, Fetched 3 row(s)
-09:33:15  task state -> success
-09:33:15  DagRun Finished: run_duration=23.923778, state=success
+09:53:11  running task zone_revenue
+09:53:17  Spark-Submit cmd: spark-submit --master local[2] --conf spark.ui.port=4064 --conf spark.sql.shuffle.partitions=8 --driver-memory 1g --name ch48-zone-revenue …/zone_revenue.py ~/spark-masterclass/data/nyc-taxi …/zone_revenue manual__<run>
+09:53:41  ZONE_REVENUE run=manual__<run> spark=4.3.0 master=local[2]
+09:53:41  ZONE_REVENUE Manhattan       3,374,269 trips  $    90,000,789
+09:53:41  ZONE_REVENUE Queens            319,164 trips  $    22,374,570
+09:53:41  ZONE_REVENUE Brooklyn          106,652 trips  $     4,107,067
+09:53:41  ZONE_REVENUE Bronx              14,955 trips  $       533,102
+09:53:41  ZONE_REVENUE N/A                 2,355 trips  $       258,590
+09:53:41  ZONE_REVENUE Unknown             4,109 trips  $       155,703
+09:53:41  ZONE_REVENUE EWR                   565 trips  $        67,976
+09:53:41  ZONE_REVENUE Staten Island         236 trips  $        12,809
+09:53:41  ZONE_REVENUE 8 rows written to …/out/zone_revenue in 8.9 s
+09:53:41  task state -> success
+09:53:41  running task top_zones
+09:54:04  Manhattan	3374269	90000789
+09:54:04  Queens	319164	22374570
+09:54:04  Brooklyn	106652	4107067
+09:54:04  Time taken: 6.062 seconds, Fetched 3 row(s)
+09:54:05  task state -> success
+09:54:05  DagRun Finished: run_duration=54.307048, state=success

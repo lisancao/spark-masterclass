@@ -1,0 +1,10 @@
+09:56:10  running task busiest_zones
+          CONNECT session: pyspark.sql.connect.session server 4.3.0
+09:56:20  Done. Returned value was: [(237, 177610), (161, 161198), (236, 157113)]
+09:56:20  task state -> success
+09:56:20  running task report
+          CONNECT zone 237: 177,610 pickups
+          CONNECT zone 161: 161,198 pickups
+          CONNECT zone 236: 157,113 pickups
+09:56:20  task state -> success
+09:56:20  DagRun Finished: run_duration=10.221635, state=success
