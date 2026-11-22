@@ -27,3 +27,4 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | 58 | problems, stream-batches | anim-stream (byte ranges from casefile's own stream reader run on the sample with no Spark, saved as code/ch58/anim/stream_plan.json; row counts agree with demo.txt) | none | 0, 0 (allow: decreasing testing, from part09b notes) |
 | 59 | twice, fusion | anim-copy (plan change log from rules.txt, counts from twice.txt) | none | 0, 0 |
 | 60 | processes, response, rlimit | anim-frames (frame sizes from tap.txt) | none | 10, 10 |
+| 61 | bytes, bench | anim-decode (bytes from layout.txt) | none | 15, 15 |
