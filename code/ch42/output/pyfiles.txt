@@ -1,14 +1,14 @@
 zip entries: ['messytools/__init__.py']
 driver imports: <userFiles>/messytools.zip/messytools/__init__.py
-tasks import:   ['856638 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '856657 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
+tasks import:   ['142159 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '142160 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
 
-before addPyFile:      ['857784 ModuleNotFoundError', '857788 ModuleNotFoundError']
+before addPyFile:      ['142738 ModuleNotFoundError', '142740 ModuleNotFoundError']
   captured includes: []
-old udf, after:        ['857784 ModuleNotFoundError', '857788 ModuleNotFoundError']
+old udf, after:        ['142738 ModuleNotFoundError', '142740 ModuleNotFoundError']
   captured includes: []
-new udf, after:        ['857784 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '857788 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
+new udf, after:        ['142738 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '142740 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
   captured includes: ['messytools.zip']
-old udf, again:        ['857784 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '857788 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
+old udf, again:        ['142738 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '142740 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
 
 spark.python.worker.reuse=true: after v1 ['1.0', '1.0'], after v2 ['1.0', '1.0']
 
@@ -21,9 +21,9 @@ zip     ujson    ModuleNotFoundError: No module named 'ujson'
 archive tabulate deps/site-packages/tabulate/__init__.py
 archive ujson    deps/site-packages/ujson.cpython-312-x86_64-linux-gnu.so
 
-messytools-1.0-py3-none-any.whl via addPyFile: ['862564 ModuleNotFoundError', '862566 ModuleNotFoundError']
+messytools-1.0-py3-none-any.whl via addPyFile: ['146318 ModuleNotFoundError', '146320 ModuleNotFoundError']
 
-Classic addArtifacts: ['863384 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '863386 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
+Classic addArtifacts: ['147356 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '147358 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
 Classic addArtifacts, same bytes again: accepted
 Classic addArtifacts, changed bytes: PySparkRuntimeError [DUPLICATED_ARTIFACT] Duplicate Artifact: <work>/c2/messytools.zip. Artifacts cannot be overwritten.
 addPyFile, changed bytes, same file name: File <userFiles>/messytools.zip exists and does not match contents of file:<work>/c2/messytools.zip

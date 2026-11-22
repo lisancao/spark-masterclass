@@ -1,7 +1,7 @@
-client session_id   A: afdd9777  B: 983d6662
-before addArtifacts A: pid=764940 cwd=<root>/6157e993 root=<root>/6157e993 zip=missing archive=missing
-after                A: pid=764943 cwd=<root>/6157e993 root=<root>/6157e993 zip=2.0 archive=<root>/6157e993/deps/site-packages/messyarch/__init__.py
-after                B: pid=765417 cwd=<root>/feef9355 root=<root>/feef9355 zip=3.0 archive=missing
+client session_id   A: 1c0adae9  B: 24307367
+before addArtifacts A: pid=173434 cwd=<root>/6a6ca9f9 root=<root>/6a6ca9f9 zip=missing archive=missing
+after                A: pid=173414 cwd=<root>/6a6ca9f9 root=<root>/6a6ca9f9 zip=2.0 archive=<root>/6a6ca9f9/deps/site-packages/messyarch/__init__.py
+after                B: pid=174279 cwd=<root>/4cc3ca4a root=<root>/4cc3ca4a zip=3.0 archive=missing
 A adds the same bytes again: accepted
 A adds changed bytes: SparkRuntimeException [ARTIFACT_ALREADY_EXISTS] The artifact pyfiles/messytools.zip already exists. Please choose a different name for the new artifact because it cannot be overwritt
 s3 path  -> PySparkRuntimeError [UNSUPPORTED_OPERATION] s3 scheme is not supported.

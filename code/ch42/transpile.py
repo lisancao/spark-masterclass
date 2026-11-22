@@ -25,9 +25,9 @@ def add_one(x):
     return x + 1
 
 
-plain = F.udf(add_one, "long", useArrow=False)
 for flag in ("false", "true"):
     spark.conf.set("spark.sql.experimental.optimizer.transpilePyUDFs", flag)
+    plain = F.udf(add_one, "long", useArrow=False)   # the transpiler runs here, when the UDF is made
     q = spark.range(3).select(plain("id").alias("y"))
     try:
         print(f"transpilePyUDFs={flag}: {[r.y for r in q.collect()]}")

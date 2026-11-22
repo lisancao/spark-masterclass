@@ -16,7 +16,7 @@ from pyspark.sql.connect.session import SparkSession as ConnectSession
 
 import pkgs
 
-PORT = int(os.environ.get("CONNECT_PORT", "15058"))
+PORT = int(os.environ.get("CONNECT_PORT", "10280"))
 URL = f"sc://localhost:{PORT}"
 
 
