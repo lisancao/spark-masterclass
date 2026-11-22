@@ -489,7 +489,7 @@ Chapter 4 showed the 4.3 REST endpoint `connect/operations` of the Spark UI. Eac
 
 The table shows these facts:
 
-- The plugin calls are in the record. The statement contains the type URL of the message, so an operator can find each plugin call.
+- The calls of the relation plugin and of the command plugin are in the record. Their statement contains the type URL of the message, so an operator can find them. The filter did not find the call of the expression plugin (Step 9). This book did not examine why.
 - The failed calls have the error text in `detail`: the `IllegalArgumentException` of Step 7 and the `NO_HANDLER_FOR_EXTENSION` of Step 8.
 - Some calls ran Spark jobs, and some ran no job. `plan_nodes(...).show()` runs no job, because the rows are a local relation. The calls of Step 7 ran jobs because they used `first()` and `orderBy(...).collect()` on the result.
 
