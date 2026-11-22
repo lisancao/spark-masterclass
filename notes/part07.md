@@ -230,7 +230,7 @@ To run: `cd code && export BOOK_DATA=$HOME/spark-masterclass/data && uv run pyth
 
 ## Films
 
-Tapes in `code/film/ch35.tape` to `ch40.tape`, rendered with `film render <tape> --format chapter` under the bench lock. Clips in `book/media/clips/ch3N-*.mp4` and `.webp`, cut list in `book/media/clips/clips-part07.tsv`. Each beat's on-screen caption is a typed shell comment. VO drafts:
+Tapes in `code/film/ch35.tape` to `ch40.tape`, rendered with `film render <tape> --format chapter` under the bench lock. Clips in `book/media/clips/chNN-*.mp4` and `.webp`, cut list in `book/media/clips/clips-part07.tsv` (start and end are positions in the rendered `<tape>-chapter.mp4`). The scripts print their output when they end, so the raw beats have a long still period while Spark runs. Each published clip is the beat clip with repeated still frames removed (`ffmpeg -vf mpdecimate,setpts=N/30/TB`) and an 8 s hold on the last frame (`tpad`); the poster is the last frame. The films show their own run's numbers (timings and KLL estimates differ from the saved output); the captions quote no numbers. Films ran without the bench lock. Each beat's on-screen caption is a typed shell comment. VO drafts:
 
 | Clip | On screen | VO (draft) |
 |---|---|---|
