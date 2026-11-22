@@ -46,6 +46,10 @@ for name, build in SHAPES:
         jobs, tasks = jobs_and_tasks(df.collect)
         print(f"{name:<32}{label:>8}{ex:>11}{jobs:>6}{tasks:>7}")
 
+if "brief" in sys.argv:                  # the film shows the table only
+    a.stop()
+    sys.exit(0)
+
 # The same small query, timed from the client. A new DataFrame each run, sessions alternating.
 build = SHAPES[0][1]
 for s in (a, b):

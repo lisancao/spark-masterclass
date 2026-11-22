@@ -23,6 +23,6 @@ Type "clear" Enter
 Show
 Type "# over Spark Connect: session a turns it on, session b keeps the default" Enter
 Sleep 500ms
-Type "python ch23/connect.py 2>/dev/null | sed -n '1,13p'" Enter
+Type "python ch23/connect.py brief 2>/dev/null" Enter
 Wait@300s
 Sleep 10s

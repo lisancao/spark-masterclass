@@ -195,6 +195,13 @@ Match each rule to a change in the plan:
 
 Of the 272 rules that ran, 9 changed the plan. The tracker also gives the time of each phase: `analysis 20 ms, optimization 113 ms, planning 91 ms` for this query, in a new JVM. The tracker is a Classic API (`df._jdf.queryExecution().tracker()`). On Spark Connect, compare the analyzed and optimized plans from `explain("extended")` instead. To see each rule and its change in the log, set `spark.sql.planChangeLog.level` to `WARN`.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch18-rules.webp">
+    <source src="../../media/clips/ch18-rules.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>optimizer.py</code> reads the planning tracker of one query. Of the 272 rules that ran, 9 changed the plan.</figcaption>
+</figure>
+
 ## Step 3: The scan node
 
 Most of the cost of a query starts at the scan. `file_scan.py` writes the same 20,000 trips twice, as Parquet and as JSON, with nested columns. Then it queries one nested field from each file:
@@ -500,6 +507,13 @@ rows: 3837248
 ```
 
 `SortMergeJoin(skew=true)` and `AQEShuffleRead coalesced and skewed` show that AQE split some partitions of the trips side. The join stage ran 87 tasks. The split tasks of a large zone read parts of the same shuffle partition. Each split task reads the full partition of the zones side for those keys.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch18-skew.webp">
+    <source src="../../media/clips/ch18-skew.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>aqe.py skew</code>: a sort-merge join on pickup zone. AQE splits the partitions of the busiest zones, and the join stage runs more tasks.</figcaption>
+</figure>
 
 The skew join has limits. The rule `OptimizeSkewedJoin` matches a join only when each side is a `Sort` directly on a shuffle query stage. When one side is the result of an aggregate on the same key, the join reuses the partitions of the aggregate. Then the pattern does not match, and AQE does not split anything. The skew join also does not help a skewed `groupBy`. For a skewed aggregate, see the salt technique in [Chapter 20](ch20-python-udfs-arrow.md).
 

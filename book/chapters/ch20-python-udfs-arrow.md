@@ -174,6 +174,13 @@ array return type                 BatchEvalPython   return type array<double> is
 useArrow=True                     ArrowEvalPython   
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch20-transpile.webp">
+    <source src="../../media/clips/ch20-transpile.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>transpile.py</code> creates UDFs with the transpiler on. A UDF with no Python node in its plan ran as a native expression.</figcaption>
+</figure>
+
 The transpiler accepts a small part of Python:
 
 - constants and parameters,
@@ -245,6 +252,13 @@ calls to a counting @udf on 1,000 rows:
   cache(), then two actions                             1000
   count() on a DataFrame with a UDF column                 0
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch20-calls.webp">
+    <source src="../../media/clips/ch20-calls.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>calls.py</code> counts the calls of a UDF with an accumulator. A filter on the UDF column calls it 1,410 times for 1,000 rows.</figcaption>
+</figure>
 
 Each line has a cause:
 
