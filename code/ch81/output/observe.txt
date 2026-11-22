@@ -1,39 +1,39 @@
 == 1. Who is who
-  analyst  user_id=analyst  session_id=38b408af-e97b-4e8a-82d0-53635ba0fdb0
-  agent    user_id=agent    session_id=105daf45-dece-48f8-9a4a-498847dc148f
-  the analyst ran operation 2f9b5675 with tag daily-report
+  analyst  user_id=analyst  session_id=b0658161-f836-4e43-80d7-bbca5a8176f6
+  agent    user_id=agent    session_id=5710d742-1a5f-41a4-be34-10845ed24005
+  the analyst ran operation df307af1 with tag daily-report
 
 == 2. The operator's view: GET connect/sessions and connect/operations
-  session 105daf45  user agent    operations 0  finished False
-  session 38b408af  user analyst  operations 1  finished False
-  RUNNING operation 5dca19bd  user agent  session 105daf45  state READY  jobs ['3']
+  session 5710d742  user agent    operations 0  finished False
+  session b0658161  user analyst  operations 1  finished False
+  RUNNING operation 52ae259f  user agent  session 5710d742  state READY  jobs ['3']
     tags  ['task-42']
     statement  common { plan_id: 6 } aggregate { input { common { plan_id: 5 } filter { input ...
 
 == 3. The agent's own view: the last progress reports from ExecutionProgress
-  operation 5dca19bd  tasks 8/64 done, 16 running, done=False
+  operation 52ae259f  tasks 1/64 done, 16 running, done=False
 
 == 4. Stop it: attach to the agent's session from a second process, and interrupt
   operator session_id == agent session_id: True
-  interruptOperation -> ['5dca19bd']
-  the agent's thread got: UnknownException OPERATION_CANCELED | operation 5dca19bd
-  REST record now: state CLOSED  jobs ['3']  executionTime 8320 ms
+  interruptOperation -> ['52ae259f']
+  the agent's thread got: UnknownException OPERATION_CANCELED | operation 52ae259f
+  REST record now: state CLOSED  jobs ['3']  executionTime 8579 ms
   the tag as the server stores it: ['task-42']
 
 == 5. The server log lines that name the agent's operation
-  SparkConnectExecutionManager: ExecuteHolder ExecuteKey(agent,105daf45...,5dca19bd-d28e-4f26-8471-4e55d45a40d9) is created.
-  ExecuteGrpcResponseSender: Starting for opId=5dca19bd-d28e-4f26-8471-4e55d45a40d9, reattachable=true, lastConsumedStreamIndex=0
-  DAGScheduler: Asked to cancel jobs with tag SparkConnect_OperationTag_User_agent_Session_105daf45..._Operation_5dca19bd-d28e
-  ExecuteResponseObserver: Release all for opId=5dca19bd-d28e-4f26-8471-4e55d45a40d9. Execution stats: total=CachedSize(1347,8) autoRemov
-  ExecuteGrpcResponseSender: Stream finished for opId=5dca19bd-d28e-4f26-8471-4e55d45a40d9, sent all responses up to last index 8. totalTim
-  SparkConnectExecutionManager: ExecuteHolder ExecuteKey(agent,105daf45...,5dca19bd-d28e-4f26-8471-4e55d45a40d9) is removed.
+  SparkConnectExecutionManager: ExecuteHolder ExecuteKey(agent,5710d742...,52ae259f-b121-4105-a94f-2aa84484b0dc) is created.
+  ExecuteGrpcResponseSender: Starting for opId=52ae259f-b121-4105-a94f-2aa84484b0dc, reattachable=true, lastConsumedStreamIndex=0
+  DAGScheduler: Asked to cancel jobs with tag SparkConnect_OperationTag_User_agent_Session_5710d742..._Operation_52ae259f-b121
+  ExecuteResponseObserver: Release all for opId=52ae259f-b121-4105-a94f-2aa84484b0dc. Execution stats: total=CachedSize(1677,10) autoRemo
+  ExecuteGrpcResponseSender: Stream finished for opId=52ae259f-b121-4105-a94f-2aa84484b0dc, sent all responses up to last index 10. totalTi
+  SparkConnectExecutionManager: ExecuteHolder ExecuteKey(agent,5710d742...,52ae259f-b121-4105-a94f-2aa84484b0dc) is removed.
 
 == 6. The Connect events in the event log, for the agent's session
   +     0 ms  SparkListenerConnectSessionStarted               {'userId': 'agent'}
-  +     7 ms  SparkListenerConnectOperationStarted             {'operationId': '5dca19bd', 'userId': 'agent'}
-  +   267 ms  SparkListenerConnectOperationAnalyzed            {'operationId': '5dca19bd'}
-  +   313 ms  SparkListenerConnectOperationReadyForExecution   {'operationId': '5dca19bd'}
-  +   398 ms  SparkListenerJobStart (job 3)                    spark.job.tags has the operation tag
-  +  8327 ms  SparkListenerConnectOperationCanceled            {'operationId': '5dca19bd'}
-  +  8330 ms  SparkListenerConnectOperationClosed              {'operationId': '5dca19bd'}
-  +  9413 ms  SparkListenerConnectSessionClosed                {'userId': 'agent'}
+  +    29 ms  SparkListenerConnectOperationStarted             {'operationId': '52ae259f', 'userId': 'agent'}
+  +   504 ms  SparkListenerConnectOperationAnalyzed            {'operationId': '52ae259f'}
+  +   599 ms  SparkListenerConnectOperationReadyForExecution   {'operationId': '52ae259f'}
+  +   805 ms  SparkListenerJobStart (job 3)                    spark.job.tags has the operation tag
+  +  8608 ms  SparkListenerConnectOperationCanceled            {'operationId': '52ae259f'}
+  +  8610 ms  SparkListenerConnectOperationClosed              {'operationId': '52ae259f'}
+  +  9754 ms  SparkListenerConnectSessionClosed                {'userId': 'agent'}
