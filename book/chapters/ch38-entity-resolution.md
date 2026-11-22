@@ -329,14 +329,14 @@ The script compares the two algorithms on paths and on a random graph. It also c
 ```text
 == rounds and time: label propagation against large-star / small-star
    graph                 propagation          stars
-   path of 50             50 rounds   20.5 s     6 rounds   2.8 s
-   path of 200           200 rounds   69.8 s     8 rounds   5.5 s
-   random, 5,000 nodes    16 rounds    7.1 s     4 rounds   2.3 s
-   random graph: 2,753 nodes in 1 components, same as a driver union-find: True
-   large_star plan (one exchange for the window, one for distinct): 3 exchanges
+   path of 50             50 rounds   39.4 s     6 rounds   7.5 s
+   path of 200           200 rounds  101.7 s     8 rounds   4.3 s
+   random, 5,000 nodes    43 rounds    9.9 s     6 rounds   2.2 s
+   random graph: 3,457 nodes in 483 components, same as a driver union-find: True
+   exchanges in one large-star round over cleaned edges (cleanup distinct, window, distinct): 3 exchanges
 ```
 
-Label propagation needs 200 rounds for a path of 200 nodes. Large-star and small-star need 8 rounds. The number of rounds of the star algorithm grows about with the logarithm of the path length. The times are single runs on a shared machine, so use them only to compare the two columns. The plan of one large-star round over the clean edges has three exchanges. They are for the `distinct` of the edge cleanup, the window and the last `distinct`.
+Label propagation needs 200 rounds for a path of 200 nodes. Large-star and small-star need 8 rounds. On the random graph of 3,000 edges, the result agrees with the union-find: 3,457 nodes in 483 components. Label propagation needed 43 rounds, so at least one component has a long shortest path. The star algorithm needed 6 rounds. The number of rounds of the star algorithm grows about with the logarithm of the path length. The times are single runs on a shared machine, so use them only to compare the two columns. The plan of one large-star round over the clean edges has three exchanges. They are for the `distinct` of the edge cleanup, the window and the last `distinct`.
 
 GraphX has a `ConnectedComponents` algorithm, which is label propagation with Pregel, but GraphX has no Python API. GraphFrames is a separate package. This chapter did not test a GraphFrames release against Spark 4.3.
 
@@ -347,26 +347,26 @@ An iterative loop must keep each round's result somewhere. `components.py` runs 
 ```text
    nothing:
      round  leaves  optimized plan lines  count() s
-         1       1                    16       0.64
-         2       1                    28       0.80
-         3       1                    40       0.94
-         4       1                    52       1.19
-         5       1                    64       1.74
+         1       1                    16       0.30
+         2       1                    28       0.46
+         3       1                    40       0.53
+         4       1                    52       0.70
+         5       1                    64       0.78
    cache:
      round  leaves  optimized plan lines  count() s
-         1       1                    54       0.08
-         2       1                   163       0.13
-         3       1                   381       0.16
-         4       1                   817       0.13
-         5       1                  1689       0.20
-         6       1                  3433       0.23
+         1       1                    54       0.05
+         2       1                   163       0.09
+         3       1                   381       0.08
+         4       1                   817       0.09
+         5       1                  1689       0.08
+         6       1                  3433       0.12
    localCheckpoint:
      round  leaves  optimized plan lines  count() s
-         1       1                     1       0.12
+         1       1                     1       0.02
    ...
    checkpoint:
      round  leaves  optimized plan lines  count() s
-         1       1                     1       0.09
+         1       1                     1       0.05
    ...
 ```
 
@@ -386,8 +386,8 @@ The results are different for each method:
 
 ```text
 == what each cut leaves in the plan
-   localCheckpoint(): *(1) Scan ExistingRDD[src#10866L,dst#10867L]
-   checkpoint():      *(1) Scan ExistingRDD[src#10868L,dst#10869L]
+   localCheckpoint(): *(1) Scan ExistingRDD[src#11808L,dst#11809L]
+   checkpoint():      *(1) Scan ExistingRDD[src#11810L,dst#11811L]
 ```
 
 On Spark Connect, there is no `sparkContext`. `spark.checkpoint.dir` is a static configuration, and a change at runtime fails:
