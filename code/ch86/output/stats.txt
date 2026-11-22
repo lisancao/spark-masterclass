@@ -1,0 +1,61 @@
+Spark 4.3.0
+
+=== 1. what the catalog knows before ANALYZE
+  trips  Statistics: 49377402 bytes, 0 rows
+  fares  Statistics: 32114470 bytes, 0 rows
+  zones  Statistics: 5956 bytes, 0 rows
+  cost of fares WHERE total_amount > 500:
+    Relation: Statistics(sizeInBytes=30.6 MiB)
+    Filter:   Statistics(sizeInBytes=30.6 MiB)
+
+=== 2. ANALYZE TABLE, three forms
+  NOSCAN              -> 32114470 bytes, 0 rows
+  COMPUTE STATISTICS  -> 32114470 bytes, 3709141 rows
+  FOR COLUMNS         -> 32114470 bytes, 3709141 rows
+  DESC EXTENDED fares total_amount:
+    data_type       double
+    min             -1815.18
+    max             7053.5
+    num_nulls       0
+    distinct_count  18226
+    avg_col_len     8
+    max_col_len     8
+    histogram       NULL
+  DESC EXTENDED fares payment_type:
+    data_type       bigint
+    min             0
+    max             5
+    num_nulls       0
+    distinct_count  6
+    avg_col_len     8
+    max_col_len     8
+    histogram       NULL
+
+=== 3. the same filter, CBO off and on
+  spark.sql.cbo.enabled=false
+    Relation: Statistics(sizeInBytes=30.6 MiB)
+    Filter:   Statistics(sizeInBytes=30.6 MiB)
+  spark.sql.cbo.enabled=true
+    Relation: Statistics(sizeInBytes=169.8 MiB, rowCount=3.71E+6)
+    Filter:   Statistics(sizeInBytes=125.5 MiB, rowCount=2.74E+6)
+
+=== 4. estimated rows against real rows, without and with a histogram
+  predicate                          real rows  no histogram   histogram
+  total_amount > 500                        82     2,740,000      13,800
+  total_amount > 100                    70,952     2,910,000      69,000
+  total_amount < 10                     55,427       763,000      55,900
+  total_amount BETWEEN 15 AND 25     1,500,703         4,180   1,500,000
+  payment_type = 2                     348,204       618,000     358,000
+  payment_type = 4                      19,269       618,000      21,900
+  histogram of total_amount: height: 14602.917322834646, num_of_bins: 254
+    bin_0    lower_bound: -1815.18, upper_bound: 5.9, distinct_count: 1701
+    bin_1    lower_bound: 5.9, upper_bound: 8.7, distinct_count: 254
+    bin_2    lower_bound: 8.7, upper_bound: 9.61, distinct_count: 91
+    bin_252  lower_bound: 108.51, upper_bound: 126.87, distinct_count: 1681
+    bin_253  lower_bound: 126.87, upper_bound: 7053.5, distinct_count: 6555
+
+=== 5. ANALYZE for every column, and for every table in a database
+  trips  Statistics: 49377402 bytes, 3709141 rows
+  fares  Statistics: 32114470 bytes, 3709141 rows
+  zones  Statistics: 5956 bytes, 265 rows
+  trips.trip_distance: min 0.01, max 311565.39, num_nulls 0, distinct_count 5036
