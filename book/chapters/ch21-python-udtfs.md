@@ -356,7 +356,7 @@ The times are less simple:
 - **`from_json` with `posexplode` was the fastest by a large margin**, about six times faster than `JSON_TABLE`. `from_json` parses each document one time into a typed struct, and `posexplode` only reads the array. In this run, `JSON_TABLE` with four `PATH` columns and the extra `get_json_object` for the order number did more work for each document. This explanation agrees with the plans, but the internals of the `json_table` generator were not examined.
 - **The error behavior is different.** `JSON_TABLE` has an explicit `NULL ON ERROR` (the default, no rows) or `ERROR ON ERROR` clause. The truncated document gave 0 rows, or the error `MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION`.
 
-Thus, for JSON in Spark 4.3, do not write a UDTF that parses it. Use `from_json` with `explode` or `posexplode` when you know the schema and speed matters. Use `JSON_TABLE` when SQL is the interface, or when you migrate SQL from Oracle, DB2 or MySQL. It also gives `EXISTS` columns and the error clause. Keep UDTFs for logic that a built-in function cannot express. The sessions of Step 6 and the `key=value` parser of Step 7 are examples. [Chapter 13](../roadmap.md) covers JSON drift and quarantine in depth.
+Thus, for JSON in Spark 4.3, do not write a UDTF that parses it. Use `from_json` with `explode` or `posexplode` when you know the schema and speed matters. Use `JSON_TABLE` when SQL is the interface, or when you migrate SQL from Oracle, DB2 or MySQL. It also gives `EXISTS` columns and the error clause. Keep UDTFs for logic that a built-in function cannot express. The sessions of Step 6 and the `key=value` parser of Step 7 are examples. [Chapter 13](ch13-json.md) covers JSON drift and quarantine in depth.
 
 ## Step 10: What does not apply to UDTFs
 
@@ -409,4 +409,4 @@ spark.sql("SELECT t.* FROM docs, LATERAL JSON_TABLE(doc, '$.items[*]' COLUMNS (s
 - [Python user-defined table functions](https://spark.apache.org/docs/4.3.0/api/python/user_guide/sql/python_udtf.html) in the PySpark user guide.
 - [JSON_TABLE](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-qry-select-json-table.html) in the SQL reference.
 - The 4.3.0 source: `python/pyspark/sql/udtf.py` and `python/pyspark/worker.py` (the Python side), `EvalPythonUDTFExec.scala` (the JVM side).
-- [Chapter 13](../roadmap.md) for JSON drift and quarantine, and [Chapter 60](ch60-python-worker-protocol.md) for the Python worker protocol.
+- [Chapter 13](ch13-json.md) for JSON drift and quarantine, and [Chapter 60](ch60-python-worker-protocol.md) for the Python worker protocol.

@@ -465,8 +465,8 @@ The stack trace shows where: `BufferHolder.grow` makes the row buffer larger whe
 Rules for large files:
 
 - Select only the metadata columns (`path`, `length`, `modificationTime`) to make an inventory. That costs almost nothing.
-- Do not put a file that is larger than a small fraction of the executor heap into one row. Split it at the source, or read it in parts with your own reader. [Part IX](../roadmap.md) builds such a reader as a Python data source.
-- Spark 4.3 can read entries inside zip and tar archives as separate files. [Chapter 11](../roadmap.md) shows it.
+- Do not put a file that is larger than a small fraction of the executor heap into one row. Split it at the source, or read it in parts with your own reader. [Part IX](ch50-python-data-sources-readers.md) builds such a reader as a Python data source.
+- Spark 4.3 can read entries inside zip and tar archives as separate files. [Chapter 11](ch11-files-as-files.md) shows it.
 
 ## Step 9: A walk through the Spark UI
 

@@ -89,13 +89,13 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 ## Part VIII: Running Spark in production
 | # | Chapter | Covers |
 |---|---|---|
-| 43 | Determinism, retries and fault injection | Connect operation IDs for reattach |
-| 44 | Shipping Python dependencies | Archives, environments and what actually reaches the workers |
-| 45 | Observability: listeners, event logs, metrics, profilers | **4.3:** Connect REST endpoints |
-| 46 | Spark Connect in production: deployment patterns | One server per app or shared, sessions and isolation, auth and proxies, reattach, a sandbox per agent. **4.3:** operation IDs, REST endpoints, Feather on the server |
-| 47 | Spark on Kubernetes with the Spark Kubernetes Operator | SparkApplication and SparkCluster resources, a Connect server on Kubernetes, run for real on a local cluster |
+| 43 | [Determinism, retries and fault injection](chapters/ch43-determinism-retries.md) | Connect operation IDs for reattach |
+| 44 | [Shipping Python dependencies](chapters/ch44-shipping-dependencies.md) | Archives, environments and what actually reaches the workers |
+| 45 | [Observability: listeners, event logs, metrics, profilers](chapters/ch45-observability.md) | **4.3:** Connect REST endpoints |
+| 46 | [Spark Connect in production: deployment patterns](chapters/ch46-connect-in-production.md) | One server per app or shared, sessions and isolation, auth and proxies, reattach, a sandbox per agent. **4.3:** operation IDs, REST endpoints, Feather on the server |
+| 47 | [Spark on Kubernetes with the Spark Kubernetes Operator](chapters/ch47-kubernetes-operator.md) | SparkApplication and SparkCluster resources, a Connect server on Kubernetes, run for real on a local cluster |
 | 48 | [Orchestrating Spark: Airflow, operators, YuniKorn and Celeborn](chapters/ch48-orchestration.md) | Airflow's Spark operators (submit, Kubernetes, Connect), the Kubernetes operator under Airflow, gang scheduling and queues with Apache YuniKorn, remote shuffle with Apache Celeborn |
-| 49 | Writing Spark pipelines with agents | What agents get wrong in Spark (from the OSA Con 2026 study), and a harness of declare, scope and context: dry-run, a Connect sandbox, version-pinned skills, metric views |
+| 49 | [Writing Spark pipelines with agents](chapters/ch49-pipelines-with-agents.md) | What agents get wrong in Spark (from the OSA Con 2026 study), and a harness of declare, scope and context: dry-run, a Connect sandbox, version-pinned skills, metric views |
 
 ## Part IX: Extending Spark
 *Data: messy set, local HTTP and SQLite*

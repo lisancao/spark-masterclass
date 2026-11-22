@@ -1,6 +1,6 @@
 # Spark Masterclass
 
-An open, in-depth book on Apache Spark 4.3. Every example runs on a laptop, and every number in the text comes from a script in this repository and its saved output.
+An open, in-depth book on Apache Spark 4.3, in ten parts and 62 chapters, written in ASD-STE100 Simplified Technical English. Every example runs on a laptop, and every number in the text comes from a script in this repository and its saved output.
 
 **Read it online:** https://lisancao.github.io/spark-masterclass/
 
@@ -11,7 +11,9 @@ An open, in-depth book on Apache Spark 4.3. Every example runs on a laptop, and 
 | `book/` | The book's Markdown, figures and clip posters (an MkDocs site) |
 | `code/` | One folder per chapter: the scripts the chapter runs and their saved `output/` |
 | `code/common/` | Shared helpers and `get_data.sh`, which downloads the pinned NYC taxi data |
-| `NOTES.md` | Where each number in the book came from, environment details and open questions |
+| `notes/` | One notes file per part: SparkTutor coverage, where each number came from, versions, and open findings |
+| `NOTES.md` | The same for Part I, and the environment |
+| `scripts/` | `ste-check` (the Simplified Technical English lint) and `renumber.py` |
 
 ## Run the code
 

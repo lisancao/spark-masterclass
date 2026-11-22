@@ -131,7 +131,7 @@ by_zone_sql = spark.sql(f"""
 
 A temporary view is only a name for the plan of a DataFrame in the catalog of this session. Spark does not copy or materialize data. Spark parses the SQL text into the same type of logical plan that the DataFrame calls built.
 
-The f-string is safe here, because the values are constants in the code of the book. For values from a user, use the named parameters of `spark.sql`: `spark.sql("... WHERE fare_amount > :min_fare", args={"min_fare": 0})`. [Chapter 7](../roadmap.md) shows this method.
+The f-string is safe here, because the values are constants in the code of the book. For values from a user, use the named parameters of `spark.sql`: `spark.sql("... WHERE fare_amount > :min_fare", args={"min_fare": 0})`. [Chapter 7](ch07-spark-sql-in-depth.md) shows this method.
 
 ```text
 Same answer: True

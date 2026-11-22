@@ -341,4 +341,4 @@ spark.conf.set("spark.sql.parquet.outputTimestampType", "TIMESTAMP_MICROS")
 - [The Parquet format specification](https://parquet.apache.org/docs/file-format/) and `parquet.thrift` in the parquet-format repository.
 - [Spark's Parquet data source guide](https://spark.apache.org/docs/4.3.0/sql-data-sources-parquet.html), with the Spark settings.
 - The 4.3.0 source: `ParquetFilters.scala`, `ParquetFileFormat.scala` and `VectorizedParquetRecordReader.java` in `sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/parquet/`.
-- [Chapter 19](ch19-partitions-caching-memory.md) for how row groups set the scan tasks, and [Chapter 15](../roadmap.md) for shredded VARIANT columns in Parquet.
+- [Chapter 19](ch19-partitions-caching-memory.md) for how row groups set the scan tasks, and [Chapter 15](ch15-variant.md) for shredded VARIANT columns in Parquet.

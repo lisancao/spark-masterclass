@@ -16,14 +16,22 @@ The book is for people who can read Python and SQL. These readers want to unders
 - **Diagrams of the mechanism**: where the data goes, which operator runs, and what the engine keeps.
 - **Videos of the code as it runs**, where a video shows more than the text.
 
-## Part I: Getting started
+## The parts
 
-1. [How Spark runs your code](chapters/ch01-how-spark-runs.md): the path of one query from a DataFrame to jobs, stages, tasks and Python workers. The chapter also shows what Project Feather saves on small queries.
-2. [Installing Spark 4.3](chapters/ch02-installing.md): pip, the tarball, Docker and Spark Connect, each one tested with a real run, and how to choose.
-3. [Quick start](chapters/ch03-quick-start.md): one question about taxi trips in DataFrames and in SQL. The chapter also shows how to clean the data for it, and the plan that the two APIs compile to.
-4. [Spark Connect](chapters/ch04-spark-connect.md): the unresolved plan that a client sends, and where errors occur. The chapter also shows how to follow one operation from the client to the server with the operation IDs of 4.3.
+| Part | Chapters | What it covers |
+|---|---|---|
+| I. [Getting started](chapters/ch01-how-spark-runs.md) | 1 to 4 | How Spark runs a query, four methods to install Spark 4.3, a quick start, Spark Connect |
+| II. [DataFrames and SQL](chapters/ch05-dataframes-columns-schemas.md) | 5 to 10 | Schemas, cleaning values, Spark SQL in depth, procedural SQL, joins, time series and geospatial |
+| III. [Files, formats and messy data](chapters/ch11-files-as-files.md) | 11 to 17 | Files, logs and CSV, JSON, complex types, VARIANT, XML, Avro and Protobuf, documents and blobs |
+| IV. [Performance](chapters/ch18-query-plans.md) | 18 to 24 | Query plans, partitions and memory, Python UDFs and Arrow, UDTFs, Parquet, Project Feather, native and GPU engines |
+| V. [Streaming](chapters/ch25-structured-streaming.md) | 25 to 29 | Structured Streaming, messy streams, `transformWithState`, Real-time Mode, checkpoints and the state store |
+| VI. [Pipelines and tables](chapters/ch30-tables-delta-iceberg.md) | 30 to 36 | Delta and Iceberg, Iceberg catalogs, Declarative Pipelines, medallion, change data capture, metric views |
+| VII. [Machine learning and applied algorithms](chapters/ch37-mllib-mlflow.md) | 37 to 42 | MLlib and MLflow, text search, similarity search, entity resolution, sketches, calls to models |
+| VIII. [Running Spark in production](chapters/ch43-determinism-retries.md) | 43 to 49 | Retries, Python dependencies, observability, Connect in production, Kubernetes, orchestration, agents |
+| IX. [Extending Spark](chapters/ch50-python-data-sources-readers.md) | 50 to 58 | Python data sources, a DSv2 connector in Java, Catalyst extensions, Connect plugins, a capstone connector |
+| X. [Internals](chapters/ch59-catalyst-plans-python.md) | 59 to 62 | Catalyst and Python, the Python worker protocol, the VARIANT format, an upstream bug from report to fix |
 
-The other parts are on the [roadmap](roadmap.md): DataFrames and SQL, messy data, performance, streaming, pipelines and tables, machine learning, production, extending Spark, and internals.
+The [coverage](coverage.md) page shows where each SparkTutor lesson is in the book.
 
 ## Run the code
 
@@ -33,5 +41,7 @@ code/common/get_data.sh                     # one month of NYC taxi trips, about
 cd code && uv sync                          # Python 3.11+, pyspark 4.3.0; needs Java 17, 21 or 25
 uv run python ch03/quickstart.py
 ```
+
+Some chapters need more than this: Docker (catalogs, Kafka, Kubernetes with kind), extra Maven packages, or an NVIDIA GPU. Each chapter says what it needs at the start.
 
 The license of the book is Apache 2.0, the same as Spark. You can send corrections as issues or pull requests.

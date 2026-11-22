@@ -113,7 +113,7 @@ modifiedAfter='2025-01-01'   -> 1 file(s)
 
 An ISO value works, and the short form `2025-01-01` also works. A value such as `01/01/2025` fails when Spark reads. The message writes the expected format as `YYYY-MM-DDTHH:mm:ss`. This text is a description for people. It is not a pattern for `to_timestamp`, because `YYYY` and `DD` have other meanings in Spark's datetime patterns. Spark reads the value in the session time zone, or in the `timeZone` option if you set it.
 
-These options apply to a batch read only. They are a fast way to read "the files since the last run". But they do not remember which files a job read before. For true incremental ingestion, use a streaming file source with a checkpoint ([Part V](../roadmap.md)).
+These options apply to a batch read only. They are a fast way to read "the files since the last run". But they do not remember which files a job read before. For true incremental ingestion, use a streaming file source with a checkpoint ([Part V](ch25-structured-streaming.md)).
 
 ## Step 4: Use the hidden `_metadata` column
 
@@ -342,7 +342,7 @@ The save mode decides what happens when the folder already exists:
 | `append` | new part files next to the old ones: 1,000,010 rows |
 | `overwrite` | Spark deletes the folder, then writes: 10 rows |
 
-A plain folder gives no atomic commit. If an `overwrite` fails half way, the old data is already deleted. Table formats such as Delta Lake and Iceberg fix this problem with a transaction log ([Part VI](../roadmap.md)).
+A plain folder gives no atomic commit. If an `overwrite` fails half way, the old data is already deleted. Table formats such as Delta Lake and Iceberg fix this problem with a transaction log ([Part VI](ch30-tables-delta-iceberg.md)).
 
 `partitionBy` writes one folder for each value, and a filter on that column then removes folders from the listing:
 
@@ -401,7 +401,7 @@ These results show three different effects:
 - **Size.** JSON is 454.1 MB, more than 20 times the size of Parquet, because each row repeats all 21 field names. CSV is 116.5 MB. The columnar formats compress each column with similar values, and are about 20 MB.
 - **Splits.** Gzip made the CSV small (20.5 MB), but a gzip file is not splittable. Thus one task read the full file, and `csv.gz` is the slowest copy for both queries. The other formats gave 16 or 5 tasks for the same rows.
 
-The timings are from one machine and one sample of the data. They show the direction of each effect, not a general speed for each format. [Chapter 22](../roadmap.md) goes into Parquet in detail.
+The timings are from one machine and one sample of the data. They show the direction of each effect, not a general speed for each format. [Chapter 22](ch22-parquet-inside.md) goes into Parquet in detail.
 
 ## Step 11: Many small files and the cost to open a file
 
@@ -542,10 +542,10 @@ The 4.3.0 documentation pages for the data sources do not describe the setting o
 
 ## Limits of the file view
 
-- **One file, one value.** The `content` column holds the full file in one Java array, so the limit is 2 GB. A task that holds several large files can run out of memory before that limit. For very large files, keep only `path` and `length` in Spark, and let each task stream its file itself. A Python data source ([Part IX](../roadmap.md)) does this well.
+- **One file, one value.** The `content` column holds the full file in one Java array, so the limit is 2 GB. A task that holds several large files can run out of memory before that limit. For very large files, keep only `path` and `length` in Spark, and let each task stream its file itself. A Python data source ([Part IX](ch50-python-data-sources-readers.md)) does this well.
 - **Cache and shuffle copy the bytes.** A `cache()` or a shuffle of a DataFrame with `content` copies every byte. Select `content` late, after the filters, and remove it after you parse it.
 - **Spark Connect.** The reads in this chapter give the same results over Connect, and collected `content` is Python `bytes` there too. On Connect, Spark reports a path that does not exist at the first action, not at `load()` ([Chapter 4](ch04-spark-connect.md)).
-- **Custom formats.** A Python data source can parse a format that no built-in source can parse. [Part IX](../roadmap.md) builds readers, writers and a filter pushdown in Python.
+- **Custom formats.** A Python data source can parse a format that no built-in source can parse. [Part IX](ch50-python-data-sources-readers.md) builds readers, writers and a filter pushdown in Python.
 
 ## The whole chapter, on one page
 

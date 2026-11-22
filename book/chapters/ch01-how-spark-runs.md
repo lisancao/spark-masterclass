@@ -192,7 +192,7 @@ Four row groups give four tasks with work. The other twelve tasks open the file,
 
 A possible cause is start-up cost (the JVM loads classes and does JIT compilation), not I/O, because an empty task reads only a footer. This cause is not verified. But the empty tasks clearly show that the layout of the input sets parallelism in Spark, not the number of cores.
 
-[Part IV](../roadmap.md) gives the practical rules in detail. In summary:
+[Part IV](ch18-query-plans.md) gives the practical rules in detail. In summary:
 
 - A scan cannot have more parallel tasks than row groups.
 - Small files and very large row groups both decrease performance.
@@ -267,7 +267,7 @@ flowchart LR
   eval <-->|"Arrow batches over a local socket"| w
 ```
 
-This is the most important fact about PySpark performance, and [Chapter 20](../roadmap.md) is almost only about it. DataFrame operations with built-in functions run in the JVM, and Python does no part of the work. A Python UDF adds three costs: a process boundary, serialization in the two directions, and the speed of Python itself.
+This is the most important fact about PySpark performance, and [Chapter 20](ch20-python-udfs-arrow.md) is almost only about it. DataFrame operations with built-in functions run in the JVM, and Python does no part of the work. A Python UDF adds three costs: a process boundary, serialization in the two directions, and the speed of Python itself.
 
 Here, the built-in equivalent is a `F.when(...)` chain, which does not go out of the JVM. Spark 4.3 also has an experimental optimizer rule that changes simple Python UDFs like this one into native expressions (`spark.sql.experimental.optimizer.transpilePyUDFs`). This rule clearly shows that the boundary is expensive.
 

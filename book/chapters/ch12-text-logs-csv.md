@@ -202,7 +202,7 @@ This method needs each file in the memory of one task. For larger logs, there ar
 
 - Change the source. A JSON line for each event, with the stack trace in one field, is the best change for log analysis.
 - Rotate the logs into smaller files.
-- Use a reader that keeps events together across splits, such as a Python data source ([Part IX](../roadmap.md)).
+- Use a reader that keeps events together across splits, such as a Python data source ([Part IX](ch50-python-data-sources-readers.md)).
 
 A line-mode solution with `_metadata.file_block_start` and a window over an "event start" flag is possible. But it is correct only when no event crosses the boundary between two splits, and you cannot make sure of that for a large file.
 
@@ -295,7 +295,7 @@ With typed timestamps, analysis by time is ordinary Spark. `session_window` puts
 +----------+-------------------+-------------------+----+
 ```
 
-Unlike a fixed `window()`, each session has its own length. The end is 30 seconds after the last hit of that IP. The same function works on a stream with a watermark ([Part V](../roadmap.md)).
+Unlike a fixed `window()`, each session has its own length. The end is 30 seconds after the last hit of that IP. The same function works on a stream with a watermark ([Part V](ch25-structured-streaming.md)).
 
 ## Step 9: The `text` source always decodes UTF-8
 

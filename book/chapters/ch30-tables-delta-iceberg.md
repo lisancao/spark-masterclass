@@ -111,7 +111,7 @@ The table is a normal Parquet file plus a `_delta_log` folder. The log has one J
 - `commitInfo` records the operation, its parameters and its metrics. Readers do not need it to read the table.
 - `metaData` holds the schema and the table properties. The schema in the log is the schema of the table. Step 7 shows that writes must agree with it.
 - `protocol` names the reader and writer versions, and the table features that a client must support. A client that does not know a feature in the list must not write to the table.
-- `add` names a data file that is now part of the table. It also holds statistics: the row count and the minimum and maximum of each column. A reader uses these statistics to skip files, in the same way that Parquet uses row-group statistics ([Chapter 22](../roadmap.md)).
+- `add` names a data file that is now part of the table. It also holds statistics: the row count and the minimum and maximum of each column. A reader uses these statistics to skip files, in the same way that Parquet uses row-group statistics ([Chapter 22](ch22-parquet-inside.md)).
 
 To commit version N, a writer creates the file `N.json`. The file system must make this operation "create only if the file does not exist". Then only one writer can create version N. Step 10 shows what occurs to the writer that loses.
 

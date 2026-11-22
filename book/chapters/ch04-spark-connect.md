@@ -248,7 +248,7 @@ Most of the code in this book runs in the two modes when you set `SPARK_REMOTE`.
 - **Spark 4.3 gives each operation an ID on the two sides.** The client shows the ID on results and exceptions. The `/connect/operations` endpoint of the REST API returns the record of the server for that ID.
 - **Sessions are context managers in 4.3.** Thus, `with ... as spark:` releases the session automatically.
 
-That is the end of Part I. You know how Spark changes a query into work, and four methods to install Spark. You know how to ask a question in the two APIs and read the plan that answers it. You also know how to do all of this from a process that has no JVM. The next part, [Part II](../roadmap.md), gives more detail about the DataFrame and SQL APIs, and it starts with schemas and types.
+That is the end of Part I. You know how Spark changes a query into work, and four methods to install Spark. You know how to ask a question in the two APIs and read the plan that answers it. You also know how to do all of this from a process that has no JVM. The next part, [Part II](ch05-dataframes-columns-schemas.md), gives more detail about the DataFrame and SQL APIs, and it starts with schemas and types.
 
 ## Further reading
 

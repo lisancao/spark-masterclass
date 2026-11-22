@@ -354,7 +354,7 @@ The planner selects a broadcast join when the estimated size of one side is belo
                +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, true] as bigint)),false), [plan_id=54]
 ```
 
-For a left outer join, Spark can build only the right side, because each row of the left side must stay in the result. If the planner cannot know that a side is small, add a hint. Use `F.broadcast(df)`, or `/*+ BROADCAST(t) */` in SQL. [Chapter 9](../roadmap.md) is about joins and gives the strategies in full. This chapter looks only at how a join appears in a plan and how AQE changes it.
+For a left outer join, Spark can build only the right side, because each row of the left side must stay in the result. If the planner cannot know that a side is small, add a hint. Use `F.broadcast(df)`, or `/*+ BROADCAST(t) */` in SQL. [Chapter 9](ch09-joins.md) is about joins and gives the strategies in full. This chapter looks only at how a join appears in a plan and how AQE changes it.
 
 ## Step 6: Adaptive query execution
 

@@ -379,7 +379,7 @@ CSV groupBy/orderBy from the client, median of 20 after a warm-up:
 - **A Python list qualifies over Connect.** In classic PySpark, `createDataFrame(rows)` makes a `LogicalRDD`, which the rule refuses (Step 2). The Connect client sends the rows to the server in the plan, as a local relation, so the 500-row list qualified like the pandas DataFrame. For a test suite that runs over Spark Connect, the usual list fixtures get the benefit without a change.
 - **The time saved is visible from the client.** The small CSV query took 88.6 ms in session `b` and 58.9 ms in session `a`, measured from the client. The client-side time includes the gRPC round trip, which the setting does not change.
 
-The client sends the same unresolved plan in the two sessions. Only the optimizer on the server reads the setting. [Chapter 46](../roadmap.md) uses this property on a server shared by several agents.
+The client sends the same unresolved plan in the two sessions. Only the optimizer on the server reads the setting. [Chapter 46](ch46-connect-in-production.md) uses this property on a server shared by several agents.
 
 ## Step 8: The other part of Feather in 4.3: an Arrow cache
 
@@ -432,5 +432,5 @@ df.groupBy("k").count().orderBy("k").explain()        # no Exchange, one HashAgg
 - [SPARK-56978](https://issues.apache.org/jira/browse/SPARK-56978), the Project Feather umbrella, and [SPARK-57851](https://issues.apache.org/jira/browse/SPARK-57851), single-task execution.
 - The 4.3.0 source: `MarkSingleTaskExecution.scala`, `DataSourceScanExec.scala` (`useSingleTaskExecution`), `SparkOptimizer.scala` (the batch), `MarkSingleTaskExecutionSuite.scala` (the tests).
 - [The Ultimate Guide to Spark 4.3](https://systemsnull.net/posts/data-engineering-ai/ultimate-guide-spark-43), with the other changes in the release.
-- [Chapter 46](../roadmap.md) for Feather on a shared Connect server.
+- [Chapter 46](ch46-connect-in-production.md) for Feather on a shared Connect server.
 - [Chapter 24](ch24-acceleration.md) for native and GPU engines, the other way to make Spark faster on one machine.
