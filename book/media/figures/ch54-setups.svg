@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 300" width="780" height="300" role="img"><title>Where the package is installed, and what each read gave</title><defs></defs><text x="40" y="24.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">driver Python</text>
+<text x="170" y="24.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">worker Python</text>
+<text x="330" y="24.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">format(&#x27;mailbox&#x27;)</text>
+<text x="330" y="39.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">no register()</text>
+<text x="560" y="24.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">register(),</text>
+<text x="560" y="39.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">then count()</text>
+<text x="10" y="58.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="600">1. classic</text>
+<rect x="40" y="64" width="115" height="24" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="97.5" y="79.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">with</text>
+<rect x="170" y="64" width="140" height="24" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="240.0" y="79.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">python3 on PATH</text>
+<rect x="330" y="64" width="210" height="24" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="435.0" y="79.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">DATA_SOURCE_NOT_FOUND</text>
+<rect x="560" y="64" width="200" height="24" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="660.0" y="79.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">ModuleNotFoundError</text>
+<text x="10" y="104.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="600">2. classic</text>
+<rect x="40" y="110" width="115" height="24" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="97.5" y="125.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">with</text>
+<rect x="170" y="110" width="140" height="24" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="240.0" y="125.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">with</text>
+<rect x="330" y="110" width="210" height="24" rx="6" fill="#2f7d5b" fill-opacity="1.0"/>
+<text x="435.0" y="125.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">4 rows</text>
+<text x="560" y="127.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">(not run)</text>
+<text x="10" y="150.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="600">3. classic</text>
+<rect x="40" y="156" width="115" height="24" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="97.5" y="171.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">with</text>
+<rect x="170" y="156" width="140" height="24" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="240.0" y="171.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">bare</text>
+<rect x="330" y="156" width="210" height="24" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="435.0" y="171.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">DATA_SOURCE_NOT_FOUND</text>
+<rect x="560" y="156" width="200" height="24" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="660.0" y="171.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">ModuleNotFoundError</text>
+<text x="10" y="196.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="600">4. classic + broken pkg</text>
+<rect x="40" y="202" width="115" height="24" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="97.5" y="217.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">with</text>
+<rect x="170" y="202" width="140" height="24" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="240.0" y="217.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">with</text>
+<rect x="330" y="202" width="210" height="24" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="435.0" y="217.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">DATA_SOURCE_NOT_FOUND</text>
+<rect x="560" y="202" width="200" height="24" rx="6" fill="#2f7d5b" fill-opacity="1.0"/>
+<text x="660.0" y="217.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">4 rows</text>
+<text x="10" y="242.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="600">5. Connect</text>
+<rect x="40" y="248" width="115" height="24" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="97.5" y="263.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">with (client)</text>
+<rect x="170" y="248" width="140" height="24" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="240.0" y="263.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">bare (server)</text>
+<rect x="330" y="248" width="210" height="24" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="435.0" y="263.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">DATA_SOURCE_NOT_FOUND</text>
+<rect x="560" y="248" width="200" height="24" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="660.0" y="263.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">ModuleNotFoundError</text>
+<text x="10" y="290.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">with: the venv that has pyspark-mailbox. bare: only pyspark. Run 4 also has a pyspark_* package that fails to import.</text></svg>

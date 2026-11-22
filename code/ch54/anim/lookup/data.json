@@ -1,0 +1,4 @@
+{"source": "code/ch54/output/packaging.txt (runs 2 and 4); lookup_data_sources.py at v4.3.0",
+ "run2": {"modules": ["py4j", "pyspark", "pyspark_mailbox"], "result": "format('mailbox'): 4 rows"},
+ "run4": {"modules": ["py4j", "pyspark", "pyspark_broken", "pyspark_mailbox"], "error": "ModuleNotFoundError: a_module_that_is_not_installed",
+          "warn": "Skipping the lookup of Python Data Sources due to the failure.", "result": "format('mailbox'): DATA_SOURCE_NOT_FOUND"}}
