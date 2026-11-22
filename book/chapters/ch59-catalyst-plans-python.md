@@ -203,6 +203,13 @@ Read the two rules in sequence:
 
 This plan calls the UDF two times for each row that passes the filter. Step 7 counts the calls.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch59-anim-copy.webp">
+    <source src="../../media/clips/ch59-anim-copy.mp4" type="video/mp4">
+  </video>
+  <figcaption>The plan change log above, one rule at a time, with shorter plan lines. The count at the end comes from <code>twice.py</code> in Step 7.</figcaption>
+</figure>
+
 The JVM also keeps a total time for each rule in the process. `RuleExecutor.dumpTimeSpent()` returns a table. The top rows of the table, for all the queries of the script, are:
 
 ```text
@@ -349,6 +356,12 @@ The rules, as the plans show them:
 - **Iterator UDFs never fuse.** Each iterator pandas UDF gets its own operator, even next to a UDF of the same type.
 - **Spark evaluates identical calls one time.** Two calls with the same function and the same input share one result.
 
+
+<figure markdown>
+  ![The Python operators that ExtractPythonUDFs made for six expressions](../media/figures/ch59-fusion.svg)
+  <figcaption>The six cases of <code>eval_types.py</code>. Each orange box is one <code>ArrowEvalPython</code> node, with its eval type.</figcaption>
+</figure>
+
 ```mermaid
 flowchart TB
   classDef jvm fill:#4b5563,fill-opacity:0.72,stroke:#4b5563,color:#ffffff
@@ -477,6 +490,12 @@ The counts are sums of the row counts in the log:
 - **270 = 200 + 70.** The filter copy runs on all 200 rows. Then 70 rows pass, and the projection copy runs on these 70 rows again.
 - **129 = 98 + 31.** The `status` filter goes to the scan first, so 98 rows arrive. The filter copy runs on 98 rows, 31 rows pass, and the projection copy runs on the 31 rows.
 - **0 for `count()`.** `count()` needs no column, so column pruning removes the UDF from the plan. A UDF with a side effect does not run at all.
+
+
+<figure markdown>
+  ![The UDF calls of two queries with a filter on the UDF column](../media/figures/ch59-twice.svg)
+  <figcaption>The two counts as the rows flow through the plan. The filter copy runs first, and then the projection copy runs on the rows that pass.</figcaption>
+</figure>
 
 Spark 4.2 added `spark.sql.optimizer.avoidDoubleFilterEval` (SPARK-47672), and it is `true` here. Why does the copy still occur? The rule copies an alias only when the alias is cheap. The excerpt is from `PushPredicateThroughNonJoin`:
 
