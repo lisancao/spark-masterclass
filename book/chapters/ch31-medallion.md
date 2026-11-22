@@ -418,7 +418,7 @@ IsADirectoryError: [Errno 21] Is a directory: '/home/lnc/spark-masterclass/data/
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch31-incremental.webp">
     <source src="../../media/clips/ch31-incremental.mp4" type="video/mp4">
   </video>
-  <figcaption>The streaming progress of <code>bronze_orders</code> in the Spark event log of each run: 11 rows in batch 0, then only the 4 new rows in batch 1.</figcaption>
+  <figcaption>The streaming progress of <code>bronze_orders</code> in the Spark event log of each run. Batch 0 read 11 rows. Batch 1 read only the 4 new rows.</figcaption>
 </figure>
 
 The query name is the full name of the table. Run 1 read 11 rows in batch 0. Run 2 started the same query (the same ID) from its checkpoint, and read only 4 rows in batch 1. The offsets are positions in the list of files that the file source keeps in its checkpoint (`sources/0/0` in Chapter 30). The materialized views are batch queries, and they post no streaming progress.
@@ -469,7 +469,7 @@ The three blocks show three tools, and one trap:
     - `approx_count_distinct` estimates the distinct values.
     - `mode(c, true)` gives the most frequent value. If two values have the same count, it gives the smaller value.
 
-   Then `inline` turns the one wide row into one row for each column. The profile shows defects at once: `order_id` has 117 distinct values in 120 rows (duplicates), `currency` has 3 values, and `status` has 6.
+    Then `inline` turns the one wide row into one row for each column. The profile shows defects at once: `order_id` has 117 distinct values in 120 rows (duplicates), `currency` has 3 values, and `status` has 6.
 - **Approximate means approximate.** With the relative error `rsd` set to 0.05, `approx_count_distinct` gave 37 for 40 customers. With 0.01, it gave 40. `hll_sketch_agg` keeps a sketch that you can store and merge later, and `hll_sketch_estimate` reads the estimate from it.
 
 ## Step 9: Rules as data
