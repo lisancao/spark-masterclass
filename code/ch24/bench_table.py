@@ -1,40 +1,57 @@
 """Chapter 24: one table from the bench-<engine>-<spark>.json files that bench.py wrote.
 
-Each engine is compared with the CPU on its own Spark version. A row hash that differs
-from that CPU run is marked, so a fast wrong answer cannot hide in the table.
+The bench ran two times (output/pass1/ and output/), on a machine that other jobs also
+used. The table gives the median of each pass, and the speed-up of each engine against
+the CPU on its own Spark version, from the mean of the two medians. A row hash that
+differs from that CPU run is marked, so a fast wrong answer cannot hide in the table.
 Run from code/:  uv run python ch24/bench_table.py
 """
 import json
 from pathlib import Path
 
 OUT = Path(__file__).parent / "output"
-runs = {(r["engine"], r["spark"]): r
-        for r in (json.loads(p.read_text()) for p in sorted(OUT.glob("bench-*.json")))}
+
+
+def load(d):
+    return {(r["engine"], r["spark"]): r
+            for r in (json.loads(p.read_text()) for p in sorted(d.glob("bench-*.json")))}
+
+
+passes = [load(OUT / "pass1"), load(OUT)]
 order = [("cpu", "4.3.0"), ("cpu", "4.2.0"), ("comet", "4.2.0"), ("rapids", "4.2.0"),
          ("auron", "4.2.0"), ("cpu", "4.1.1"), ("gluten", "4.1.1")]
-order = [k for k in order if k in runs]
-first = runs[order[0]]
-print(f"{first['rows']:,} rows, median of {first['runs']} runs after {first['warmup']} warmup runs"
-      " (seconds; x = speed-up against the CPU on the same Spark)\n")
+order = [k for k in order if all(k in p for p in passes)]
+first = passes[0][order[0]]
 queries = list(first["queries"])
-print(f"{'engine':<8}{'spark':<7}" + "".join(f"{q:>16}" for q in queries))
+print(f"{first['rows']:,} rows; each cell: median of pass 1 / median of pass 2, in seconds")
+print(f"({first['runs']} timed runs after {first['warmup']} warmup run in each pass);"
+      " x = speed-up against the CPU on the same Spark\n")
+print(f"{'engine':<7}{'spark':<6}" + "".join(f"{q:>21}" for q in queries))
+
+
+def med(k, q):
+    return [p[k]["queries"][q]["median_s"] for p in passes]
+
+
 for engine, spark in order:
-    r, cpu = runs[(engine, spark)], runs.get(("cpu", spark))
     cells = []
     for q in queries:
-        m = r["queries"][q]["median_s"]
-        if engine == "cpu" or cpu is None:
-            cells.append(f"{m:>16.2f}")
-            continue
-        same = r["queries"][q]["rows_hash"] == cpu["queries"][q]["rows_hash"]
-        x = cpu["queries"][q]["median_s"] / m
-        cells.append(f"{m:>8.2f} {x:>5.1f}x{'' if same else '!'}")
-    print(f"{engine:<8}{spark:<7}" + "".join(cells))
-print("\n! = the rows differ from the CPU rows on the same Spark version")
-print("\npeak memory (MiB)")
-print(f"{'engine':<8}{'spark':<7}{'JVM RSS':>9}{'heap':>7}{'off-heap exec':>15}{'GPU':>7}")
+        a, b = med((engine, spark), q)
+        cell = f"{a:.2f}/{b:.2f}"
+        if engine != "cpu" and ("cpu", spark) in passes[0]:
+            ca, cb = med(("cpu", spark), q)
+            x = (ca + cb) / (a + b)
+            same = all(p[(engine, spark)]["queries"][q]["rows_hash"] ==
+                       p[("cpu", spark)]["queries"][q]["rows_hash"] for p in passes)
+            cell += f" {x:.1f}x{'' if same else '!'}"
+        else:
+            cell += "      "
+        cells.append(f"{cell:>21}")
+    print(f"{engine:<7}{spark:<6}" + "".join(cells))
+print("\n! = the rows differ from the CPU rows on the same Spark version (see compare-*.txt)")
+print("\npeak memory in pass 2 (MiB)")
+print(f"{'engine':<7}{'spark':<6}{'JVM RSS':>9}{'JVM heap':>10}{'GPU pool':>10}")
 for engine, spark in order:
-    m = runs[(engine, spark)]["memory"]
+    m = passes[1][(engine, spark)]["memory"]
     gpu = m["gpu_peak_mib"] - m["gpu_idle_mib"] if engine == "rapids" else 0
-    print(f"{engine:<8}{spark:<7}{m['jvm_peak_rss_mib']:>9}{m['jvm_heap_peak_mib']:>7}"
-          f"{m['offheap_execution_peak_mib']:>15}{gpu:>7}")
+    print(f"{engine:<7}{spark:<6}{m['jvm_peak_rss_mib']:>9}{m['jvm_heap_peak_mib']:>10}{gpu:>10}")
