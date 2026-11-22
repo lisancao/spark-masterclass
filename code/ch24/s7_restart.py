@@ -54,7 +54,10 @@ todo = files[:6] if MODE == "crash" else files[4:6]
 for k, (name, text, n) in enumerate(todo):
     deliver(inbox, name, text)
     time.sleep(2)
-time.sleep(3)
+# Wait for the work, not for a fixed time: crash mode dies inside batch 3, resume mode ends at batch 5.
+deadline = time.time() + 180
+while time.time() < deadline and not (MODE == "resume" and 5 in ids("commits")):
+    time.sleep(0.5)
 for p in q.recentProgress:
     if p.numInputRows:
         op = p.stateOperators[0]
