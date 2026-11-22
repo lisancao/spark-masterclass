@@ -75,10 +75,11 @@ for p in sorted(root.rglob("*")):
     rel = p.relative_to(root)
     if len(rel.parts) <= 2 or (len(rel.parts) == 3 and rel.parts[-1] in ("metadata", "data")):
         print("  ", str(rel) + ("/" if p.is_dir() else ""))
-import yaml
-mlmodel = yaml.safe_load((root / "MLmodel").read_text())
-print("\nMLmodel flavors:", list(mlmodel["flavors"]), "| spark flavor:", mlmodel["flavors"]["spark"])
-print("signature inputs:", [(c["name"], c["type"]) for c in __import__("json").loads(mlmodel["signature"]["inputs"])])
+from mlflow.models import Model
+mlmodel = Model.load(str(root / "MLmodel"))
+print("\nMLmodel flavors:", list(mlmodel.flavors), "| spark flavor:",
+      {k: v for k, v in mlmodel.flavors["spark"].items() if k != "code"})
+print("signature inputs:", [(c.name, str(c.type)) for c in mlmodel.signature.inputs.inputs])
 
 # Load it back two ways.
 uri = f"runs:/{best.run_id}/model"

@@ -14,10 +14,11 @@ session: pyspark.sql.session
 hashes of ticket_0: [13517508, 234222607, 97229004, 173401306, 447678187]
 threshold 0.1: 1 pairs [('chat_0', 'chat_1', 0.0)]
 threshold 0.3: 7 pairs [('chat_0', 'chat_1', 0.0), ('ticket_0', 'ticket_1', 0.2222), ('ticket_0', 'ticket_2', 0.2222), ('ticket_0', 'ticket_3', 0.2222), ('ticket_1', 'ticket_2', 0.2222), ('ticket_1', 'ticket_3', 0.2222), ('ticket_2', 'ticket_3', 0.2222)]
+4 nearest to chat_0: [('chat_1', 0.0), ('chat_0', 0.0), ('ticket_2', 0.875), ('ticket_1', 0.875)]
 ticket_0 vs ticket_1 by hand: 1 - 7/9 = 0.2222
 
 inbox tickets with no tokens: 12 of 240
-MinHash over them -> An error occurred while calling o340.collectToPython.
+MinHash over them -> An error occurred while calling o357.collectToPython.
    cause: Must have at least 1 non zero entry.. SQ
 inbox pairs at distance < 0.01 (same word set), by text:
 +------------------------------------------------------------+-----+
@@ -32,46 +33,46 @@ approxSimilarityJoin(..., distCol='jaccard').columns -> ['datasetA', 'datasetB',
 
 == Physical Plan ==
 AdaptiveSparkPlan isFinalPlan=false
-+- HashAggregate(keys=[datasetA#478, datasetB#489], functions=[])
-   +- Exchange hashpartitioning(datasetA#478, datasetB#489, 200), ENSURE_REQUIREMENTS, [plan_id=2328]
-      +- HashAggregate(keys=[datasetA#478, datasetB#489], functions=[])
-         +- Project [datasetA#478, datasetB#489]
-            +- SortMergeJoin [entry#479, hashValue#480], [entry#490, hashValue#491], Inner, (UDF(datasetA#478.features, datasetB#489.features) < 0.3)
-               :- Sort [entry#479 ASC NULLS FIRST, hashValue#480 ASC NULLS FIRST], false, 0
-               :  +- Exchange hashpartitioning(entry#479, hashValue#480, 200), ENSURE_REQUIREMENTS, [plan_id=2320]
-               :     +- Project [struct(id, id#1, text, text#2, tokens, tokens#22, features, features#28, hashes, hashes#474) AS datasetA#478, entry#4
-               :        +- Filter isnotnull(hashValue#480)
-               :           +- Generate posexplode(hashes#474), [id#1, text#2, tokens#22, features#28, hashes#474], false, [entry#479, hashValue#480]
++- HashAggregate(keys=[datasetA#510, datasetB#521], functions=[])
+   +- Exchange hashpartitioning(datasetA#510, datasetB#521, 200), ENSURE_REQUIREMENTS, [plan_id=2441]
+      +- HashAggregate(keys=[datasetA#510, datasetB#521], functions=[])
+         +- Project [datasetA#510, datasetB#521]
+            +- SortMergeJoin [entry#511, hashValue#512], [entry#522, hashValue#523], Inner, (UDF(datasetA#510.features, datasetB#521.features) < 0.3)
+               :- Sort [entry#511 ASC NULLS FIRST, hashValue#512 ASC NULLS FIRST], false, 0
+               :  +- Exchange hashpartitioning(entry#511, hashValue#512, 200), ENSURE_REQUIREMENTS, [plan_id=2433]
+               :     +- Project [struct(id, id#1, text, text#2, tokens, tokens#22, features, features#28, hashes, hashes#506) AS datasetA#510, entry#5
+               :        +- Filter isnotnull(hashValue#512)
+               :           +- Generate posexplode(hashes#506), [id#1, text#2, tokens#22, features#28, hashes#506], false, [entry#511, hashValue#512]
                :              +- Union
-               :                 :- Filter ((size(hashes#474, false) > 0) AND isnotnull(hashes#474))
-               :                 :  +- Project [id#1, text#2, tokens#22, features#28, UDF(features#28) AS hashes#474]
+               :                 :- Filter ((size(hashes#506, false) > 0) AND isnotnull(hashes#506))
+               :                 :  +- Project [id#1, text#2, tokens#22, features#28, UDF(features#28) AS hashes#506]
                :                 :     +- Project [id#1, text#2, tokens#22, UDF(tokens#22) AS features#28]
                :                 :        +- Project [id#1, text#2, UDF(text#2) AS tokens#22]
                :                 :           +- Project [regexp_extract(_metadata#3.file_name, ^(.*)\.eml$, 1) AS id#1, trim(regexp_extract(value#0, \
-               :                 :              +- Project [value#0, knownnotnull(named_struct(file_name, file_name#529)) AS _metadata#3]
-               :                 :                 +- FileScan text [value#0,file_name#529] Batched: false, DataFilters: [], Format: Text, Location: I
-               :                 +- Filter ((size(hashes#523, false) > 0) AND isnotnull(hashes#523))
-               :                    +- Project [id#6, text#7, tokens#519, features#521, UDF(features#521) AS hashes#523]
-               :                       +- Project [id#6, text#7, tokens#519, UDF(tokens#519) AS features#521]
-               :                          +- Project [id#6, text#7, UDF(text#7) AS tokens#519]
+               :                 :              +- Project [value#0, knownnotnull(named_struct(file_name, file_name#561)) AS _metadata#3]
+               :                 :                 +- FileScan text [value#0,file_name#561] Batched: false, DataFilters: [], Format: Text, Location: I
+               :                 +- Filter ((size(hashes#555, false) > 0) AND isnotnull(hashes#555))
+               :                    +- Project [id#6, text#7, tokens#551, features#553, UDF(features#553) AS hashes#555]
+               :                       +- Project [id#6, text#7, tokens#551, UDF(tokens#551) AS features#553]
+               :                          +- Project [id#6, text#7, UDF(text#7) AS tokens#551]
                :                             +- Scan ExistingRDD[id#6,text#7]
-               +- Sort [entry#490 ASC NULLS FIRST, hashValue#491 ASC NULLS FIRST], false, 0
-                  +- Exchange hashpartitioning(entry#490, hashValue#491, 200), ENSURE_REQUIREMENTS, [plan_id=2321]
-                     +- Project [struct(id, id#494, text, text#495, tokens, tokens#498, features, features#482, hashes, hashes#485) AS datasetB#489, e
-                        +- Filter isnotnull(hashValue#491)
-                           +- Generate posexplode(hashes#485), [id#494, text#495, tokens#498, features#482, hashes#485], false, [entry#490, hashValue#
+               +- Sort [entry#522 ASC NULLS FIRST, hashValue#523 ASC NULLS FIRST], false, 0
+                  +- Exchange hashpartitioning(entry#522, hashValue#523, 200), ENSURE_REQUIREMENTS, [plan_id=2434]
+                     +- Project [struct(id, id#526, text, text#527, tokens, tokens#530, features, features#514, hashes, hashes#517) AS datasetB#521, e
+                        +- Filter isnotnull(hashValue#523)
+                           +- Generate posexplode(hashes#517), [id#526, text#527, tokens#530, features#514, hashes#517], false, [entry#522, hashValue#
                               +- Union
-                                 :- Filter ((size(hashes#485, false) > 0) AND isnotnull(hashes#485))
-                                 :  +- Project [id#494, text#495, tokens#498, features#482, UDF(features#482) AS hashes#485]
-                                 :     +- Project [id#494, text#495, tokens#498, UDF(tokens#498) AS features#482]
-                                 :        +- Project [id#494, text#495, UDF(text#495) AS tokens#498]
-                                 :           +- Project [regexp_extract(_metadata#493.file_name, ^(.*)\.eml$, 1) AS id#494, trim(regexp_extract(value#
-                                 :              +- Project [value#492, knownnotnull(named_struct(file_name, file_name#530)) AS _metadata#493]
-                                 :                 +- FileScan text [value#492,file_name#530] Batched: false, DataFilters: [], Format: Text, Location:
-                                 +- Filter ((size(hashes#524, false) > 0) AND isnotnull(hashes#524))
-                                    +- Project [id#496, text#497, tokens#520, features#522, UDF(features#522) AS hashes#524]
-                                       +- Project [id#496, text#497, tokens#520, UDF(tokens#520) AS features#522]
-                                          +- Project [id#496, text#497, UDF(text#497) AS tokens#520]
-                                             +- Scan ExistingRDD[id#496,text#497]
+                                 :- Filter ((size(hashes#517, false) > 0) AND isnotnull(hashes#517))
+                                 :  +- Project [id#526, text#527, tokens#530, features#514, UDF(features#514) AS hashes#517]
+                                 :     +- Project [id#526, text#527, tokens#530, UDF(tokens#530) AS features#514]
+                                 :        +- Project [id#526, text#527, UDF(text#527) AS tokens#530]
+                                 :           +- Project [regexp_extract(_metadata#525.file_name, ^(.*)\.eml$, 1) AS id#526, trim(regexp_extract(value#
+                                 :              +- Project [value#524, knownnotnull(named_struct(file_name, file_name#562)) AS _metadata#525]
+                                 :                 +- FileScan text [value#524,file_name#562] Batched: false, DataFilters: [], Format: Text, Location:
+                                 +- Filter ((size(hashes#556, false) > 0) AND isnotnull(hashes#556))
+                                    +- Project [id#528, text#529, tokens#552, features#554, UDF(features#554) AS hashes#556]
+                                       +- Project [id#528, text#529, tokens#552, UDF(tokens#552) AS features#554]
+                                          +- Project [id#528, text#529, UDF(text#529) AS tokens#552]
+                                             +- Scan ExistingRDD[id#528,text#529]
 
 

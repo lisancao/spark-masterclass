@@ -93,3 +93,22 @@ if __name__ == "__main__":
     # The inventory reads no bytes: binaryFile without the content column.
     inv = spark.read.format("binaryFile").option("recursiveFileLookup", "true").load(INPUT).select("path", "length")
     print([l.strip()[:110] for l in plan(inv, "simple").splitlines() if "FileScan" in l][0])
+
+    # The catalog is the input of a search index: one row per part, any kind that has text.
+    from pyspark.ml import Pipeline
+    from pyspark.ml.feature import HashingTF, IDF, Normalizer, RegexTokenizer, StopWordsRemover
+    texts = catalog.where("text IS NOT NULL").select("file_name", "part", "text")
+    index = Pipeline(stages=[RegexTokenizer(inputCol="text", outputCol="tokens", pattern=r"[^a-zA-Z0-9]+"),
+                             StopWordsRemover(inputCol="tokens", outputCol="words"),
+                             HashingTF(inputCol="words", outputCol="tf", numFeatures=1 << 12),
+                             IDF(inputCol="tf", outputCol="tfidf"),
+                             Normalizer(inputCol="tfidf", outputCol="vec")]).fit(texts)
+    from pyspark.ml.functions import vector_to_array
+    parts = index.transform(texts).withColumn("v", vector_to_array("vec", "float32"))
+    print(f"\nsearch index over {texts.count()} parts with text")
+    for q in ("invoice total", "thank you for shopping", "order problem"):
+        qv = index.transform(spark.createDataFrame([(q,)], "text string")).select(
+            vector_to_array("vec", "float32").alias("q"))
+        top = (parts.crossJoin(qv).select("file_name", "part", F.round(F.vector_inner_product("v", "q").cast("double"), 3).alias("score"))
+               .orderBy(F.desc("score"), "file_name", "part").limit(3).collect())
+        print(f"  {q:<24}", [(r.file_name, r.part, r.score) for r in top])

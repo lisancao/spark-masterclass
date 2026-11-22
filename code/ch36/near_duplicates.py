@@ -38,6 +38,11 @@ for threshold in (0.1, 0.3):
     rows = pairs.collect()
     print(f"threshold {threshold}: {len(rows)} pairs", [(r.a, r.b, r.distance) for r in rows])
 
+# One query against all messages: approxNearestNeighbors.
+key = features.where("id = 'chat_0'").first().features
+nn = model.approxNearestNeighbors(features, key, 4).select("id", F.round("distCol", 4).alias("d")).collect()
+print("4 nearest to chat_0:", [(r.id, r.d) for r in nn])
+
 # The exact Jaccard distance of one pair, by hand.
 t = {r.id: set(r.tokens) for r in tok.transform(messages).collect()}
 x, y = t["ticket_0"], t["ticket_1"]

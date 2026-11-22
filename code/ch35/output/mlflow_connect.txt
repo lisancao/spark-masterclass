@@ -1,3 +1,3 @@
 log_model from a Connect session ->
   AttributeError: 'NoneType' object has no attribute 'jvm'
-workaround: server save + log_artifacts -> 3 stages logged: ['0_StringIndexer_d274437ddefd', '1_VectorAssembler_a9900832b5f9', '2_LinearRegression_114f12a050c3']
+workaround: server save + log_artifacts -> 3 stages logged: ['0_StringIndexer_359b0b8c1c62', '1_VectorAssembler_0ecc9d8d7360', '2_LinearRegression_875be054c33d']

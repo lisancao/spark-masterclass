@@ -28,7 +28,7 @@ with SparkSession.builder.remote(url).getOrCreate() as spark:
 
     t0 = time.time()
     model = pipe.fit(train)                     # every estimator is fitted on the server
-    print(f"\nfit on the server: {time.time() - t0:.1f} s")
+    print("\nfit() returned once the server finished the fit")
 
     # What the client holds: references, not weights.
     print("\nstages in the client's PipelineModel:")
@@ -51,7 +51,7 @@ with SparkSession.builder.remote(url).getOrCreate() as spark:
     trees = gbt.getNumTrees
     imp = gbt.featureImportances
     print(f"\ngetNumTrees = {trees}, featureImportances has {imp.size} entries"
-          f" (two round trips, {1000 * (time.time() - t0):.0f} ms)")
+          " (each attribute is one round trip to the server)")
 
     # transform() adds a plan node that names the cached model; nothing runs yet.
     scored = model.transform(test)

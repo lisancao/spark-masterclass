@@ -19,8 +19,12 @@ spark = session("ch36-search", spark_ui_showConsoleProgress="false")
 docs = (spark.read.text(str(MESSY / "docs" / "*.md"), wholetext=True)
         .select(F.col("_metadata.file_name").alias("doc"), F.col("value").alias("text")))
 
+# 0. wholetext=True gives one row per file. Without it, one row per line.
+lines = spark.read.text(str(MESSY / "docs" / "*.md"))
+print(f"== read: {lines.count()} rows as lines, {docs.count()} rows with wholetext=True")
+
 # 1. Plain functions first.
-print("== words without MLlib")
+print("\n== words without MLlib")
 words = docs.select("doc", F.explode(F.split(F.lower("text"), r"[^a-z]+")).alias("word"))
 words.filter(F.length("word") > 3).groupBy("word").count().orderBy(F.desc("count"), "word").show(4)
 docs.select("doc", F.size(F.sentences("text")).alias("sentences")).orderBy("doc").show()
@@ -32,6 +36,10 @@ print("Tokenizer:        ", Tokenizer(inputCol="text", outputCol="t").transform(
 rt = RegexTokenizer(inputCol="text", outputCol="t", pattern=r"\W+")
 print("RegexTokenizer:   ", rt.transform(one).first().t)
 print("+ StopWordsRemover:", StopWordsRemover(inputCol="t", outputCol="w").transform(rt.transform(one)).first().w)
+print("minTokenLength=4:  ", RegexTokenizer(inputCol="text", outputCol="t", pattern=r"\W+",
+                                             minTokenLength=4).transform(one).first().t)
+print("gaps=False, \\d+:  ", RegexTokenizer(inputCol="text", outputCol="t", pattern=r"\d+",
+                                              gaps=False).transform(one).first().t)
 print("default stop words:", len(StopWordsRemover.loadDefaultStopWords("english")), "English words")
 
 # 3. TF-IDF on the four policies, and the IDF formula read back from the fitted model.
@@ -75,7 +83,7 @@ index = Pipeline(stages=stages + [HashingTF(inputCol="words", outputCol="tf", nu
 indexed = index.transform(docs)
 dot_udf = F.udf(lambda a, b: float(a.dot(b)), "double")
 queries = ["how long does express shipping take", "can I return an unopened item for a refund",
-           "battery warranty", "pizza"]
+           "battery warranty", "returned items refunded", "pizza"]
 for q in queries:
     qv = index.transform(spark.createDataFrame([(q,)], "text string")).select(F.col("vec").alias("q"))
     ranked = indexed.crossJoin(qv).select("doc", dot_udf("vec", "q").alias("score")).orderBy(F.desc("score"), "doc")
