@@ -23,6 +23,7 @@ MODEL_FILE = WORK / "model.pkl"
 shutil.rmtree(WORK, ignore_errors=True)
 MARKS.mkdir(parents=True)
 spark = session("ch40-inference", spark_ui_showConsoleProgress="false", spark_sql_shuffle_partitions="4")
+spark.sparkContext.setLogLevel("OFF")
 
 
 def tokenize(text):
@@ -146,8 +147,8 @@ try:
 except Exception as e:
     print("   wrong column name:", re.search(r"\[([A-Z_.]+)\]", str(e)).group(1))
 
-acc = (spark.createDataFrame(labelled).join(truth, "ticket_id")
-       .agg(F.avg((F.col("label") == F.col(truth.columns[1])).cast("double"))).first()[0])
+acc = (spark.createDataFrame(labelled).join(truth.withColumnRenamed("label", "expected"), "ticket_id")
+       .agg(F.avg((F.col("label") == F.col("expected")).cast("double"))).first()[0])
 print(f"   accuracy on the inbox against inbox_labels.csv: {acc:.3f}")
 
 # ---- 5. how many times does the model run?

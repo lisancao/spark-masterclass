@@ -19,6 +19,7 @@ TICKETS = ROOT / "code" / "data" / "messy" / "support_tickets"
 WORK = DATA / "ch40" / "calling"
 shutil.rmtree(WORK, ignore_errors=True)
 spark = session("ch40-calling", spark_ui_showConsoleProgress="false", spark_sql_shuffle_partitions="4")
+spark.sparkContext.setLogLevel("OFF")
 RESULT = "key string, label string, model_version string, status string, attempts int, error string"
 
 inbox = spark.read.schema("ticket_id string, channel string, text string").json(str(TICKETS / "inbox"))

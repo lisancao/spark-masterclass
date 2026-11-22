@@ -14,6 +14,7 @@ ROOT = DATA / "ch39"
 RAW, SK = ROOT / "events", ROOT / "sketches"
 shutil.rmtree(ROOT, ignore_errors=True)
 spark = session("ch39-sketches", spark_ui_showConsoleProgress="false", spark_sql_shuffle_partitions="8")
+spark.sparkContext.setLogLevel("OFF")
 
 # ---- a week of events: users return from day to day; ids arrive in upper case, with spaces, empty or NULL
 rng = random.Random(50)
@@ -150,5 +151,5 @@ print("\n== count-min sketch")
 cms = spark.read.parquet(str(TRIPS)).select(F.count_min_sketch(F.col("PULocationID"), F.lit(0.001), F.lit(0.99),
                                                                F.lit(42)).alias("cms")).first().cms
 print(f"   count_min_sketch over 3.8 M pickup zones: {len(cms):,} bytes")
-top = (spark.read.parquet(str(TRIPS)).select(F.approx_top_k("PULocationID", 3).alias("t")).first().t)
+top = (spark.read.parquet(str(TRIPS)).select(F.expr("approx_top_k(PULocationID, 3)").alias("t")).first().t)
 print("   approx_top_k(PULocationID, 3):", [(r.item, r["count"]) for r in top])

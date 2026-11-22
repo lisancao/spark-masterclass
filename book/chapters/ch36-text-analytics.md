@@ -287,11 +287,26 @@ Use n-grams (shingles) when order changes what the text says. Chapter 37 uses ch
 
 ## Step 9: The same code over Spark Connect
 
-MLlib runs over Spark Connect since Spark 4.0. The script `near_duplicates.py` ran without changes against a Connect server (`SPARK_REMOTE=sc://localhost:10270`). Its output is in `code/ch36/output/near_duplicates_connect.txt`:
+MLlib runs over Spark Connect since Spark 4.0. The script `near_duplicates.py` ran without changes against a Connect server (`SPARK_REMOTE=sc://localhost:10270`). Its output is in `code/ch36/output/near_duplicates_connect.txt`. Most lines are the same as in Classic:
 
 ```text
-CONNECT_OUTPUT_PLACEHOLDER
+session: pyspark.sql.connect.session
+threshold 0.1: 1 pairs [('chat_0', 'chat_1', 0.0)]
+4 nearest to chat_0: [('chat_0', 0.0), ('chat_1', 0.0), ('ticket_2', 0.875), ('ticket_0', 0.875)]
+MinHash over them -> [FAILED_EXECUTE_UDF] User defined function [...]
+   cause: Must have at least 1 non zero entry.. SQ
+approxSimilarityJoin(..., distCol='jaccard').columns -> ['datasetA', 'datasetB', 'distCol']
 ```
+
+Three lines are different:
+
+- **The `distCol` argument has no effect over Connect in 4.3.0.** The column is still `distCol`. The SparkTutor lesson recorded the same behavior in 4.2.0. Thus, code that must run in the two modes must not depend on the argument. Rename the column after the join with `withColumnRenamed("distCol", ...)`. The part notes record this as an open problem.
+- **Ties come back in a different order.** `chat_0` and `chat_1` both have distance 0 from `chat_0`, and `ticket_0` and `ticket_2` both have 0.875. Sort on a second column if the order of ties is important.
+- **The error has a different wrapper.** Classic shows the Py4J call (`o357.collectToPython`). Connect shows the error class `FAILED_EXECUTE_UDF`. The cause is the same.
+
+The plan over Connect used a `BroadcastHashJoin` instead of a `SortMergeJoin`. The chat messages came from the client as a local relation, so the server knew their size and broadcast them.
+
+After the script printed its last line, the Python process did not stop, and it was necessary to stop it by its process ID. The cause is not known, and the part notes record it.
 
 ## Step 10: A catalog of mixed documents as the input
 

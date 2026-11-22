@@ -1,0 +1,67 @@
+session: pyspark.sql.connect.session
++--------+------------------------------------------------+
+|id      |text                                            |
++--------+------------------------------------------------+
+|chat_0  |Where is my order 1042? It has not arrived yet. |
+|chat_1  |Where is my order 1042?? It has not arrived yet!|
+|chat_2  |Do you ship express to Vietnam?                 |
+|ticket_0|Hello, order 1000 has a problem. Please help.   |
+|ticket_1|Hello, order 1001 has a problem. Please help.   |
+|ticket_2|Hello, order 1002 has a problem. Please help.   |
+|ticket_3|Hello, order 1003 has a problem. Please help.   |
++--------+------------------------------------------------+
+
+hashes of ticket_0: [13517508, 234222607, 97229004, 173401306, 447678187]
+threshold 0.1: 1 pairs [('chat_0', 'chat_1', 0.0)]
+threshold 0.3: 7 pairs [('chat_0', 'chat_1', 0.0), ('ticket_0', 'ticket_1', 0.2222), ('ticket_0', 'ticket_2', 0.2222), ('ticket_0', 'ticket_3', 0.2222), ('ticket_1', 'ticket_2', 0.2222), ('ticket_1', 'ticket_3', 0.2222), ('ticket_2', 'ticket_3', 0.2222)]
+4 nearest to chat_0: [('chat_0', 0.0), ('chat_1', 0.0), ('ticket_2', 0.875), ('ticket_0', 0.875)]
+ticket_0 vs ticket_1 by hand: 1 - 7/9 = 0.2222
+
+inbox tickets with no tokens: 12 of 240
+MinHash over them -> [FAILED_EXECUTE_UDF] User defined function [...]
+   cause: Must have at least 1 non zero entry.. SQ
+inbox pairs at distance < 0.01 (same word set), by text:
++------------------------------------------------------------+-----+
+|                                                        text|count|
++------------------------------------------------------------+-----+
+|To whom it may concern, unsubscribe me from marketing ema...|    1|
++------------------------------------------------------------+-----+
+
+approxSimilarityJoin(..., distCol='jaccard').columns -> ['datasetA', 'datasetB', 'distCol']
+  word set      distance p-q: 0.0000
+  word 2-grams  distance p-q: 0.5000
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- HashAggregate(keys=[datasetA#988, datasetB#997], functions=[])
+   +- Exchange hashpartitioning(datasetA#988, datasetB#997, 200), ENSURE_REQUIREMENTS, [plan_id=1867]
+      +- HashAggregate(keys=[datasetA#988, datasetB#997], functions=[])
+         +- Project [datasetA#988, datasetB#997]
+            +- BroadcastHashJoin [entry#989, hashValue#990], [entry#998, hashValue#999], Inner, BuildRight, (UDF(datasetA#988.features, datasetB#997.f
+               :- Project [struct(id, id#935, text, text#936, tokens, tokens#950, features, features#956, hashes, hashes#984) AS datasetA#988, entry#9
+               :  +- Filter isnotnull(hashValue#990)
+               :     +- Generate posexplode(hashes#984), [id#935, text#936, tokens#950, features#956, hashes#984], false, [entry#989, hashValue#990]
+               :        +- Union
+               :           :- Filter ((size(hashes#984, false) > 0) AND isnotnull(hashes#984))
+               :           :  +- Project [id#935, text#936, tokens#950, features#956, UDF(features#956) AS hashes#984]
+               :           :     +- Project [id#935, text#936, tokens#950, UDF(tokens#950) AS features#956]
+               :           :        +- Project [id#935, text#936, UDF(text#936) AS tokens#950]
+               :           :           +- Project [regexp_extract(_metadata#13.file_name, ^(.*)\.eml$, 1) AS id#935, trim(regexp_extract(value#2, \r?\
+               :           :              +- Project [value#2, knownnotnull(named_struct(file_name, file_name#1031)) AS _metadata#13]
+               :           :                 +- FileScan text [value#2,file_name#1031] Batched: false, DataFilters: [], Format: Text, Location: InMemo
+               :           +- LocalTableScan [id#943, text#944, tokens#1021, features#1023, hashes#1025]
+               +- BroadcastExchange HashedRelationBroadcastMode(List(input[1, int, false], input[2, vector, true]),false), [plan_id=1862]
+                  +- Project [struct(id, id#960, text, text#961, tokens, tokens#975, features, features#981, hashes, hashes#993) AS datasetB#997, entr
+                     +- Filter isnotnull(hashValue#999)
+                        +- Generate posexplode(hashes#993), [id#960, text#961, tokens#975, features#981, hashes#993], false, [entry#998, hashValue#999
+                           +- Union
+                              :- Filter ((size(hashes#993, false) > 0) AND isnotnull(hashes#993))
+                              :  +- Project [id#960, text#961, tokens#975, features#981, UDF(features#981) AS hashes#993]
+                              :     +- Project [id#960, text#961, tokens#975, UDF(tokens#975) AS features#981]
+                              :        +- Project [id#960, text#961, UDF(text#961) AS tokens#975]
+                              :           +- Project [regexp_extract(_metadata#1001.file_name, ^(.*)\.eml$, 1) AS id#960, trim(regexp_extract(value#10
+                              :              +- Project [value#1000, knownnotnull(named_struct(file_name, file_name#1032)) AS _metadata#1001]
+                              :                 +- FileScan text [value#1000,file_name#1032] Batched: false, DataFilters: [], Format: Text, Location: 
+                              +- LocalTableScan [id#968, text#969, tokens#1022, features#1024, hashes#1026]
+
+

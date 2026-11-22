@@ -1,0 +1,45 @@
+== 240 tickets, 232 distinct texts (content key = sha2 of the text)
+
+== a UDF that calls the service once per row
+   3.1 s, rows with an error: 224 of 232
+   service saw: 232 requests, status {200: 16, 429: 216}, largest request 1 items, model runs 14 for 14 distinct texts
+
+== mapInPandas: a client per partition, 10 items a request, 2 requests a second per task
+   5.4 s for 232 texts
+   service saw: 34 requests, status {200: 34}, largest request 10 items, model runs 228 for 228 distinct texts
+   status and attempts:
++------+--------+-------+-----+
+|status|attempts|error  |count|
++------+--------+-------+-----+
+|failed|1       |no text|2    |
+|failed|2       |no text|2    |
+|ok    |1       |NULL   |167  |
+|ok    |2       |NULL   |45   |
+|ok    |3       |NULL   |16   |
++------+--------+-------+-----+
+
+   texts the model ran on more than once: 0 (slow answers were retried with the same Idempotency-Key)
+== the client limit is per task: total rate = per-task rate x concurrent tasks
+    4 partitions x 2.0 req/s:   5.7 s,  35 requests, 429 responses   0
+   16 partitions x 2.0 req/s:   4.8 s,  78 requests, 429 responses  51
+   16 partitions x 0.5 req/s:   6.2 s,  45 requests, 429 responses   0
+
+== write once, then split
+   two filtered writes of the same result: 63 requests
+   one staging write, then two writes from the files: 34 requests
+
+== the next run: a left anti join against the cache and the dead letters
+   245 tickets, 4 texts to send
+   requests for the second run: 3
+   plan of the new-work query: ['BroadcastHashJoin', 'LeftAnti']
+
+== structured answers: validate before you trust them
++---+--------+----------+-------------+
+|key|label   |confidence|problem      |
++---+--------+----------+-------------+
+|a  |shipping|0.92      |NULL         |
+|b  |refunds |NULL      |unknown label|
+|c  |NULL    |NULL      |not json     |
+|d  |warranty|NULL      |no confidence|
++---+--------+----------+-------------+
+
