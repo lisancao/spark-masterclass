@@ -76,3 +76,4 @@ nav:
       - "3. Quick start": chapters/ch03-quick-start.md
       - "4. Spark Connect": chapters/ch04-spark-connect.md
   - Roadmap: roadmap.md
+  - Coverage: coverage.md

@@ -7,7 +7,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DATA = ROOT / "data"
+DATA = Path(os.environ.get("BOOK_DATA", ROOT / "data"))   # BOOK_DATA lets a second checkout share one download
 TAXI = DATA / "nyc-taxi"
 TRIPS = TAXI / "yellow"
 ZONES = TAXI / "taxi_zone_lookup.csv"
@@ -19,13 +19,18 @@ def session(app, **conf):
     from pyspark.sql import SparkSession
     b = SparkSession.builder.appName(app)
     if not os.environ.get("SPARK_REMOTE"):
-        b = b.master(os.environ.get("SPARK_MASTER", "local[*]")).config("spark.ui.port", "4040")
+        b = b.master(os.environ.get("SPARK_MASTER", "local[*]")).config("spark.ui.port", ui_port())
     for k, v in conf.items():
         b = b.config(k.replace("_", "."), v)
     spark = b.getOrCreate()
     if not os.environ.get("SPARK_REMOTE"):
         spark.sparkContext.setLogLevel("ERROR")
     return spark
+
+
+def ui_port():
+    """The Spark UI port: 4040 unless SPARK_UI_PORT says otherwise (so two runs can share a machine)."""
+    return os.environ.get("SPARK_UI_PORT", "4040")
 
 
 def plan(df, mode="formatted"):
@@ -36,9 +41,9 @@ def plan(df, mode="formatted"):
     return buf.getvalue()
 
 
-def ui_api(path, port=4040):
+def ui_api(path, port=None):
     """GET a path under the Spark UI's monitoring REST API for the first running application."""
-    base = f"http://localhost:{port}/api/v1"
+    base = f"http://localhost:{port or ui_port()}/api/v1"
     with urllib.request.urlopen(f"{base}/applications") as r:
         app = json.load(r)[0]["id"]
     with urllib.request.urlopen(f"{base}/applications/{app}/{path}") as r:
