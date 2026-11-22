@@ -1,0 +1,5 @@
+first query in a new process (zones CSV: groupBy, orderBy), median of 7 processes per setting
+
+singleTaskExecution     session start ms  first query ms
+false                               3504            2559
+true                                3695            1881

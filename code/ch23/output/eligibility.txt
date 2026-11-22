@@ -1,0 +1,29 @@
+query                           off: exch jobs tasks   on: exch jobs tasks
+CSV: groupBy, orderBy                  2     4     4         0     1     1
+CSV: distinct                          1     2     2         0     1     1
+CSV: window rank                       1     2     2         0     1     1
+CSV: rollup                            1     2     2         0     1     1
+CSV: orderBy, limit 5                  0     1     1         0     1     1
+CSV: offset 5                          1     3     3         0     1     1
+Parquet, 62 MB: groupBy                1     2    17         0     1     1
+SQL VALUES: groupBy                    1     2     4         0     1     1
+pandas, 1,000 rows: groupBy            1     2    17         0     1     1
+pandas, 1,001 rows: groupBy            1     2    17         1     2    17
+Python list: groupBy                   1     2    17         1     2    17
+CSV: top 3 per group                   1     2     2         1     2     2
+CSV: self join                         1     2     2         1     2     2
+CSV: union of two reads                1     2     3         1     2     3
+CSV: Python UDF                        1     2     2         1     2     2
+CSV: Python UDF, pruned                1     2     2         0     1     1
+CSV: scalar subquery                   3     5     5         3     5     5
+Parquet, 2 files: groupBy              1     2     3         1     2     3
+CSV: groupBy, write Parquet            -     3     3         -     3     3
+CSV: groupBy, write noop               -     3     3         -     3     3
+Parquet, 6 files: groupBy              1     2    18         1     2    18
+
+spark.sql.files.maxPartitionBytes=32m: June scan partitions 16, exchanges in groupBy 1
+spark.sql.leafNodeDefaultParallelism=4: June scan partitions 4, exchanges in groupBy 1
+defaults: June scan partitions 1
+flag off: June scan partitions 16
+
+leaf nodes: Python list -> LogicalRDD | pandas -> LocalRelation | VALUES -> LocalRelation

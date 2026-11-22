@@ -1,0 +1,127 @@
+######## 1. coalesce: trips per pickup zone
+
+258 rows; 2 jobs; stage 1: 16 tasks, stage 3: 1 tasks
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   ResultQueryStage 1
+      +- AQEShuffleRead coalesced
+         +- ShuffleQueryStage 0
+            +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=27]
++- == Initial Plan ==
+   +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=11]
+
+######## 2. join: sort-merge planned, broadcast at run time
+
+estimated size of the left side: sizeInBytes=13.3 MiB
+estimated size of the right side: sizeInBytes=14.6 MiB
+
+-- grouped by PULocationID, nonEmptyPartitionRatioForBroadcastJoin=0.2; before the run:
+      +- SortMergeJoin [PULocationID#7], [PULocationID#55], Inner
+31 rows; 3 jobs; stage 4: 16 tasks, stage 5: 16 tasks, stage 8: 20 tasks
+after the run:
++- == Final Plan ==
+         +- *(5) SortMergeJoin [PULocationID#7], [PULocationID#55], Inner
+            :  +- AQEShuffleRead coalesced
+            :        +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=133]
+               +- AQEShuffleRead coalesced
+                     +- Exchange hashpartitioning(PULocationID#55, 200), ENSURE_REQUIREMENTS, [plan_id=157]
+      +- SortMergeJoin [PULocationID#7], [PULocationID#55], Inner
+         :  +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=107]
+            +- Exchange hashpartitioning(PULocationID#55, 200), ENSURE_REQUIREMENTS, [plan_id=108]
+
+-- grouped by DOLocationID, nonEmptyPartitionRatioForBroadcastJoin=0.2; before the run:
+            +- SortMergeJoin [PULocationID#7], [PULocationID#118], Inner
+261 rows; 4 jobs; stage 9: 16 tasks, stage 10: 16 tasks, stage 13: 21 tasks, stage 17: 1 tasks
+after the run:
++- == Final Plan ==
+      +- AQEShuffleRead coalesced
+            +- Exchange hashpartitioning(DOLocationID#8, 200), ENSURE_REQUIREMENTS, [plan_id=433]
+                     +- *(5) SortMergeJoin [PULocationID#7], [PULocationID#118], Inner
+                        :  +- AQEShuffleRead coalesced
+                        :        +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=317]
+                           +- AQEShuffleRead coalesced
+                                 +- Exchange hashpartitioning(PULocationID#118, 200), ENSURE_REQUIREMENTS, [plan_id=33...
+   +- Exchange hashpartitioning(DOLocationID#8, 200), ENSURE_REQUIREMENTS, [plan_id=280]
+            +- SortMergeJoin [PULocationID#7], [PULocationID#118], Inner
+               :  +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=272]
+                  +- Exchange hashpartitioning(PULocationID#118, 200), ENSURE_REQUIREMENTS, [plan_id=273]
+
+-- grouped by DOLocationID, nonEmptyPartitionRatioForBroadcastJoin=0.0; before the run:
+            +- SortMergeJoin [PULocationID#7], [PULocationID#202], Inner
+261 rows; 5 jobs; stage 18: 16 tasks, stage 19: 16 tasks, stage 21: 1 tasks, stage 23: 16 tasks, stage 26: 1 tasks
+after the run:
++- == Final Plan ==
+      +- AQEShuffleRead coalesced
+            +- Exchange hashpartitioning(DOLocationID#8, 200), ENSURE_REQUIREMENTS, [plan_id=682]
+                     +- *(3) BroadcastHashJoin [PULocationID#7], [PULocationID#202], Inner, BuildRight, false, false
+                        :- AQEShuffleRead local
+                        :     +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=546]
+                        +- BroadcastQueryStage 2
+                           +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[2, int, false] as bigint))...
+                              +- AQEShuffleRead local
+                                    +- Exchange hashpartitioning(PULocationID#202, 200), ENSURE_REQUIREMENTS, [plan_id...
+   +- Exchange hashpartitioning(DOLocationID#8, 200), ENSURE_REQUIREMENTS, [plan_id=509]
+            +- SortMergeJoin [PULocationID#7], [PULocationID#202], Inner
+               :  +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=501]
+                  +- Exchange hashpartitioning(PULocationID#202, 200), ENSURE_REQUIREMENTS, [plan_id=502]
+
+-- grouped by PULocationID, nonEmptyPartitionRatioForBroadcastJoin=0.0; before the run:
+      +- SortMergeJoin [PULocationID#7], [PULocationID#293], Inner
+31 rows; 4 jobs; stage 27: 16 tasks, stage 28: 16 tasks, stage 30: 1 tasks, stage 32: 20 tasks
+after the run:
++- == Final Plan ==
+         +- *(3) BroadcastHashJoin [PULocationID#7], [PULocationID#293], Inner, BuildRight, false, false
+            :- AQEShuffleRead coalesced
+            :     +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=767]
+            +- BroadcastQueryStage 2
+               +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[2, int, false] as bigint)),false), [pl...
+                  +- AQEShuffleRead local
+                        +- Exchange hashpartitioning(PULocationID#293, 200), ENSURE_REQUIREMENTS, [plan_id=791]
+      +- SortMergeJoin [PULocationID#7], [PULocationID#293], Inner
+         :  +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=741]
+            +- Exchange hashpartitioning(PULocationID#293, 200), ENSURE_REQUIREMENTS, [plan_id=742]
+
+the right side at run time: 86 rows in 31 pickup zones, so at most 31 of 200 shuffle partitions hold data
+
+######## 3. skew: a sort-merge join on pickup zone, broadcast turned off
+
+rows: 3837248
+== Physical Plan ==
++- == Final Plan ==
+   +- *(5) SortMergeJoin(skew=true) [PULocationID#7], [LocationID#366], Inner
+      :  +- AQEShuffleRead coalesced and skewed
+         +- AQEShuffleRead coalesced
++- == Initial Plan ==
+   SortMergeJoin [PULocationID#7], [LocationID#366], Inner
+  stage 36:  16 tasks, shuffle write  25,525,510 B, shuffle read           0 B
+  stage 37:   1 tasks, shuffle write      24,698 B, shuffle read           0 B
+  stage 40:  87 tasks, shuffle write           0 B, shuffle read  25,559,486 B
+  largest zones: 237: 177,610 trips, 161: 161,198 trips, 236: 157,113 trips (median zone: 576)
+
+######## 4. which actions run the DataFrame's own plan
+
+  count            isFinalPlan=false
+  show             isFinalPlan=false
+  take             isFinalPlan=false
+  first            isFinalPlan=false
+  collect          isFinalPlan=true
+  toPandas         isFinalPlan=true
+  toArrow          isFinalPlan=true
+  toLocalIterator  isFinalPlan=true
+
+######## 5. AQE settings, read from spark.conf on 4.3.0
+
+  spark.sql.adaptive.enabled                                           true
+  spark.sql.adaptive.coalescePartitions.enabled                        true
+  spark.sql.adaptive.coalescePartitions.parallelismFirst               true
+  spark.sql.adaptive.coalescePartitions.minPartitionSize               1048576b
+  spark.sql.adaptive.coalescePartitions.maxReducerPartitionsPerTask    2147483647
+  spark.sql.adaptive.advisoryPartitionSizeInBytes                      67108864b
+  spark.sql.adaptive.autoBroadcastJoinThreshold                        None
+  spark.sql.adaptive.localShuffleReader.enabled                        true
+  spark.sql.adaptive.skewJoin.enabled                                  true
+  spark.sql.adaptive.skewJoin.skewedPartitionFactor                    5.0
+  spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes          268435456b
+  spark.sql.adaptive.maxShuffledHashJoinLocalMapThreshold              0b
+  spark.sql.adaptive.convertSortMergeJoinToShuffledHashJoin.enabled    true
+  spark.sql.adaptive.optimizer.excludedRules                           None

@@ -1,0 +1,60 @@
+
+=== lifecycle: which methods run, in which process, how often
+27 rows from 6 input rows in 3 partitions
+  instance 759558-...: __init__ | terminate after 2 eval calls | cleanup
+  instance 759559-...: __init__ | terminate after 2 eval calls | cleanup
+  instance 759563-...: __init__ | terminate after 2 eval calls | cleanup
+  rows from terminate(): [('doc 1 has words', '<end>', 2), ('doc 3 has words', '<end>', 2), ('doc 5 has words', '<end>', 2)]
+  rows per partition of a second input: [0, 1, 1]
+  lateral join with terminate(), one empty partition -> java.lang.NullPointerException
+  TABLE argument                          -> java.lang.NullPointerException
+  TABLE argument, withSinglePartition()   terminate() rows: [2]
+  TABLE argument, partitionBy('text')     terminate() rows: [1, 1]
+
+=== Arrow or not: decided when udtf() runs
+spark.sql.execution.pythonUDTF.arrow.enabled = true
+  defined before the session   BatchEvalPythonUDTF BeforeSession(1)#31, [n#32]
+  defined after the session    ArrowEvalPythonUDTF AfterSession(1)#33, [n#34], 301
+  useArrow=False               BatchEvalPythonUDTF AfterSession(1)#35, [n#36]
+
+=== what a yielded value becomes
+  schema        yield               Arrow (default)                         useArrow=False
+  n int         (7.9,)              [(7,)]                                  [(None,)]
+  n int         ('7',)              error UDTF_ARROW_DATA_CONVERSION_ERROR  [(None,)]
+  n int         (True,)             error UDTF_ARROW_DATA_CONVERSION_ERROR  [(None,)]
+  s string      (42,)               [('42',)]                               [('42',)]
+  n int         5                   [(5,)]                                  error UDTF_INVALID_OUTPUT_ROW_TYPE
+  a int, b int  {'b': 2, 'a': 1}    [(1, 2)]                                [(1, 2)]
+  n int         None                [(None,)]                               [(None,)]
+  n int         [3]                 error UDTF_ARROW_DATA_CONVERSION_ERROR  [(3,)]
+
+=== scalar arguments and lateral joins
+DataFrame lateralJoin: 634 rows
+  ArrowEvalPythonUDTF Pairs(line#2)#71, [line#2], [key#73, value#74], 301
+SQL LATERAL: 634 rows
+input lines 112, of them blank 2
+LEFT JOIN LATERAL, no ON:   rows with no pair: 0
+LEFT JOIN LATERAL ... ON true: rows with no pair: 3
+  plan with ON true:
+  BroadcastHashJoin [coalesce(line#2, ), isnull(line#2)], [coalesce(line#130, ), isnull(line#130)]
+  BroadcastExchange HashedRelationBroadcastMode(List(coalesce(input[0, string, true], ), isnull(in
+  ArrowEvalPythonUDTF pairs(line#130)#111, [line#130], [key#112, value#113], 301
+  Exchange hashpartitioning(line#2, 200), ENSURE_REQUIREMENTS, [plan_id=890]
+
+=== TABLE arguments: PARTITION BY and ORDER BY
+19 sessions; per user: {'u1': 4, 'u2': 3, 'u3': 4, 'u4': 2, 'u5': 4, 'u6': 2}
+  ArrowEvalPythonUDTF sessions(c#141, gap_minutes => 30)#135, [user#136, start#137, events#138, pi
+  Sort [partition_by_0#140 ASC NULLS FIRST, ts#133 ASC NULLS FIRST], false, 0
+  Exchange hashpartitioning(partition_by_0#140, 200), REPARTITION_BY_COL, [plan_id=1056]
+DataFrame asTable().partitionBy().orderBy(): 19 sessions
+ORDER BY ts, 30 -> INVALID_SQL_SYNTAX.INVALID_TABLE_FUNCTION_TABLE_ARGUMENT_PARTITIONING
+
+=== analyze(): the output schema from a constant argument
+schema from the spec: struct<ts:timestamp,user:string,action:string,ms:int,_error:string>
+rows: 109 | with an _error: [('u4', "ms='fast'"), (None, 'unparseable: No closing quotation')]
+a spec that is not constant -> TABLE_VALUED_FUNCTION_FAILED_TO_ANALYZE_IN_PYTHON
+
+=== arrow_udtf (4.1+): batches in, batches out
+requests over 800 ms: [('u1', 848), ('u1', 895), ('u2', 836), ('u2', 855), ('u2', 862), ('u2', 863), ('u3', 826), ('u3', 896), ('u6', 878)]
+  ArrowEvalPythonUDTF SlowRequests(c#186)#183, [user#184, ms#185], 302
+in a lateral join -> LATERAL_JOIN_WITH_ARROW_UDTF_UNSUPPORTED

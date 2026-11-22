@@ -1,0 +1,17 @@
+local[*] with 16 cores; defaults: maxPartitionBytes 128MB, openCostInBytes 4MB
+
+input                                  files      MB  max split  predicted  actual
+June: 1 Parquet file                       1    62.4       4.2M         16      16
+June, maxPartitionBytes 2MB                1    62.4       2.0M         32      32
+January to June: 6 files                   6   372.6      24.8M         17      17
+January to June, minPartitionNum 64        6   372.6       6.2M         62      62
+June as 200 small files                  200    98.4      56.2M         16      16
+200 small files, openCostInBytes 1       200    98.4       6.2M         17      17
+200 small files, maxPartitionNum 4       200    98.4     224.6M          4       4
+CSV, 500,000 rows                          1    55.1       4.0M         14      14
+the same CSV, gzip                         1     9.7       4.0M          1       1
+the same CSV, bzip2                        1     5.1       4.0M          2       2
+
+row groups: June 4 | January to June 24
+June: 16 partitions, 4 of them return rows
+January to June: 17 partitions, 17 of them return rows

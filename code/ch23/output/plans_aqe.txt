@@ -1,0 +1,80 @@
+==================== spark.sql.optimizer.singleTaskExecution.enabled=false
+-- before the run (explain):
+AdaptiveSparkPlan isFinalPlan=false
++- Sort [Borough#18 ASC NULLS FIRST], true, 0
+   +- Exchange rangepartitioning(Borough#18 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id
+      +- HashAggregate(keys=[Borough#18], functions=[count(1)])
+         +- Exchange hashpartitioning(Borough#18, 200), ENSURE_REQUIREMENTS, [plan_id=34]
+            +- HashAggregate(keys=[Borough#18], functions=[partial_count(1)])
+               +- FileScan csv [Borough#18]
+-- after collect():
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   ResultQueryStage 2
+   +- *(3) Sort [Borough#18 ASC NULLS FIRST], true, 0
+      +- AQEShuffleRead coalesced
+         +- ShuffleQueryStage 1
+            +- Exchange rangepartitioning(Borough#18 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS,
+               +- *(2) HashAggregate(keys=[Borough#18], functions=[count(1)])
+                  +- AQEShuffleRead coalesced
+                     +- ShuffleQueryStage 0
+                        +- Exchange hashpartitioning(Borough#18, 200), ENSURE_REQUIREMENTS, [pla
+                           +- *(1) HashAggregate(keys=[Borough#18], functions=[partial_count(1)]
+                              +- FileScan csv [Borough#18]
++- == Initial Plan ==
+   Sort [Borough#18 ASC NULLS FIRST], true, 0
+   +- Exchange rangepartitioning(Borough#18 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id
+      +- HashAggregate(keys=[Borough#18], functions=[count(1)])
+         +- Exchange hashpartitioning(Borough#18, 200), ENSURE_REQUIREMENTS, [plan_id=34]
+            +- HashAggregate(keys=[Borough#18], functions=[partial_count(1)])
+               +- FileScan csv [Borough#18]
+-- the aggregate in formatted mode:
+(2) HashAggregate [codegen id : 1]
+Functions [1]: [partial_count(1)]
+Aggregate Attributes [1]: [count#28L]
+(6) HashAggregate [codegen id : 2]
+Functions [1]: [count(1)]
+Aggregate Attributes [1]: [count(1)#26L]
+(12) HashAggregate
+Functions [1]: [partial_count(1)]
+Aggregate Attributes [1]: [count#28L]
+(14) HashAggregate
+Functions [1]: [count(1)]
+Aggregate Attributes [1]: [count(1)#26L]
+-- the UI: 4 jobs, 4 stages, 4 tasks; shuffle write 1,172 B
+-- SQL tab: execution 2, jobs [1, 2, 3, 4], duration 1933 ms
+
+==================== spark.sql.optimizer.singleTaskExecution.enabled=true
+-- before the run (explain):
+AdaptiveSparkPlan isFinalPlan=false
++- Sort [Borough#49 ASC NULLS FIRST], true, 0
+   +- HashAggregate(keys=[Borough#49], functions=[count(1)])
+      +- FileScan csv [Borough#49]
+-- after collect():
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   ResultQueryStage 0
+   +- *(1) Sort [Borough#49 ASC NULLS FIRST], true, 0
+      +- *(1) HashAggregate(keys=[Borough#49], functions=[count(1)])
+         +- FileScan csv [Borough#49]
++- == Initial Plan ==
+   Sort [Borough#49 ASC NULLS FIRST], true, 0
+   +- HashAggregate(keys=[Borough#49], functions=[count(1)])
+      +- FileScan csv [Borough#49]
+-- the aggregate in formatted mode:
+(2) HashAggregate [codegen id : 1]
+Functions [1]: [count(1)]
+Aggregate Attributes [1]: [count(1)#57L]
+(5) HashAggregate
+Functions [1]: [count(1)]
+Aggregate Attributes [1]: [count(1)#57L]
+-- the UI: 1 jobs, 1 stages, 1 tasks; shuffle write 0 B
+-- SQL tab: execution 5, jobs [6], duration 340 ms
+
+==================== the June trips (62 MB, 3,837,248 rows), groupBy pickup zone
+spark.sql.optimizer.singleTaskExecution.enabled=false: stage 11: 1 tasks, 373 ms task time, stage 12: 16 tasks, 7,885 ms task time, stage 14: 1 tasks, 76 ms task time
+   partitions of the result that hold rows: 1
+   ResultQueryStage 1 | +- AQEShuffleRead coalesced | +- ShuffleQueryStage 0
+spark.sql.optimizer.singleTaskExecution.enabled=true: stage 25: 1 tasks, 12 ms task time, stage 26: 1 tasks, 821 ms task time
+   partitions of the result that hold rows: 1
+   ResultQueryStage 0

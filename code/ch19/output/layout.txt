@@ -1,0 +1,24 @@
+input partitions: 16
+
+how                                            folders  files  min/folder  max/folder
+plain write                                         30     63           2           3
+repartition(16) first                               30    480          16          16
+repartition('day') first                            30     30           1           1
+repartition('day'), maxRecordsPerFile 50000         30     92           3           4
+
+the folders of the last layout:
+  day=2026-06-01/  part-00018....c000.snappy.parquet, part-00018....c001.snappy.parquet, part-00018....c002.snappy.parquet
+  day=2026-06-02/  part-00017....c000.snappy.parquet, part-00017....c001.snappy.parquet, part-00017....c002.snappy.parquet
+  day=2026-06-03/  part-00002....c000.snappy.parquet, part-00002....c001.snappy.parquet, part-00002....c002.snappy.parquet
+  ...
+
+schema read back: cbd_congestion_fee:double, request_source:string, day:date
+  day = 2026-06-15                             files read    3   PartitionFilters: [isnotnull(day#44), (day#44 = 2026-06-15)]
+  day >= 2026-06-25                            files read   18   PartitionFilters: [isnotnull(day#44), (day#44 >= 2026-06-25)]
+  to_date(pickup) = 2026-06-15                 files read   92   PartitionFilters: []
+  dayofweek(day) = 1 (Sunday)                  files read   12   PartitionFilters: [isnotnull(day#44), (dayofweek(day#44) = 1)]
+
+folders: ['code=001', 'code=010', 'code=100']
+read back: [(1, 1), (2, 10), (3, 100)] struct<n:int,code:int>
+with a schema: [(1, '001'), (2, '010'), (3, '100')]
+one folder alone: ['n'] | with basePath: ['n', 'code']

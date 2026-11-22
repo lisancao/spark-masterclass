@@ -1,0 +1,28 @@
+Arrow batches into a pandas UDF, June trips (fare_amount only):
+  defaults                                              937 batches; sizes: 4,096 x936, 3,392 x1
+  maxRecords=50000                                      937 batches; sizes: 4,096 x936, 3,392 x1
+  columnarReaderBatchSize=20000                         194 batches; sizes: 20,000 x190, 11,520 x1
+  columnarInput=false                                   385 batches; sizes: 10,000 x381, 8,576 x3
+  columnarInput=false, maxRecords=50000                  77 batches; sizes: 50,000 x73, 48,576 x3
+  columnarInput=false, maxRecords=0, maxBytes=1048576    33 batches; sizes: 129,056 x29, 46,240 x1
+  maxRecordsPerBatch=-1: java.lang.NegativeArraySizeException: -1
+defaults: {'maxRecordsPerBatch': '10000', 'maxBytesPerBatch': '67108864b', 'columnarInput.enabled': 'true', 'columnarReaderBatchSize': '4096'}
+
+declared  returned        Arrow (default)                   useArrow=False
+int       7.9             7                                 None
+int       '7'             7                                 None
+int       True            error ArrowTypeError              None
+int       1099511627776   error ArrowInvalid                0
+double    3               3.0                               None
+string    42              '42'                              '42'
+boolean   1               True                              None
+date      '2026-06-01'    error ArrowTypeError              error AttributeError
+
+spark.sql.execution.pandas.convertToArrowArraySafely = true
+@pandas_udf returns 7.9 for int -> error PySparkValueError | Failed to convert the value of the column '_0' with type 'fl
+
+naive datetime(2026, 6, 1, 8, 0) returned as timestamp and as timestamp_ntz; session zone UTC
+worker TZ             timestamp               timestamp_ntz
+UTC                   2026-06-01 08:00:00     2026-06-01 08:00:00
+America/Los_Angeles   2026-06-01 15:00:00     2026-06-01 08:00:00
+Asia/Ho_Chi_Minh      2026-06-01 01:00:00     2026-06-01 08:00:00

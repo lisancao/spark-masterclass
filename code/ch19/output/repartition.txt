@@ -1,0 +1,16 @@
+input partitions: 17
+
+call                                   partitions  top of the plan
+repartition(8)                                  8  Exchange RoundRobinPartitioning(8), REPARTITION_BY_NUM, [plan_
+repartition(8, 'PULocationID')                  8  Exchange hashpartitioning(PULocationID#7, 8), REPARTITION_BY_N
+repartition('PULocationID')                    22  Exchange hashpartitioning(PULocationID#7, 200), REPARTITION_BY
+repartitionByRange(4, 'fare_amount')            4  Exchange rangepartitioning(fare_amount#10 ASC NULLS FIRST, 4),
+coalesce(4)                                     4  Coalesce 4
+coalesce(100)                                  17  Coalesce 100
+
+non-empty partitions after repartition('PULocationID'): 8
+
+SHA-256 of every row of 22,836,530 trips, written to the noop sink, 5 runs after a warm-up:
+  no change                  median 17.70 s  (task counts per stage: [17])
+  coalesce(1)                median 67.99 s  (task counts per stage: [1])
+  repartition(1)             median 19.81 s  (task counts per stage: [1, 17])

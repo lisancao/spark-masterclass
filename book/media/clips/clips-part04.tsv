@@ -1,0 +1,14 @@
+clip	source	start	end	poster_at	chapter
+ch18-rules	ch18-chapter.mp4 (01-rules.mp4)	0	20.0	18.0	ch18
+ch18-aqe-join	ch18-chapter.mp4 (02-join.mp4)	0	25.6	23.6	ch18
+ch18-skew	ch18-chapter.mp4 (03-skew.mp4)	0	34.6	32.6	ch18
+ch20-transpile	ch20-chapter.mp4 (01-transpile.mp4)	0	26.4	24.4	ch20
+ch20-calls	ch20-chapter.mp4 (02-calls.mp4)	0	34.5	32.5	ch20
+ch21-lifecycle	ch21-chapter.mp4 (01-lifecycle.mp4)	0	26.8	24.8	ch21
+ch21-jsontable	ch21-chapter.mp4 (02-jsontable.mp4)	0	50.2	48.2	ch21
+ch22-footer	ch22-chapter.mp4 (01-footer.mp4)	0	23.6	21.6	ch22
+ch22-skipping	ch22-chapter.mp4 (02-skipping.mp4)	0	37.9	35.9	ch22
+ch23-feather	ch23-chapter.mp4 (01-feather.mp4)	0	50.8	48.8	ch23
+ch19-ui-stages	film/ch19_ui.py (Playwright)	0	18.9	17.4	ch19
+ch19-ui-storage-sql	film/ch19_ui.py (Playwright)	0	21.6	20.1	ch19
+ch23-connect	ch23-chapter.mp4 (02-connect.mp4)	0	15.8	13.8	ch23
