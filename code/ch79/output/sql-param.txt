@@ -1,0 +1,36 @@
+$ sed -i 's/WHERE fare_amount > 0/WHERE fare_amount > ${taxi.min_fare}/' transformations/clean_trips.sql && grep -n WHERE transformations/clean_trips.sql
+12:WHERE fare_amount > ${taxi.min_fare}
+$ spark-pipelines run --remote sc://localhost:15104 --full-refresh clean_trips 2>&1 | grep -E 'Exception|Error|Run is' | cut -c1-200
+2026-11-22 18:22:47: Run is COMPLETED.
+$ python - 15104 <<'PY'
+import sys
+from pyspark.sql import SparkSession
+s = SparkSession.builder.remote(f'sc://localhost:{sys.argv[1]}').getOrCreate()
+s.sql('SELECT count(*) AS trips, min(fare_amount) AS lowest_fare FROM clean_trips').show()
+PY
++------+-----------+
+| trips|lowest_fare|
++------+-----------+
+|223408|       2.98|
++------+-----------+
+$ sed -i 's/taxi.min_fare: "2.50"/taxi.min_fare: "30"/' spark-pipeline.yml && grep min_fare spark-pipeline.yml
+  taxi.min_fare: "30"
+$ spark-pipelines run --remote sc://localhost:15104 --full-refresh clean_trips 2>&1 | grep -E 'Exception|Error|Run is' | cut -c1-200
+2026-11-22 18:23:00: Run is COMPLETED.
+$ python - 15104 <<'PY'
+import sys
+from pyspark.sql import SparkSession
+s = SparkSession.builder.remote(f'sc://localhost:{sys.argv[1]}').getOrCreate()
+s.sql('SELECT count(*) AS trips, min(fare_amount) AS lowest_fare FROM clean_trips').show()
+PY
++-----+-----------+
+|trips|lowest_fare|
++-----+-----------+
+|43707|      30.01|
++-----+-----------+
+$ sed -i '/min_fare/d' spark-pipeline.yml
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Exception|Error' -A3 | cut -c1-160 | head -8
+pyspark.errors.exceptions.connect.ParseException: 
+[PARSE_SYNTAX_ERROR] Syntax error at or near 'trip_distance'. SQLSTATE: 42601 (line 13, pos 6)
+== SQL ==
+$ sed -i 's/taxi.min_fare: "30"/taxi.min_fare: "2.50"/' spark-pipeline.yml

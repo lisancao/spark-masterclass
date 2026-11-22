@@ -1,0 +1,18 @@
+$ spark-pipelines --remote sc://localhost:15104 --conf spark.sql.shuffle.partitions=5 --conf taxi.min_fare=9 run 2>&1 | ev
+probe: spark.sql.shuffle.partitions   = 3
+probe: spark.sql.adaptive.enabled     = false
+probe: taxi.min_fare                  = 2.50
+probe: spark.sql.catalogImplementation = hive
+probe: current catalog and database   = spark_catalog default
+probe: TAXI_ENV in the CLI process    = <not set>
+Run is COMPLETED.
+$ cp spark-pipeline.yml /tmp/sdp-with-conf.yml && sed -i '/^configuration:/,$d' spark-pipeline.yml
+$ spark-pipelines --remote sc://localhost:15104 --conf spark.sql.shuffle.partitions=5 --conf taxi.min_fare=9 run 2>&1 | ev
+probe: spark.sql.shuffle.partitions   = 5
+probe: spark.sql.adaptive.enabled     = true
+probe: taxi.min_fare                  = <not set>
+probe: spark.sql.catalogImplementation = hive
+probe: current catalog and database   = spark_catalog default
+probe: TAXI_ENV in the CLI process    = <not set>
+Run is COMPLETED.
+$ cp /tmp/sdp-with-conf.yml spark-pipeline.yml && rm /tmp/sdp-with-conf.yml

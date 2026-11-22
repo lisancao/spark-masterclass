@@ -1,0 +1,9 @@
+$ sed -i '/^configuration:/,$d' spark-pipeline.yml; echo 'database: taxi_dev' >> spark-pipeline.yml; cat spark-pipeline.yml
+name: taxi_etl
+storage: file://~/spark-masterclass/data/work/sdp/ch79/taxi_etl/pipeline-storage
+libraries:
+  - glob:
+      include: transformations/**
+database: taxi_dev
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | ev
+pyspark.errors.exceptions.connect.AnalysisException: [SCHEMA_NOT_FOUND] The schema `spark_catalog`.`taxi_dev` cannot be found. Verify the spelling and correctness of the 
