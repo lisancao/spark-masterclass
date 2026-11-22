@@ -6,7 +6,7 @@ Delta Lake and Apache Iceberg add the part that a folder does not have. They do 
 
 **A table format is a log of commits. Each commit lists the exact data files that make one version of the table. A writer commits a version with one atomic operation on the log, and a reader reads only the files that its version lists. MERGE, time travel, schema enforcement and safe concurrent writers all come from this one mechanism.** This chapter opens the log of each format on disk. Then it follows the log through a MERGE, a DELETE, a time-travel query and two concurrent writers.
 
-The code is in [`code/ch29`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch29). Each output block comes from `code/ch29/output/`. Deep Iceberg topics (catalog types, REST catalogs, procedures and table maintenance) are in Chapter 31. This chapter keeps to the log on disk and to what Spark does with it.
+The code is in [`code/ch29`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch29). Each output block comes from `code/ch29/output/`. Deep Iceberg topics (catalog types, REST catalogs, procedures and table maintenance) are in Chapter QQICEQQ. This chapter keeps to the log on disk and to what Spark does with it.
 
 !!! note "Versions: no Delta or Iceberg release supports Spark 4.3.0 yet"
 
@@ -90,7 +90,7 @@ The Iceberg examples use the helper `common/lake.py`. It adds the runtime jar an
 "spark.sql.catalog.lake.warehouse": f"file://{warehouse}",
 ```
 
-A Hadoop catalog is good for a laptop, because it needs no service. It is not a good choice for production, because it depends on an atomic rename in the file system. Chapter 31 compares it with the REST, JDBC and Hive catalogs.
+A Hadoop catalog is good for a laptop, because it needs no service. It is not a good choice for production, because it depends on an atomic rename in the file system. Chapter QQICEQQ compares it with the REST, JDBC and Hive catalogs.
 
 ## Step 3: The Delta transaction log on disk
 
@@ -425,7 +425,7 @@ flowchart TB
 
 The commit operation is different too. To commit, an Iceberg writer writes a new metadata file. Then it asks the **catalog** to point to the new metadata file. The catalog does this only if its pointer still names the old file. This compare-and-swap is the atomic step.
 
-In a Hadoop catalog, the pointer is `version-hint.text` together with an atomic rename. In a REST or Hive catalog, a service holds the pointer (Chapter 31).
+In a Hadoop catalog, the pointer is `version-hint.text` together with an atomic rename. In a REST or Hive catalog, a service holds the pointer (Chapter QQICEQQ).
 
 Field IDs are also different. Each column has a number (`1:id`, `2:name`). Iceberg finds columns in data files by number, not by name. Thus, a rename or a drop followed by an add of a column with the same name cannot read the wrong data.
 
@@ -477,7 +477,7 @@ Iceberg can do a row-level change in two ways, and a table property selects the 
 +-------+-------------------------------------------------------------------+------------+
 ```
 
-The data file is the same file as before, and it still holds four rows. The DELETE wrote a second, small file with content type 1: a **position delete file**. It records the file path and the row position of each deleted row. A reader reads the data file and skips the positions in the delete file. Merge-on-read makes writes fast and reads a little slower. Compaction later writes the deletes into new data files (Chapter 31).
+The data file is the same file as before, and it still holds four rows. The DELETE wrote a second, small file with content type 1: a **position delete file**. It records the file path and the row position of each deleted row. A reader reads the data file and skips the positions in the delete file. Merge-on-read makes writes fast and reads a little slower. Compaction later writes the deletes into new data files (Chapter QQICEQQ).
 
 Spark plans both methods with the same row-level operators. The script prints the physical plan of one MERGE in each mode:
 
@@ -607,7 +607,7 @@ Which writer wins changes from run to run. In this Delta run the second statemen
 | Row-level changes | copy-on-write (deletion vectors are a table feature) | copy-on-write or merge-on-read, per operation |
 | Time travel | `versionAsOf`, `timestampAsOf`, `VERSION AS OF` | the same, plus `@v<id>` in Spark 4.3 |
 | Change feed | `readChangeFeed`, `_change_data/` files | `create_changelog_view` procedure |
-| Compaction, cleanup | `OPTIMIZE`, `VACUUM` | `rewrite_data_files`, `expire_snapshots` (Chapter 31) |
+| Compaction, cleanup | `OPTIMIZE`, `VACUUM` | `rewrite_data_files`, `expire_snapshots` (Chapter QQICEQQ) |
 
 Apache Hudi and Apache Paimon are two other table formats. This chapter did not test them.
 
