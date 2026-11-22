@@ -26,9 +26,9 @@ STE results (final, `scripts/ste-check`):
 | ch29 | 0 | |
 | ch30 | 0 | |
 | ch31 | 2 | `running` in "running total" (a technical name of a window result, two places) |
-| ch32 | see below | |
-| ch33 | see below | |
-| ch34 | see below | |
+| ch32 | 1 | `is between` flagged as passive: a false positive (the verb "is" with a preposition) |
+| ch33 | 1 | `were created` inside the quoted title of SPARK-60206 (literal text) |
+| ch34 | 0 | |
 
 ## Coverage
 
@@ -183,6 +183,10 @@ STE results (final, `scripts/ste-check`):
 |---|---|---|
 | `code/film/ch29.tape` | delta (Delta log after the MERGE), iceberg (snapshot tree) | `ch29-delta`, `ch29-iceberg` |
 | `code/film/ch30.tape` | dryrun (cycle, then the wrong name), run (event stream of a run) | `ch30-dryrun`, `ch30-run` |
+| `code/film/ch31.tape` | incremental (event-log progress of two runs), gate (report and empty silver) | `ch31-incremental`, `ch31-gate` |
+| `code/film/ch32.tape` | history (SCD Type 2 after three files) | `ch32-history` |
+| `code/film/ch33.tape` | measure (average of ratios, then `MEASURE()`) | `ch33-measure` |
+| `code/film/ch34.tape` | trace (pipeline commands of a dry run), server (server log of run 2) | `ch34-trace`, `ch34-server` |
 
 Storyboard (VO drafts, checked against the outputs):
 
@@ -192,6 +196,12 @@ Storyboard (VO drafts, checked against the outputs):
 | ch29 iceberg | version hint, snapshot list with parents | Iceberg keeps a tree. Each snapshot points to its parent: one append, then two overwrites. |
 | ch30 dryrun | two datasets that read each other, dry run, fix, dry run | A dry run reads no data. It finds the cycle first, then the wrong table name, before anything is written. |
 | ch30 run | flows RUNNING and COMPLETED | Each flow starts only when its inputs are complete. Products and orders run at the same time; the summaries wait. |
+| ch31 incremental | progress.py over two event logs | The second run read only the new file: four rows in batch one, from the checkpoint of the first run. |
+| ch31 gate | quality report, empty silver | Day three broke the gate. The report shows why, and silver is empty, because the run truncated it before the gate failed. |
+| ch32 history | customers_history | Ada moved from Toronto to Ottawa to Hanoi. The Ottawa event came last, and Auto CDC still put it in the middle. |
+| ch33 measure | film.py | Averaging the borough ratios gives eleven and a half dollars a mile. The metric view gives six thirty-one, the real ratio, at every grain. |
+| ch34 trace | trace.txt | The CLI only sends declarations: a graph, an output and a flow per dataset, then one start command. |
+| ch34 server | server_log_short.txt | The server prepares every table first, then starts flows as their inputs finish. |
 
 ## Nav entries
 
@@ -208,3 +218,5 @@ Storyboard (VO drafts, checked against the outputs):
 
 - `code/common/pipeline.sh` (Part VI runner; the previous Part VI writer added it) and `code/common/lake.py` (Iceberg session helper). Only Part VI uses them.
 - `code/data/retail/backfill/`, `code/data/retail/later/`, `code/data/crm/drop3/`: new small data files.
+
+Clip cutting: `ffmpeg -ss <start> -to <end> -i code/film/renders/<film>.mp4 -an -c:v libx264 -crf 28 -preset slow -pix_fmt yuv420p -movflags +faststart`, poster `ffmpeg -ss <poster_at> -i <clip>.mp4 -frames:v 1 -q:v 80 <clip>.webp` (poster time relative to the clip). Cut list: `book/media/clips/clips-part06.tsv`.
