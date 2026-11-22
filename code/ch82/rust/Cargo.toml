@@ -1,0 +1,9 @@
+[package]
+name = "taxi"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# The Apache Spark Connect client for Rust. The library name is `spark_connect`.
+spark-connect = { package = "apache-spark-connect", version = "=4.3.0" }

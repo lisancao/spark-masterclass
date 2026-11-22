@@ -1,0 +1,313 @@
+{
+ "run_at": "2026-11-22T18:41:45Z",
+ "harness_commit": "b268b85",
+ "client": "pyspark-client",
+ "client_version": "4.3.0",
+ "client_capabilities": [
+  "catalog",
+  "classic_api_surface",
+  "config_rpc",
+  "create_dataframe",
+  "create_session_config",
+  "dataframe",
+  "error_params",
+  "invalid_plan",
+  "new_session",
+  "other_session_union",
+  "python_udf",
+  "sql",
+  "sql_params"
+ ],
+ "server": "4.3.0",
+ "server_label": "4.3.0-book",
+ "server_url": "sc://localhost:15106",
+ "server_env": {
+  "pyarrow": "",
+  "pandas": "",
+  "python": "3.12"
+ },
+ "client_env": {
+  "python": "3.12"
+ },
+ "server_missing_features": [
+  "python_worker_env_validation",
+  "server_capabilities"
+ ],
+ "counts": {
+  "pass": 43,
+  "fail": 0,
+  "skip": 2
+ },
+ "results": [
+  {
+   "id": "api.jvm_attribute.rdd",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "error JVM_ATTRIBUTE_NOT_SUPPORTED sqlstate=0A000 params=['attr_name'] msg='[JVM_ATTRIBUTE_NOT_SUPPORTED] Attribute `rdd` is not supported in Spark Connect as it depends on the JVM. If you need to'"
+  },
+  {
+   "id": "api.session.new_session",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok value='4.3.0'"
+  },
+  {
+   "id": "api.sql.named_params",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[['b']]"
+  },
+  {
+   "id": "api.sql.positional_params",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[7]]"
+  },
+  {
+   "id": "api.sql.select_literal",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[1, 'x']]"
+  },
+  {
+   "id": "api.version",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok value='4.3.0'"
+  },
+  {
+   "id": "catalog.current_database",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok value='default'"
+  },
+  {
+   "id": "catalog.database_exists",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok value=True"
+  },
+  {
+   "id": "catalog.function_exists_builtin",
+   "severity": "housekeeping",
+   "status": "pass",
+   "detail": "ok value=True"
+  },
+  {
+   "id": "catalog.list_columns",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok value=[['a', 'int'], ['b', 'string']]"
+  },
+  {
+   "id": "catalog.list_tables_temporary_flag",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok value=[['scm_cat_t1', True]]"
+  },
+  {
+   "id": "catalog.set_current_database",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok value='scm_cat_db'"
+  },
+  {
+   "id": "catalog.set_missing_database_error",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "error SCHEMA_NOT_FOUND sqlstate=42704 params=['schemaName'] msg='[SCHEMA_NOT_FOUND] The schema `spark_catalog`.`scm_cat_no_such_db` cannot be found. Verify the spelling and correctness '"
+  },
+  {
+   "id": "catalog.table_exists_missing",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok value=False"
+  },
+  {
+   "id": "catalog.table_exists_temp_view",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok value=True"
+  },
+  {
+   "id": "config.core.parallelism_exempt",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok conf={'spark.default.parallelism': '8'}"
+  },
+  {
+   "id": "config.core.registered_refused",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "error CANNOT_MODIFY_CONFIG sqlstate=46110 params=['docroot', 'key'] msg='[CANNOT_MODIFY_CONFIG] Cannot modify the value of the Spark config: \"spark.task.cpus\".'"
+  },
+  {
+   "id": "config.core.unregistered_accepted",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok conf={'spark.master': 'local[1]'}"
+  },
+  {
+   "id": "config.deprecated.warning",
+   "severity": "housekeeping",
+   "status": "pass",
+   "detail": "ok conf={'spark.sql.optimizer.metadataOnly': 'true'} warnings=[\"The SQL config 'spark.sql.optimizer.metadataOnly' has been deprecated in Spark v\"]"
+  },
+  {
+   "id": "config.is_modifiable",
+   "severity": "housekeeping",
+   "status": "pass",
+   "detail": "ok value={'spark.sql.execution.arrow.maxRecordsPerBatch': True, 'spark.sql.warehouse.dir': False, 'spark.master': False}"
+  },
+  {
+   "id": "config.python_worker_env.reserved_name",
+   "severity": "housekeeping",
+   "status": "skip",
+   "detail": "server 4.3.0 lacks ['python_worker_env_validation']"
+  },
+  {
+   "id": "config.runtime.via_builder",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok conf={'spark.sql.shuffle.partitions': '64'}"
+  },
+  {
+   "id": "config.silent.bad_value",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok conf={'spark.sql.shuffle.partitions': '64'} warnings=['Failed to set spark.sql.shuffle.partitions to Some(notanumber) due to [INVALID_C']"
+  },
+  {
+   "id": "config.silent.static_warning_text",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok conf={'spark.sql.extensions': None} warnings=['Failed to set spark.sql.extensions to Some(org.example.Ext) due to [CANNOT_MODIF']"
+  },
+  {
+   "id": "config.static.extensions_via_conf_set",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "error CANNOT_MODIFY_STATIC_CONFIG sqlstate=46110 params=['key'] msg='[CANNOT_MODIFY_STATIC_CONFIG] Cannot modify the value of the static Spark config: \"spark.sql.extensions\". SQLSTATE: 4611'"
+  },
+  {
+   "id": "config.static.via_builder",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok warnings=['Failed to set spark.sql.extensions to Some(org.example.Ext) due to [CANNOT_MODIF']"
+  },
+  {
+   "id": "config.unsupported.arrow_enabled",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok conf={'spark.sql.execution.arrow.enabled': 'true'} warnings=[\"The SQL config 'spark.sql.execution.arrow.enabled' is NOT supported in Spark Con\"]"
+  },
+  {
+   "id": "dataframe.bad_expression_error",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "error UNRESOLVED_COLUMN.WITH_SUGGESTION sqlstate=42703 params=['objectName', 'proposal'] msg='[UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `nope` cannot be r"
+  },
+  {
+   "id": "dataframe.collect_values",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok rows=[['1.50', '2026-01-02', [1, 2], [7, 'y'], None, 'cafe']]"
+  },
+  {
+   "id": "dataframe.filter_select_order",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[80], [60], [40], [20], [0]]"
+  },
+  {
+   "id": "dataframe.group_aggregate",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[0, 2, 3], [1, 2, 5], [2, 2, 7]]"
+  },
+  {
+   "id": "dataframe.join_using",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[2, 4], [3, 6]]"
+  },
+  {
+   "id": "dataframe.left_join_nulls",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[0, None], [1, 'hit'], [2, None]]"
+  },
+  {
+   "id": "dataframe.limit_after_order",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[99], [98], [97]]"
+  },
+  {
+   "id": "dataframe.schema_types",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "ok value=[['i', 'int'], ['s', 'string'], ['a', 'array<int>'], ['m', 'map<string,double>'], ['st', 'struct<f:bigint>'], ['d', 'decimal(5,2)'], ['dt', 'date']]"
+  },
+  {
+   "id": "dataframe.temp_view_roundtrip",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[6]]"
+  },
+  {
+   "id": "dataframe.union_distinct_count",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok value=5"
+  },
+  {
+   "id": "error.class_and_sqlstate",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "error TABLE_OR_VIEW_NOT_FOUND sqlstate=42P01 params=['relationName', 'searchPath'] msg='[TABLE_OR_VIEW_NOT_FOUND] The table or view `table_that_does_not_exist_xyz` cannot be found. Verify the spelling"
+  },
+  {
+   "id": "error.info.fields",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "error TABLE_OR_VIEW_NOT_FOUND sqlstate=42P01 params=['relationName', 'searchPath'] msg='[TABLE_OR_VIEW_NOT_FOUND] The table or view `table_that_does_not_exist_xyz` cannot be found. Verify the spelling"
+  },
+  {
+   "id": "error.session_not_same",
+   "severity": "degrades",
+   "status": "pass",
+   "detail": "error SESSION_NOT_SAME sqlstate=None params=[] msg='[SESSION_NOT_SAME] Both Datasets must belong to the same SparkSession.'"
+  },
+  {
+   "id": "skew.capabilities_reported",
+   "severity": "housekeeping",
+   "status": "skip",
+   "detail": "server 4.3.0 lacks ['server_capabilities']"
+  },
+  {
+   "id": "skew.new_client_old_server.create_dataframe",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok value=2"
+  },
+  {
+   "id": "skew.unknown_relation_type",
+   "severity": "housekeeping",
+   "status": "pass",
+   "detail": "error CONNECT_INVALID_PLAN.INVALID_ONE_OF_FIELD_NOT_SET sqlstate=56K00 params=['fullName', 'name'] msg='[CONNECT_INVALID_PLAN.INVALID_ONE_OF_FIELD_NOT_SET] The Spark Connect plan is invalid. This oneO"
+  },
+  {
+   "id": "udf.python.default_needs_pyarrow",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[1], [2], [3]]"
+  },
+  {
+   "id": "udf.python.use_arrow_false",
+   "severity": "breaks",
+   "status": "pass",
+   "detail": "ok rows=[[1], [2], [3]]"
+  }
+ ]
+}

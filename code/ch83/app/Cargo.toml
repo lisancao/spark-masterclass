@@ -1,0 +1,16 @@
+[package]
+name = "taxi-app"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# The Spark Connect client (library name `spark_connect`). It uses arrow-rs 59 inside.
+spark-connect = { package = "apache-spark-connect", version = "=4.3.0" }
+# arrow-rs at DuckDB 2.0's major (60). Results cross from the client's arrow 59 as Arrow IPC bytes.
+arrow = { version = "60", features = ["prettyprint"] }
+# DuckDB 2.0 (crate 1.20000.x), built from source. `vtab-arrow` registers RecordBatches as a table.
+duckdb = { version = "=1.20000.2", features = ["bundled", "vtab-arrow"] }
+# Polars has its own Arrow implementation (polars-arrow) and reads the same IPC bytes.
+# `parquet` is there only to work around pola-rs/polars#27898 (a compile error without it).
+polars = { version = "=0.55.2", features = ["lazy", "ipc", "csv", "dtype-full", "fmt", "round_series", "strings", "temporal", "parquet"] }

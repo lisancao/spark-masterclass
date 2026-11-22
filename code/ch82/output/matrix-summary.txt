@@ -1,0 +1,10 @@
+pyspark-client 4.3.0 on 4.3.0: 43 pass, 0 fail, 2 skipped
+  skip  config.python_worker_env.reserved_name: server 4.3.0 lacks ['python_worker_env_validation']
+  skip  skew.capabilities_reported: server 4.3.0 lacks ['server_capabilities']
+spark-connect-scala 4.3.0 on 4.3.0: 39 pass, 2 fail, 4 skipped
+  fail  api.jvm_attribute.rdd: error_class 'UNSUPPORTED_CONNECT_FEATURE.RDD' != 'JVM_ATTRIBUTE_NOT_SU
+  skip  config.python_worker_env.reserved_name: server 4.3.0 lacks ['python_worker_env_validation']
+  fail  error.session_not_same: error_class 'CONNECT.SESSION_NOT_SAME' != 'SESSION_NOT_SAME'
+  skip  skew.capabilities_reported: server 4.3.0 lacks ['server_capabilities']
+  skip  udf.python.default_needs_pyarrow: client lacks ['python_udf']
+  skip  udf.python.use_arrow_false: client lacks ['python_udf']

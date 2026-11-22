@@ -1,0 +1,14 @@
+built a plan over a column that does not exist; nothing was sent yet
+AnalyzePlan: error_class=UNRESOLVED_COLUMN.WITH_SUGGESTION sqlstate=42703
+  [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name 
+ExecutePlan: error_class=UNRESOLVED_COLUMN.WITH_SUGGESTION sqlstate=42703
+  [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name 
+
+gRPC status: INTERNAL
+ErrorInfo.reason=org.apache.spark.sql.catalyst.ExtendedAnalysisException domain=org.apache.spark
+  metadata[classes] = ["org.apache.spark.sql.catalyst.ExtendedAnalysisException","
+  metadata[errorClass] = UNRESOLVED_COLUMN.WITH_SUGGESTION
+  metadata[errorId] = ef0a7f54-101a-4b75-93ee-1b36f802d0a7
+  metadata[messageParameters] = {"objectName":"`revenue`","proposal":"`extra`, `VendorID`, `
+  metadata[sqlState] = 42703
+FetchErrorDetails: 1 error(s), root org.apache.spark.sql.catalyst.ExtendedAnalysisException, 67 stack frames

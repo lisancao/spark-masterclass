@@ -1,0 +1,10 @@
+clip	source	start	end	poster_at	chapter
+ch82-rust	chapter/01-rust.mp4	0	14.88	13.5	ch82
+ch82-swift	chapter/02-swift.mp4	0	13.92	12.5	ch82
+ch82-probe	chapter/03-probe.mp4	0	11.84	10.8	ch82
+ch83-heavy	chapter/01-heavy.mp4	0	12.36	11.3	ch83
+ch83-local	chapter/02-local.mp4	0	16.28	15.2	ch83
+ch83-retry	chapter/03-retry.mp4	0	30.0	29.0	ch83
+ch84-bytes	chapter/01-bytes.mp4	0	10.64	9.6	ch84
+ch84-stream	chapter/02-stream.mp4	0	11.04	10.0	ch84
+ch84-reattach	chapter/03-reattach.mp4	0	12.88	11.8	ch84

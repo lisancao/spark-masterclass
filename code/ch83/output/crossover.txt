@@ -1,0 +1,9 @@
+window          rows  pull MiB  spark ms   pull ms  local ms  break-even
+1 day         114466       2.2       334       274       5.9       0.8 q
+3 days        323152       6.2       324       269      12.5       0.9 q
+1 week        734281      14.0       252       275      20.5       1.2 q
+2 weeks      1605573      30.7       302       325      33.0       1.2 q
+1 month      3724894      71.1       390       630     102.6       2.2 q
+2 months     7124760     136.1       393       725     171.7       3.3 q
+3 months    11077203     211.6       367      1216     319.0      25.5 q
+6 months    22836515     436.2       514      1811     637.2       never

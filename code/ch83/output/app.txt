@@ -1,0 +1,58 @@
+
+== 1. Connect, and set the session up from the app
+server 4.3.0 | session b6bb53c5-e06c-4e18-93a2-bdfb575f716f
+spark.sql.shuffle.partitions = Some("16")
+
+== 2. Local: the zone lookup in Polars (Spark is not involved)
+265 zones read in 8.5 ms
+
+== 3. Heavy: six months of trips, aggregated by Spark, back as Arrow
+Spark -> Arrow IPC (145.4 KiB) -> Polars: 6145 rows x 4 columns in 2966 ms
+schema: Schema { fields: {"PULocationID": Int32, "hour": Int32, "trips": Int64, "avg_fare": Float64}, metadata: () }
+
+== 4. Interactive: follow-up questions answered in Polars, no round trip
+shape: (8, 3)
+┌───────────────┬──────────┬──────┐
+│ Borough       ┆ trips    ┆ pct  │
+│ ---           ┆ ---      ┆ ---  │
+│ str           ┆ i64      ┆ f64  │
+╞═══════════════╪══════════╪══════╡
+│ Manhattan     ┆ 19716556 ┆ 86.3 │
+│ Queens        ┆ 2009046  ┆ 8.8  │
+│ Brooklyn      ┆ 871224   ┆ 3.8  │
+│ Bronx         ┆ 198172   ┆ 0.9  │
+│ Unknown       ┆ 26129    ┆ 0.1  │
+│ N/A           ┆ 10158    ┆ 0.0  │
+│ EWR           ┆ 2962     ┆ 0.0  │
+│ Staten Island ┆ 2268     ┆ 0.0  │
+└───────────────┴──────────┴──────┘
+question 1 in 6.0 ms
+shape: (3, 2)
+┌──────┬─────────┐
+│ hour ┆ trips   │
+│ ---  ┆ ---     │
+│ i32  ┆ i64     │
+╞══════╪═════════╡
+│ 18   ┆ 1611016 │
+│ 17   ┆ 1537317 │
+│ 19   ┆ 1420457 │
+└──────┴─────────┘
+question 2 in 1.3 ms
+
+== 5. DuckDB SQL over the same Arrow result (registered, not copied)
+busiest zone of each hour, top 5:
++--------------+------+-------+----------+
+| PULocationID | hour | trips | avg_fare |
++--------------+------+-------+----------+
+| 161          | 18   | 83918 | 16.87    |
+| 237          | 17   | 81580 | 14.47    |
+| 237          | 14   | 80616 | 14.24    |
+| 237          | 15   | 80541 | 14.38    |
+| 237          | 16   | 77492 | 14.52    |
++--------------+------+-------+----------+
+
+== 6. Errors: what the app gets when the server rejects a plan
+condition: Some("UNRESOLVED_COLUMN.WITH_SUGGESTION")
+sqlstate:  Some("42703")
+operation: Some("a6219ca5-31f3-4320-bbef-a591ad44f663")
+message:   [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name 

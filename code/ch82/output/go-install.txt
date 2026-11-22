@@ -1,0 +1,6 @@
+go version go1.27.4 linux/amd64
+$ go get github.com/apache/spark-connect-go/v40@v0.1.0
+go: github.com/apache/spark-connect-go/v40@v0.1.0: invalid version: module path includes a major version suffix, so major version must match
+$ go get github.com/apache/spark-connect-go/v40@defb8525
+go: added github.com/apache/spark-connect-go/v40 v40.0.0-20250609164624-defb85250881
+require github.com/apache/spark-connect-go/v40 v40.0.0-20250609164624-defb85250881 // indirect

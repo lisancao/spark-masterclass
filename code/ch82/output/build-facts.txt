@@ -1,0 +1,4 @@
+client clean build (s)    binary (MB)
+rust   62                 20
+go     25                 28
+swift  215                101
