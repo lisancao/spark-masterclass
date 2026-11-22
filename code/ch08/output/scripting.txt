@@ -1,0 +1,40 @@
+== 1. session variables
+count with min_fare = 50: Row(n=269258)
+count with min_fare = 100: Row(n=15202)
+the variable after SET VAR = (query): Row(min_fare=83.5)
+a variable in a view: []
+
+== 2. a script, its control flow and its result
+fib(10) with WHILE: Row(n=10, fib=55)
+fib(90): Row(n=90, fib=2880067194370816120)
+IF / ELSEIF and CASE: Row(zone='JFK', n=148172, label='very busy')
+REPEAT, LOOP, LEAVE and ITERATE: Row(repeats=3, odd_sum=25)
+
+== 3. FOR over a query: one summary row per borough
+FOR loop: [Row(borough='Manhattan', zones=69, trips=3385945), Row(borough='Queens', zones=69, trips=322053), Row(borough='Brooklyn', zones=61, trips=106869), Row(borough='Bronx', zones=43, trips=15006), Row(borough='EWR', zones=1, trips=569), Row(borough='Staten Island', zones=20, trips=237)]
+
+== 4. how a script runs
+one spark.sql() call with a 5-pass loop -> 20 SQL executions, 27 jobs
+    executions that scan the trips: 5, executions with no scan: 15
+the same total as one query: 149702 (2 jobs)
+
+== 5. condition handlers
+EXIT handler for DIVIDE_BY_ZERO: Row(result='caught DIVIDE_BY_ZERO')
+the most specific handler wins: Row(result='DIVIDE_BY_ZERO')
+a named condition: CAST_INVALID_INPUT: The value 'n/a' of the type "STRING" cannot be cast to "INT" because it is mal
+no handler: the script stops: CAST_INVALID_INPUT: The value 'n/a' of the type "STRING" cannot be cast to "INT" because it is mal
+rows after the failed script: Row(borough='test')
+a CONTINUE handler (default config): Py4JJavaError (SqlScriptingException) UNSUPPORTED_FEATURE.CONTINUE_EXCEPTION_HANDLER: The feature is not supported: CONTINUE exception handler is 
+a CONTINUE handler (flag on): Row(errors=2, status='reached the end')
+
+== 6. cursors
+cursor (default config): Py4JJavaError (SqlScriptingException) UNSUPPORTED_FEATURE.SQL_CURSOR: The feature is not supported: SQL cursor operations (DECLARE
+cursor (both flags on): Row(total_of_5_fares=483.0)
+check with one query: Row(round(sum(fare_amount), 2)=483.0)
+
+== 7. EXECUTE IMMEDIATE
+count of a table named at run time: Row(tbl='zones', n=265)
+USING with named markers: Row(n=20943)
+USING with positional markers: Row(n=20943)
+in a script, one count per table: Row(counts='zones=265 borough_summary=7')
+INTO with two rows: Py4JJavaError (SparkException) ROW_SUBQUERY_TOO_MANY_ROWS: More than one row returned by a subquery used as a row. SQLS
