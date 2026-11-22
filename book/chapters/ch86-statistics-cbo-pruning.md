@@ -261,9 +261,212 @@ The CBO settings in Spark 4.3.0:
 | `spark.sql.statistics.histogram.enabled` | false | write histograms in `ANALYZE ... FOR COLUMNS` |
 | `spark.sql.statistics.histogram.numBins` | 254 | the bins of each histogram |
 
-<<DPP>>
+## Step 6: Dynamic partition pruning
 
-<<BUCKET>>
+Partition pruning skips the folders of a partitioned table that a filter rules out. With a literal filter, such as `pickup_date IN (...)`, Spark prunes when it plans the query. That is static pruning.
+
+In a star schema, the filter is usually on a small dimension table, and the partition column is on the large fact table. For example, "the trips on Sundays" is `days.weekday = 'Sunday'`, joined to `trips.pickup_date`. Spark cannot know the Sunday dates when it plans. **Dynamic partition pruning** (DPP) finds them when the query runs, and gives them to the scan of the fact table as a partition filter.
+
+`dpp.py` writes six months of trips partitioned by pickup date (181 partitions) and a table `days` with one row for each date:
+
+```text
+trips_by_day: 22,131,665 rows in 181 partitions; days: 181 rows
+
+=== 1. the plan for Sundays only: a subquery on the dimension filters the fact scan
+  +- BroadcastExchange (4)
+  PartitionFilters: [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+  Subquery:1 Hosting operator id = 1 Hosting Expression = pickup_date IN dynamicpruning
+  result: 261 pickup zones, 2,885,119 Sunday trips
+```
+
+```mermaid
+sequenceDiagram
+  participant D as scan of days
+  participant B as BroadcastExchange
+  participant S as SubqueryBroadcast
+  participant F as scan of trips_by_day
+  participant J as BroadcastHashJoin
+  D->>B: rows with weekday = 'Sunday'
+  B->>J: hash table of the 26 Sundays
+  B->>S: the same broadcast, reused
+  S->>F: pickup_date IN (26 dates)
+  F->>J: rows of 26 partitions, not 181
+```
+
+The plan has two parts. The scan of `trips_by_day` has the partition filter `dynamicpruningexpression(pickup_date IN dynamicpruning)`. The subquery that fills it reuses the `BroadcastExchange` of the join, so Spark reads the dimension only one time.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch86-anim-dpp.webp">
+    <source src="../../media/clips/ch86-anim-dpp.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the 26 Sunday dates go from the dimension to the scan of the fact table. The partition and row counts come from `dpp.txt`. The grid of days is schematic.</figcaption>
+</figure>
+
+### The effect, measured
+
+```text
+=== 2. what the fact scan read, and the time (median of 7 after a warmup)
+  DPP on (default)         partitions read   26  rows out of scan   2,885,119  task time   1.7 s  wall 0.33 s
+  DPP off                  partitions read  181  rows out of scan  22,131,665  task time   5.2 s  wall 0.55 s
+                           no broadcast: PartitionFilters [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+  DPP on, broadcast off    partitions read  181  rows out of scan  22,131,665  task time  13.9 s  wall 1.40 s
+  DPP off / DPP on: 1.7x
+```
+
+<figure markdown>
+  ![Partitions that the fact scan read](../media/figures/ch86-dpp-light.svg#only-light)
+  ![Partitions that the fact scan read](../media/figures/ch86-dpp-dark.svg#only-dark)
+  <figcaption markdown="span">The partitions, rows and times from `dpp.txt`. The bar length is the number of partitions that the scan read.</figcaption>
+</figure>
+
+- **With DPP, the scan read 26 of 181 partitions**, and 2,885,119 rows instead of 22,131,665.
+- **The work fell by a factor of three.** The task time, the sum of the run times of all tasks, was 1.7 s against 5.2 s. The wall time was 0.33 s against 0.55 s. The wall time includes the planning, the broadcast and the subquery, which DPP does not make shorter.
+- **Without a broadcast, there was no pruning.** With `spark.sql.autoBroadcastJoinThreshold=-1`, the plan still shows the dynamic filter. But by default, DPP only reuses a broadcast that the join makes (`spark.sql.optimizer.dynamicPartitionPruning.reuseBroadcastOnly`, true). When AQE finds no broadcast to reuse, it replaces the filter with `true` (`PlanAdaptiveDynamicPruningFilters`). The query read all partitions, and the sort-merge join made it the slowest of the three.
+
+### When Spark adds DPP, and when it does not
+
+The rule `PartitionPruning` adds a dynamic filter only if the dimension side has a filter that is "likely selective". In the 4.3.0 source, these are comparisons, `IN`, `LIKE` and other string predicates, and `NOT` or `AND` of them. `IS NOT NULL` is not one of them:
+
+```text
+=== 3. holidays: 'holiday IS NOT NULL' is not a selective predicate
+  PartitionFilters: [isnotnull(pickup_date)]
+  no column statistics     partitions read  181  rows out of scan  22,131,665  task time   3.3 s  wall 0.38 s
+  after ANALYZE ... FOR COLUMNS on both tables, and spark.sql.cbo.enabled=true:
+  PartitionFilters: [isnotnull(pickup_date)]
+  statistics and CBO       partitions read  181  rows out of scan  22,131,665  task time   3.9 s  wall 0.50 s
+  the same filter written as "d.holiday <> ''", a comparison:
+  PartitionFilters: [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+  holiday <> ''            partitions read    5  rows out of scan     479,694  task time   0.1 s  wall 0.15 s
+    Juneteenth                    116,083  2.87
+    Martin Luther King Jr. Day     95,810  2.95
+    Memorial Day                   75,497  3.25
+    New Year's Day                109,534  2.29
+    Presidents' Day                82,770  3.16
+
+=== 4. static partition pruning: the five holidays as literals
+  PartitionFilters: [pickup_date IN (2026-01-01,2026-01-19,2026-02-16,2026-05-25,2026-06-19)]
+  partitions read 5, files read 5
+```
+
+- **`holiday IS NOT NULL` gave no DPP**, with or without column statistics and CBO. The statistics only help the rule estimate the benefit. They do not make a predicate selective.
+- **The same filter as a comparison, `holiday <> ''`, gave DPP.** The scan read 5 of 181 partitions and 479,694 rows, with 0.1 s of task time instead of 3.3 s. The result is the same, because no holiday name is empty.
+- **Static pruning with the five dates as literals read the same 5 partitions.** DPP gets the same result when the values come from a table.
+
+The benefit check compares the bytes that the scan can skip with the size of the dimension side. Without column statistics, it assumes that the filter keeps half of the partitions (`spark.sql.optimizer.dynamicPartitionPruning.fallbackFilterRatio`, 0.5). With statistics and CBO, it uses the distinct counts of the join keys (`dynamicPartitionPruning.useStats`, true).
+
+!!! note "New in 4.3"
+    DPP can also apply when the dimension side has no filter, if Spark already holds that side (SPARK-54593). Examples are a `LocalRelation`, such as a `VALUES` list, and a checkpointed DataFrame. Such a side costs almost nothing to evaluate again.
+
+```text
+=== 5. new in 4.3: a small local relation as the filtering side, with no filter at all (SPARK-54593)
+  the filtering side: LocalRelation [pickup_date]
+  spark.sql.cbo.enabled=false: PartitionFilters [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+    partitions read 5, rows out of scan 479,694
+  spark.sql.cbo.enabled=true: PartitionFilters [isnotnull(pickup_date), dynamicpruningexpression(pickup_date IN dynamicpruning)]
+    partitions read 5, rows out of scan 479,694
+```
+
+The five holiday dates as a `VALUES` list pruned the fact table to 5 partitions. The commits of SPARK-54593 are in the history between the tags `v4.2.0` and `v4.3.0`. This book did not run the same query on Spark 4.2.
+
+## Step 7: Bucketed tables
+
+A bucketed table stores its rows hashed by a column into a fixed number of buckets. Spark remembers the bucket column and the number of buckets in the catalog. When a later query joins or groups by that column, each task can read one bucket, and the rows of one key are already together. The shuffle is gone. [Chapter 11](ch11-joins.md), Step 11 showed one bucketed join. This step shows the layout on disk and the cases where buckets help and do not help.
+
+### The layout on disk
+
+```python
+(trips.repartition(16, "PULocationID")                       # (1)!
+      .write.bucketBy(16, "PULocationID").sortBy("PULocationID")
+      .saveAsTable("trips_b16"))
+```
+
+1. Without this `repartition`, each of the 17 write tasks writes a file for each bucket that it sees: 272 files instead of 16.
+
+```text
+=== 1. write: bucketBy without and with a repartition on the bucket column
+  trips_b16_many   272 files, bucket ids in the names: 16 distinct (00000 to 00015)
+  trips_b16         16 files, bucket ids in the names: 16 distinct (00000 to 00015)
+  trips_plain       17 files, bucket ids in the names: 0 distinct
+  one file name: part-00003-4211af59-6479-49ed-873e-c421de208d6e_00003.c000.snappy.parquet
+  DESC EXTENDED: Num Buckets 16, Bucket Columns [`PULocationID`], Sort Columns [`PULocationID`]
+```
+
+- **The bucket number is in the file name**: `_00003` is bucket 3. Spark finds the buckets of a table from these names, so do not rename the files.
+- **`bucketBy` alone makes many files.** Each write task hashes its own rows into 16 buckets and writes one file for each. With 17 write tasks, the table had 272 files. A `repartition` on the bucket column with the same number first puts each bucket into one task, and the table has 16 files.
+- **`bucketBy` works only with `saveAsTable`.** The bucket specification lives in the catalog. A plain `parquet(path)` write has nowhere to keep it.
+
+```mermaid
+flowchart LR
+  classDef t fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
+  classDef z fill:#2f7d5b,fill-opacity:0.72,stroke:#2f7d5b,color:#ffffff
+  classDef j fill:#c0661a,fill-opacity:0.72,stroke:#c0661a,color:#ffffff
+  t0["trips_b16<br/>bucket 0"]:::t --> j0["task 0:<br/>sort-merge join<br/>of bucket 0"]:::j
+  z0["zstats_b16<br/>bucket 0"]:::z --> j0
+  t1["trips_b16<br/>bucket 1"]:::t --> j1["task 1:<br/>bucket 1"]:::j
+  z1["zstats_b16<br/>bucket 1"]:::z --> j1
+  tn["... bucket 15"]:::t --> jn["task 15:<br/>bucket 15"]:::j
+  zn["... bucket 15"]:::z --> jn
+```
+
+### Joins and aggregates without a shuffle
+
+`bucketing.py` joins the trips to a table of zone statistics, with the broadcast turned off. It uses plain tables, tables with 16 buckets on both sides, and 16 buckets against 8:
+
+```text
+=== 2. the same join on four pairs of tables (broadcast off)
+  plain   x plain                  SortMergeJoin  exchanges 2  0.37 s
+                                     Exchange hashpartitioning(PULocationID, 200)
+                                     Exchange hashpartitioning(PULocationID, 200)
+  b16     x b16                    SortMergeJoin  exchanges 0  0.19 s
+  b16     x b8                     SortMergeJoin  exchanges 1  0.16 s
+                                     Exchange hashpartitioning(PULocationID, 16)
+  b16     x b8, coalesce buckets   SortMergeJoin  exchanges 0  0.16 s
+  b16     x b16, bucketing off     SortMergeJoin  exchanges 2  0.35 s
+                                     Exchange hashpartitioning(PULocationID, 200)
+                                     Exchange hashpartitioning(PULocationID, 200)
+  plain / b16 x b16: 1.9x
+
+=== 3. an aggregate on the bucket key
+  trips_plain  exchanges 1 ['hashpartitioning(PULocationID, 200)']
+  trips_b16    exchanges 0 []
+```
+
+<figure markdown>
+  ![Exchanges for each join](../media/figures/ch86-joins-light.svg#only-light)
+  ![Exchanges for each join](../media/figures/ch86-joins-dark.svg#only-dark)
+  <figcaption markdown="span">The `Exchange` nodes of one join for each pair of tables (`bucketing.txt`, `spj.txt`).</figcaption>
+</figure>
+
+- **Same bucket count, same key: no exchange.** The join of `trips_b16` and `zstats_b16` read bucket i of each table in task i. It took 0.19 s against 0.37 s for the plain tables, which shuffled both sides into 200 partitions.
+- **16 against 8: one exchange.** Spark shuffled the 8-bucket side into 16 partitions to match the larger side.
+- **With `spark.sql.bucketing.coalesceBucketsInJoin.enabled`, no exchange.** Spark reads the 16 buckets as 8 groups of 2. This works when the larger count is a multiple of the smaller one, and the ratio is at most `spark.sql.bucketing.coalesceBucketsInJoin.maxBucketRatio` (4).
+- **With `spark.sql.sources.bucketing.enabled=false`**, Spark treats the tables as plain tables.
+- **An aggregate on the bucket key needs no exchange either.**
+- **The joins with two exchanges took 0.35 and 0.37 s. The joins with one exchange or none took 0.16 to 0.19 s.** At this size, the times of one exchange and of none are the same within the noise.
+
+### Bucket pruning, and when Spark does not use the buckets
+
+A filter on the bucket column with an equality can select one bucket. Spark shows it as `SelectedBucketsCount`. But Spark does not always read a table as bucketed:
+
+```text
+=== 4. bucket pruning: a filter on the bucket column
+  autoBucketedScan.enabled=true: Bucketed: false (disabled by query planner)
+    metric 'number of files read' 16, rows out of scan 180,000
+    tasks of the query 2, tasks that read input 1, input bytes 90,940
+  autoBucketedScan.enabled=false: Bucketed: true | SelectedBucketsCount: 1 out of 16
+    metric 'number of files read' 16, rows out of scan 180,000
+    tasks of the query 17, tasks that read input 1, input bytes 90,940
+
+=== 5. a query that gains nothing from buckets: the planner turns the bucketed scan off
+  Bucketed: false (bucket column(s) not read)
+```
+
+- **By default, the planner reads the table as a plain table for this query.** The setting `spark.sql.sources.bucketing.autoBucketedScan.enabled` (true) turns the bucketed scan off when no join or aggregate above it needs the buckets. The plan says `Bucketed: false (disabled by query planner)`.
+- **With the automatic choice turned off, Spark pruned to 1 of 16 buckets.** The query then ran 17 tasks, and 16 of them read nothing. The plain scan used 1 task, because the Parquet statistics of the sorted files had already skipped the other files. Both scans read the same 90,940 bytes. In this case, the planner's choice was the better one.
+- **The metric `number of files read` counts all 16 files in both cases.** Spark sets it from the list of files, before it removes the other buckets (`DataSourceScanExec.scala`). Count the tasks that read input to see the pruning.
+- **A query that does not read the bucket column cannot use the buckets.**
+
+Buckets have costs. Each write must hash and sort the data into the buckets. The table keeps its number of buckets, so a table that grows gets larger buckets. And the advantage holds only for joins and aggregates on exactly the bucket columns. Table formats offer the same effect with more freedom, which is the subject of the next step.
 
 ## Step 8: Storage-partitioned joins
 
@@ -461,3 +664,49 @@ Partitioning hints are the SQL form of `repartition`, `coalesce` and `repartitio
 - **Without a number, AQE decides.** `REPARTITION(PULocationID)` and `REBALANCE(PULocationID)` both started with 200 shuffle partitions, and AQE coalesced them to 21.
 - **`REBALANCE` follows the advisory size only if parallelism comes second.** The default is `spark.sql.adaptive.coalescePartitions.parallelismFirst=true`. Then AQE keeps at least as many partitions as the default parallelism (16 here), so `REBALANCE` made 17 files of about 3 MB. With `parallelismFirst=false`, AQE coalesced to the 64 MB advisory size (`spark.sql.adaptive.advisoryPartitionSizeInBytes`), and made 2 files. With an advisory size of 16 MB, it made 7 files. The advisory size counts shuffle bytes, not Parquet bytes, so the files are smaller than the advisory size.
 - **`REBALANCE` is the hint for the last step before a write.** It gives files of a useful size, and AQE splits a skewed partition into several files. It does not guarantee that all rows of one key are in one file.
+
+## The whole chapter, on one page
+
+```python
+# Statistics: size, rows, columns, histograms. Run again after large writes.
+spark.sql("ANALYZE TABLE fares COMPUTE STATISTICS")
+spark.conf.set("spark.sql.statistics.histogram.enabled", "true")
+spark.sql("ANALYZE TABLE fares COMPUTE STATISTICS FOR COLUMNS total_amount, payment_type")
+spark.sql("DESC EXTENDED fares total_amount").show(truncate=False)
+
+# Use them: estimates with rows, join selection and join reorder.
+spark.conf.set("spark.sql.cbo.enabled", "true")
+spark.conf.set("spark.sql.cbo.joinReorder.enabled", "true")
+q.explain("cost")                                   # read the rowCount of each node before you trust it
+
+# Dynamic partition pruning: a selective filter on a small, broadcast dimension.
+spark.sql("""SELECT ... FROM trips_by_day t JOIN days d ON t.pickup_date = d.pickup_date
+             WHERE d.weekday = 'Sunday'""")         # 'IS NOT NULL' alone does not trigger it
+
+# Buckets: same column, same count on both sides, written with saveAsTable.
+(df.repartition(16, "PULocationID").write.bucketBy(16, "PULocationID")
+   .sortBy("PULocationID").saveAsTable("trips_b16"))
+
+# Storage-partitioned join on Iceberg tables with the same bucket transform.
+spark.conf.set("spark.sql.iceberg.planning.preserve-data-grouping", "true")
+
+# Hints: strategies and partitioning, when you know more than the estimates.
+spark.sql("SELECT /*+ BROADCAST(f) */ ... FROM trips t JOIN fares f ON t.trip_id = f.trip_id")
+spark.sql("SELECT /*+ REBALANCE(PULocationID) */ * FROM trips").write.parquet(out)
+```
+
+- **Without statistics, the optimizer knows only sizes.** A filter does not change the size estimate, so a small filtered result never looks small.
+- **`ANALYZE TABLE` stores sizes, rows and column statistics, and CBO uses them.** Without a histogram, a filter estimate assumes values spread evenly between the minimum and the maximum, and it can be wrong by orders of magnitude. A histogram fixed five of six estimates in Step 3.
+- **Better estimates change the plan before it runs.** CBO selected a broadcast for 82 rows that AQE left as a sort-merge join. It also reordered three joins, so that the first join kept 210 rows instead of 3.7 million.
+- **The cost model is only as good as its estimates.** With histograms on the join keys, the estimate for a join was larger than both inputs, and CBO kept the written order.
+- **DPP turns a filter on a dimension into a filter on the partitions of a fact table.** It needs a selective predicate on the dimension, or (new in 4.3) a small local relation, and a broadcast that it can reuse.
+- **Buckets and storage-partitioned joins remove the shuffle** when both sides have the same layout on the join key. Spark can group buckets when one count is a multiple of the other.
+- **Hints win over estimates, and the planner ignores a hint that cannot apply.** Read the plan after each hint. `REBALANCE` before a write gives files of a useful size.
+
+## Further reading
+
+- [Performance tuning for Spark SQL](https://spark.apache.org/docs/4.3.0/sql-performance-tuning.html): statistics, join hints, coalesce hints, AQE, storage partition join.
+- [ANALYZE TABLE](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-aux-analyze-table.html) and [hints](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-qry-select-hints.html) in the SQL reference.
+- [Bucketing and partitioning](https://spark.apache.org/docs/4.3.0/sql-data-sources-load-save-functions.html#bucketing-sorting-and-partitioning) in the data source guide.
+- The 4.3.0 source: `statsEstimation/` (`FilterEstimation.scala`, `JoinEstimation.scala`, `SizeInBytesOnlyStatsPlanVisitor.scala`), `CostBasedJoinReorder.scala`, `dynamicpruning/PartitionPruning.scala`, `adaptive/PlanAdaptiveDynamicPruningFilters.scala`, `bucketing/CoalesceBucketsInJoin.scala`, `DataSourceScanExec.scala`, and `ResolveHints.scala`.
+- [Chapter 11](ch11-joins.md) for the join strategies and their measured times, [Chapter 32](ch32-query-plans.md) for plans and AQE, [Chapter 45](ch45-iceberg.md) for the Iceberg runtime.

@@ -63,7 +63,7 @@ def run(sql, label):
     m = scan_metrics()
     work, inb = last_query_work()
     print(f"  {label:24} partitions read {m.get('number of partitions read', '?'):>4}  rows out of scan {m.get('number of output rows', '?'):>11}"
-          f"  input {inb / 2**20:6.1f} MiB  task time {work:5.1f} s  wall {t:.2f} s")
+          f"  task time {work:5.1f} s  wall {t:.2f} s")
     return t
 
 
@@ -116,7 +116,7 @@ print(f"  partitions read {m.get('number of partitions read', '?')}, files read 
 print("\n=== 5. new in 4.3: a small local relation as the filtering side, with no filter at all (SPARK-54593)")
 hol = spark.sql("""SELECT * FROM VALUES (DATE'2026-01-01'), (DATE'2026-01-19'), (DATE'2026-02-16'),
                    (DATE'2026-05-25'), (DATE'2026-06-19') AS h(pickup_date)""")
-print("  the filtering side: " + plan(hol, "extended").split("== Optimized Logical Plan ==")[1].strip().splitlines()[0][:60])
+print("  the filtering side: " + clean(plan(hol, "extended").split("== Optimized Logical Plan ==")[1].strip().splitlines()[0])[:60])
 for cbo in ("false", "true"):
     spark.conf.set("spark.sql.cbo.enabled", cbo)
     q = spark.table("trips_by_day").join(hol, "pickup_date").groupBy("pickup_date").agg(F.avg("tip_amount"))
