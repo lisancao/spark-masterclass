@@ -1,0 +1,58 @@
+same answer from both: True   hour 18: (18, (262898, 20.29))
+
+median of 5 runs over 3,837,248 rows:
+  rdd (Python lambdas)           12.71 s
+  dataframe                       0.28 s    45.7x faster than rdd
+  dataframe, wholeStage=false     0.29 s     1.1x slower than with codegen
+
+range(400M), filter, sum:  codegen on  0.14 s   off  1.52 s   11.0x slower without it
+
+what Spark knows about the RDD version (toDebugString):
+(16) PythonRDD[349] at RDD at PythonRDD.scala:59 []
+ |   MapPartitionsRDD[348] at mapPartitions at PythonRDD.scala:197 []
+ |   ShuffledRDD[347] at partitionBy at NativeMethodAccessorImpl.java:0 []
+ +-(16) PairwiseRDD[346] at sortByKey at rdd_vs_df.py:32 []
+    |   PythonRDD[345] at sortByKey at rdd_vs_df.py:32 []
+    |   MapPartitionsRDD[342] at mapPartitions at PythonRDD.scala:197 []
+    |   ShuffledRDD[341] at partitionBy at NativeMethodAccessorImpl.java:0 []
+    +-(16) PairwiseRDD[340] at reduceByKey at rdd_vs_df.py:30 []
+       |   PythonRDD[339] at reduceByKey at rdd_vs_df.py:30 []
+       |   MapPartitionsRDD[7] at javaToPython at NativeMethodAccessorImpl.java:0 []
+       |   MapPartitionsRDD[6] at javaToPython at NativeMethodAccessorImpl.java:0 []
+       |   SQLExecutionRDD[5] at javaToPython at NativeMethodAccessorImpl.java:0 []
+       |   MapPartitionsRDD[4] at javaToPython at NativeMethodAccessorImpl.java:0 []
+       |   MapPartitionsRDD[3] at javaToPython at NativeMethodAccessorImpl.java:0 []
+       |   FileScanRDD[2] at javaToPython at NativeMethodAccessorImpl.java:0 []
+what Spark knows about the DataFrame version (explain extended):
+== Parsed Logical Plan ==
+'Sort ['hour ASC NULLS FIRST], true
++- Aggregate [hour(tpep_pickup_datetime#1, Some(America/Los_Angeles))], [hour(tpep_pickup_datetime#1, Some(America/Los_Angeles)) AS hour#635, count(1) AS trips#636L, round(avg(fare_amount#10), 2) AS avg_fare#637]
+   +- Filter (fare_amount#10 > cast(0 as double))
+      +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== Analyzed Logical Plan ==
+hour: int, trips: bigint, avg_fare: double
+Sort [hour#635 ASC NULLS FIRST], true
++- Aggregate [hour(tpep_pickup_datetime#1, Some(America/Los_Angeles))], [hour(tpep_pickup_datetime#1, Some(America/Los_Angeles)) AS hour#635, count(1) AS trips#636L, round(avg(fare_amount#10), 2) AS avg_fare#637]
+   +- Filter (fare_amount#10 > cast(0 as double))
+      +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== Optimized Logical Plan ==
+Sort [hour#635 ASC NULLS FIRST], true
++- Aggregate [_groupingexpression#661], [_groupingexpression#661 AS hour#635, count(1) AS trips#636L, round(avg(fare_amount#10), 2) AS avg_fare#637]
+   +- Project [fare_amount#10, hour(tpep_pickup_datetime#1, Some(America/Los_Angeles)) AS _groupingexpression#661]
+      +- Filter (isnotnull(fare_amount#10) AND (fare_amount#10 > 0.0))
+         +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- Sort [hour#635 ASC NULLS FIRST], true, 0
+   +- Exchange rangepartitioning(hour#635 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id=1475]
+      +- HashAggregate(keys=[_groupingexpression#661], functions=[count(1), avg(fare_amount#10)], output=[hour#635, trips#636L, avg_fare#637])
+         +- Exchange hashpartitioning(_groupingexpression#661, 200), ENSURE_REQUIREMENTS, [plan_id=1472]
+            +- HashAggregate(keys=[_groupingexpression#661], functions=[partial_count(1), partial_avg(fare_amount#10)], output=[_groupingexpression#661, count#665L, sum#666, count#667L])
+               +- Project [fare_amount#10, hour(tpep_pickup_datetime#1, Some(America/Los_Angeles)) AS _groupingexpression#661]
+                  +- Filter (isnotnull(fare_amount#10) AND (fare_amount#10 > 0.0))
+                     +- FileScan parquet [tpep_pickup_datetime#1,fare_amount#10] Batched: true, DataFilters: [isnotnull(fare_amount#10), (fare_amount#10 > 0.0)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [IsNotNull(fare_amount), GreaterThan(fare_amount,0.0)], ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,fare_amount:double>
+
+
