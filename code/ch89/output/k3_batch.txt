@@ -10,18 +10,18 @@ end offsets: {0: 1021, 1: 1159, 2: 898, 3: 560, 4: 146, 5: 229}
 +---------+---------+-------------------+
 |partition|avg_miles|first_pickup       |
 +---------+---------+-------------------+
-|0        |3.75     |2026-06-10 07:25:03|
-|1        |4.55     |2026-06-10 06:53:49|
-|2        |4.15     |2026-06-10 07:35:21|
-|3        |2.27     |2026-06-10 07:35:41|
-|4        |1.58     |2026-06-10 08:19:37|
+|0        |3.02     |2026-06-10 07:25:03|
+|1        |2.51     |2026-06-10 07:09:45|
+|2        |2.28     |2026-06-10 07:36:19|
+|3        |2.85     |2026-06-10 07:35:41|
+|4        |1.14     |2026-06-10 08:21:40|
 |5        |2.13     |2026-06-10 07:30:35|
 +---------+---------+-------------------+
 
-4. A fixed range gives the same rows each time. 'latest' is resolved again at each action:
-   before: latest range 4013, fixed range 359
+4. Spark resolves latest (and -1) again at each action:
+   before: latest range 4013, JSON range (p5 ends at -1) 359
    509 trips published
-   after:  latest range 4522, fixed range 465
+   after:  latest range 4522, JSON range (p5 ends at -1) 465
 
 5. Options that one mode does not accept:
    batch, startingOffsets=latest   IllegalArgumentException: starting offset can't be latest for batch queries on

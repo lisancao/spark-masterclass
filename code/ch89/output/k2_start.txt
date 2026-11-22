@@ -1,6 +1,6 @@
-delivery 1: 995 trips, sent after t=1795387927214
-delivery 2: 911 trips, sent after t=1795387933700
-delivery 3: 1018 trips, sent after t=1795387936277
+delivery 1: 995 trips, sent after t=1795389940711
+delivery 2: 911 trips, sent after t=1795389948991
+delivery 3: 1018 trips, sent after t=1795389951484
 end offsets per partition (kafka-get-offsets): {0: 925, 1: 1018, 2: 598, 3: 383} total 2924
 
 A new query on each line (availableNow, new checkpoint):
@@ -12,7 +12,7 @@ A new query on each line (availableNow, new checkpoint):
   startingTimestamp=t2         1929 rows  p0=616 p1=663 p2=402 p3=248
   startingOffsetsByTimestamp   1510 rows  p0=307 p1=663 p2=402 p3=138
   timestamp in the future       StreamingQueryException: [STREAM_FAILED] ... No offset matched from request of topic-
-  partition trips-3 and timestamp 1795391538386. SQLSTATE: XXKST
+  partition trips-3 and timestamp 1795393553901. SQLSTATE: XXKST
   future, strategy latest         0 rows  p0=0 p1=0 p2=0 p3=0
   (JSON: p0 from offset 100, p1 earliest (-2), p2 latest (-1), p3 from offset 300, then 500)
 

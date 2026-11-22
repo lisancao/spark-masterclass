@@ -22,21 +22,25 @@ def start(name, **opts):
 
 
 def groups():
-    return sorted(g for g in kafka("cli", "kafka-consumer-groups", "--list").split() if g.startswith(("spark", "my", "shared")))
+    return sorted(kafka("cli", "kafka-consumer-groups", "--list").split())
 
 
 before = set(groups())
 q = start("plain")
 time.sleep(9)
-new = [g for g in groups() if g not in before]
-print("1. Consumer groups that appeared while the query ran:")
-for g in new:
-    print("   ", g)
-print("\n2. kafka-consumer-groups --describe for that group:")
-for g in new:
-    out = kafka("cli", "kafka-consumer-groups", "--describe", "--group", g, check=False)
-    for line in out.strip().splitlines():
-        print("   ", " ".join(line.split()))
+now = groups()
+print("1. kafka-consumer-groups --list while the query ran:", now or "(no groups)")
+print("   query progress so far:", [(x.batchId, x.numInputRows) for x in q.recentProgress if x.numInputRows])
+
+print("\n2. For contrast, a plain Kafka consumer with a group (kafka-console-consumer):")
+import subprocess
+subprocess.run(["docker", "exec", "sm-v3stream-kafka", "/opt/kafka/bin/kafka-console-consumer.sh",
+                "--bootstrap-server", "localhost:9092", "--topic", "trips4", "--group", "cli-reader",
+                "--from-beginning", "--max-messages", "300"], capture_output=True, check=True)
+print("   --list:", groups())
+out = kafka("cli", "kafka-consumer-groups", "--describe", "--group", "cli-reader", check=False)
+for line in out.strip().splitlines()[:5]:
+    print("   ", " ".join(line.split()[:6]))
 
 print("\n3. The lag, from Spark's own progress report (source metrics):")
 p = q.lastProgress
@@ -51,9 +55,7 @@ q2 = start("prefixed", groupIdPrefix="myteam-orders")
 q3 = start("forced", **{"kafka.group.id": "shared-reader"})
 time.sleep(7)
 print("\n4. groupIdPrefix and kafka.group.id:")
-for g in groups():
-    if g not in before or g == "shared-reader":
-        print("   ", g)
+print("    --list while both run:", groups())
 print("    progress of the query with kafka.group.id:", [(x.batchId, x.numInputRows) for x in q3.recentProgress][:4])
 q2.stop()
 q3.stop()
