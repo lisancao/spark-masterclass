@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from pyspark import cloudpickle
 from pyspark.sql import Observation, functions as F
-from common.book import session, ui_api, TRIPS, ZONES
+from common.book import session, TRIPS, ZONES
 
 spark = session("ch90-shared", spark_ui_showConsoleProgress="false")
 sc = spark.sparkContext

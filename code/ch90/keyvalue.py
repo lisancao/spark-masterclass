@@ -17,6 +17,7 @@ from common.book import session, ui_api, TRIPS
 
 spark = session("ch90-keyvalue", spark_ui_showConsoleProgress="false")
 sc = spark.sparkContext
+PORT = sc.uiWebUrl.rsplit(":", 1)[1]                        # the port this app got
 RUNS = 5
 
 pairs = (spark.read.parquet(str(TRIPS)).select("PULocationID", "fare_amount")
@@ -26,10 +27,10 @@ n = pairs.count()
 
 def shuffle_of(fn):
     """Run fn once and sum the shuffle metrics of the stages it ran (from the REST API)."""
-    seen = {s["stageId"] for s in ui_api("stages")}
+    seen = {s["stageId"] for s in ui_api("stages", PORT)}
     out = fn()
     time.sleep(1.5)                                           # let the listener bus catch up
-    new = [s for s in ui_api("stages") if s["stageId"] not in seen and s["status"] == "COMPLETE"]
+    new = [s for s in ui_api("stages", PORT) if s["stageId"] not in seen and s["status"] == "COMPLETE"]
     return out, {k: sum(s[k] for s in new) for k in
                  ("shuffleWriteBytes", "shuffleWriteRecords", "shuffleReadRecords")}
 

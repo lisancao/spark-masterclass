@@ -17,6 +17,7 @@ from common.book import session, ui_api, TRIPS
 
 spark = session("ch90-persist", spark_ui_showConsoleProgress="false")
 sc = spark.sparkContext
+PORT = sc.uiWebUrl.rsplit(":", 1)[1]                        # the port this app got
 here = str(Path(__file__).resolve().parent) + "/"
 rows = spark.read.parquet(str(TRIPS)).select("PULocationID", "fare_amount", "tip_amount").rdd.map(tuple)
 
@@ -42,7 +43,7 @@ print(f"  {'no persist (from file)':22} {'':>10} {'':>10} {'':>7} {scan(rows):6.
 for name in ("MEMORY_ONLY", "MEMORY_AND_DISK", "DISK_ONLY", "MEMORY_ONLY_2"):
     p = rows.map(lambda x: x).setName(name).persist(getattr(StorageLevel, name))
     p.count()
-    info = [r for r in ui_api("storage/rdd") if r["name"] == name][0]
+    info = [r for r in ui_api("storage/rdd", PORT) if r["name"] == name][0]
     print(f"  {name:22} {info['memoryUsed'] / 2**20:7.1f} MiB {info['diskUsed'] / 2**20:7.1f} MiB "
           f"{info['numCachedPartitions']:>3}/{info['numPartitions']:<3} {scan(p):6.2f}s")
     p.unpersist(blocking=True)
