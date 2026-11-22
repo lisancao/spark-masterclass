@@ -33,7 +33,7 @@ def run(df, label):
     print(f"{len(rows)} rows; {len(jobs)} jobs; " + ", ".join(ran))
     return rows
 
-WANT = set(sys.argv[1:])   # e.g. "join skew": run only those sections
+WANT = set(sys.argv[1:]) or {"coalesce", "join", "skew", "actions", "settings"}   # e.g. "join skew"
 
 
 def want(name):
@@ -82,6 +82,31 @@ if want("join"):
     right_rows = big_fares.select("PULocationID").collect()
     print(f"\nthe right side at run time: {len(right_rows)} rows in {len(set(r[0] for r in right_rows))} pickup zones,"
           f" so at most {len(set(r[0] for r in right_rows))} of 200 shuffle partitions hold data")
+
+# 2b. The same join in a short form, for the film: one line per setting.
+if want("joinbrief"):
+    big_fares = (trips.where(F.col("fare_amount") > 500)
+                 .select("PULocationID", "fare_amount", "tip_amount", "trip_distance", "tpep_pickup_datetime"))
+    all_trips = trips.select("PULocationID", "DOLocationID", "total_amount", "tolls_amount",
+                             F.col("tpep_dropoff_datetime").alias("dropoff"))
+    rows = big_fares.select("PULocationID").collect()
+    zones_hit = len({r[0] for r in rows})
+    print(f"right side at run time: {len(rows)} rows, {zones_hit} zones: {zones_hit} of 200 partitions hold data")
+    for ratio in ("0.2", "0.0"):
+        spark.conf.set("spark.sql.adaptive.nonEmptyPartitionRatioForBroadcastJoin", ratio)
+        q = all_trips.join(big_fares, "PULocationID").groupBy("DOLocationID").agg(
+            F.count("*"), F.max("fare_amount"), F.max("tip_amount"), F.max("trip_distance"),
+            F.max("tpep_pickup_datetime"), F.sum("total_amount"), F.max("tolls_amount"), F.max("dropoff"))
+        join_of = lambda t: next(w for w in ("BroadcastHashJoin", "SortMergeJoin") if w in t)
+        before = join_of(plan(q, "simple"))
+        label = f"aqe joinbrief {ratio}"
+        spark.sparkContext.setJobDescription(label)
+        q.collect()
+        jobs = len([j for j in ui_api("jobs") if j.get("description") == label])
+        after = plan(q, "simple").split("== Initial Plan ==")[0]
+        local = ", AQEShuffleRead local" if "AQEShuffleRead local" in after else ""
+        print(f"ratio {ratio}: planned {before}, ran {join_of(after)}, {jobs} jobs{local}")
+    spark.conf.unset("spark.sql.adaptive.nonEmptyPartitionRatioForBroadcastJoin")
 
 # 3. Skew: pickup zones are very uneven, so force a sort-merge join and let AQE split the big ones.
 if want("skew"):

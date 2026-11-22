@@ -1,4 +1,4 @@
-# Spark Masterclass, Chapter 18: reading query plans. Storyboard: storyboard-part04.md.
+# Spark Masterclass, Chapter 18: reading query plans. 
 #   film render code/film/ch18.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
@@ -23,7 +23,7 @@ Type "clear" Enter
 Show
 Type "# the same join twice: AQE keeps sort-merge, then switches to broadcast" Enter
 Sleep 500ms
-Type "python ch18/aqe.py join 2>/dev/null | grep -E '^-- |^the right|Join \[|AQEShuffleRead local' | grep -v 'grouped by PU' | cut -c1-94" Enter
+Type "python ch18/aqe.py joinbrief 2>/dev/null"
 Wait@180s
 Sleep 12s
 

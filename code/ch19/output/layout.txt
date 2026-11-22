@@ -1,3 +1,4 @@
+input partitions: 16
 
 how                                            folders  files  min/folder  max/folder
 plain write                                         30     63           2           3

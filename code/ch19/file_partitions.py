@@ -17,10 +17,18 @@ shutil.rmtree(OUT, ignore_errors=True)
 MB = 1024 * 1024
 
 
-def predict(sizes, splittable=True, max_bytes=128 * MB, open_cost=4 * MB, min_parts=None):
+def predict(sizes, splittable=True, max_bytes=128 * MB, open_cost=4 * MB, min_parts=None, max_num=None):
     """FilePartition.maxSplitBytes and getFilePartitions, in Python."""
     total = sum(s + open_cost for s in sizes)
     max_split = min(max_bytes, max(open_cost, total // (min_parts or CORES)))
+    parts = pack(sizes, splittable, max_split, open_cost)
+    if max_num and parts > max_num:          # rescale: ignore maxPartitionBytes, aim at max_num
+        max_split = -(-total // max_num)
+        parts = pack(sizes, splittable, max_split, open_cost)
+    return parts, max_split
+
+
+def pack(sizes, splittable, max_split, open_cost):
     pieces = []
     for s in sizes:
         if splittable:
@@ -33,7 +41,7 @@ def predict(sizes, splittable=True, max_bytes=128 * MB, open_cost=4 * MB, min_pa
         if current is None or current + p > max_split:
             parts, current = parts + 1, 0
         current += p + open_cost
-    return parts, max_split
+    return parts
 
 
 def files(path, pattern="*"):
@@ -72,10 +80,9 @@ for label, fmt, path, conf in CASES:
     splittable = not str(fs[0]).endswith(".gz")
     kw = {"max_bytes": int(conf.get("spark.sql.files.maxPartitionBytes", 128 * MB)),
           "open_cost": int(conf.get("spark.sql.files.openCostInBytes", 4 * MB)),
-          "min_parts": int(conf["spark.sql.files.minPartitionNum"]) if "spark.sql.files.minPartitionNum" in conf else None}
+          "min_parts": int(conf["spark.sql.files.minPartitionNum"]) if "spark.sql.files.minPartitionNum" in conf else None,
+          "max_num": int(conf["spark.sql.files.maxPartitionNum"]) if "spark.sql.files.maxPartitionNum" in conf else None}
     predicted, max_split = predict(sizes, splittable, **kw)
-    if "spark.sql.files.maxPartitionNum" in conf:
-        predicted = f">{conf['spark.sql.files.maxPartitionNum']}"
     df = spark.read.option("header", True).format(fmt).load(str(path))
     actual = df.rdd.getNumPartitions()
     print(f"{label:<38}{len(fs):>6}{sum(sizes) / MB:>8.1f}{max_split / MB:>10.1f}M{predicted:>11}{actual:>8}")

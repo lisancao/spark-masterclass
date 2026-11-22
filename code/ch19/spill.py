@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from common.book import session, ui_api, TRIPS
 
-spark = session("ch19-spill")
+spark = session("ch19-spill", spark_ui_showConsoleProgress="false")
 trips = spark.read.parquet(str(TRIPS))       # June: 3,837,248 rows, 20 columns
 print("heap:", spark._jvm.java.lang.Runtime.getRuntime().maxMemory() // 2**20, "MiB;",
       "storage+execution pool:", ui_api("executors")[0]["maxMemory"] // 2**20, "MiB")

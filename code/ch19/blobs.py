@@ -51,7 +51,7 @@ try:
     spark.read.format("binaryFile").load(str(DIR / "f300.bin")).select(F.length("content")).collect()
 except Exception as e:
     line = next(l.strip() for l in str(e).splitlines() if "exceeds the max length" in l)
-    print("with maxLength 200 MiB, f300.bin:", line.replace("file:" + str(DIR) + "/", "")[-90:])
+    print("with maxLength 200 MiB, f300.bin:", line.split("SparkException: ")[-1].replace("file:" + str(DIR) + "/", ""))
 spark.stop()
 
 print("\na fresh driver with the default 1g heap, one file each:")

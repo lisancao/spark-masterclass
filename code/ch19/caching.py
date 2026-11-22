@@ -10,7 +10,10 @@ from pyspark import StorageLevel
 from pyspark.sql import functions as F
 from common.book import session, plan, ui_api, TAXI, MONTH_START, MONTH_END
 
-spark = session("ch19-caching", spark_sql_session_timeZone="UTC")
+# 4g: with the default 1g heap and 16 task slots, building the cache of six months failed with
+# OutOfMemoryError in one run (see the part notes).
+spark = session("ch19-caching", spark_sql_session_timeZone="UTC", spark_driver_memory="4g",
+                spark_ui_showConsoleProgress="false")
 H1 = str(TAXI / "yellow-h1")
 
 
@@ -45,21 +48,55 @@ print(f"  {info['numCachedPartitions']}/{info['numPartitions']} partitions cache
       f"level '{info['storageLevel']}'")
 
 
-def median_ms(df, runs=7):
-    df.collect()
+def median_ms(build, runs=7):
+    """Median wall time of collect() on a new DataFrame from build(), after one warm-up run.
+
+    Each run builds a new DataFrame. A second collect() on the same DataFrame object reuses the
+    shuffle files of the first one, and the scheduler skips those stages (see below).
+    """
+    build().collect()
     ts = []
     for _ in range(runs):
+        df = build()
         t = time.perf_counter(); df.collect(); ts.append(time.perf_counter() - t)
     return statistics.median(ts) * 1000
 
 
 query = lambda d: d.groupBy("PULocationID").agg(F.avg("tip_amount"), F.count("*"))
-print("\nthe same aggregate, median of 7 runs after a warm-up:")
-print(f"  from the cache            {median_ms(query(clean)):7.0f} ms")
-print(f"  a new DataFrame, same plan {median_ms(query(cleaned())):6.0f} ms   (cache matched by plan)")
-other = spark.read.parquet(H1).where(F.col("fare_amount") > 0)
-print(f"  a different plan          {median_ms(query(other)):7.0f} ms   (reads the files)")
-print("  same plan, InMemoryTableScan:", "InMemoryTableScan" in plan(query(cleaned()), "simple"))
+other = lambda: spark.read.parquet(H1).where(F.col("fare_amount") > 0)
+print("\na cheap aggregate, median of 7 runs after a warm-up:")
+print(f"  from the cache             {median_ms(lambda: query(clean)):6.0f} ms")
+print(f"  a new DataFrame, same plan {median_ms(lambda: query(cleaned())):6.0f} ms   (cache matched by plan)")
+print(f"  a different plan           {median_ms(lambda: query(other())):6.0f} ms   (reads the Parquet files)")
+print("  same plan, InMemoryTableScan:", "InMemoryTableScan" in plan(query(cleaned()), "simple"),
+      "| different plan:", "InMemoryTableScan" in plan(query(other()), "simple"))
+
+
+def routes(d):
+    """An expensive step: one row per route and hour, after a shuffle of all trips."""
+    return (d.withColumn("hour", F.date_trunc("hour", "tpep_pickup_datetime"))
+            .groupBy("PULocationID", "DOLocationID", "hour")
+            .agg(F.count("*").alias("n"), F.sum("fare_amount").alias("fares")))
+
+
+small = lambda d: d.where(F.col("n") > 20).agg(F.sum("fares"))
+print(f"\nan expensive step (a shuffle into {routes(clean).count():,} route-hours), then a small query on it:")
+print(f"  recomputed each time       {median_ms(lambda: small(routes(clean)), runs=5):6.0f} ms")
+again = small(routes(clean))
+again.collect()
+t = time.perf_counter(); again.collect(); second = (time.perf_counter() - t) * 1000
+label = "same object again"
+spark.sparkContext.setJobDescription(label)
+again.collect()
+skipped = sum(len(j.get("skippedStages", [])) if isinstance(j.get("skippedStages"), list) else j.get("numSkippedStages", 0)
+              for j in ui_api("jobs") if j.get("description") == label)
+spark.sparkContext.setJobDescription(None)
+print(f"  the same DataFrame object, collect() again {second:6.0f} ms   (skipped stages: {skipped})")
+heavy = routes(clean).cache()
+heavy.count()
+print(f"  from a cache of the step   {median_ms(lambda: small(routes(clean)), runs=5):6.0f} ms   (InMemoryTableScan: "
+      f"{'InMemoryTableScan' in plan(small(routes(clean)), 'simple')})")
+heavy.unpersist()
 
 # A second persist() with another level does nothing.
 clean.persist(StorageLevel.DISK_ONLY)
@@ -101,4 +138,6 @@ print(f"  after refreshByPath: old DataFrame counts {df.count():,}")
 try:
     df.count()
 except Exception as e:
-    print("  a listed file is deleted:", str(e).split("\n")[0][:110])
+    import re
+    cond = re.search(r"\[([A-Z_.]+)\]", str(e))
+    print("  a listed file is deleted:", cond.group(1) if cond else str(e).splitlines()[0][:100])

@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from pyspark.sql import functions as F
 from common.book import session, plan, ui_api, TAXI
 
-spark = session("ch19-repartition")
+spark = session("ch19-repartition", spark_driver_memory="4g", spark_ui_showConsoleProgress="false")
 trips = spark.read.parquet(str(TAXI / "yellow-h1"))     # six months, 6 files
 print("input partitions:", trips.rdd.getNumPartitions())
 
