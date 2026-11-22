@@ -17,7 +17,7 @@ This chapter builds the protocol from the smallest source to a parallel reader f
  The scripts are in [`code/ch47`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch47). All output in this chapter comes from `code/ch47/output/`, from runs on `pyspark==4.3.0` in local mode on a 16-core machine.
 
 !!! note "New in 4.3"
-    The Python Data Source API in Spark 4.3.0 is the same as in Spark 4.2.0. Between the `v4.2.0` and `v4.3.0` tags, the Python data source code has only one change. SPARK-58019 is a follow-up that converts Arrow list columns to Python rows in bulk for data source writes. Filter pushdown is from 4.1 (SPARK-51271). Admission control and `Trigger.AvailableNow` for stream readers are from 4.2 (SPARK-55304).
+    The Python Data Source API in Spark 4.3.0 is the same as in Spark 4.2.0. Between the `v4.2.0` and `v4.3.0` tags, the Python data source code has only one functional change. The other change corrects docstrings. SPARK-58019 is a follow-up that converts Arrow list columns to Python rows in bulk for data source writes. Filter pushdown is from 4.1 (SPARK-51271). Admission control and `Trigger.AvailableNow` for stream readers are from 4.2 (SPARK-55304).
 
     Single-task execution (`spark.sql.optimizer.singleTaskExecution.enabled`, new in 4.3 and off by default) does not apply to a Python data source. The rule `MarkSingleTaskExecution` marks only file scans and local relations. `feather_check.py` turns the flag on. A Python source with three partitions still runs three tasks, and its `groupBy` still has an `Exchange`. The zones CSV file under the same flag has no `Exchange`:
 
