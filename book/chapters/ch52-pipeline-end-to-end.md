@@ -124,7 +124,7 @@ The three runs show how a sink behaves:
 
 - **Run 1** sent the two shipped orders of the first two files.
 - **Run 2** read one new bronze row with the status `shipped`, and sent only that row. The sink flow has its own checkpoint, as each streaming flow has.
-- **The full refresh** cleared all tables and computed them again. Bronze and silver have the same rows as before. The sink flow got a new checkpoint version (`0 1`), so it read all shipped orders from bronze again. But the feed still has 3 rows. A JSON sink is a file sink, and a file sink keeps its own log of batches in `_spark_metadata`. The new checkpoint started again at batch 0, the log already had batches 0 and 1, and the file sink skipped them. This is the mechanism of the lost rows in Chapter 49, Step 6.
+- **The full refresh** cleared all tables and computed them again. Bronze and silver have the same rows as before. The sink flow got a new checkpoint version (`0 1`), so it read all shipped orders from bronze again. But the feed still has 3 rows. A JSON sink is a file sink, and a file sink keeps its own log of batches in `_spark_metadata`. The new checkpoint started again at batch 0, the log already had batches 0 and 1, and the file sink skipped them. This is the mechanism of the lost rows in [Chapter 49](ch49-declarative-pipelines.md), Step 6.
 
 <figure markdown>
   ![The checkpoint versions and batch IDs of the sink flow, and the file sink log, in the three runs](../media/figures/ch52-sink-log-light.svg#only-light)
@@ -208,7 +208,7 @@ The plans are not analyzed on the client. Each `DefineFlow` holds the same unres
 
 ## Step 4: The server registers the graph
 
-`PipelinesHandler` (`sql/connect/server/src/main/scala/org/apache/spark/sql/connect/pipelines/PipelinesHandler.scala`) receives each command. `CreateDataflowGraph` makes a `GraphRegistrationContext` and keeps it in the `DataflowGraphRegistry` of the session. Each `DefineOutput` and `DefineFlow` adds a `Table`, `TemporaryView`, `Sink` or `Flow` object to it. `DefineSqlGraphElements` parses the SQL with `SqlGraphRegistrationContext` and adds the same objects. A SQL statement that is not a pipeline statement fails here. That is the error of Chapter 17, Step 10: `PIPELINE_SQL_GRAPH_ELEMENT_REGISTRATION_ERROR` for the plan `CreateMetricView`.
+`PipelinesHandler` (`sql/connect/server/src/main/scala/org/apache/spark/sql/connect/pipelines/PipelinesHandler.scala`) receives each command. `CreateDataflowGraph` makes a `GraphRegistrationContext` and keeps it in the `DataflowGraphRegistry` of the session. Each `DefineOutput` and `DefineFlow` adds a `Table`, `TemporaryView`, `Sink` or `Flow` object to it. `DefineSqlGraphElements` parses the SQL with `SqlGraphRegistrationContext` and adds the same objects. A SQL statement that is not a pipeline statement fails here. That is the error of [Chapter 17](ch17-metric-views.md), Step 10: `PIPELINE_SQL_GRAPH_ELEMENT_REGISTRATION_ERROR` for the plan `CreateMetricView`.
 
 Nothing in the catalog changes during registration. The graph is only a set of objects in the memory of the server, for this session.
 
@@ -235,7 +235,7 @@ sequenceDiagram
 ```
 
 1. **Resolve.** `DataflowGraph.resolve` analyzes each flow with the schemas of its inputs. An input in the same graph gives its schema from its own resolved flow, so the order of resolution follows the dependencies. A flow that reads a name or a column that does not exist fails to resolve.
-2. **Validate.** `DataflowGraph.validate` runs a list of checks (`GraphValidations.scala`). The first check, `validateSuccessfulFlowAnalysis`, collects the flows that failed to resolve. It looks for a cycle among them first. Then it separates the flows with their own errors from the flows that failed only because of an upstream flow. This order is why a dry run reports a cycle first (Chapter 49, Step 7). The other checks make sure of these rules:
+2. **Validate.** `DataflowGraph.validate` runs a list of checks (`GraphValidations.scala`). The first check, `validateSuccessfulFlowAnalysis`, collects the flows that failed to resolve. It looks for a cycle among them first. Then it separates the flows with their own errors from the flows that failed only because of an upstream flow. This order is why a dry run reports a cycle first ([Chapter 49](ch49-declarative-pipelines.md), Step 7). The other checks make sure of these rules:
 
     - User schemas agree with the queries.
     - The graph has a topological order.
@@ -245,7 +245,7 @@ sequenceDiagram
 
    
 3. **Reset.** For a full refresh, `State.reset` gives each selected streaming flow, and each flow into a selected sink, a new checkpoint folder with the next number. It does not delete the old folder ([Chapter 47](ch47-pipelines-cli-project.md), Step 8).
-4. **Materialize.** `DatasetManager.materializeDatasets` creates each table that does not exist and changes the schema of each table that does. For each materialized view, and for each table in a full refresh, it runs `TRUNCATE TABLE` first (`materializeTable`). Only a streaming table in an incremental run keeps its data. This is the step that left silver empty in Chapter 50, Step 10: the truncate occurs here, before any flow runs.
+4. **Materialize.** `DatasetManager.materializeDatasets` creates each table that does not exist and changes the schema of each table that does. For each materialized view, and for each table in a full refresh, it runs `TRUNCATE TABLE` first (`materializeTable`). Only a streaming table in an incremental run keeps its data. This is the step that left silver empty in [Chapter 50](ch50-medallion.md), Step 10: the truncate occurs here, before any flow runs.
 5. **Execute.** `TriggeredGraphExecution` runs the flows.
 
 A dry run calls only steps 1 and 2. That is why it writes nothing, and why it cannot find an error that occurs in steps 4 or 5.
@@ -304,7 +304,7 @@ SDP prepares all tables first. Then the flows start. `TriggeredGraphExecution` (
 - At the start, each flow in the refresh selection is `QUEUED`, and each other flow is `EXCLUDED`.
 - In each turn of the loop, a queued flow can start when each upstream flow is `SUCCESSFUL`, `EXCLUDED` or `IDLE`.
 - A semaphore limits the flows that run at the same time to `spark.sql.pipelines.execution.maxConcurrentFlows` (default 16).
-- A flow that fails goes back to the queue for a retry after a wait, up to `spark.sql.pipelines.maxFlowRetryAttempts` times (default 2). The wait grows exponentially, from `spark.sql.pipelines.execution.watchdog.minRetryTime` (default 5 seconds) up to `...maxRetryTime` (default 3600 seconds). These are the retries of the gate in Chapter 50.
+- A flow that fails goes back to the queue for a retry after a wait, up to `spark.sql.pipelines.maxFlowRetryAttempts` times (default 2). The wait grows exponentially, from `spark.sql.pipelines.execution.watchdog.minRetryTime` (default 5 seconds) up to `...maxRetryTime` (default 3600 seconds). These are the retries of the gate in [Chapter 50](ch50-medallion.md).
 - When a flow cannot retry again, each flow downstream of it becomes `SKIPPED`.
 - The run ends when the queue is empty, no flow runs and no flow waits for a retry.
 
@@ -340,7 +340,7 @@ stateDiagram-v2
 | Auto CDC, SCD Type 1 | `Scd1MergeStreamingWrite` | `writeStream` with `foreachBatch`, a `MERGE` for each micro-batch |
 | Auto CDC, SCD Type 2 | `Scd2MergeStreamingWrite` | the same, with the history logic of `Scd2BatchProcessor` |
 
-Each streaming execution uses `Trigger.AvailableNow()` (`TriggeredGraphExecution.streamTrigger`). The query reads all data that is available when it starts, in one or more micro-batches, and then stops. Thus, a pipeline run ends, and a scheduler can start the next one. The query name is the name of the table, which is why the Spark event log of Chapter 50 shows `spark_catalog.default.bronze_orders`.
+Each streaming execution uses `Trigger.AvailableNow()` (`TriggeredGraphExecution.streamTrigger`). The query reads all data that is available when it starts, in one or more micro-batches, and then stops. Thus, a pipeline run ends, and a scheduler can start the next one. The query name is the name of the table, which is why the Spark event log of [Chapter 50](ch50-medallion.md) shows `spark_catalog.default.bronze_orders`.
 
 ## Step 7: How the events come back
 
@@ -348,7 +348,7 @@ Each change of state goes to `FlowProgressEventLogger`, which builds a `Pipeline
 
 - The sender keeps a queue of `spark.sql.pipelines.event.queue.capacity` events (default 1000). When the queue is full, it drops events of flow progress that are not terminal, and writes a warning at most once a minute. Terminal events always go to the client.
 - The event of a failed run does not go to the client as an event. The handler keeps it and throws its exception at the end of `startRun`. That exception is the traceback that the CLI prints after a failed run.
-- The proto message that reaches the client has only a time and a message (Chapter 50, Step 7). The level, the origin and the details stay on the server.
+- The proto message that reaches the client has only a time and a message ([Chapter 50](ch50-medallion.md), Step 7). The level, the origin and the details stay on the server.
 
 ## Step 8: Each behavior, and where it comes from
 
@@ -356,7 +356,7 @@ Each change of state goes to `FlowProgressEventLogger`, which builds a `Pipeline
 |---|---|---|
 | The query function runs once, when the CLI imports the file | client registration | `cli.py` `register_definitions`, the decorators in `api.py` |
 | `SESSION_MUTATION_IN_DECLARATIVE_PIPELINE` | client registration | `block_session_mutations.py` |
-| `dropDuplicates` and `drop` fail with `TABLE_OR_VIEW_NOT_FOUND` | client registration (the Connect client asks for a schema) | Chapter 50, Step 3 |
+| `dropDuplicates` and `drop` fail with `TABLE_OR_VIEW_NOT_FOUND` | client registration (the Connect client asks for a schema) | [Chapter 50](ch50-medallion.md), Step 3 |
 | A dry run reports the cycle first | validate | `GraphValidations.validateSuccessfulFlowAnalysis` |
 | `RUN_EMPTY_PIPELINE`, `PIPELINE_DATASET_WITHOUT_FLOW` | validate | `GraphValidations.scala`, `DataflowGraph.validate` |
 | A full refresh makes a new checkpoint version | reset | `State.reset`, `SystemMetadata.getLatestCheckpointDir` |

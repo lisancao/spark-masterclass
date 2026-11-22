@@ -6,7 +6,7 @@ This chapter opens `state/` file by file. It decodes a state file with the Pytho
 
 **The state store is a versioned key-value store for each partition of each stateful operator. Batch N reads version N and writes version N+1. On disk, each version is a small file of changes, and from time to time a full snapshot. The provider decides the format of these files. The checkpoint fixes the provider, the number of partitions and the state schema at the first batch. Each limit on a change to a stateful query comes from these three facts.**
 
-The scripts are in [`code/ch43`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch43), and each number in the chapter comes from their saved output in `code/ch43/output/`. They use the checkout drops of Chapter 41 and the file source on Spark 4.3.0.
+The scripts are in [`code/ch43`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch43), and each number in the chapter comes from their saved output in `code/ch43/output/`. They use the checkout drops of [Chapter 41](ch41-transform-with-state.md) and the file source on Spark 4.3.0.
 
 ## The query: a count of distinct events per user
 
@@ -323,7 +323,7 @@ The file names now have the form `<version>_<unique ID>.changelog`, and `commits
 
 ## Step 6: transformWithState in RocksDB: column families
 
-A `groupBy` keeps one value for each key. A `transformWithState` processor keeps many state variables for each key, and timers. RocksDB keeps them apart in **column families**. The script reads the latest zip of the `Sessionizer` checkpoint from Chapter 41:
+A `groupBy` keeps one value for each key. A `transformWithState` processor keeps many state variables for each key, and timers. RocksDB keeps them apart in **column families**. The script reads the latest zip of the `Sessionizer` checkpoint from [Chapter 41](ch41-transform-with-state.md):
 
 ```text
 4. The transformWithState checkpoint of Chapter 41 (t2_sessions.py), partition 0:
@@ -344,7 +344,7 @@ The `Sessionizer` declared two variables, `session` and `seen`, and each one has
 - `$eventTimers_keyToTimestamp` holds the timers in the order of the key. Spark uses it to list or delete the timers of one key.
 - `$eventTimers_timestampToKey` holds the same timers in the order of time. To find the expired timers, Spark scans this column family from the start to the watermark. It stops at the first timer that is later.
 
-This design is the reason for the error `STORE_BACKEND_NOT_SUPPORTED_FOR_TWS` in Chapter 41. The HDFS provider has one hash map for each partition, with no column families and no scan in key order.
+This design is the reason for the error `STORE_BACKEND_NOT_SUPPORTED_FOR_TWS` in [Chapter 41](ch41-transform-with-state.md). The HDFS provider has one hash map for each partition, with no column families and no scan in key order.
 
 The operator metadata of `transformWithState` is version 2. It lists the time mode, the output mode and each state variable. It also points to a file in `_stateSchema/` with the schema of each variable. Step 8 changes one of those schemas.
 
@@ -443,7 +443,7 @@ sequenceDiagram
   D->>L: write commits/N (watermark, state IDs in format 2)
 ```
 
-The logs of Chapter 39 and the state of this chapter work together. Spark writes `offsets/N`, then each task commits state version N+1, and then Spark writes `commits/N`. If the driver stops before `commits/N`, the restart runs batch N again from state version N. The files of version N+1 from the failed run are not a problem, because the second run writes them again. Format 2 also gives them new names.
+The logs of [Chapter 39](ch39-structured-streaming.md) and the state of this chapter work together. Spark writes `offsets/N`, then each task commits state version N+1, and then Spark writes `commits/N`. If the driver stops before `commits/N`, the restart runs batch N again from state version N. The files of version N+1 from the failed run are not a problem, because the second run writes them again. Format 2 also gives them new names.
 
 ## The whole chapter, on one page
 

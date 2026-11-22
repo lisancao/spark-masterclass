@@ -4,7 +4,7 @@
 
 **The Spark Connect protocol is small. A request carries a plan as protobuf: a tree of `Relation` and `Expression` messages, or a `Command`. The response is a stream of protobuf messages, and the rows in it are Arrow IPC batches. Because of these two formats, a client is easy to write in any language. They also let a Connect client collect a large result as fast as Classic with Arrow.**
 
-The code is in [`code/ch19`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch19). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. They use the server of Chapter 18 (`code/ch18/server.sh`). The source of the protocol is `sql/connect/common/src/main/protobuf/spark/connect/*.proto` at tag `v4.3.0`. Chapter 21 uses this protocol from other languages, and Chapter 23 writes a client with it.
+The code is in [`code/ch19`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch19). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. They use the server of [Chapter 18](ch18-spark-connect.md) (`code/ch18/server.sh`). The source of the protocol is `sql/connect/common/src/main/protobuf/spark/connect/*.proto` at tag `v4.3.0`. [Chapter 21](ch21-connect-clients.md) uses this protocol from other languages, and [Chapter 23](ch23-writing-a-connect-client.md) writes a client with it.
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch19-anim-round-trip.webp">
@@ -483,7 +483,7 @@ Over Connect, `toPandas()` took 0.64 s, close to Classic with Arrow, and 32 time
 
 `collect()` is different. It makes a Python `Row` object for each row, and that work is the same in all modes. Over Connect, the 1,000,000 rows took 3.17 s, against 3.48 s in Classic. If you want speed from a large result, ask for columns (`toPandas()`, `toArrow()`), not rows.
 
-Arrow also makes the protocol easy for other languages. A client in Go, Rust or Swift reads the same IPC stream with the Arrow library of its language. It does not need a decoder for a Spark format. Chapter 21 shows these clients.
+Arrow also makes the protocol easy for other languages. A client in Go, Rust or Swift reads the same IPC stream with the Arrow library of its language. It does not need a decoder for a Spark format. [Chapter 21](ch21-connect-clients.md) shows these clients.
 
 ## The whole chapter, on one page
 

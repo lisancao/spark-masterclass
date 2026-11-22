@@ -687,7 +687,7 @@ file-level bounds of the geometry column (Iceberg metadata table, field id 3):
 The raw bounds in `lower_bounds` and `upper_bounds` are correct. The `readable_metrics` column of the `files` metadata table fails for a geometry column in this PR build. That is an open problem of the PR, not of Spark. With a spatial predicate, these bounds could skip files. Spark 4.3.0 has no spatial predicate, so the filter on `st_srid` reads all 263 rows.
 
 !!! warning "CAUTION: The Iceberg runtime in this step is not a release"
-    Do not use the PR build in production. The geospatial types in Iceberg v3 need an Iceberg runtime for Spark 4.3, and no Iceberg release has one. Chapter 45 records the build and its checksum.
+    Do not use the PR build in production. The geospatial types in Iceberg v3 need an Iceberg runtime for Spark 4.3, and no Iceberg release has one. [Chapter 45](ch45-iceberg.md) records the build and its checksum.
 
 ## Step 12: Points from messy coordinates
 

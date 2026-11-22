@@ -6,7 +6,7 @@
 
 This chapter takes each part from the source of Spark 4.3.0 and tests it. The CLI source is `python/pyspark/pipelines/cli.py` and `init_cli.py`. The wrapper is `bin/spark-pipelines` and `core/src/main/scala/org/apache/spark/deploy/SparkPipelines.scala`.
 
-The code is in [`code/ch47`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch47). The scripts use the `taxi_etl` project of Chapter 46, with two days of data, and a Connect server with a Hive metastore on port 15104. Each output block comes from `code/ch47/output/`.
+The code is in [`code/ch47`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch47). The scripts use the `taxi_etl` project of [Chapter 46](ch46-first-etl-pipeline.md), with two days of data, and a Connect server with a Hive metastore on port 15104. Each output block comes from `code/ch47/output/`.
 
 ## Step 1: What the command runs
 
@@ -337,7 +337,7 @@ The copied spec found 0 files, because `specs/transformations/` does not exist. 
 
 ## Step 6: The project layout and the `libraries` globs
 
-A project has a spec and source files. The CLI needs nothing more. The layout that `init` makes is a good default, and Chapter 46 added to it:
+A project has a spec and source files. The CLI needs nothing more. The layout that `init` makes is a good default, and [Chapter 46](ch46-first-etl-pipeline.md) added to it:
 
 ```text
 taxi_etl/
@@ -396,7 +396,7 @@ Keep notes and other files outside the folder that a glob loads. The CLI ignores
 
 ### Python and SQL files together
 
-The CLI loads the files in the order that the glob returns them. It sends each SQL file to the server as text (`DefineSqlGraphElements`). It imports each Python file as a module, with the session as `spark`, and each decorator sends one dataset and its flow. The order of the files is not important, because the server resolves the graph only at the start of the run. In Chapter 46, `borough_daily.sql` loaded first, before the tables that it reads.
+The CLI loads the files in the order that the glob returns them. It sends each SQL file to the server as text (`DefineSqlGraphElements`). It imports each Python file as a module, with the session as `spark`, and each decorator sends one dataset and its flow. The order of the files is not important, because the server resolves the graph only at the start of the run. In [Chapter 46](ch46-first-etl-pipeline.md), `borough_daily.sql` loaded first, before the tables that it reads.
 
 A name that a Python file declares is a name for SQL, and the opposite is also true. Do not declare one dataset in two files. [Chapter 49](ch49-declarative-pipelines.md) explains the datasets and flows that each language can declare.
 
@@ -607,7 +607,7 @@ pipeline-storage/_checkpoints/spark_catalog/default/raw_trips
 pipeline-storage/_checkpoints/spark_catalog/default/raw_trips/raw_trips
 ```
 
-A checkpoint is the normal checkpoint of Structured Streaming. Chapter 46 shows the files inside it. [Chapter 43](ch43-checkpoints-and-state-store.md) explains each file.
+A checkpoint is the normal checkpoint of Structured Streaming. [Chapter 46](ch46-first-etl-pipeline.md) shows the files inside it. [Chapter 43](ch43-checkpoints-and-state-store.md) explains each file.
 
 ## Step 10: The CLI and a remote server
 

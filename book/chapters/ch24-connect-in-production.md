@@ -40,7 +40,7 @@ The steps below show what each boundary protects, with the server code of 4.3.0 
 
 ## Step 1: What a session is on the server
 
-When a client connects, the server makes a `SessionHolder` (`sql/connect/server/src/main/scala/org/apache/spark/sql/connect/service/SessionHolder.scala`). The key of a session is the pair `(userId, sessionId)`. The holder contains a new `SparkSession` that the server makes with `newSession()` from the server's own session. A `SparkSession` from `newSession()` shares the `SparkContext` and the `SharedState` (the catalog, the cache manager and the listeners). It has its own `SessionState` (SQL configs, temporary views, the function registry). The holder also has its own artifact manager (Chapter 60, Step 9), its own job tags and its own operations.
+When a client connects, the server makes a `SessionHolder` (`sql/connect/server/src/main/scala/org/apache/spark/sql/connect/service/SessionHolder.scala`). The key of a session is the pair `(userId, sessionId)`. The holder contains a new `SparkSession` that the server makes with `newSession()` from the server's own session. A `SparkSession` from `newSession()` shares the `SparkContext` and the `SharedState` (the catalog, the cache manager and the listeners). It has its own `SessionState` (SQL configs, temporary views, the function registry). The holder also has its own artifact manager ([Chapter 60](ch60-shipping-dependencies.md), Step 9), its own job tags and its own operations.
 
 The figure shows this division. The results on the right of the bottom box come from `isolation.py` in Step 2.
 
@@ -293,7 +293,7 @@ A sandbox for each agent combines the pieces of this chapter:
 - **A token for each server**, held by the platform, not by the agent. A proxy in front of the servers authenticates the agent and sends it only to its own server.
 - **A catalog with grants** for shared data. Spark's built-in catalog has no grants, so a shared catalog that must refuse writes needs a catalog service that enforces them.
 - **Read-only access to production data**, given by the storage credentials of the server, not by the code of the agent.
-- **A short life.** Stop the server when the task ends. Use the REST API and the event log (Chapter 61) as the record of what the agent ran.
+- **A short life.** Stop the server when the task ends. Use the REST API and the event log ([Chapter 61](ch61-observability.md)) as the record of what the agent ran.
 
 [Chapter 64](ch64-pipelines-with-agents.md) uses this sandbox as one of the three parts of a harness for agents that write pipelines.
 

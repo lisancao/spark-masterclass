@@ -551,7 +551,7 @@ Thus, in a Connect deployment, the person who starts the server owns the static 
 
 ## Step 8: The `configuration` key of a pipeline spec
 
-A Spark Declarative Pipelines project has a spec file, `spark-pipeline.yml`. Its `configuration` key holds configurations for the pipeline ([Chapter 49](ch49-declarative-pipelines.md)). Pipeline code must not call `spark.conf.set`. Chapter 49 shows the error. `sdp_conf.sh` runs a pipeline with this spec:
+A Spark Declarative Pipelines project has a spec file, `spark-pipeline.yml`. Its `configuration` key holds configurations for the pipeline ([Chapter 49](ch49-declarative-pipelines.md)). Pipeline code must not call `spark.conf.set`. [Chapter 49](ch49-declarative-pipelines.md) shows the error. `sdp_conf.sh` runs a pipeline with this spec:
 
 ```text
 == spark-pipeline.yml
@@ -597,7 +597,7 @@ The spec value reached the session, and the first flow planned 7 shuffle partiti
 !!! warning "CAUTION"
     In Spark 4.3.0, do a check of the plan before you depend on the `spark_conf` argument of a materialized view. Put configurations that must apply to all flows in the `configuration` key of the spec.
 
-Static configurations, such as `spark.sql.catalogImplementation`, must go to the server when the server starts. Chapter 49 shows this with the Hive metastore.
+Static configurations, such as `spark.sql.catalogImplementation`, must go to the server when the server starts. [Chapter 49](ch49-declarative-pipelines.md) shows this with the Hive metastore.
 
 ## Step 9: A reference table of frequent configurations
 

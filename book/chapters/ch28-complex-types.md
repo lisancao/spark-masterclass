@@ -540,7 +540,7 @@ Spark 4.3 adds an experimental feature, `spark.sql.experimental.optimizer.transp
   transform(xs, x -> py_triple(x)), transpiled   -> UNSUPPORTED_FEATURE.LAMBDA_FUNCTION_WITH_PYTHON_UDF
 ```
 
-In a plain `select`, the plan contains `cast(id as int) * 3`, with no `BatchEvalPython` node. The transpilation worked. But inside a lambda, Spark still refuses the UDF with the same error as before. Thus, in Spark 4.3.0, write the lambda with Spark functions. Chapter 34 explains UDF transpilation in full.
+In a plain `select`, the plan contains `cast(id as int) * 3`, with no `BatchEvalPython` node. The transpilation worked. But inside a lambda, Spark still refuses the UDF with the same error as before. Thus, in Spark 4.3.0, write the lambda with Spark functions. [Chapter 34](ch34-python-udfs-arrow.md) explains UDF transpilation in full.
 
 ## Step 14: `aggregate`: the type of the zero is the type of the result
 
@@ -630,7 +630,7 @@ To get only the latest entry, a shorter method uses the struct comparison from S
 +--------------+-----------------------------+
 ```
 
-Both functions pair the elements by position. If one array is shorter, they add `NULL` to it. `zip_with` calls a lambda on each pair, and `arrays_zip` makes an array of structs. These functions pair arrays inside one row. `DataFrame.zip` in Spark 4.3 pairs the rows of two DataFrames, which is a different operation (Chapter 9).
+Both functions pair the elements by position. If one array is shorter, they add `NULL` to it. `zip_with` calls a lambda on each pair, and `arrays_zip` makes an array of structs. These functions pair arrays inside one row. `DataFrame.zip` in Spark 4.3 pairs the rows of two DataFrames, which is a different operation ([Chapter 9](ch09-dataframes-columns-schemas.md)).
 
 ## Step 18: Maps, and their rules
 
@@ -666,7 +666,7 @@ The map functions follow the same pattern as the array functions. Most of them t
 
 ## Step 19: New in 4.3: which higher-order functions get generated code
 
-Before Spark 4.3, each higher-order function ran as an interpreted expression. Whole-stage code generation compiles the operators of a stage into one Java function (Chapter 32). A `Project` with a higher-order function could not take part in it. Spark 4.3 adds code generation for the array functions (SPARK-37019). The `*(n)` before an operator in the physical plan shows that the operator is in a code generation stage:
+Before Spark 4.3, each higher-order function ran as an interpreted expression. Whole-stage code generation compiles the operators of a stage into one Java function ([Chapter 32](ch32-query-plans.md)). A `Project` with a higher-order function could not take part in it. Spark 4.3 adds code generation for the array functions (SPARK-37019). The `*(n)` before an operator in the physical plan shows that the operator is in a code generation stage:
 
 ```text
 == new in 4.3: which higher-order functions take part in whole-stage codegen ==
@@ -698,7 +698,7 @@ generated Java loop: /* 058 */         for (int project_i_0 = 0; project_i_0 < p
 
 ## Step 20: Nested schema pruning
 
-Parquet keeps each leaf field of a nested type as a separate column (Chapter 36). Thus, a query that reads one field of a struct does not have to read the other fields. The script writes the orders to Parquet and prints the `ReadSchema` of four queries:
+Parquet keeps each leaf field of a nested type as a separate column ([Chapter 36](ch36-parquet-inside.md)). Thus, a query that reads one field of a struct does not have to read the other fields. The script writes the orders to Parquet and prints the `ReadSchema` of four queries:
 
 ```text
 == nested schema pruning: what each query reads from Parquet ==

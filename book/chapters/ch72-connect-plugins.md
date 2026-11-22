@@ -14,7 +14,7 @@ The code is in [`code/ch72`](https://github.com/lisancao/spark-masterclass/tree/
 
 ## Step 1: What works with no plugin
 
-A Connect server is a usual Spark driver. Thus, the client can use each server extension that it can call by name from the DataFrame API or from SQL. `server.sh` starts a server with the `jdocs` jar of Chapter 70 and the `jext` jar and `spark.sql.extensions=jext.Extensions` of Chapter 71. `plugins.py` connects to it and uses both by name:
+A Connect server is a usual Spark driver. Thus, the client can use each server extension that it can call by name from the DataFrame API or from SQL. `server.sh` starts a server with the `jdocs` jar of [Chapter 70](ch70-dsv2-connector-java.md) and the `jext` jar and `spark.sql.extensions=jext.Extensions` of [Chapter 71](ch71-catalyst-extensions.md). `plugins.py` connects to it and uses both by name:
 
 ```python
 print("jdocs by short name:",
@@ -34,7 +34,7 @@ jdocs by short name: [Row(name='gradient_32x32.png', width=32), Row(name='gray_2
 [Row(p=True)]
 ```
 
-The optimizer rules and check rules of Chapter 71 also work, because they run on each plan that the server makes. Step 7 shows that `jext.PngRule` replaces a Python UDF that a Connect client sent.
+The optimizer rules and check rules of [Chapter 71](ch71-catalyst-extensions.md) also work, because they run on each plan that the server makes. Step 7 shows that `jext.PngRule` replaces a Python UDF that a Connect client sent.
 
 The client cannot hold a JVM object. Thus, `spark._jvm` and `df._jdf` do not exist. Use a plugin in these conditions:
 
@@ -385,7 +385,7 @@ is_png(content), rewritten by jext.PngRule: ['Project', 'Scan binaryFile ']
 
 - The Parquet scan received the filter `k = 3`.
 - A Python UDF that a Connect client sends becomes an `ArrowEvalPython` node, as in a Classic session.
-- The Python UDF `is_png` has no Python node. `jext.PngRule` from Chapter 71 replaced it on the server. A rule in an extension works for Connect clients with no change.
+- The Python UDF `is_png` has no Python node. `jext.PngRule` from [Chapter 71](ch71-catalyst-extensions.md) replaced it on the server. A rule in an extension works for Connect clients with no change.
 
 The plugin itself runs no job. The driver of the server plans the input (`queryExecution().executedPlan()`), and it makes the rows. The planner calls `transform` while it plans the query of the client. Thus, keep `transform` fast, and do not put side effects in it. The server can plan one DataFrame many times: `explain()`, `schema` and `collect()` each send the plan again.
 
@@ -457,7 +457,7 @@ return Optional.of(new EqualTo(prefix, Literal.create(magic, DataTypes.BinaryTyp
 +-------------------+-----+
 ```
 
-The user gets a function that takes raw bytes as an argument, with no SQL string to escape. The plugin returns only built-in expressions (`Substring` and `EqualTo`). Thus, the server needs no new `Expression` class, and none of the traps of Chapter 71 apply.
+The user gets a function that takes raw bytes as an argument, with no SQL string to escape. The plugin returns only built-in expressions (`Substring` and `EqualTo`). Thus, the server needs no new `Expression` class, and none of the traps of [Chapter 71](ch71-catalyst-extensions.md) apply.
 
 ## Step 10: A command plugin
 
@@ -494,7 +494,7 @@ The client reads the value with the usual configuration API. `planner.session()`
 
 ## Step 11: The record of each plugin call (4.3)
 
-Chapter 18 showed the 4.3 REST endpoint `connect/operations` of the Spark UI. Each plugin call is an operation, so the server keeps a record of it. `plugins.py` reads the records of its session and finds the operations whose recorded statement contains a `jplug` type URL:
+[Chapter 18](ch18-spark-connect.md) showed the 4.3 REST endpoint `connect/operations` of the Spark UI. Each plugin call is an operation, so the server keeps a record of it. `plugins.py` reads the records of its session and finds the operations whose recorded statement contains a `jplug` type URL:
 
 ```text
 == 9. The server's record of the plugin operations (4.3 REST API)
@@ -579,7 +579,7 @@ This is a side effect of a lazy registry for the full process. It is not a metho
 
 ## Step 13: The plugin project
 
-The Maven `pom.xml` of `jplug` is the `pom.xml` of `jdocs` in Chapter 70 with one more `provided` dependency:
+The Maven `pom.xml` of `jplug` is the `pom.xml` of `jdocs` in [Chapter 70](ch70-dsv2-connector-java.md) with one more `provided` dependency:
 
 ```xml
 <dependency>

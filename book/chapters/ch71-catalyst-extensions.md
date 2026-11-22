@@ -12,7 +12,7 @@ Spark 4.3 also adds an experimental optimizer feature that does a part of this w
 
 In 4.3, the transpiler changes simple Python UDFs into Catalyst expressions by itself. But it refuses many real UDFs, so a hand-written rule still has a purpose. The two have the same job: they must keep each result exactly the same.**
 
-The code is in [`code/ch71`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch71). The Java project is `code/ch71/jext`. `ch71/build.sh` builds it with Maven against Spark 4.3.0. Its `pom.xml` is the same as the `pom.xml` of `jdocs` in Chapter 70, but the `artifactId` is different. `spark-sql_2.13` brings `spark-catalyst` with it.
+The code is in [`code/ch71`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch71). The Java project is `code/ch71/jext`. `ch71/build.sh` builds it with Maven against Spark 4.3.0. Its `pom.xml` is the same as the `pom.xml` of `jdocs` in [Chapter 70](ch70-dsv2-connector-java.md), but the `artifactId` is different. `spark-sql_2.13` brings `spark-catalyst` with it.
 
 ## Step 1: The injection points
 

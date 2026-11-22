@@ -104,7 +104,7 @@ flowchart LR
   pf --> parts["partitions()<br/>in the same worker"]:::src
 ```
 
-The `files` source in `files_pushdown.py` lists a folder like the `docs` source of Chapter 65. Its reader takes the filters that it can decide from the file listing (the kind, the name and the size), and yields every other filter:
+The `files` source in `files_pushdown.py` lists a folder like the `docs` source of [Chapter 65](ch65-python-data-sources-readers.md). Its reader takes the filters that it can decide from the file listing (the kind, the name and the size), and yields every other filter:
 
 ```python
 def pushFilters(self, filters):
@@ -189,7 +189,7 @@ Read the table row by row:
   <figcaption>The table above as bars. A pushed filter decreases the files that the tasks open. Without a useful filter, the tasks open all 26 files.</figcaption>
 </figure>
 
-`explain("formatted")` shows the accepted filters in `PushedFilters`. The `ReadSchema` still has all the columns, because Python sources get no column pruning (Chapter 65, Step 10):
+`explain("formatted")` shows the accepted filters in `PushedFilters`. The `ReadSchema` still has all the columns, because Python sources get no column pruning ([Chapter 65](ch65-python-data-sources-readers.md), Step 10):
 
 ```text
 explain('formatted') of the mixed query:
@@ -273,7 +273,7 @@ Why: stored values that Spark reads as NULL
   SQLite: 'N/A' > 100 is 1 | 'Shipped' LIKE 'ship%' is 1
 ```
 
-The source converts each stored value in Python (Chapter 66, Step 10), and SQLite compares the stored values with its own rules. The two answers are different:
+The source converts each stored value in Python ([Chapter 66](ch66-python-data-sources-apis-databases.md), Step 10), and SQLite compares the stored values with its own rules. The two answers are different:
 
 - **`amount > 100`**: in SQLite, any text is larger than any number. Thus `'N/A' > 100` is true. The source changes `'N/A'` to `NULL`, and `NULL > 100` is not true in Spark.
 - **`amount IS NULL`**: SQLite found only the 25 real `NULL` values. Spark also counts the 79 values that the source changed to `NULL`.
@@ -348,7 +348,7 @@ The JDBC source of Spark does more. It pushes columns, limits and some aggregate
 
 ## Step 8: Queries share the planned read, and pushdown makes it wrong
 
-Chapter 65 showed that Spark keeps the planned read (the pickled reader and the partitions) on the relation of a DataFrame. Later actions use it again. With pushdown, this shared plan gives wrong results. `files_pushdown.py` runs three queries on one DataFrame:
+[Chapter 65](ch65-python-data-sources-readers.md) showed that Spark keeps the planned read (the pickled reader and the partitions) on the relation of a DataFrame. Later actions use it again. With pushdown, this shared plan gives wrong results. `files_pushdown.py` runs three queries on one DataFrame:
 
 ```text
 One DataFrame, a pushed filter first, then other queries on the same DataFrame:

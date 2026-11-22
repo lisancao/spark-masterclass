@@ -22,7 +22,7 @@ class PythonScanBuilder(
     with SupportsPushDownFilters {
 ```
 
-It has one mix-in, `SupportsPushDownFilters`. This interface uses the older V1 `org.apache.spark.sql.sources.Filter` classes (`EqualTo`, `StringEndsWith` and the others that Chapter 67 shows). And in 4.3.0 it accepts filters only if `spark.sql.python.filterPushdown.enabled` is `true`. This config is internal and its default is `false`. The other parts of the read API keep their defaults. The table compares the two kinds of source in Spark 4.3.0:
+It has one mix-in, `SupportsPushDownFilters`. This interface uses the older V1 `org.apache.spark.sql.sources.Filter` classes (`EqualTo`, `StringEndsWith` and the others that [Chapter 67](ch67-python-data-sources-pushdown.md) shows). And in 4.3.0 it accepts filters only if `spark.sql.python.filterPushdown.enabled` is `true`. This config is internal and its default is `false`. The other parts of the read API keep their defaults. The table compares the two kinds of source in Spark 4.3.0:
 
 | DSv2 capability (Java interface) | Python data source | Java source |
 |---|---|---|
@@ -386,7 +386,7 @@ modified > TIMESTAMP '2020-01-01 00:00:00'
     returned >(modified, lit:Long)  |  modified > 1577836800000000
 ```
 
-`pushed` means that `jdocs` took the predicate over. `returned` means that Spark must evaluate it after the scan. Compare these shapes with the V1 filters of a Python source in Chapter 67. The V2 API also carries `OR`, functions (`LOWER`), arithmetic (`%`) and comparisons between two columns. These details are important when you translate a predicate:
+`pushed` means that `jdocs` took the predicate over. `returned` means that Spark must evaluate it after the scan. Compare these shapes with the V1 filters of a Python source in [Chapter 67](ch67-python-data-sources-pushdown.md). The V2 API also carries `OR`, functions (`LOWER`), arithmetic (`%`) and comparisons between two columns. These details are important when you translate a predicate:
 
 - **Literal values are internal values.** A string literal is a `UTF8String`, a `bigint` literal is a `Long`, and a timestamp is a `Long` in microseconds. Spark already converted the timestamp with the session time zone: midnight UTC on 2020-01-01 is `1577836800000000`.
 - **Spark casts literals to the type of the column** during analysis. `size BETWEEN 10 AND 100` arrives with `Long` values because `size` is a `bigint`. `width > 12` arrives with an `Integer` value.

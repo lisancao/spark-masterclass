@@ -1,6 +1,6 @@
 # Chapter 13: Spark SQL in depth: windows, pipe syntax and QUALIFY
 
-Chapter 7 wrote one query two times, in Python and in SQL, and showed that the two plans were the same. This chapter goes further into SQL. It starts with the path from SQL text to a plan. Then it teaches window functions from the start, because many later chapters use them. Last, it shows two newer forms of SQL: pipe syntax (Spark 4.0) and `QUALIFY` (Spark 4.2).
+[Chapter 7](ch07-quick-start.md) wrote one query two times, in Python and in SQL, and showed that the two plans were the same. This chapter goes further into SQL. It starts with the path from SQL text to a plan. Then it teaches window functions from the start, because many later chapters use them. Last, it shows two newer forms of SQL: pipe syntax (Spark 4.0) and `QUALIFY` (Spark 4.2).
 
 **The DataFrame API, standard SQL and pipe SQL are three surfaces on one engine. They all become one logical plan, and the optimizer cannot see which surface you used. A window function is different, because it adds real work to the plan: a shuffle by the partition key, a sort, and a `Window` operator. When you know that shape, you can write windows that cost one sort, not three.**
 
@@ -82,7 +82,7 @@ Sort
 
 The parser makes a tree that follows the text. Standard SQL gives one `Filter` for the `WHERE`, and an `UnresolvedHaving` for the `HAVING`. The pipe query gives one node for each operator, in the order of the text, with a `PipeOperator` marker between them. The relations are still `UnresolvedRelation`: the parser knows the name `trips`, but it does not know the table or its columns.
 
-Then the same four phases from Chapter 5 occur for all three queries:
+Then the same four phases from [Chapter 5](ch05-how-spark-runs.md) occur for all three queries:
 
 ```mermaid
 flowchart LR
@@ -101,7 +101,7 @@ flowchart LR
 - **The optimizer** applies rules. It pushes filters down, prunes columns and folds constants. After this phase, the pipe query, the SQL query and the DataFrame query have the same tree.
 - **The planner** selects physical operators (a join strategy, a hash aggregate) and makes the whole-stage code.
 
-The DataFrame API does not use the parser. Each method adds a plan node directly. Over Spark Connect, the client sends these nodes as an unresolved plan. A call to `spark.sql(...)` sends the text, and the server parses it (Chapter 18).
+The DataFrame API does not use the parser. Each method adds a plan node directly. Over Spark Connect, the client sends these nodes as an unresolved plan. A call to `spark.sql(...)` sends the text, and the server parses it ([Chapter 18](ch18-spark-connect.md)).
 
 ## Step 3: Each prefix of a pipe query is a query
 
@@ -147,7 +147,7 @@ The `WHERE` after `AGGREGATE` does the work of `HAVING`. Pipe syntax has no `HAV
 
 The `cost` estimate shows a problem. The estimate for the aggregate output is 35.5 GiB, but the result has 4 rows.
 
-Without table statistics, Spark estimates the size of a join from the sizes of its inputs, and it cannot estimate the size of an aggregate. `ANALYZE TABLE ... COMPUTE STATISTICS` gives better estimates for catalog tables. The cost-based optimizer (`spark.sql.cbo.enabled`) uses those statistics to order joins. Chapter 32 shows how the planner and AQE use sizes.
+Without table statistics, Spark estimates the size of a join from the sizes of its inputs, and it cannot estimate the size of an aggregate. `ANALYZE TABLE ... COMPUTE STATISTICS` gives better estimates for catalog tables. The cost-based optimizer (`spark.sql.cbo.enabled`) uses those statistics to order joins. [Chapter 32](ch32-query-plans.md) shows how the planner and AQE use sizes.
 
 The optimizer also calculates constant expressions one time, when it makes the plan. This rule is `ConstantFolding`:
 
@@ -165,7 +165,7 @@ collect(): DIVIDE_BY_ZERO: Division by zero. Use `try_divide` to tolerate diviso
 
 `1 + 2 * 3` became `7`, and `upper('nyc')` became `NYC`, before a task ran. The second query has `1/0` in its `SELECT` and `WHERE false`. It returns no rows, so you can expect no error.
 
-But the optimizer folds `1/0` before it removes the rows. Under ANSI mode, the fold fails with `DIVIDE_BY_ZERO`, and the stack shows `ConstantFolding.tryFold`. The query fails at `collect()`, because the optimizer runs when an action needs the plan. Use `try_divide` (Chapter 10) when a constant can be zero.
+But the optimizer folds `1/0` before it removes the rows. Under ANSI mode, the fold fails with `DIVIDE_BY_ZERO`, and the stack shows `ConstantFolding.tryFold`. The query fails at `collect()`, because the optimizer runs when an action needs the plan. Use `try_divide` ([Chapter 10](ch10-cleaning-values.md)) when a constant can be zero.
 
 ## Step 5: Parameters, not string formats
 
@@ -710,7 +710,7 @@ FROM june GROUP BY Borough ORDER BY Borough
 plan nodes: ['SortAggregate(key=[Borough#39],', 'Exchange', 'SortAggregate(key=[Borough#39],', 'BroadcastExchange']
 ```
 
-The zones are the same as in Step 13. This plan is an aggregate with a partial step and a final step, with no `Window`. The aggregate is a `SortAggregate`, not a `HashAggregate`, because the `k` form keeps an array of rows in its buffer. Chapter 10 showed the same fallback for collated keys. Use `max_by` when you need values, and `QUALIFY` when you need full rows.
+The zones are the same as in Step 13. This plan is an aggregate with a partial step and a final step, with no `Window`. The aggregate is a `SortAggregate`, not a `HashAggregate`, because the `k` form keeps an array of rows in its buffer. [Chapter 10](ch10-cleaning-values.md) showed the same fallback for collated keys. Use `max_by` when you need values, and `QUALIFY` when you need full rows.
 
 ## Step 16: The pipe operators
 
@@ -840,7 +840,7 @@ Two more aggregates replace work that once needed a window or a subquery. `lista
 [Row(item='Upper East Side South', count=173550), Row(item='Midtown Center', count=156493), Row(item='Upper East Side North', count=152687)]
 ```
 
-On this data, the `approx_top_k` counts are the same as the exact counts in Step 17. The result is approximate in general, because the sketch keeps a limited number of values. Chapter 57 explains sketches.
+On this data, the `approx_top_k` counts are the same as the exact counts in Step 17. The result is approximate in general, because the sketch keeps a limited number of values. [Chapter 57](ch57-sketches.md) explains sketches.
 
 ## The whole chapter, on one page
 

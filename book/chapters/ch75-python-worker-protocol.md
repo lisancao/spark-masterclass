@@ -266,7 +266,7 @@ The UDF section starts at offset `0xf60`. Its layout comes from `writeUDFs` in `
 
 Match the bytes to the code. `00 00 00 01` is one UDF. `00 00 00 01` is one argument. `00 00 00 00` is its offset, column 0 of the input row, and `00` is "no name".
 
-`00 00 00 01` is one function in the chain. A chain longer than one is the fusion of nested UDFs from Chapter 74, Step 5. Then the command follows: `00 00 02 71` is 625 bytes, and `80 05` starts a pickle of protocol 5. The script unpickled it, and it got the lambda and its return type. The JVM never reads this blob. It only moves it.
+`00 00 00 01` is one function in the chain. A chain longer than one is the fusion of nested UDFs from [Chapter 74](ch74-catalyst-plans-python.md), Step 5. Then the command follows: `00 00 02 71` is 625 bytes, and `80 05` starts a pickle of protocol 5. The script unpickled it, and it got the lambda and its return type. The JVM never reads this blob. It only moves it.
 
 The data section of a pickled UDF is a sequence of frames, each with a length. Here there is one frame of `0x1f` = 31 bytes. It starts with `80 02`, a pickle of protocol 2. The JVM side writes this pickle with the Pyrolite library (`net.razorvine.pickle`, imported in `BatchEvalPythonExec.scala`), not with Python. `ff ff ff ff` (-1, `END_OF_DATA_SECTION`) ends the data. `ff ff ff fc` (-4, `END_OF_STREAM`) ends the request.
 
@@ -329,7 +329,7 @@ The parts are in this sequence:
 1. **Result frames.** One frame of 34 bytes, a pickle of protocol 5 that holds the list `['AB0', 'AB1', 'AB2']`.
 2. **`TIMING_DATA` (-3) and four longs.** These are the boot time, the init time and the finish time of the worker, in milliseconds since the epoch, and the processing time. The JVM reads them in `handleTimingData`, and it writes them to the executor log at the `INFO` level.
 3. **Two longs for spill.** Bytes that the worker spilled to memory and to disk. Both are 0 here.
-4. **`END_OF_DATA_SECTION` (-1) and the accumulator updates.** The count is 0, because this UDF changes no accumulator. The UDF of Chapter 74, Step 7 sends its count back in this section.
+4. **`END_OF_DATA_SECTION` (-1) and the accumulator updates.** The count is 0, because this UDF changes no accumulator. The UDF of [Chapter 74](ch74-catalyst-plans-python.md), Step 7 sends its count back in this section.
 5. **`END_OF_STREAM` (-4).** The worker can run another task (Step 2).
 
 
@@ -399,7 +399,7 @@ sequenceDiagram
 
 The protocol has no field names. The worker reads each field at the position where it expects the field. If the JVM writes one extra field, the worker reads everything after it at the wrong position.
 
-That happened in Spark 4.2.0. SPARK-56340 (fix version 4.2.0) moved the input schema of Arrow UDFs into the eval conf, as the key `input_type` of Step 5. The runner for columnar input, `ColumnarArrowPythonWithNamedArgumentRunner`, still wrote the schema at the start of the UDF section. A plain Arrow `@udf` directly over a vectorized Parquet scan used that runner (Chapter 74, Step 9).
+That happened in Spark 4.2.0. SPARK-56340 (fix version 4.2.0) moved the input schema of Arrow UDFs into the eval conf, as the key `input_type` of Step 5. The runner for columnar input, `ColumnarArrowPythonWithNamedArgumentRunner`, still wrote the schema at the start of the UDF section. A plain Arrow `@udf` directly over a vectorized Parquet scan used that runner ([Chapter 74](ch74-catalyst-plans-python.md), Step 9).
 
 The task stopped and never returned. SPARK-58241 fixed the problem in 4.2.1 and 4.3.0. The fix changed the runner in `sql/core/src/main/scala/org/apache/spark/sql/execution/python/ColumnarArrowPythonRunner.scala`:
 

@@ -6,7 +6,7 @@
 
 **A `VARIANT` value is not JSON text. Spark parses the JSON one time, at the read, into a binary form with a dictionary of field names and typed values. Each later extraction reads that binary form, and it does not parse text again. In Parquet, Spark also shreds the common fields of each file into typed columns. Then a typed extraction reads only one column, and a filter on it goes into the scan.** Spark 4.3 adds functions that edit a `VARIANT` value in place.
 
-The data is the `events/` folder from Chapter 27, in [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy): three days of order events with five kinds of drift and one cut-off line. Step 13 also uses one million NYC taxi trips. The scripts are [`code/ch29/land.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch29), `edit.py`, `shred.py` and `speed.py`. All output is from `code/ch29/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
+The data is the `events/` folder from [Chapter 27](ch27-json.md), in [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy): three days of order events with five kinds of drift and one cut-off line. Step 13 also uses one million NYC taxi trips. The scripts are [`code/ch29/land.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch29), `edit.py`, `shred.py` and `speed.py`. All output is from `code/ch29/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
 
 ## Three ways to keep a JSON record
 
@@ -135,7 +135,7 @@ only singleVariantColumn, no schema: ['v']  NULL rows: 1
 no inference job: the read gives the schema without a pass over the data
 ```
 
-All 61 lines are rows. The cut-off line has `NULL` in `v` and its text in `_bad`. Without the schema and the corrupt record option, the bad line is only a row with `NULL` in `v`, and its text is lost. As in Chapter 27, cache the DataFrame before you query `_bad` alone.
+All 61 lines are rows. The cut-off line has `NULL` in `v` and its text in `_bad`. Without the schema and the corrupt record option, the bad line is only a row with `NULL` in `v`, and its text is lost. As in [Chapter 27](ch27-json.md), cache the DataFrame before you query `_bad` alone.
 
 The read starts no inference job, because the schema of the column is always `VARIANT`. A day with a new field gives the same DataFrame schema as before.
 
@@ -177,7 +177,7 @@ GROUP BY key ORDER BY key
 +----------------------+---------------------------------------------+
 ```
 
-This one query finds all five kinds of drift from Chapter 27:
+This one query finds all five kinds of drift from [Chapter 27](ch27-json.md):
 
 - `amount` has three kinds of type: a number, a string and an object.
 - `event` and `event_type` are in 40 and 20 rows. They are one field with two names.
@@ -245,7 +245,7 @@ silver = (ev.where("_bad IS NULL")
 
 No user and no amount is `NULL` in any file. `try_variant_get(v, '$.amount', 'double')` reads the number and the string forms, and gives `NULL` for the object. Then `coalesce` takes `$.amount.value`. `try_variant_get(..., 'timestamp')` parses the ISO text of `ts` into a `timestamp`.
 
-This is the same normalization as in Chapter 27, Step 7. The difference is the order of the work. Chapter 27 needed a schema that listed each shape before the read. Here the read takes everything, and the code that handles the shapes comes after the profile.
+This is the same normalization as in [Chapter 27](ch27-json.md), Step 7. The difference is the order of the work. [Chapter 27](ch27-json.md) needed a schema that listed each shape before the read. Here the read takes everything, and the code that handles the shapes comes after the profile.
 
 The `items` arrays become rows with `variant_explode_outer` in SQL:
 
@@ -414,7 +414,7 @@ A `VARIANT` value has two parts, as the Parquet `VARIANT` logical type defines t
 - **`metadata`**: a dictionary of the field names in the value. Each name is in the dictionary one time.
 - **`value`**: the data. Each object refers to its field names by their position in the dictionary. Each scalar has a type tag in front of its bytes.
 
-Chapter 76 shows these bytes one by one. Here the important point is that the value is already parsed. To read `user.id`, Spark finds `user` in the dictionary, jumps to its offset, and reads the type tag and the bytes of `id`. There is no text parse.
+[Chapter 76](ch76-variant-binary-format.md) shows these bytes one by one. Here the important point is that the value is already parsed. To read `user.id`, Spark finds `user` in the dictionary, jumps to its offset, and reads the type tag and the bytes of `id`. There is no text parse.
 
 With shredding off, a Parquet file has exactly these two binary columns:
 

@@ -78,7 +78,7 @@ The bucket size must be positive and constant. A size from a column fails with `
 
 ## Step 3: Time zones and the DST change
 
-A `TIMESTAMP_NTZ` is a wall-clock time with no zone. A `TIMESTAMP` is an instant, shown in the session time zone (Chapter 9). The docstring of `time_bucket` in the 4.3.0 source gives the rule: for `TIMESTAMP_NTZ`, Spark makes the buckets in UTC. For `TIMESTAMP`, month buckets and the day part of day-time buckets align to the session time zone. `timeseries.py` uses the night in March 2026 when New York changed to summer time:
+A `TIMESTAMP_NTZ` is a wall-clock time with no zone. A `TIMESTAMP` is an instant, shown in the session time zone ([Chapter 9](ch09-dataframes-columns-schemas.md)). The docstring of `time_bucket` in the 4.3.0 source gives the rule: for `TIMESTAMP_NTZ`, Spark makes the buckets in UTC. For `TIMESTAMP`, month buckets and the day part of day-time buckets align to the session time zone. `timeseries.py` uses the night in March 2026 when New York changed to summer time:
 
 ```text
 == 3. daily buckets over the March DST change, session zone America/New_York
@@ -108,7 +108,7 @@ The 6-hour buckets are different. Before the change, they start at 00:00, 06:00,
 
 A tumbling `window()` and `time_bucket` give the same plan and the same 2,880 buckets (30 days of 96). Each one is an expression in a `Project`. A sliding window is different. A one-hour window that moves every 15 minutes puts each row into four windows. Spark does this with an `Expand` operator, which makes four copies of each row before the aggregate. The three extra buckets are the windows at the start of the month that begin before 1 June.
 
-Use `time_bucket` for fixed buckets in batch queries. Use `window()` for sliding windows, and in streaming queries, where watermarks need it (Chapter 39).
+Use `time_bucket` for fixed buckets in batch queries. Use `window()` for sliding windows, and in streaming queries, where watermarks need it ([Chapter 39](ch39-structured-streaming.md)).
 
 ## Step 5: The buckets with no rows
 
@@ -153,7 +153,7 @@ filled = grid.join(counts, "hour", "left").select("hour", F.coalesce("trips", F.
 
 `sequence(start, stop, step)` makes an array of timestamps, and `explode` makes one row for each element. After the left join, the hours with no trips have a NULL count, and `coalesce` changes it to 0.
 
-Fill the gaps before you calculate a window over the buckets. The moving average `avg_3h` uses `rowsBetween(-2, 0)`. On the filled rows, three rows are three hours. On the rows before the fill, three rows can cover many hours. The script compares the two, and 2 of the 3 hours with data get a different average. A `RANGE` frame with an interval (Chapter 13) also gives the correct average without a fill, but the chart still needs the rows.
+Fill the gaps before you calculate a window over the buckets. The moving average `avg_3h` uses `rowsBetween(-2, 0)`. On the filled rows, three rows are three hours. On the rows before the fill, three rows can cover many hours. The script compares the two, and 2 of the 3 hours with data get a different average. A `RANGE` frame with an interval ([Chapter 13](ch13-spark-sql-in-depth.md)) also gives the correct average without a fill, but the chart still needs the rows.
 
 ```mermaid
 flowchart LR
@@ -213,9 +213,9 @@ An average hides the slow trips. `percentile_approx` gives the median and the 90
 +----+------+------------------+------------------+
 ```
 
-The median trip time changes by about 2 minutes over the day. The 90th percentile changes by more than 10 minutes. Traffic changes the slow trips more than the typical trip. `percentile_approx` keeps a small summary for each group, so it costs much less than the exact `percentile`. Chapter 57 shows how these summaries work.
+The median trip time changes by about 2 minutes over the day. The 90th percentile changes by more than 10 minutes. Traffic changes the slow trips more than the typical trip. `percentile_approx` keeps a small summary for each group, so it costs much less than the exact `percentile`. [Chapter 57](ch57-sketches.md) shows how these summaries work.
 
-Nanosecond timestamps (Chapter 10) do not work with `time_bucket` in 4.3.0:
+Nanosecond timestamps ([Chapter 10](ch10-cleaning-values.md)) do not work with `time_bucket` in 4.3.0:
 
 ```text
 == 8. time_bucket on a nanosecond timestamp (4.3 preview type)

@@ -1,6 +1,6 @@
 # Chapter 45: Apache Iceberg with Spark: the runtime and catalog management
 
-Chapter 44 compares Delta and Iceberg tables, with `MERGE` and time travel. This chapter goes deeper into Iceberg only. It starts with the jar that puts Iceberg into Spark, and it continues with the catalogs that find each table. Then it does each table operation and examines the files that the operation writes.
+[Chapter 44](ch44-tables-delta-iceberg.md) compares Delta and Iceberg tables, with `MERGE` and time travel. This chapter goes deeper into Iceberg only. It starts with the jar that puts Iceberg into Spark, and it continues with the catalogs that find each table. Then it does each table operation and examines the files that the operation writes.
 
 **An Iceberg table is a tree of metadata files and data files, with one pointer at the top. The catalog keeps the pointer, and the runtime jar is the code that reads and writes the tree inside Spark. Each change to a table writes new files and then moves the pointer in one atomic step. If you know where the pointer is and what each file in the tree contains, you can explain each Iceberg feature in this chapter.**
 

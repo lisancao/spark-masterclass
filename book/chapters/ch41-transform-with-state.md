@@ -26,7 +26,7 @@ The drops have three problems that a stateful rule must handle:
 - **Out-of-order events.** `c011` (09:36:30) arrives in drop 2, after events from 10:05.
 - **One very late event.** `c999` has the time 08:10:00, and it arrives in drop 3, after events from 11:00.
 
-`checkout.py` puts drop `i` into an inbox with the `deliver()` helper of Chapter 39. The scripts read the inbox with `maxFilesPerTrigger=1`, so each drop is one micro-batch.
+`checkout.py` puts drop `i` into an inbox with the `deliver()` helper of [Chapter 39](ch39-structured-streaming.md). The scripts read the inbox with `maxFilesPerTrigger=1`, so each drop is one micro-batch.
 
 ## The pieces of a stateful processor
 

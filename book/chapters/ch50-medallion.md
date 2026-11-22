@@ -12,7 +12,7 @@ The code is in [`code/ch50`](https://github.com/lisancao/spark-masterclass/tree/
 
 ## Step 1: Three layers, three contracts
 
-The `shop` pipeline reads the small retail data of Chapter 49: two days of order files, a customer file and a product file. The data has defects on purpose. It has an order that arrives two times, a price of `N/A`, a negative quantity and a customer that does not exist. Each defect tests one rule of a later layer.
+The `shop` pipeline reads the small retail data of [Chapter 49](ch49-declarative-pipelines.md): two days of order files, a customer file and a product file. The data has defects on purpose. It has an order that arrives two times, a price of `N/A`, a negative quantity and a customer that does not exist. Each defect tests one rule of a later layer.
 
 ```mermaid
 flowchart LR
@@ -272,7 +272,7 @@ for category in CATEGORIES:
 Two details make the loop correct:
 
 - **`name=`** gives each dataset its own name. Without it, each loop iteration declares a dataset with the name `revenue_for_category`, and the second declaration is an error.
-- **`category: str = category`** binds the value of the loop variable when Python defines the function. Open source Spark 4.3 calls the function at once, in the same loop iteration (Chapter 49, Step 3). Thus, the late lookup of names in Python closures does not change the result here. Other SDP implementations can call the function later, after the loop ends. Then, without the default argument, each function reads the last value of `category`.
+- **`category: str = category`** binds the value of the loop variable when Python defines the function. Open source Spark 4.3 calls the function at once, in the same loop iteration ([Chapter 49](ch49-declarative-pipelines.md), Step 3). Thus, the late lookup of names in Python closures does not change the result here. Other SDP implementations can call the function later, after the loop ends. Then, without the default argument, each function reads the last value of `category`.
 
 !!! warning "Caution: do not remove a name from a list that makes datasets"
 
@@ -416,7 +416,7 @@ flowchart TB
 
 In open source Spark 4.3, a materialized view has no incremental refresh. For a small silver table, this cost is not important. For a large table, the cost grows with the size of the table, not with the size of the new data. Two designs keep the cost small:
 
-- Make silver a streaming table that reads bronze with `spark.readStream.table("bronze_orders")`. Then each run reads only new bronze rows. Duplicates across runs then need state, for example `dropDuplicatesWithinWatermark`, and a late correction of an old row needs change data capture (Chapter 51).
+- Make silver a streaming table that reads bronze with `spark.readStream.table("bronze_orders")`. Then each run reads only new bronze rows. Duplicates across runs then need state, for example `dropDuplicatesWithinWatermark`, and a late correction of an old row needs change data capture ([Chapter 51](ch51-change-data-capture.md)).
 - Keep the materialized views small. Aggregate early, and put only the columns that a question needs into gold.
 
 ## Step 7: The event log of a run
@@ -717,7 +717,7 @@ The timeline shows the tables of run 2 in order:
   <figcaption>Run 2 of the quality pipeline. SDP truncates <code>silver_orders</code> and <code>revenue_by_currency</code> before the flows run. The gate fails each of the three attempts, and both tables stay empty.</figcaption>
 </figure>
 
-The Iceberg run shows that a table format does not change this. Silver and gold are empty there too. But Iceberg keeps the history: the `TRUNCATE` is a `delete` snapshot, and the snapshot before it still has the 103 rows. A reader can use time travel to read the last good version, and `CALL lake.system.rollback_to_snapshot` can make it current again (Chapter 44 shows time travel).
+The Iceberg run shows that a table format does not change this. Silver and gold are empty there too. But Iceberg keeps the history: the `TRUNCATE` is a `delete` snapshot, and the snapshot before it still has the 103 rows. A reader can use time travel to read the last good version, and `CALL lake.system.rollback_to_snapshot` can make it current again ([Chapter 44](ch44-tables-delta-iceberg.md) shows time travel).
 
 !!! warning "Caution: a failed run of a materialized view leaves the table empty"
 

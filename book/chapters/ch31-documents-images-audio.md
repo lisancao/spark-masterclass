@@ -108,7 +108,7 @@ pythonUDF.arrow.enabled=false, a new UDF: Project <- BatchEvalPython <- Project
 - **The note is a row with an error, not a failed job.** A later step sends the rows with an error to a quarantine.
 - **`order_id` comes from a built-in function, not from Python.** `regexp_extract` and `try_cast` run in the JVM. Keep in Python only the work that needs Python.
 - **`sent` is a `timestamp`, and its zone matters.** The parser gives a datetime with a zone. Spark stores it as an instant. In SQL, it shows in the session zone (UTC here): 09:00. `collect()` gives a Python datetime without a zone, in the local zone of the driver (here 02:00, in America/Los_Angeles). Format timestamps in Spark when the zone matters.
-- **The UDF runs through Arrow by default.** The plan has `ArrowEvalPython`. Since Spark 4.2, `spark.sql.execution.pythonUDF.arrow.enabled` is `true` by default. With it set to `false`, a new UDF gets `BatchEvalPython`, which uses pickle. Chapter 34 explains the two paths.
+- **The UDF runs through Arrow by default.** The plan has `ArrowEvalPython`. Since Spark 4.2, `spark.sql.execution.pythonUDF.arrow.enabled` is `true` by default. With it set to `false`, a new UDF gets `BatchEvalPython`, which uses pickle. [Chapter 34](ch34-python-udfs-arrow.md) explains the two paths.
 
 ## Step 3: PDF pages from a Python UDTF
 
@@ -239,7 +239,7 @@ documents = (emails.where("error IS NULL").select(F.col("entry").alias("doc"), F
 all rows: 19  distinct texts: 11
 ```
 
-The 12 Markdown chunks have only 4 distinct texts. The hash finds exact repeats with no Python and no comparison of pairs. The PDF `title` is a typed `NULL` (`lit(None).cast("string")`), because `unionByName` needs the same type in each input. Chapter 54 finds near-duplicates, which a hash cannot find.
+The 12 Markdown chunks have only 4 distinct texts. The hash finds exact repeats with no Python and no comparison of pairs. The PDF `title` is a typed `NULL` (`lit(None).cast("string")`), because `unionByName` needs the same type in each input. [Chapter 54](ch54-text-analytics.md) finds near-duplicates, which a hash cannot find.
 
 ## Step 6: The image source
 
@@ -397,7 +397,7 @@ The 0.5 s silence gives 10 windows, and each 0.25 s tone gives 5. The peak of th
 
 The output schema declares `window int`. The Arrow array must then be `int32`. Python integers become `int64` by default in `pa.array`, and Spark does not convert them. The error, `UNSUPPORTED_CALL.WITHOUT_SUGGESTION`, does not name the column or the types. If you see it after `mapInArrow`, compare each Arrow type with the declared schema.
 
-A stream of new files works the same way, with `readStream.format("binaryFile")`. A streaming file source needs an explicit schema (`IllegalArgumentException: Schema must be specified ...` without one). Chapter 39 explains streams.
+A stream of new files works the same way, with `readStream.format("binaryFile")`. A streaming file source needs an explicit schema (`IllegalArgumentException: Schema must be specified ...` without one). [Chapter 39](ch39-structured-streaming.md) explains streams.
 
 ## Step 12: Large blobs inline in Parquet
 
@@ -503,7 +503,7 @@ erDiagram
 The script makes the tables in Apache Iceberg, with merge-on-read deletes.
 
 !!! note
-    Apache Iceberg 1.12.0, the newest release, has no runtime for Spark 4.3. Delta Lake 4.4.1 is built for Spark 4.2, and it does not work on Spark 4.3.0 (Chapter 44). `blobs.py` uses `iceberg-spark-runtime-4.3_2.13`, built from apache/iceberg pull request #18749 (commit `b1eab64`). It is not a release. The table design does not depend on the format.
+    Apache Iceberg 1.12.0, the newest release, has no runtime for Spark 4.3. Delta Lake 4.4.1 is built for Spark 4.2, and it does not work on Spark 4.3.0 ([Chapter 44](ch44-tables-delta-iceberg.md)). `blobs.py` uses `iceberg-spark-runtime-4.3_2.13`, built from apache/iceberg pull request #18749 (commit `b1eab64`). It is not a release. The table design does not depend on the format.
 
 The load uses `MERGE`, so that a file that arrives again does not make a second row. Two traps occur with a batch that has duplicates:
 

@@ -297,11 +297,11 @@ These are not bugs in Spark. Spark does not promise a stable API for these class
 
 The queries read twelve months of yellow-taxi trips (July 2025 to June 2026, 12 Parquet files). There are three queries:
 
-- `hourly`: Chapter 5's query over a year. It has a scan, a filter, a two-phase hash aggregate and a sort.
+- `hourly`: [Chapter 5](ch05-how-spark-runs.md)'s query over a year. It has a scan, a filter, a two-phase hash aggregate and a sort.
 - `boroughs`: a broadcast hash join to the zone lookup CSV, then an aggregate.
 - `routes`: an aggregate on pairs of pickup and drop-off zones, which has many more groups than `hourly`, then a top-N.
 
-On Spark 4.3.0 with no engine, `hourly` has the shape from Chapter 5:
+On Spark 4.3.0 with no engine, `hourly` has the shape from [Chapter 5](ch05-how-spark-runs.md):
 
 ```text
 cpu on Spark 4.3.0, offload-friendly settings

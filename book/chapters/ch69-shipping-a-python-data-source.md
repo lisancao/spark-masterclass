@@ -249,7 +249,7 @@ The five tests ran in 0.08 s. The table gives the check in the helper for each e
 
 Options in a test are strings, as in Spark (`"Partitions": "3"`, with a key in mixed case). `CaseInsensitiveDict` gives the same key rules that Spark gives.
 
-Plain tests cannot find everything. Keep a few integration tests that start a local session. They test three things that only Spark does: registration, the conversion of values (Chapter 66, Step 7) and pushdown (Chapter 67).
+Plain tests cannot find everything. Keep a few integration tests that start a local session. They test three things that only Spark does: registration, the conversion of values ([Chapter 66](ch66-python-data-sources-apis-databases.md), Step 7) and pushdown ([Chapter 67](ch67-python-data-sources-pushdown.md)).
 
 ## Step 7: Two error surfaces, and the condition of each error
 
@@ -339,9 +339,9 @@ The script reads the table again until it has the 12 rows. In this run, the firs
 - **The Python of the workers.** Install the package in each Python that runs workers: `PYSPARK_PYTHON` in a classic session, each executor on a cluster, the Connect server on Connect. On Connect, call `addArtifacts()` before `register()`.
 - **Options.** Strings with no case. Check them in `DataSource.__init__` or in the reader, with messages that name the option.
 - **Partitions.** Small, picklable descriptions of work, planned by bytes or rows (Chapters 65 and 66).
-- **Types.** Exact Python types for the schema, aware `datetime` values (Chapter 66).
-- **Pushdown.** Accept only filters that give the result of Spark. Tell users to set `spark.sql.python.filterPushdown.enabled`, and to call `load()` for each query in 4.3.0 (Chapter 67).
-- **Writes.** Stage, then commit with one rename. Idempotent stream commits on `batchId` (Chapter 68).
+- **Types.** Exact Python types for the schema, aware `datetime` values ([Chapter 66](ch66-python-data-sources-apis-databases.md)).
+- **Pushdown.** Accept only filters that give the result of Spark. Tell users to set `spark.sql.python.filterPushdown.enabled`, and to call `load()` for each query in 4.3.0 ([Chapter 67](ch67-python-data-sources-pushdown.md)).
+- **Writes.** Stage, then commit with one rename. Idempotent stream commits on `batchId` ([Chapter 68](ch68-python-data-sources-writers-streaming.md)).
 - **Tests.** Plain-Python tests with the checks of Spark, and a few integration tests with a local session.
 - **Logs.** `logging` with a level, not `print()`. Tell users about `spark.sql.pyspark.worker.logging.enabled`.
 

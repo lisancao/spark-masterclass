@@ -219,7 +219,7 @@ The data has these problems:
 <figcaption>The `describe()` summary as a picture. A quarter of the passenger counts are null. One distance and one fare are far outside the usual range.</figcaption>
 </figure>
 
-Spark did not cause these problems. But each problem changes the answer to almost all questions that you can ask. Chapter 7 starts from this point.
+Spark did not cause these problems. But each problem changes the answer to almost all questions that you can ask. [Chapter 7](ch07-quick-start.md) starts from this point.
 
 
 

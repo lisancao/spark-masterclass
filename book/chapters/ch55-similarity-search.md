@@ -249,7 +249,7 @@ Some behavior of the MLlib API is important:
 
 ## Step 7: MinHash with bands, from DataFrame functions
 
-Chapter 54 used `MinHashLSH` on word sets. For reposted listings, character 5-grams (shingles) work better, because a seller often changes a few words and makes typing errors. The script makes the shingles with higher-order functions and hashes each shingle to a number below `P = 2^31 − 1`:
+[Chapter 54](ch54-text-analytics.md) used `MinHashLSH` on word sets. For reposted listings, character 5-grams (shingles) work better, because a seller often changes a few words and makes typing errors. The script makes the shingles with higher-order functions and hashes each shingle to a number below `P = 2^31 − 1`:
 
 ```python
 text = F.trim(F.regexp_replace(F.lower("description"), r"[^a-z0-9]+", " "))

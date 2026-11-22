@@ -34,7 +34,7 @@ In the 4.3.0 source, `ParquetUtils.inferSchema` sends the files to `ParquetFileF
 
 A DataFrame is immutable. `withColumn` does not change `fares`. It returns a different object with a larger plan. This is not a copy of data, because there is no data to copy.
 
-Immutability is important for a different reason. A plan that never changes is a full recipe for its result. Thus Spark can run the plan again for a lost partition, and it can compare two plans, as Chapter 7 did with `sameSemantics`.
+Immutability is important for a different reason. A plan that never changes is a full recipe for its result. Thus Spark can run the plan again for a lost partition, and it can compare two plans, as [Chapter 7](ch07-quick-start.md) did with `sameSemantics`.
 
 ## Step 2: The everyday operations
 
@@ -372,7 +372,7 @@ v.selectExpr("typeof(payload)", "variant_get(payload, '$.device.os', 'string') A
 +---------------+---+---+----+
 ```
 
-`variant_get` takes a JSON path and a target type. The `:` operator is a short form of the same path, and `::` casts the result. Part VI gives `VARIANT` its own chapter, with the 4.3 functions that edit a value. [Chapter 10](ch10-cleaning-values.md) shows the collated string type. Spark 4.3 also has a preview of nanosecond timestamps, and Chapter 10 shows them.
+`variant_get` takes a JSON path and a target type. The `:` operator is a short form of the same path, and `::` casts the result. Part VI gives `VARIANT` its own chapter, with the 4.3 functions that edit a value. [Chapter 10](ch10-cleaning-values.md) shows the collated string type. Spark 4.3 also has a preview of nanosecond timestamps, and [Chapter 10](ch10-cleaning-values.md) shows them.
 
 ## Step 7: Numbers: overflow, doubles and decimals
 
@@ -393,7 +393,7 @@ The last two lines show three rules for money:
 - **A `decimal` is exact, and it has a fixed scale.** `CAST(123.456 AS DECIMAL(5,2))` rounds to `123.46`. A value with too many digits before the point causes an error. `try_cast` returns NULL for that value.
 - **`DecimalType()` without arguments is `decimal(10,0)`.** It has no digits after the point. Always give the precision and the scale for money, for example `DECIMAL(12,2)`.
 
-Chapter 10 shows the full set of ANSI errors and the `try_` functions that return NULL.
+[Chapter 10](ch10-cleaning-values.md) shows the full set of ANSI errors and the `try_` functions that return NULL.
 
 ## Step 8: Two timestamp types, intervals and TIME
 
@@ -611,7 +611,7 @@ JSON prefersDecimal: struct<amount:decimal(4,2)>
 
 Use `prefersDecimal` for money in JSON, because a `double` cannot hold `0.1` exactly (Step 7).
 
-Day 3 has a truncated line, so the reader adds a `_corrupt_record` column. Chapter 27 shows the parse modes and the corrupt record column.
+Day 3 has a truncated line, so the reader adds a `_corrupt_record` column. [Chapter 27](ch27-json.md) shows the parse modes and the corrupt record column.
 
 `samplingRatio` tells the reader to infer from a fraction of the records. This is faster, and the result is less stable:
 

@@ -219,7 +219,7 @@ $ python - 15104 <<'PY'
 +-----+-----------+
 ```
 
-With `2.50`, `clean_trips` has 223,408 rows, and the lowest fare is 2.98. With `30`, it has 43,707 rows. The SQL file did not change. Each run used `--full-refresh clean_trips`, because a streaming table applies a new filter only to new rows (Chapter 47).
+With `2.50`, `clean_trips` has 223,408 rows, and the lowest fare is 2.98. With `30`, it has 43,707 rows. The SQL file did not change. Each run used `--full-refresh clean_trips`, because a streaming table applies a new filter only to new rows ([Chapter 47](ch47-pipelines-cli-project.md)).
 
 A variable with no value is not an error at substitution. The text `${taxi.min_fare}` stays in the SQL, and the parser fails at that position:
 
@@ -284,7 +284,7 @@ The names in your code then need no catalog or database. `spark.table("zones")` 
 
 ## Step 7: One project, two environments
 
-Put a spec for each environment in an `envs/` folder. The globs are relative to the folder of the spec (Chapter 47, Step 5), so each glob starts with `../`:
+Put a spec for each environment in an `envs/` folder. The globs are relative to the folder of the spec ([Chapter 47](ch47-pipelines-cli-project.md), Step 5), so each glob starts with `../`:
 
 ```text
 $ cat envs/dev.yml
@@ -397,7 +397,7 @@ The run also shows that Python pipeline code can read the environment of the CLI
 
 Use these rules for paths and secrets:
 
-- **Paths.** Give each data path as one `configuration` value, for example `taxi.trips_path: "s3a://bucket/trips/"`, and read it with `spark.conf.get` in Python or `${taxi.trips_path}` in SQL. Then a new environment needs only a new spec. Use absolute paths, because the server resolves relative paths in its own folder (Chapter 47, Step 10).
+- **Paths.** Give each data path as one `configuration` value, for example `taxi.trips_path: "s3a://bucket/trips/"`, and read it with `spark.conf.get` in Python or `${taxi.trips_path}` in SQL. Then a new environment needs only a new spec. Use absolute paths, because the server resolves relative paths in its own folder ([Chapter 47](ch47-pipelines-cli-project.md), Step 10).
 - **Secrets.** Do not put a password or a token in the spec. The spec goes into version control, and each value of `configuration` becomes a session configuration that any code in the session can read with `spark.conf.get`. Give credentials to the Connect server or the catalog when they start. Examples are a credentials provider for object storage or the token of a REST catalog.
 - **Environment variables.** Read them in Python module code with `os.environ`, or put them into the spec with a template. Do not expect the CLI to expand them.
 

@@ -170,7 +170,7 @@ The split between client and server removes six problems of a driver that lives 
 | Each client needs a JDK, 462 MB of jars, and the same catalog plugins and credentials as the cluster. | The client is `pyspark-client` (11 MB of package) or a client in another language. Jars, catalogs and credentials stay on the server. | Step 5 (sizes) |
 | Clients and the cluster share one classpath and one Spark version. To upgrade Spark, you upgrade all clients at the same time. | The protocol is the contract. You upgrade the server, and the clients continue to send the same messages. | [Chapter 19](ch19-connect-protocol.md) |
 | On a shared driver, one user can stop all users, for example with an out-of-memory error in the client code. | Each client has a session with its own state. Client code runs in the client process. | [Chapter 24](ch24-connect-in-production.md), Step 2 |
-| Only Python, Scala, Java and R can drive Spark, because they must talk to the JVM. | Any language that can write protobuf and read Arrow can be a client. | Chapter 21 |
+| Only Python, Scala, Java and R can drive Spark, because they must talk to the JVM. | Any language that can write protobuf and read Arrow can be a client. | [Chapter 21](ch21-connect-clients.md) |
 | Notebooks, IDEs, services and agents must start a JVM to use Spark. | They open a gRPC channel. A session costs one RPC on a server that already runs. | Step 5 (start time) |
 
 Agents are the strongest case. An agent that writes Spark code must not own a driver. With Connect, each agent gets a session or a server of its own. The server keeps the credentials. An operator can see and stop each operation ([Chapter 20](ch20-connect-observability.md)). [Chapter 64](ch64-pipelines-with-agents.md) builds a harness on this sandbox.
@@ -355,7 +355,7 @@ Classic is still the correct choice in a small number of cases:
 - The code needs the JVM itself: RDD code, custom JVM listeners, or libraries that need a `SparkContext`.
 - The workload sends many small queries, and the extra round trip of Step 5 is too much.
 
-Most of the code in this book runs in the two modes when you set `SPARK_REMOTE`. When a script uses the JVM, a comment in the script says so. For example, Chapter 5 reads job descriptions through `sparkContext`, and Chapter 7 compares plans through `_jdf`.
+Most of the code in this book runs in the two modes when you set `SPARK_REMOTE`. When a script uses the JVM, a comment in the script says so. For example, [Chapter 5](ch05-how-spark-runs.md) reads job descriptions through `sparkContext`, and [Chapter 7](ch07-quick-start.md) compares plans through `_jdf`.
 
 ## The whole chapter, on one page
 

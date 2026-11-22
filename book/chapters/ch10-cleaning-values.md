@@ -1,6 +1,6 @@
 # Chapter 10: Cleaning values: ANSI, try_ functions, strings and time
 
-Chapter 7 calculated a tip percentage after a filter that removed bad trips. This chapter starts with the same calculation without that filter. On the full June 2026 file, `tip_amount / fare_amount` stops the job, because 3,167 trips have a fare of zero. Spark 4 does not return a wrong number or a NULL for that division. It gives an error.
+[Chapter 7](ch07-quick-start.md) calculated a tip percentage after a filter that removed bad trips. This chapter starts with the same calculation without that filter. On the full June 2026 file, `tip_amount / fare_amount` stops the job, because 3,167 trips have a fare of zero. Spark 4 does not return a wrong number or a NULL for that division. It gives an error.
 
 **Since Spark 4.0, ANSI mode stops a job at the first value that an expression cannot process. The `try_` functions change that error into a NULL. Thus each cleaning expression is a decision: stop the job, or keep a NULL and record a reason. ANSI mode does not catch all problems. Strings, money and dates have errors that give a valid but wrong value, and only a test finds them.**
 
@@ -370,7 +370,7 @@ The two methods fail on different characters:
 - The Python UDF uses Unicode normalization form NFKD. NFKD divides `é` into `e` and a combining accent, and the UDF removes the accent. NFKD also divides the ligature `ﬁ` into `fi`. But `Đ` is a separate letter in Unicode, not `D` with a mark, so it stays.
 - `translate` changes only the characters in its list. The list has `Đ`, so `Đặng` becomes `Dang`. The list does not have `ﬁ`, so `ﬁancé` keeps it.
 
-The UDF also has a cost. The plan has an `ArrowEvalPython` node. Each value goes to a Python worker process and back, and the optimizer cannot look into the function (Chapter 5, Step 6). Spark 4.3 has an experimental optimizer rule that changes simple Python UDFs into Catalyst expressions (`spark.sql.experimental.optimizer.transpilePyUDFs`, `false` by default). A function that calls `unicodedata` is not a simple UDF. Part VII measures this rule.
+The UDF also has a cost. The plan has an `ArrowEvalPython` node. Each value goes to a Python worker process and back, and the optimizer cannot look into the function ([Chapter 5](ch05-how-spark-runs.md), Step 6). Spark 4.3 has an experimental optimizer rule that changes simple Python UDFs into Catalyst expressions (`spark.sql.experimental.optimizer.transpilePyUDFs`, `false` by default). A function that calls `unicodedata` is not a simple UDF. Part VII measures this rule.
 
 For a comparison, a group or a join, you do not need to change the text. A collation does the comparison without a change.
 
@@ -863,7 +863,7 @@ def tidy(c):
 mapped = typed.join(F.broadcast(countries), F.col("country_key") == F.col("raw"), "left")
 ```
 
-The join is a `left` join, so a row with no match stays, with a NULL code. An inner join removes such rows and gives no error. `F.broadcast` tells Spark to send the small table to each task, so the large side does not shuffle (Chapter 11). A join does not keep the order of the rows. Sort the result if the order is important.
+The join is a `left` join, so a row with no match stays, with a NULL code. An inner join removes such rows and gives no error. `F.broadcast` tells Spark to send the small table to each task, so the large side does not shuffle ([Chapter 11](ch11-joins.md)). A join does not keep the order of the rows. Sort the result if the order is important.
 
 **3. Keep each row, and record what was wrong.** A value is bad when the tidied text is there, but its typed value is NULL. Each check is a `when` that gives a reason or NULL, and `concat_ws` joins the reasons that are not NULL:
 
@@ -954,7 +954,7 @@ AdaptiveSparkPlan isFinalPlan=false
                +- FileScan csv [raw#252,code#253] Batched: false, DataFilters: [isnotnull(raw#252)],
 ```
 
-The left side of the join has two `Project` nodes, one for `tidy` and one for the typed values. In Chapter 9, `CollapseProject` merged two projections, one on top of the other, into one. Here it does not. In the 4.3.0 source, `CollapseProject` merges two projections only if one of two conditions is true:
+The left side of the join has two `Project` nodes, one for `tidy` and one for the typed values. In [Chapter 9](ch09-dataframes-columns-schemas.md), `CollapseProject` merged two projections, one on top of the other, into one. Here it does not. In the 4.3.0 source, `CollapseProject` merges two projections only if one of two conditions is true:
 
 - The upper projection uses each value from the lower projection one time.
 - The value is cheap to calculate.

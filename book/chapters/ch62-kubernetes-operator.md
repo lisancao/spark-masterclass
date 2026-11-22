@@ -380,11 +380,11 @@ pods: ['connect-2-driver', 'connect-exec-1', 'connect-exec-2']
 
 This run started at attempt 1, because an earlier run of the script had already deleted one driver pod. Five facts come from this output:
 
-- **The token protects the server in the cluster.** A client without it got `UNAUTHENTICATED`. The connection used `localhost` through the port forward, so the client did not need TLS (Chapter 24, Step 4). Through an ingress or a load balancer, put a TLS proxy in front, as in Chapter 24, Step 5.
+- **The token protects the server in the cluster.** A client without it got `UNAUTHENTICATED`. The connection used `localhost` through the port forward, so the client did not need TLS ([Chapter 24](ch24-connect-in-production.md), Step 4). Through an ingress or a load balancer, put a TLS proxy in front, as in [Chapter 24](ch24-connect-in-production.md), Step 5.
 - **The DataFrame query worked from a 3.12 client.** The plan is protobuf, and the server ran it with its own JVM and executors.
 - **The Python UDF failed with `PYTHON_VERSION_MISMATCH`.** The client pickled the function with Python 3.12, and the executors run the image's Python 3.10. Over Connect, the client's Python version and the image's Python version must have the same `major.minor` for each Python UDF. Build the server image with the Python version of your clients.
 - **The operator replaced the driver.** About 31 seconds after the delete, attempt 2 was `RunningHealthy`. The executor pod names stayed the same, because the new driver created new executor pods with the same prefix. The new pods belong to the new driver.
-- **The sessions did not survive.** The old session got `NO_ACTIVE_SESSION`, and a new session worked. The operator restarts the server, not its sessions (Chapter 24, Step 6). A client of a server on Kubernetes must connect again after a restart.
+- **The sessions did not survive.** The old session got `NO_ACTIVE_SESSION`, and a new session worked. The operator restarts the server, not its sessions ([Chapter 24](ch24-connect-in-production.md), Step 6). A client of a server on Kubernetes must connect again after a restart.
 
 ```mermaid
 sequenceDiagram

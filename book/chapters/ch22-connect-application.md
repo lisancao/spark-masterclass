@@ -4,7 +4,7 @@
 
 **A Connect client lets an application put each part of its work in the correct place. Spark gets the heavy work as a plan and returns a small result as Arrow batches. Polars and DuckDB read these batches as they are, without a row conversion, and they answer the follow-up questions in milliseconds. You can measure where the work must go. Pull the rows when the follow-up questions pay for the pull. Send a plan when they do not.**
 
-The code is in [`code/ch22`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch22). The application compiles and runs in the Rust image of Chapter 21 (`rust:bookworm`, Rust 1.99.1, with `protoc`). It uses the Connect server of Chapter 21 (`code/ch21/server.sh`, Spark 4.3.0 on port 15106). The data is six months of taxi trips, January to June 2026 (`yellow-h1`, 22,836,515 trips). The server and the application run on the same 16-core Linux machine.
+The code is in [`code/ch22`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch22). The application compiles and runs in the Rust image of [Chapter 21](ch21-connect-clients.md) (`rust:bookworm`, Rust 1.99.1, with `protoc`). It uses the Connect server of [Chapter 21](ch21-connect-clients.md) (`code/ch21/server.sh`, Spark 4.3.0 on port 15106). The data is six months of taxi trips, January to June 2026 (`yellow-h1`, 22,836,515 trips). The server and the application run on the same 16-core Linux machine.
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch22-anim-batches.webp">

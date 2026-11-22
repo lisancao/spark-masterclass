@@ -183,7 +183,7 @@ sequenceDiagram
   S-->>C: Run is COMPLETED
 ```
 
-Chapter 52 follows these commands into the server source.
+[Chapter 52](ch52-pipeline-end-to-end.md) follows these commands into the server source.
 
 ## Step 4: What pipeline code must not do
 

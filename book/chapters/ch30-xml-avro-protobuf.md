@@ -445,7 +445,7 @@ root
  |-- timestampType: integer (nullable = true)
 ```
 
-The script made this schema with `spark.readStream.format("kafka")` and the package `org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0`. It did not connect to a broker, because a stream source connects only when the query starts. The rest of this part reads the topic dumps in `binary/`, which have the same columns. Chapter 39 runs a stream from a source.
+The script made this schema with `spark.readStream.format("kafka")` and the package `org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0`. It did not connect to a broker, because a stream source connects only when the query starts. The rest of this part reads the topic dumps in `binary/`, which have the same columns. [Chapter 39](ch39-structured-streaming.md) runs a stream from a source.
 
 Producers that use the Confluent Schema Registry do not put plain Avro into the value. They put a five-byte header in front of it:
 

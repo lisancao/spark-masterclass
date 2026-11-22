@@ -207,7 +207,7 @@ The parts that enforce scope are in the earlier chapters:
 - A server that runs in a cluster with its own executors, which the operator restarts ([Chapter 62](ch62-kubernetes-operator.md)).
 - The 4.3 REST endpoints and the event log, as the record of each operation that the agent ran ([Chapter 61](ch61-observability.md)).
 
-Spark 4.3 helps the local loop of an agent in two ways. The persistent local server (`spark.local.connect.reuse`) answers a new process in 0.4 seconds instead of about 4.4 seconds. Single-task execution makes small queries faster (Chapter 24, Steps 7 and 8). The talk notes a risk that applies here: a local mode that behaves differently from the cluster is a new place for silent errors.
+Spark 4.3 helps the local loop of an agent in two ways. The persistent local server (`spark.local.connect.reuse`) answers a new process in 0.4 seconds instead of about 4.4 seconds. Single-task execution makes small queries faster ([Chapter 24](ch24-connect-in-production.md), Steps 7 and 8). The talk notes a risk that applies here: a local mode that behaves differently from the cluster is a new place for silent errors.
 
 ## Step 6: Context, part 1: a skill pinned to your Spark version
 

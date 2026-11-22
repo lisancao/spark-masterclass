@@ -206,7 +206,7 @@ The SQL functions came in Spark 4.2. **New in 4.3:** PySpark has Python wrappers
 
 The times in this output come from a machine that other jobs also used, so they are not a measurement. The book quotes no speed result here. The plan difference is the important part: one plan has a Python boundary and the other plan does not.
 
-Both plans use `BroadcastNestedLoopJoin`, because a cross join compares each query with each document. For many more documents, this is too slow, and you need an index. Step 7 and Chapter 55 show indexes.
+Both plans use `BroadcastNestedLoopJoin`, because a cross join compares each query with each document. For many more documents, this is too slow, and you need an index. Step 7 and [Chapter 55](ch55-similarity-search.md) show indexes.
 
 ## Step 7: Near-duplicates with MinHashLSH
 
@@ -318,7 +318,7 @@ The SparkTutor lesson recorded that Spark Connect in 4.2.0 ignored this argument
   word 2-grams  distance p-q: 0.5000
 ```
 
-Use n-grams (shingles) when order changes what the text says. Chapter 55 uses character 5-grams for the same reason.
+Use n-grams (shingles) when order changes what the text says. [Chapter 55](ch55-similarity-search.md) uses character 5-grams for the same reason.
 
 ## Step 9: The same code over Spark Connect
 

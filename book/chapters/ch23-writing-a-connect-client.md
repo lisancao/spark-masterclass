@@ -11,7 +11,7 @@ pyspark importable: False
 grpcio 1.85.3 | protobuf 7.36.2 | pyarrow 26.0.1
 ```
 
-The server is the Spark 4.3.0 Connect server of Chapter 21 (`code/ch21/server.sh`, port 15106).
+The server is the Spark 4.3.0 Connect server of [Chapter 21](ch21-connect-clients.md) (`code/ch21/server.sh`, port 15106).
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch23-anim-layers.webp">
@@ -239,7 +239,7 @@ flowchart LR
   read["Read<br/>parquet path"]:::you --> filter["Filter<br/>and(>=, <)"]:::you --> agg["Aggregate<br/>count, round(avg)"]:::you --> sort["Sort<br/>trips desc"]:::you --> limit["Limit 5<br/>the root"]:::you
 ```
 
-`AnalyzePlan` asks the server to analyze a plan without a run. The client uses it for the schema. `step4_dataframe.py` gets the schema of the taxi files, then runs the query of Chapter 21 through the builder:
+`AnalyzePlan` asks the server to analyze a plan without a run. The client uses it for the schema. `step4_dataframe.py` gets the schema of the taxi files, then runs the query of [Chapter 21](ch21-connect-clients.md) through the builder:
 
 ```python
 trips = s.read_parquet(TRIPS)
@@ -380,11 +380,11 @@ stateDiagram-v2
   Complete --> [*]: ReleaseExecute
 ```
 
-This client releases the responses only at the end, with `ReleaseAll`. A production client releases them during the result, with `ReleaseUntil` and the last response ID. Then the server can free its buffer early. Chapter 19, Step 7, shows that PySpark sends one `ReleaseExecute` for each response.
+This client releases the responses only at the end, with `ReleaseAll`. A production client releases them during the result, with `ReleaseUntil` and the last response ID. Then the server can free its buffer early. [Chapter 19](ch19-connect-protocol.md), Step 7, shows that PySpark sends one `ReleaseExecute` for each response.
 
 ## What a full client needs
 
-`miniconnect.py` can run queries, get schemas, decode errors and survive a stream that ends early. A client for real work needs more of the protocol. This list comes from `base.proto` at `v4.3.0` and from the clients of Chapter 21:
+`miniconnect.py` can run queries, get schemas, decode errors and survive a stream that ends early. A client for real work needs more of the protocol. This list comes from `base.proto` at `v4.3.0` and from the clients of [Chapter 21](ch21-connect-clients.md):
 
 | Area | What to implement | RPCs and fields |
 |---|---|---|
@@ -400,7 +400,7 @@ This client releases the responses only at the end, with `ReleaseAll`. A product
 | Code on the server | UDFs need their code on the server: Python pickles, JARs or class files. | `AddArtifacts`, `ArtifactStatus` |
 | Streaming | Start, watch and stop streaming queries. | `WriteStreamOperationStart`, `StreamingQueryCommand` |
 
-The size of this list is why the clients of Chapter 21 are at different stages. The first query is a weekend of work. The list above is the work of a project.
+The size of this list is why the clients of [Chapter 21](ch21-connect-clients.md) are at different stages. The first query is a weekend of work. The list above is the work of a project.
 
 A hand-written client can also go much further down than this chapter. For an example, see [spark-connect-wasm](https://github.com/lisancao/spark-connect-wasm). It is a Spark Connect client in WebAssembly text format, with its own protobuf, HTTP/2 and Arrow code.
 

@@ -6,14 +6,14 @@ The connector is a Python data source, because the Python API covers each capabi
 
 | Capability | `casefile` | Where the book shows the API |
 |---|---|---|
-| A short name, three tables from one source | `format("casefile")`, option `table` | Chapter 65 |
-| Partitions | planned by bytes, first fit decreasing | Chapter 65 |
-| Filter pushdown | exact, and only when the user asks for it | Chapter 67 |
-| VARIANT | loose metadata, from `VariantVal.parseJson` | Chapter 29 |
-| A writer | invisible until one atomic manifest swap | Chapter 68 |
-| A stream | byte offsets for each log, admission control by bytes | Chapter 68 |
-| Worker logs | one warning for each problem, from `python_worker_logs()` | Chapter 69 |
-| The Java path | the same connector against DSv2 | Chapter 70 |
+| A short name, three tables from one source | `format("casefile")`, option `table` | [Chapter 65](ch65-python-data-sources-readers.md) |
+| Partitions | planned by bytes, first fit decreasing | [Chapter 65](ch65-python-data-sources-readers.md) |
+| Filter pushdown | exact, and only when the user asks for it | [Chapter 67](ch67-python-data-sources-pushdown.md) |
+| VARIANT | loose metadata, from `VariantVal.parseJson` | [Chapter 29](ch29-variant.md) |
+| A writer | invisible until one atomic manifest swap | [Chapter 68](ch68-python-data-sources-writers-streaming.md) |
+| A stream | byte offsets for each log, admission control by bytes | [Chapter 68](ch68-python-data-sources-writers-streaming.md) |
+| Worker logs | one warning for each problem, from `python_worker_logs()` | [Chapter 69](ch69-shipping-a-python-data-source.md) |
+| The Java path | the same connector against DSv2 | [Chapter 70](ch70-dsv2-connector-java.md) |
 
 **A connector for messy data must not crash on messy data. Each problem in the input becomes a row, a column value or a warning, not an exception.
 
@@ -373,7 +373,7 @@ Line 3 of the log of CASE-0010 is blank, so there is no row 3. In a batch read, 
 
 ## Step 6: Loose metadata as VARIANT
 
-`meta` has different keys in each case, and it comes from a different field in each version. That is the correct use of VARIANT (Chapter 29). A Python data source returns a VARIANT value as a `pyspark.sql.types.VariantVal`. `VariantVal.parseJson` makes one from a JSON string:
+`meta` has different keys in each case, and it comes from a different field in each version. That is the correct use of VARIANT ([Chapter 29](ch29-variant.md)). A Python data source returns a VARIANT value as a `pyspark.sql.types.VariantVal`. `VariantVal.parseJson` makes one from a JSON string:
 
 ```python
 "meta": VariantVal.parseJson(json.dumps(index["meta"])) if index["meta"] is not None else None,
@@ -815,7 +815,7 @@ The result of Step 8 came from the Python data source path, not from DSv2. Spark
 - **A catalog file.** Pushdown on `status` reads each index when Spark plans the query. Write a small summary file (case ID, status, opened) in `commit()`, and plan from that file.
 - **Vacuum.** A commit that stopped before its cleanup leaves folders that no manifest lists. Add a `vacuum(root, keep_jobs=...)` function. Think about readers that still use an old manifest.
 - **Logs that get shorter.** If a log is shorter than its offset, the stream must fail with a clear error. It must not read wrong data. Add the check to `latestOffset`.
-- **A package.** Make `pyspark_casefile` with a `DefaultSource`, as in Chapter 69, with `OfflineTests` as its pytest suite.
+- **A package.** Make `pyspark_casefile` with a `DefaultSource`, as in [Chapter 69](ch69-shipping-a-python-data-source.md), with `OfflineTests` as its pytest suite.
 - **Retries.** Run the writer with `local[2,3]` and a `write()` that fails the first time. Show that the output is the same.
 
 ## The whole chapter, on one page
@@ -847,4 +847,4 @@ Part XIV goes into the engine. It shows how Catalyst plans Python, the protocol 
 - [`python/pyspark/sql/streaming/datasource.py` at v4.3.0](https://github.com/apache/spark/blob/v4.3.0/python/pyspark/sql/streaming/datasource.py), with `ReadMaxBytes`, `ReadAllAvailable` and `SupportsTriggerAvailableNow`.
 - [`plan_data_source_read.py` at v4.3.0](https://github.com/apache/spark/blob/v4.3.0/python/pyspark/sql/worker/plan_data_source_read.py), with the `NotImplementedError` fallback of Step 4.
 - [Chapter 70: a DSv2 connector in Java](ch70-dsv2-connector-java.md), the Java path of Step 14.
-- Chapter 77, "From wrong results to a fix", for how to reproduce, minimize and report a wrong result such as the one in Step 8.
+- [Chapter 77](ch77-upstream-case-study.md), "From wrong results to a fix", for how to reproduce, minimize and report a wrong result such as the one in Step 8.

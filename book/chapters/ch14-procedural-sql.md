@@ -34,7 +34,7 @@ The full name of a session variable is `system.session.<name>`, and `session.min
 
 `SET VAR ... = (query)` stores the result of a scalar subquery. The query runs one time, when the `SET VAR` runs. Thus `min_fare` is now 83.5, the 99th percentile of the June fares, and later queries use that value as a literal.
 
-A session variable is not a parameter (Chapter 13). A parameter belongs to one call of `spark.sql`. A variable stays in the session, and many statements can read it and change it.
+A session variable is not a parameter ([Chapter 13](ch13-spark-sql-in-depth.md)). A parameter belongs to one call of `spark.sql`. A variable stays in the session, and many statements can read it and change it.
 
 ## Step 2: A script and its result
 
@@ -236,7 +236,7 @@ The third script uses `DECLARE bad_cast CONDITION FOR SQLSTATE '22018'`, and a h
 The last two lines show that a script has no transaction. The script inserts a row, fails on the next statement, and stops. The row that it inserted stays in the table.
 
 !!! warning
-    A failed script does not undo its earlier statements. Make each step of a script safe to run again. For example, use `INSERT OVERWRITE` or `MERGE`, not `INSERT INTO`. Or use a table format with transactions (Chapter 44).
+    A failed script does not undo its earlier statements. Make each step of a script safe to run again. For example, use `INSERT OVERWRITE` or `MERGE`, not `INSERT INTO`. Or use a table format with transactions ([Chapter 44](ch44-tables-delta-iceberg.md)).
 
 ## Step 7: CONTINUE handlers and cursors
 
@@ -296,7 +296,7 @@ In a script, `EXECUTE IMMEDIATE` and `FOR` together give "the same statement for
 
 `INTO` needs exactly one row. With two rows, it fails with `ROW_SUBQUERY_TOO_MANY_ROWS`. With no rows, the variables become NULL.
 
-The text of `EXECUTE IMMEDIATE` is SQL, so the same risk as in Chapter 13 applies. Put values in `USING`, not in the text. If a table name comes from a user, check it against a list before you add it to the text. Or use `IDENTIFIER(:name)` in the text.
+The text of `EXECUTE IMMEDIATE` is SQL, so the same risk as in [Chapter 13](ch13-spark-sql-in-depth.md) applies. Put values in `USING`, not in the text. If a table name comes from a user, check it against a list before you add it to the text. Or use `IDENTIFIER(:name)` in the text.
 
 ## Step 9: A scalar SQL UDF
 
@@ -357,7 +357,7 @@ flowchart LR
   fare_band_py  445,492 rows  median 1.13 s  ['ArrowEvalPython', 'PushedFilters: []']
 ```
 
-The Python UDF adds an `ArrowEvalPython` operator. Spark sends the fares to a Python worker process in Arrow batches, and it reads the results back. The SQL UDF runs in the executor JVM, in the generated code. On this machine, the Python UDF took about three times as long. Spark 4.3 can change some simple Python UDFs into Catalyst expressions (Chapter 34). This UDF did not change, because the plan still has `ArrowEvalPython`.
+The Python UDF adds an `ArrowEvalPython` operator. Spark sends the fares to a Python worker process in Arrow batches, and it reads the results back. The SQL UDF runs in the executor JVM, in the generated code. On this machine, the Python UDF took about three times as long. Spark 4.3 can change some simple Python UDFs into Catalyst expressions ([Chapter 34](ch34-python-udfs-arrow.md)). This UDF did not change, because the plan still has `ArrowEvalPython`.
 
 <figure markdown>
 ![The median times of the SQL UDF and the Python UDF.](../media/figures/ch14-udf-cost-light.svg#only-light)
@@ -419,7 +419,7 @@ a scalar UDF with a subquery: []
 
 - **A temporary SQL function cannot replace a built-in function.** The error names `upper`.
 - **A parameter is not a constant.** `LIMIT n` and `IDENTIFIER(t)` need a value that is known when Spark makes the plan. Inside the body, a parameter is a reference to the outer query, `outer(top_fares.n)`. For a table name that changes, use `EXECUTE IMMEDIATE`.
-- **Arguments are cast to the parameter types.** `doubled('ten')` fails at run time with the cast error from Chapter 10.
+- **Arguments are cast to the parameter types.** `doubled('ten')` fails at run time with the cast error from [Chapter 10](ch10-cleaning-values.md).
 - **A scalar function can contain a scalar subquery.** `zone_name(132)` returns `JFK Airport`. An ID with no zone returns NULL.
 
 ## Step 12: Persistent functions

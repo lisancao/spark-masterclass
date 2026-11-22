@@ -33,7 +33,7 @@ def label_row(text):
    useArrow=False plan: ['+- BatchEvalPython [<lambda>(text#25)#269], [pythonUDF0#301]']
 ```
 
-The function ran 240 times, once for each row. The plan shows `ArrowEvalPython`, because `spark.sql.execution.pythonUDF.arrow.enabled` is on by default in 4.3 (Chapter 5 shows this operator). The executor sends the rows to the Python worker in Arrow batches. But a plain UDF still calls your function one row at a time. With `useArrow=False`, the operator is `BatchEvalPython`, which sends pickled rows.
+The function ran 240 times, once for each row. The plan shows `ArrowEvalPython`, because `spark.sql.execution.pythonUDF.arrow.enabled` is on by default in 4.3 ([Chapter 5](ch05-how-spark-runs.md) shows this operator). The executor sends the rows to the Python worker in Arrow batches. But a plain UDF still calls your function one row at a time. With `useArrow=False`, the operator is `BatchEvalPython`, which sends pickled rows.
 
 A closure is a good way to send a small model. Spark broadcasts a closure that is larger than `spark.broadcast.UDFCompressionThreshold` (1 MiB by default). For a large model, load it from a file in each task, as the next steps do.
 

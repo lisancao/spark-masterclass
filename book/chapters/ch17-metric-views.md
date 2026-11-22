@@ -1,6 +1,6 @@
 # Chapter 17: Metric views: a semantic layer in Spark SQL
 
-A gold table answers the questions that somebody asked when the team wrote the pipeline (Chapter 50). The next question needs a different grain: by hour, not by day, or by borough and payment type. Then somebody writes a new query, and the formula of each number goes into one more place.
+A gold table answers the questions that somebody asked when the team wrote the pipeline ([Chapter 50](ch50-medallion.md)). The next question needs a different grain: by hour, not by day, or by borough and payment type. Then somebody writes a new query, and the formula of each number goes into one more place.
 
 Some numbers are easy to compute again. You can add the counts or the sums of groups. You cannot add other numbers. A ratio of two sums is not the average of the ratios of its groups. A count of distinct values is not the sum of the counts of its groups. Both wrong queries run, and both give a number that looks correct.
 

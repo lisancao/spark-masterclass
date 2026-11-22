@@ -12,7 +12,7 @@ Spark 4.3 adds history tables (SCD Type 2) to Auto CDC, and a SQL syntax for it.
 
 This chapter shows each part of that sentence with the same change events for three customers who live in Toronto, Ottawa and Hanoi.
 
-The code is in [`code/ch51`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch51). Each output block comes from `code/ch51/output/`. The pipelines write Iceberg tables with the Iceberg runtime for Spark 4.3 that Chapter 44 describes, an unreleased build.
+The code is in [`code/ch51`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch51). Each output block comes from `code/ch51/output/`. The pipelines write Iceberg tables with the Iceberg runtime for Spark 4.3 that [Chapter 44](ch44-tables-delta-iceberg.md) describes, an unreleased build.
 
 ## Step 1: Apply changes, do not append them
 
@@ -72,7 +72,7 @@ The result has the columns of the table and three metadata columns: `_change_typ
 
 | Option | Value | What it does |
 |---|---|---|
-| `deduplicationMode` | `dropCarryovers` | Removes carry-over rows. A copy-on-write change (Chapter 44, Step 4) deletes and inserts rows that did not change. These pairs are carry-overs. |
+| `deduplicationMode` | `dropCarryovers` | Removes carry-over rows. A copy-on-write change ([Chapter 44](ch44-tables-delta-iceberg.md), Step 4) deletes and inserts rows that did not change. These pairs are carry-overs. |
 | `deduplicationMode` | `netChanges` | Gives one net change for each row in the range. |
 | `deduplicationMode` | `none` | Gives the rows as the connector sends them. |
 | `computeUpdates` | | Turns a delete and an insert of the same row identity in one commit into `update_preimage` and `update_postimage`. |
@@ -101,7 +101,7 @@ The interface (`sql/catalyst/src/main/java/org/apache/spark/sql/connector/catalo
 
 ## Step 3: What you can read today
 
-Two table formats have their own change feeds, and both work now. Chapter 44, Step 6, read the change data feed of Delta Lake with `readChangeFeed`. Iceberg has a stored procedure, `create_changelog_view`, that makes a temporary view of the changes between snapshots:
+Two table formats have their own change feeds, and both work now. [Chapter 44](ch44-tables-delta-iceberg.md), Step 6, read the change data feed of Delta Lake with `readChangeFeed`. Iceberg has a stored procedure, `create_changelog_view`, that makes a temporary view of the changes between snapshots:
 
 ```python
 spark.sql("""CALL lake.system.create_changelog_view(
@@ -162,7 +162,7 @@ The apply half is `dp.create_auto_cdc_flow` in Python, or `AUTO CDC` in SQL. An 
 pyspark.errors.exceptions.connect.UnknownException: (org.apache.spark.sql.pipelines.graph.DatasetManager$TableMaterializationException) org.apache.spark.sql.AnalysisException: [AUTOCDC_TARGET_DOES_NOT_SUPPORT_MERGE] Cannot start AutoCDC flow: the target table `spark_catalog`.`default`.`customers_current` (format: parquet) does not support row-level operations. AutoCDC requires a target backed by a connector that supports MERGE. SQLSTATE: 0A000
 ```
 
-Spark checks that the catalog of the target implements the DSv2 interface `SupportsRowLevelOperations`, the same interface that plans `MERGE` in Chapter 44, Step 10. A Parquet table of the session catalog does not implement it, so the run fails with `AUTOCDC_TARGET_DOES_NOT_SUPPORT_MERGE`. The Iceberg runtime implements it. Delta Lake has its own `MERGE` command through a SQL extension, and Delta 4.4.1 does not run on Spark 4.3 (Chapter 44). The `crm` pipeline of this chapter therefore writes to the Iceberg catalog `lake`:
+Spark checks that the catalog of the target implements the DSv2 interface `SupportsRowLevelOperations`, the same interface that plans `MERGE` in [Chapter 44](ch44-tables-delta-iceberg.md), Step 10. A Parquet table of the session catalog does not implement it, so the run fails with `AUTOCDC_TARGET_DOES_NOT_SUPPORT_MERGE`. The Iceberg runtime implements it. Delta Lake has its own `MERGE` command through a SQL extension, and Delta 4.4.1 does not run on Spark 4.3 ([Chapter 44](ch44-tables-delta-iceberg.md)). The `crm` pipeline of this chapter therefore writes to the Iceberg catalog `lake`:
 
 ```yaml
 name: crm
@@ -547,7 +547,7 @@ Each run is one or more Iceberg commits on the target. The SCD Type 2 target got
 
 The bronze table in this chapter reads JSON files. Real change events come from other sources:
 
-- **The change data feed of a Delta table.** Read it with `spark.readStream.format("delta").option("readChangeFeed", "true").load(path)` (keep `format("delta")`, as Chapter 44 shows). Remove the `update_preimage` rows, map `_change_type = 'delete'` to `apply_as_deletes`, and use `_commit_version` as `sequence_by`. This book does not run this source, because no Delta release runs on Spark 4.3.0.
+- **The change data feed of a Delta table.** Read it with `spark.readStream.format("delta").option("readChangeFeed", "true").load(path)` (keep `format("delta")`, as [Chapter 44](ch44-tables-delta-iceberg.md) shows). Remove the `update_preimage` rows, map `_change_type = 'delete'` to `apply_as_deletes`, and use `_commit_version` as `sequence_by`. This book does not run this source, because no Delta release runs on Spark 4.3.0.
 - **A Kafka topic with Debezium or similar events.** Parse `value` with `from_json`. Use the sequence number or the time of the change in the source system as `sequence_by`, not the Kafka offset. Offsets give the order in one partition only, and a producer can send the same change again with a new offset.
 
 A dry run checks the sequence column before any event is read:

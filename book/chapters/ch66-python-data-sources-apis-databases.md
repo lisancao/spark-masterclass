@@ -34,7 +34,7 @@ driver loop: 60 rows, then HTTPError: HTTP Error 503: Service Unavailable
 driver loop: 4 requests: p0 p1 p2 p3(503) 
 ```
 
-The loop has the problems of the loop in Chapter 65, and two more. It reads one page at a time, in one process. And one bad response stops all of the work, with 60 rows in memory and no method to continue. The server records each request, so each step of this chapter can count its requests.
+The loop has the problems of the loop in [Chapter 65](ch65-python-data-sources-readers.md), and two more. It reads one page at a time, in one process. And one bad response stops all of the work, with 60 rows in memory and no method to continue. The server records each request, so each step of this chapter can count its requests.
 
 ## Step 2: Pages are partitions
 
@@ -81,7 +81,7 @@ class TicketsReader(DataSourceReader):
                        VariantVal.parseJson(json.dumps(item["meta"])))
 ```
 
-All network calls are in `read()` and in `partitions()`, never in `__init__` onto `self`. A socket does not pickle (Chapter 65, Step 6). The imports are inside `read()`, so that the worker that runs the task imports them.
+All network calls are in `read()` and in `partitions()`, never in `__init__` onto `self`. A socket does not pickle ([Chapter 65](ch65-python-data-sources-readers.md), Step 6). The imports are inside `read()`, so that the worker that runs the task imports them.
 
 The tasks must be able to connect to the API. Here, the API listens on `127.0.0.1`, and that is correct only in local mode. On a cluster, each executor connects from its own machine, so the API must accept connections from all of them.
 
@@ -120,7 +120,7 @@ Each number has a cause:
 
 - **`load()` and `explain()` sent no requests.** `load()` calls `schema()`, which here is a fixed string. `explain()` plans the query, but the `BatchScan` node does not call `partitions()` to print the plan.
 - **The first `count()` sent 7 requests.** One request was the page 0 of `partitions()`. Then the five tasks each read one page. Page 3 failed one time, and the reader tried again. Thus the 7 requests are 1 + 5 + 1.
-- **The second query sent 6 requests, not 7.** Spark keeps the planned read on the DataFrame (Chapter 65, Step 11), so `partitions()` did not run again. But Spark does not keep rows. Each action runs all the tasks again, and each task requests its page again.
+- **The second query sent 6 requests, not 7.** Spark keeps the planned read on the DataFrame ([Chapter 65](ch65-python-data-sources-readers.md), Step 11), so `partitions()` did not run again. But Spark does not keep rows. Each action runs all the tasks again, and each task requests its page again.
 - **After `cache()` and one action, the queries sent no requests.** The cached rows answered them.
 
 The animation shows the requests of the first two actions. The request logs come from the output above.
@@ -203,7 +203,7 @@ The second line comes from `api_task_retries.txt`, a separate run with `SPARK_MA
 
 ## Step 4: Check options early
 
-The `tickets` source cannot do anything without a `url`. In Chapter 65, the `counter` source checked its options in the reader, so an absent option failed at the first action. `TicketsDataSource` checks in `DataSource.__init__`:
+The `tickets` source cannot do anything without a `url`. In [Chapter 65](ch65-python-data-sources-readers.md), the `counter` source checked its options in the reader, so an absent option failed at the first action. `TicketsDataSource` checks in `DataSource.__init__`:
 
 ```python
 class TicketsDataSource(DataSource):
@@ -232,7 +232,7 @@ no url, user schema: load() returned a DataFrame with columns ['id', 'status', '
                 ValueError: option 'url' is required 
 ```
 
-Without a user schema, the error appeared at `load()`. Spark must create the `DataSource` to call `schema()`. With a user schema, Spark does not need `schema()`, so it creates the `DataSource` only at the first action. The same check then fails later. On Spark Connect, the check fails at the first call that needs the schema (Chapter 65, Step 12).
+Without a user schema, the error appeared at `load()`. Spark must create the `DataSource` to call `schema()`. With a user schema, Spark does not need `schema()`, so it creates the `DataSource` only at the first action. The same check then fails later. On Spark Connect, the check fails at the first call that needs the schema ([Chapter 65](ch65-python-data-sources-readers.md), Step 12).
 
 ## Step 5: Control the load on the API
 

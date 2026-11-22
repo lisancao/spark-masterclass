@@ -10,7 +10,7 @@ A Spark job that runs once from a terminal is easy. A Spark job that runs each n
 
 **On Kubernetes, the default scheduler and the default shuffle are not sufficient for Spark. A driver can start and then wait forever for executors, and an executor that holds shuffle data cannot stop. YuniKorn and Celeborn correct these two problems. Celeborn 0.7.0 does not support Spark 4.3.0.**
 
-This chapter runs each part for real. A local Airflow 3.4.0 runs DAGs against Spark 4.3.0, on the laptop and on a kind cluster with three nodes. YuniKorn schedules Spark pods on that cluster, and Celeborn holds the shuffle data of a Spark job. Chapter 62 explains the Apache Spark Kubernetes Operator. This chapter only uses that operator from Airflow.
+This chapter runs each part for real. A local Airflow 3.4.0 runs DAGs against Spark 4.3.0, on the laptop and on a kind cluster with three nodes. YuniKorn schedules Spark pods on that cluster, and Celeborn holds the shuffle data of a Spark job. [Chapter 62](ch62-kubernetes-operator.md) explains the Apache Spark Kubernetes Operator. This chapter only uses that operator from Airflow.
 
 The code is [`code/ch63`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch63).
 
@@ -298,7 +298,7 @@ The record shows these facts about the task:
 For production, the driver usually runs on the cluster, not on the Airflow worker. On Kubernetes, there are two methods to start it from Airflow:
 
 - **`SparkSubmitOperator` with a `k8s://` master in cluster mode.** `spark-submit` creates the driver pod. The driver creates its executor pods.
-- **A `SparkApplication` resource of the Apache Spark Kubernetes Operator.** Airflow creates the resource with `KubernetesCreateResourceOperator`. The Spark operator submits the application and records its state in the resource. Chapter 62 explains the operator and its resource.
+- **A `SparkApplication` resource of the Apache Spark Kubernetes Operator.** Airflow creates the resource with `KubernetesCreateResourceOperator`. The Spark operator submits the application and records its state in the resource. [Chapter 62](ch62-kubernetes-operator.md) explains the operator and its resource.
 
 `code/ch63/dags/taxi_k8s.py` does the two methods, one after the other, with the same job file. The first task:
 
@@ -472,7 +472,7 @@ There are two Kubernetes operators for Spark. Their resources have the same kind
 |---|---|---|
 | Project | [kubeflow/spark-operator](https://github.com/kubeflow/spark-operator), latest release v2.6.0 (11 November 2026) | [apache/spark-kubernetes-operator](https://github.com/apache/spark-kubernetes-operator), latest release 1.1.0 |
 | Resource | `sparkoperator.k8s.io/v1beta2` `SparkApplication`, `ScheduledSparkApplication` | `spark.apache.org/v1` `SparkApplication`, `SparkCluster` |
-| How it submits | The operator (in Go) runs `spark-submit` in its own pod. The image of v2.6.0 has Spark 4.2.1. | The operator (in Java) submits through the Spark Kubernetes client in its own JVM (Chapter 62) |
+| How it submits | The operator (in Go) runs `spark-submit` in its own pod. The image of v2.6.0 has Spark 4.2.1. | The operator (in Java) submits through the Spark Kubernetes client in its own JVM ([Chapter 62](ch62-kubernetes-operator.md)) |
 | Pod changes | A mutating admission webhook changes driver and executor pods | Pod templates and `sparkConf` |
 | From Airflow | `SparkKubernetesOperator` and `SparkKubernetesSensor` (cncf.kubernetes provider) | `KubernetesCreateResourceOperator` and a sensor that reads `status.currentState` (Step 5) |
 

@@ -214,7 +214,7 @@ PyHive replaces `%(b)s` with a quoted value on the client, before it sends the t
 
 Spark 4.1 added a second JDBC driver. It connects to a Spark Connect server with a URL that starts with `jdbc:sc://`. The driver is not in `sql/connect/client/jdbc` at v4.0.0, and it is at v4.1.0. The tarball of 4.3.0 has the driver in `jars/connect-repl/`, and Maven Central has it as `org.apache.spark:spark-connect-client-jdbc_2.13:4.3.0`.
 
-`ConnectJdbc.java` is a plain JDBC program. `connect_jdbc.sh` starts the Connect server of Chapter 8 and runs the program with Java's single-file launcher:
+`ConnectJdbc.java` is a plain JDBC program. `connect_jdbc.sh` starts the Connect server of [Chapter 8](ch08-setting-configurations.md) and runs the program with Java's single-file launcher:
 
 ```java
 try (Connection c = DriverManager.getConnection(url)) {
@@ -754,7 +754,7 @@ dfa = (spark.table("taxi.trips").where(F.col("tpep_pickup_datetime") >= MONTH_ST
   sameResult (optimized):   True
 ```
 
-The parsed plans are different only at the leaf. The parser of the SQL text makes an `UnresolvedRelation` for `taxi.trips`. `spark.table` in Classic looks up the table immediately, so the DataFrame already has a `Relation`. After the analyzer resolves the name, the two plans have the same nodes, and `sameSemantics` is `True`. Here the two queries have their filter in the same position, so the analyzed plans also agree. The query of Chapter 7 had a different position, and only the optimized plans agreed.
+The parsed plans are different only at the leaf. The parser of the SQL text makes an `UnresolvedRelation` for `taxi.trips`. `spark.table` in Classic looks up the table immediately, so the DataFrame already has a `Relation`. After the analyzer resolves the name, the two plans have the same nodes, and `sameSemantics` is `True`. Here the two queries have their filter in the same position, so the analyzed plans also agree. The query of [Chapter 7](ch07-quick-start.md) had a different position, and only the optimized plans agreed.
 
 Commands follow the same rule. The script runs a CTAS and an `INSERT` in SQL and with `DataFrameWriter`. Then it reads the command nodes of the new SQL executions from the REST API:
 
