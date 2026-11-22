@@ -23,3 +23,4 @@ Scope: figures, animations, tables and admonitions added to the existing chapter
 - ch28: figures ch28-latency (r2_latency.txt medians), ch28-foreach (r3_foreach_default.txt, r3_foreach_64.txt); animation ch28-anim-pipelined (r4_pipeline.txt task counts, r2_latency.txt medians; time scale schematic). STE 0 (part05 ch28 allow list).
 - ch29: figures ch29-deltabytes (c1_hdfs.txt sizes, lz4delta.py layout), ch29-versions (c1_hdfs.txt decoded files), ch29-repartition (c3_repartition.txt); animation ch29-anim-state-commit (c1_hdfs.txt records; time scale schematic). STE 0 (part05 ch29 allow list).
 - ch30: figures ch30-deltalog (delta_log.txt), ch30-cow-mor (iceberg_log.txt); animation ch30-anim-delta-commits (delta_log.txt; time scale schematic). STE 0.
+- ch31: figures ch31-schemas (evolve.txt), ch31-pruning (evolve.txt, tables.txt), ch31-maintenance (maintenance.txt); animation ch31-anim-snapshot-commit (tables.txt files, sizes and rows; time scale schematic). STE 0.

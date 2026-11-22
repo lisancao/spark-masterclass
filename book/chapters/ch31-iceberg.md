@@ -441,6 +441,13 @@ One `INSERT` wrote these files:
 Before step 5, no reader can see the new files. After step 5, all readers see all the new files. This is the atomic commit.
 
 <figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch31-anim-snapshot-commit.webp">
+    <source src="../../media/clips/ch31-anim-snapshot-commit.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: the INSERT of the June trips. The writer adds the data files, the manifest, the manifest list and `v2.metadata.json`. Then one change of `version-hint.text` makes all of them visible. The files, the sizes and the row count come from `tables.txt`. The time scale is schematic.</figcaption>
+</figure>
+
+<figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch31-commit.webp">
     <source src="../../media/clips/ch31-commit.mp4" type="video/mp4">
   </video>
@@ -507,6 +514,12 @@ an old Parquet file still says (name, field_id):
   PULocationID physical type in the file: int32
 ```
 
+<figure markdown>
+  ![Field IDs across the five schemas](../media/figures/ch31-schemas-light.svg#only-light)
+  ![Field IDs across the five schemas](../media/figures/ch31-schemas-dark.svg#only-dark)
+  <figcaption markdown="span">The columns that the four `ALTER TABLE` statements change, by field ID, from `evolve.txt`. Each statement writes a new schema. The data files stay the same.</figcaption>
+</figure>
+
 The results are:
 
 - **Rename.** The file still calls field 9 `fare_amount`. The table schema calls it `fare`. Iceberg reads field 9 and gives it the new name.
@@ -557,6 +570,12 @@ The table now has two partition specs. The June files keep spec 0, and the May f
 2026-05-15: 155,772 trips | manifests: scanned 1, skipped 1 | data files: read 1, skipped 0
 2026-06-15: 109,514 trips | manifests: scanned 1, skipped 1 | data files: read 1, skipped 29
 ```
+
+<figure markdown>
+  ![Files that one day filter reads](../media/figures/ch31-pruning-light.svg#only-light)
+  ![Files that one day filter reads](../media/figures/ch31-pruning-dark.svg#only-dark)
+  <figcaption markdown="span">The same filter on one day in each partition layout, from `evolve.txt`. The daily layout lets Iceberg skip 29 files. The monthly layout has one file for the month.</figcaption>
+</figure>
 
 The manifest list holds the range of partition values of each manifest. Thus, each query skipped the manifest of the other month without a read of it. In June, the daily spec let Iceberg skip 29 files. In May, the monthly spec has one file for the full month, so Iceberg read that file and filtered its rows. To change old data to the new spec, use `rewrite_data_files` (Step 13).
 
@@ -925,6 +944,12 @@ rows now: 7,928,875
 ```
 
 The dry run found the file, and the real run deleted it. The table still has all its rows.
+
+<figure markdown>
+  ![Files on disk and live files](../media/figures/ch31-maintenance-light.svg#only-light)
+  ![Files on disk and live files](../media/figures/ch31-maintenance-dark.svg#only-dark)
+  <figcaption markdown="span">The file counts after each step of `maintenance.py`, from `maintenance.txt`. The live table becomes small after `rewrite_data_files`. The disk becomes small only after `expire_snapshots`.</figcaption>
+</figure>
 
 !!! warning
     Do not run `remove_orphan_files` with a short interval while other jobs write to the table. It can delete the data files of a write that has not committed, and the table then refers to files that are not on disk.
