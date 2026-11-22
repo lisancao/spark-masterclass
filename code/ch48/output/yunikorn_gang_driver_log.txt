@@ -7,4 +7,4 @@ ZONE_REVENUE N/A                 2,355 trips  $       258,590
 ZONE_REVENUE Unknown             4,109 trips  $       155,703
 ZONE_REVENUE EWR                   565 trips  $        67,976
 ZONE_REVENUE Staten Island         236 trips  $        12,809
-ZONE_REVENUE 8 rows in 9.0 s
+ZONE_REVENUE 8 rows in 9.9 s

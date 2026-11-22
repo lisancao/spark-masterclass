@@ -558,9 +558,9 @@ This is one of the placeholder pods that YuniKorn made. It runs the `pause` imag
 
 ```json
 {
-  "name": "tg-spark-a087d9c0d1d84a46b3597a-executor-ha7nagywvs",
+  "name": "tg-spark-716f3c872a014860b7b3b8-executor-36t62efbg3",
   "labels": {
-    "yunikorn.apache.org/app-id": "spark-a087d9c0d1d84a46b3597a16f3a17c68",
+    "yunikorn.apache.org/app-id": "spark-716f3c872a014860b7b3b88057c9454c",
     "yunikorn.apache.org/queue": "root.etl"
   },
   "scheduler": "yunikorn",
@@ -614,7 +614,7 @@ yunikorn  queue root.etl  cores used 0 of max 2
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch48-gang.webp">
     <source src="../../media/clips/ch48-gang.mp4" type="video/mp4">
   </video>
-  <figcaption>With gang scheduling, YuniKorn reserves a driver and an executor for etl-a first. etl-b waits, and it starts when etl-a ends.</figcaption>
+  <figcaption>With gang scheduling, YuniKorn reserves a driver and an executor for one job. The other job waits, and it starts when the first job ends. In this video, etl-b got its gang first. The order of two jobs that arrive at the same time can change from run to run.</figcaption>
 </figure>
 
 YuniKorn reserved the two cores of the queue for `etl-a`: one placeholder for the driver and one for an executor. The real driver replaced its placeholder, and `exec-1` replaced the executor placeholder. `exec-2` stayed `Pending`, because the gang reserves the minimum, not all the executors that the job asks for. The job ran with one executor.
@@ -631,7 +631,7 @@ ZONE_REVENUE N/A                 2,355 trips  $       258,590
 ZONE_REVENUE Unknown             4,109 trips  $       155,703
 ZONE_REVENUE EWR                   565 trips  $        67,976
 ZONE_REVENUE Staten Island         236 trips  $        12,809
-ZONE_REVENUE 8 rows in 9.0 s
+ZONE_REVENUE 8 rows in 9.9 s
 ```
 
 ```mermaid
