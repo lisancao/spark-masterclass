@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Records from data.json (c1_hdfs.txt, operator 0, partition 0). Timing is schematic.
+      A.title("A state store version, file by file", "the count per user: operator 0, partition 0, HDFS-backed provider");
+      A.text("executor memory: the map of partition 0", { x: 0.25, y: 0.22, size: 28, color: "var(--a-mute)" });
+      A.text("checkpoint: state/0/0/", { x: 0.72, y: 0.22, size: 28, color: "var(--a-mute)" });
+      A.box({ x: 0.25, y: 0.50, w: 560, h: 420, kind: "ghost", radius: 16 });
+      const KEYS = ["u1", "u4", "u5", "u7"];
+      const KY = (k) => 0.34 + KEYS.indexOf(k) * A.dy(80);
+      const cur = {};
+      const setVal = (k, v, t, flash = true) => {
+        const e = A.text(`${k} = ${v}`, { x: 0.25, y: KY(k), size: 38, mono: true, weight: 600 });
+        gsap.set(e, { opacity: 0 }); A.tl.to(e, { opacity: 1, duration: 0.2 }, t);
+        if (flash) A.tl.fromTo(e, { color: "var(--a-acc)" }, { color: "var(--a-fg)", duration: 0.8 }, t);
+        if (cur[k]) A.tl.to(cur[k], { opacity: 0, duration: 0.2 }, t);
+        cur[k] = e;
+      };
+      const clearAll = (t) => { for (const k of Object.keys(cur)) { A.tl.to(cur[k], { opacity: 0, duration: 0.3 }, t); delete cur[k]; } };
+      let fileN = 0;
+      const files = {};
+      const writeFile = (name, recs, t, kind) => {
+        const e = A.box({ x: 0.72, y: 0.30 + fileN * A.dy(88), w: 620, h: 72, kind: kind || "soft", title: `${name}: ${recs.map((r) => r[0] + "=" + r[1]).join(", ")}`, size: 26, radius: 8 });
+        A.tl.fromTo(e, { opacity: 0, x: -A.px(260) }, { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }, t);
+        fileN++; files[name] = e; return e;
+      };
+      const batchLbl = (s, t0, t1) => { const e = A.text(s, { x: 0.25, y: 0.77, size: 28, mono: true, color: "var(--a-acc)" }); gsap.set(e, { opacity: 0 }); A.tl.to(e, { opacity: 1, duration: 0.2 }, t0); A.tl.to(e, { opacity: 0, duration: 0.2 }, t1); };
+      // beat b0 (0.0): batch 0 writes version 1
+      batchLbl("batch 0", 0.6, 2.4); setVal("u1", 3, 0.8); setVal("u4", 2, 0.9); writeFile("1.delta", [["u1", 3], ["u4", 2]], 1.6);
+      batchLbl("batch 1", 2.6, 4.6); setVal("u5", 2, 2.8); setVal("u4", 3, 2.9); writeFile("2.delta", [["u5", 2], ["u4", 3]], 3.6);
+      cap("Each batch updates the map and commits one delta file", 0.2, 4.7);
+      // beat b2 (4.8)
+      batchLbl("batch 2", 4.9, 7.4); setVal("u5", 4, 5.1); setVal("u4", 4, 5.2); setVal("u1", 5, 5.3); writeFile("3.delta", [["u5", 4], ["u4", 4], ["u1", 5]], 6.0);
+      cap("A delta holds only the changed keys, with their new values", 4.8, 9.5);
+      // beat snap (9.6): maintenance snapshot, then batch 3
+      const mt = A.text("maintenance task", { x: 0.25, y: 0.77, size: 28, mono: true, color: "var(--a-ok)" }); gsap.set(mt, { opacity: 0 });
+      A.tl.to(mt, { opacity: 1, duration: 0.2 }, 9.7); A.tl.to(mt, { opacity: 0, duration: 0.2 }, 11.2);
+      writeFile("3.snapshot", [["u5", 4], ["u4", 4], ["u1", 5]], 10.1, "ok");
+      batchLbl("batch 3", 11.4, 14.0); setVal("u1", 6, 11.6); setVal("u7", 1, 11.7); writeFile("4.delta", [["u1", 6], ["u7", 1]], 12.4);
+      cap("The maintenance task writes a snapshot with all keys", 9.6, 14.3);
+      // beat restart (14.4): memory is lost; load 3.snapshot, apply 4.delta
+      clearAll(14.5);
+      const rs = A.text("restart", { x: 0.25, y: 0.77, size: 28, mono: true, color: "var(--a-acc)" }); gsap.set(rs, { opacity: 0 }); A.tl.to(rs, { opacity: 1, duration: 0.2 }, 14.6);
+      for (const n of ["1.delta", "2.delta", "3.delta"]) A.tl.to(files[n], { opacity: 0.3, duration: 0.3 }, 15.0);
+      A.tl.fromTo(files["3.snapshot"], { scale: 1 }, { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1 }, 15.2);
+      setVal("u5", 4, 15.6, false); setVal("u4", 4, 15.65, false); setVal("u1", 5, 15.7, false);
+      A.tl.fromTo(files["4.delta"], { scale: 1 }, { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1 }, 16.6);
+      setVal("u1", 6, 17.0); setVal("u7", 1, 17.05);
+      cap("A restart loads 3.snapshot, then applies 4.delta", 14.4);
+      A.in(A.note("records decoded from the delta and snapshot files in c1_hdfs.txt; timing schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>

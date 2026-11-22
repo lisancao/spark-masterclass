@@ -113,6 +113,12 @@ The key and the value are `UnsafeRow` bytes, the binary row format of Spark. An 
 
 `lz4delta.py` decodes all of this with the standard library: the LZ4 block format, the lz4-java frame, the records and the two field types. It has 90 lines and no dependencies. For the file above, the arithmetic agrees with the 100 bytes in the header. Each key (a row with one string) is 24 bytes. Each value (a row with one `LONG`) is 16 bytes. Two records of 4 + 24 + 4 + 16 bytes, plus the 4-byte end marker, are 100 bytes.
 
+<figure markdown>
+  ![The bytes of 0/1.delta](../media/figures/ch29-deltabytes-light.svg#only-light)
+  ![The bytes of 0/1.delta](../media/figures/ch29-deltabytes-dark.svg#only-dark)
+  <figcaption markdown="span">The 100 bytes of `0/1.delta` after LZ4, to scale. Each record has the length of the key, the key row, the length of the value and the value row.</figcaption>
+</figure>
+
 ## Step 3: Versions, deltas and snapshots
 
 The script decodes every delta and snapshot of the count:
@@ -130,6 +136,12 @@ Each delta and snapshot of the count, decoded (key: user, value: count):
   1/3.snapshot   148 bytes  [('u6', 1), ('u2', 5), ('u3', 5)]
   1/4.delta       52 bytes  [('u6', 3)]
 ```
+
+<figure markdown>
+  ![Deltas and snapshots of the count](../media/figures/ch29-versions-light.svg#only-light)
+  ![Deltas and snapshots of the count](../media/figures/ch29-versions-dark.svg#only-dark)
+  <figcaption markdown="span">The decoded files of `c1_hdfs.txt` as a grid. A delta holds the keys that changed. A snapshot holds all the keys of its version.</figcaption>
+</figure>
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch29-decode.webp">
@@ -156,6 +168,13 @@ flowchart LR
   s3["3.snapshot<br/>(all keys)"]:::s -->|"start here"| v4["version 4 in memory<br/>= 3.snapshot + 4.delta"]:::m
   d4 -->|"apply"| v4
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch29-anim-state-commit.webp">
+    <source src="../../media/clips/ch29-anim-state-commit.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">Animation: partition 0 of the count. Each batch commits a delta. The maintenance task writes `3.snapshot`. After a restart, the provider loads `3.snapshot` and applies `4.delta`. The records come from `c1_hdfs.txt`. The time scale is schematic.</figcaption>
+</figure>
 
 Without snapshots, a restart must apply each delta since the first batch. The maintenance task controls this cost with three settings:
 
@@ -351,6 +370,12 @@ spark._streamingCheckpointManager.repartition(str(ck), 4)
    batches: [(3, 8), (4, 4)]
    state: u1=6@p2 u2=5@p3 u3=5@p1 u4=4@p2 u5=4@p2 u6=3@p3 u7=1@p0
 ```
+
+<figure markdown>
+  ![Keys before and after the repartition](../media/figures/ch29-repartition-light.svg#only-light)
+  ![Keys before and after the repartition](../media/figures/ch29-repartition-dark.svg#only-dark)
+  <figcaption markdown="span">The partition of each key before and after the repartition, from `c3_repartition.txt`.</figcaption>
+</figure>
 
 The method wrote a new batch, batch 2. That batch read no input. It read the state of batch 1 and wrote it again into 4 partitions. Each key moved to the partition that its hash gives for 4 partitions. Then the restarted query continued at batch 3 on 4 partitions, although the session still had 2. The final counts are the same as in Step 4, so no event was lost or counted two times.
 
