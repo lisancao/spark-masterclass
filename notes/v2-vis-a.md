@@ -29,3 +29,37 @@ Visual aids added to existing chapters. The prose substance is not changed. Chan
 | 15 | `ch15-key-profile`, `ch15-shredding`, `ch15-extraction-cost` | `ch15-anim-shredding` (fields into typed columns, one-column read) | none (the comparison table was already there) | `code/ch15/output/land.txt`, `shred.txt`, `speed.txt`, `code/data/messy/events` |
 | 16 | `ch16-confluent`, `ch16-record-bytes` | `ch16-anim-wrongschema` (Avro bytes decoded with the right and a wrong schema) | none (the format table was already there) | `code/ch16/output/avro.txt`, `protobuf.txt` |
 | 17 | `ch17-bgr`, `ch17-parquet-blobs` | `ch17-anim-forget` (delete, rewrite, expire on snapshots and files) | the delete-sequence list as a table | `code/ch17/output/media.txt`, `blobs.txt` |
+
+Totals: 36 figures (72 SVG files, light and dark, 0.50 MB), 14 animations (mp4 plus webp poster, 3.49 MB; the largest mp4 is about 280 KB). Media added: about 4.0 MB.
+
+## Claims and sources
+
+Every number in a figure or an animation comes from the chapter's saved output (`code/chNN/output/`) or from the chapter's own tables, as listed in the "Numbers from" column above and in each `code/chNN/anim/<name>/storyboard.md`. Anything illustrative is labelled on the figure or on screen as schematic: example rows (ch03 conditional sums), dot positions and partitions (ch09, ch13), the squares that stand for files (ch11), the six drawn `withColumn` calls (ch05) and the row values of the ANSI animation (ch06). Two derived values: the PNG chunk length `00 00 00 0D` and the width bytes `00 00 00 20` in `ch11-png-header` follow from the PNG format and the decoded width 32; the four unread bytes in `ch16-anim-wrongschema` follow from the Avro byte layout and the decoded row.
+
+## Environment
+
+- Figures: `code/common/svgfig.py` (Python 3.12, no extra packages), checked with Google Chrome headless.
+- Animations: create-animation kit, HyperFrames backend, deck theme `paper`, landscape 1920x1080 scaled with ffmpeg (libx264, CRF 26) to 1280x720, webp poster from the last second.
+- No Spark runs were needed: all numbers come from saved output.
+
+## Open findings (text against saved output, not changed)
+
+- **ch06, Step 2:** the text says "Seven queries return NULL, and two return a wrong number". `code/ch06/output/ansi.txt` shows eight `None` results and two wrong numbers (ten queries).
+- **ch09, Step 3:** the text quotes 0.16 s, 0.56 s, 0.73 s and 8.50 s. `code/ch09/output/strategies.txt` shows 0.17 s, 0.54 s, 0.75 s and 8.61 s. The figure `ch09-strategy-times` uses the saved output.
+- **Possible merge overlap:** `code/common/svgfig.py` and `code/common/build_anim.sh` are new shared files. If another visual-aids branch adds files with the same names, keep one copy.
+
+## STE
+
+`scripts/ste-check` on each changed chapter, with the part allow lists (`notes/part02.md` words for ch02 to ch09, `notes/.ste-allow-part03` plus the part03 words for ch11 to ch17). No chapter has a new finding:
+
+| Chapter | Findings before | Findings after |
+|---|---|---|
+| 2, 3, 5, 6, 7, 8, 9 | 0 | 0 |
+| 11, 13, 14, 15, 16, 17 | 0 | 0 |
+| 12 | 1 (`is parsed`, already in the chapter) | 1 (the same) |
+
+(ch05 without the allow list has the same 4 findings before and after.) Rules for captions: alt text short, a blank line between the two images and before `<figcaption>` (the checker joins lines of one paragraph into one sentence), captions in STE description text.
+
+## Nav and roadmap
+
+No new chapters, so no nav entries or roadmap rows.
