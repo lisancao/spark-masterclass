@@ -1,0 +1,11 @@
+fresh: seconds to the first result, pid, session, server
+  process 1:   4.4 s  pid 1662226  session a1a5787c  server localhost:15002
+  process 2:   4.5 s  pid 1662955  session 77179caa  server localhost:15002
+  process 3:   4.4 s  pid 1663695  session fc6d2510  server localhost:15002
+reuse: seconds to the first result, pid, session, server
+  process 1:   4.5 s  pid 1664493  session 83e0a3ec  server localhost:15002
+  process 2:   0.4 s  pid 1665153  session 9a9ce0cd  server localhost:15002
+  process 3:   0.4 s  pid 1665292  session a049c7bd  server localhost:15002
+discovery file: {'host': 'localhost', 'pid': 1664533, 'port': 15002, 'spark_version': '4.3.0', 'token': '<redacted>'}
+discovery folder mode: 0o700  file mode: 0o600
+python -m pyspark.sql.connect.local_server --stop: Stopped the persistent local Spark Connect server.

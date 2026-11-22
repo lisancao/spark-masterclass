@@ -4,7 +4,7 @@ A job that ran slowly yesterday leaves no trace in your terminal today. The Spar
 
 **Each number that Spark shows comes from one of two systems. The listener bus carries events (jobs, stages, tasks, SQL executions, Connect operations) to the UI, to the event log and to your listeners. The metrics system samples counters and gauges for Prometheus and other sinks. The REST API, the History Server and the event log are three views of the same events. Learn to read the events directly, and you can examine an application that stopped hours ago with Spark itself.**
 
-The code for this chapter is in [`code/ch43`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch43). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. Each output block comes from `code/ch43/output/`. The workload in Steps 1 to 6 is the SparkTutor exercise for this chapter: a skewed aggregation through a slow Python UDF, and a sort that Spark must spill.
+The code for this chapter is in [`code/ch43`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch43). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. Each output block comes from `code/ch43/output/`. The workload in Steps 1 to 6 is the SparkTutor exercise for this chapter. It has a skewed aggregation through a slow Python UDF, and a sort that Spark must spill.
 
 ## Where the numbers come from
 
@@ -20,13 +20,13 @@ flowchart LR
   src2["JVM, executors,<br/>block manager"]:::src -->|"sample"| ms["MetricsSystem"]:::q --> sinks["Prometheus servlet,<br/>JMX, CSV, ..."]:::out
 ```
 
-The listener bus (`core/src/main/scala/org/apache/spark/scheduler/LiveListenerBus.scala`) has named queues: `appStatus`, `executorManagement`, `eventLog`, `shared` and `streams`. Each queue is an `AsyncEventQueue` with its own thread. The capacity of each queue is `spark.scheduler.listenerbus.eventqueue.capacity` (default 10000). When a queue is full, Spark drops events and increments the metric `queue.<name>.numDroppedEvents`. A slow listener thus loses events, and the UI of a very busy application can show gaps.
+The listener bus (`core/src/main/scala/org/apache/spark/scheduler/LiveListenerBus.scala`) contains these named queues: `appStatus`, `executorManagement`, `eventLog`, `shared` and `streams`. Each queue is an `AsyncEventQueue` with its own thread. The capacity of each queue is `spark.scheduler.listenerbus.eventqueue.capacity` (default 10000). When a queue is full, Spark drops events and increments the metric `queue.<name>.numDroppedEvents`. A slow listener thus loses events, and the UI of a very busy application can show gaps.
 
 The metrics system is a different mechanism. It does not use events. It samples Dropwizard metrics from sources (the DAG scheduler, the block manager, the JVM, the executors) and sends them to sinks.
 
 ## Step 1: A workload to observe
 
-`observed_app.py` starts a Classic session with the event log on and AQE off, so that the stage layout stays the same. It also sets an internal setting that forces the sorter to spill after 2000 rows:
+`observed_app.py` starts a Classic session with the event log on and AQE off, so that the stage layout stays the same. It also sets an internal config that forces the sorter to spill after 2000 rows:
 
 ```python
 spark = (SparkSession.builder.master("local[2]").appName("observed")
@@ -53,7 +53,7 @@ REST /stages:
   stage 4  spilling_sort   tasks 2  run   571 ms  in  30000 rows  spill  367016 B
 ```
 
-Stage 1 ran the UDF, and it took most of the time. Stage 4 spilled 367,016 bytes to disk. But a total does not show skew. The `taskSummary` endpoint does. It returns quantiles over the tasks of one stage attempt:
+Stage 1 ran the UDF, and it took most of the time. Stage 4 spilled 367,016 bytes to disk. But a total does not show skew. The `taskSummary` endpoint does. It returns quantiles over the tasks of one stage try (`attemptId` 0):
 
 ```python
 q = get(f"/api/v1/applications/{app}/stages/{udf_stage['stageId']}/0/taskSummary"
@@ -80,7 +80,7 @@ REST /sql execution 0 (skewed_scoring): nodes with metrics
   ...
 ```
 
-The `ArrowEvalPython` node shows the time in Python (6.8 s in total, 6.2 s in the slowest task) and the bytes that it sent to the Python workers. The value has the form `total (min, med, max (stageId: taskId))`, so the slowest task is part of the metric. The names of the Python metrics are in `sql/core/src/main/scala/org/apache/spark/sql/execution/python/PythonSQLMetrics.scala`.
+The `ArrowEvalPython` node shows the time in Python and the bytes that it sent to the Python workers. The time is 6.8 s in total, and 6.2 s in the slowest task. The value has the form `total (min, med, max (stageId: taskId))`, so the slowest task is part of the metric. The names of the Python metrics are in `sql/core/src/main/scala/org/apache/spark/sql/execution/python/PythonSQLMetrics.scala`.
 
 ## Step 3: The metrics system and Prometheus
 
@@ -217,7 +217,9 @@ The script groups the tasks by stage. It joins the job description from the `Sta
 event log totals equal the REST API totals: True
 ```
 
-The diagnosis finds the two problems that the workload has. Stage 1 has a skew of 33.8 and spends most of its time in Python. Stage 4 spilled. The task counts, run times, record counts and spill bytes are the same as the REST API gave while the application ran. The median here (1,638) is different from the median of `taskSummary` (1,669). The reason is that `percentile` interpolates between the two middle values of four tasks, and the REST API does not.
+The diagnosis finds the two problems that the workload has. Stage 1 has a skew of 33.8 and spends most of its time in Python. Stage 4 spilled.
+
+The task counts, run times, record counts and spill bytes are the same as the REST API gave while the application ran. The median here (1,638) is different from the median of `taskSummary` (1,669). The reason is that `percentile` interpolates between the two middle values of four tasks, and the REST API does not.
 
 The events in the log are the events that the UI used. Thus, for each question that the UI answers, you can get the same answer from the log after the application stops.
 
@@ -272,7 +274,7 @@ Each operation ID that a client printed is in the list, with the jobs and the SQ
 - **An operation with an error can have jobs.** The failed operation has job 3. This job read the Parquet footers to get the schema, before the analyzer found that `revenue` does not exist. In [Chapter 4](ch04-spark-connect.md), the same error had no jobs, because the server had the schema of that file already.
 - **The statement is the protobuf plan as text**, not the Python code. The `detail` field has the error.
 - **The job tag is the key.** It contains the user, the session and the operation. The `detail` endpoint takes it as a query parameter, because a user ID can contain a `/`.
-- **Client tags become server tags with a prefix.** `addTag("daily-report")` became `SparkConnect_SessionTag_User_analyst_Session_<id>_Tag_daily-report`. Thus a tag from one session cannot match the jobs of a different session. To find the jobs of one client tag, match the end of the tag, as the script does with the `jobTags` field of the jobs endpoint.
+- **Client tags become server tags with a prefix.** `addTag("daily-report")` became `SparkConnect_SessionTag_User_analyst_Session_<id>_Tag_daily-report`. Thus a tag from one session cannot match the jobs of a different session. To find the jobs of one client tag, match the end of the tag. The script does this with the `jobTags` field of the jobs endpoint.
 
 ```mermaid
 sequenceDiagram
@@ -314,7 +316,9 @@ History Server, the Connect records of local-1795343084699 after the server stop
   operation 3fbe2e6d  session 04690712  CLOSED   jobs ['4', '5']  sql ['2']  159 ms
 ```
 
-The History Server replayed the two event logs into its own status store. The Connect records are the same as on the live server. The only change is that the two sessions are now finished. The pip install also contains `sbin/start-history-server.sh`, which starts the server as a daemon. The script starts the class with `bin/spark-class` instead, so that it can stop the process by its PID. The settings go in `SPARK_HISTORY_OPTS`, because the History Server is a separate JVM that does not read your session configs.
+The History Server replayed the two event logs into its own status store. The Connect records are the same as on the live server. The only change is that the two sessions are now finished.
+
+The pip install also contains `sbin/start-history-server.sh`, which starts the server as a daemon. The script starts the class with `bin/spark-class` instead, so that it can stop the process by its PID. The settings go in `SPARK_HISTORY_OPTS`, because the History Server is a separate JVM that does not read your session configs.
 
 ## Step 9: Streaming listeners in Python
 
@@ -343,7 +347,9 @@ json.dumps(q.lastProgress): TypeError Object of type UUID is not JSON serializab
 q.lastProgress.json starts: {"id": "05050c33-bc79-41e6-bfe1-29dd6c447e94", "runId": "da6
 ```
 
-The observed metrics show the drift in each batch before anyone examines the data. Batch 0 has no `user` values. Batch 2 has no `event` values, because the file calls the field `event_type`. `durationMs` divides a trigger into phases. `addBatch` is the work of the sink. `walCommit` and `commitOffsets` are the writes to the checkpoint. The first batch also pays for the planning of the query and the start of the Python workers.
+The observed metrics show the drift in each batch before anyone examines the data. Batch 0 has no `user` values. Batch 2 has no `event` values, because the file calls the field `event_type`.
+
+`durationMs` divides a trigger into phases. `addBatch` is the work of the sink. `walCommit` and `commitOffsets` are the writes to the checkpoint. The first batch also pays for the query plan and the start of the Python workers.
 
 `onQueryIdle` did not occur, because an `availableNow` query stops when it has no more data. `json.dumps(q.lastProgress)` fails, because the progress is a `dict` that contains `UUID` objects. Use `q.lastProgress.json`.
 
@@ -357,7 +363,9 @@ connect: this process is PID 636646
    ('terminated', None, 636646)
 ```
 
-Each callback ran in the client process. The Connect client has a `StreamingQueryListenerBus` (`python/pyspark/sql/connect/streaming/query.py`, line 267). The server sends the events to the client over a long gRPC stream, and the client calls your listener. Thus a listener on Connect can write to the files and services of the client, but it sees the events later than a listener on the server. Remove the listener before `spark.stop()`, because the removal needs the session.
+Each callback ran in the client process. The Connect client has a `StreamingQueryListenerBus` (`python/pyspark/sql/connect/streaming/query.py`, line 267). The server sends the events to the client over a long gRPC stream, and the client calls your listener.
+
+Thus a listener on Connect can write to the files and services of the client. But it sees the events later than a listener on the server. Remove the listener before `spark.stop()`, because the removal needs the session.
 
 For batch events, the listener API is in the JVM. Write a class that extends `SparkListener` or implements `QueryExecutionListener`, and register it with `spark.extraListeners` or `spark.sql.queryExecutionListeners`. Spark ships one listener that you can use without code: `org.apache.spark.scheduler.StatsReportListener` logs the task statistics of each stage. Over Connect, these listeners run on the server.
 
@@ -366,24 +374,48 @@ For batch events, the listener API is in the JVM. Write a class that extends `Sp
 The UDF profiler (since 4.0) runs `cProfile` or `memory_profiler` around each UDF call in the workers. The workers send the results to the driver, and `spark.profile.show()` prints them. `profilers.py` measures what the profiler costs. It runs three UDFs on 200,000 rows, with the profiler off and with `spark.sql.pyspark.udf.profiler=perf`. Each time is the median of 5 runs after a warmup, with a lock that keeps the other book scripts off the machine:
 
 ```text
-PROFILER_TABLE
+200,000 rows, 4 partitions; median wall time of 5 runs after a warmup
+udf           profiler off     perf  ratio
+cheap                0.28s    5.94s   21.4
+slow                 1.49s    6.20s    4.2
+pandas               0.16s    0.13s    0.8
 ```
 
-The profiler adds a large fixed cost to each call of a row UDF. For a row UDF, `wrap_perf_profiler` (`python/pyspark/worker.py`, line 519) puts each call in its own `WorkerPerfProfiler` block, which enables and disables `cProfile` for that call. For a cheap UDF, the profiler costs much more than the function, and the result is useless. For a pandas UDF, the cost is small, because one call processes a full Arrow batch. The profile itself shows the cost:
+The profiler made the cheap UDF 21.4 times slower, and the slow UDF 4.2 times slower. The pandas UDF did not change. The profiler adds a large fixed cost to each call of a row UDF.
+
+For a row UDF, `wrap_perf_profiler` (`python/pyspark/worker.py`, line 519) puts each call in its own `WorkerPerfProfiler` block, which enables and disables `cProfile` for that call. For a cheap UDF, the profiler costs much more than the function, and the result is useless. For a pandas UDF, the cost is small, because one call processes a full Arrow batch. The profile itself shows the cost:
 
 ```text
-PROFILE_SHOW
+spark.profile.show(type='perf') for the slow UDF, first lines:
+  Profile of UDF<id=289>
+           800000 function calls in 9.774 seconds
+     ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+           800000 function calls in 9.774 seconds
+     200000    6.056    0.000    6.056    0.000 profilers.py:30(slow)
+     200000    3.497    0.000    3.497    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+     200000    0.142    0.000    3.639    0.000 profiler.py:147(stop)
 ```
+
+The function itself took 6.056 s. The `disable` call of the profiler took 3.497 s, once for each of the 200,000 rows. The profile ID is the ID of the UDF expression in the plan, not the Python name of the function.
 
 Use the perf profiler on a sample of the data, and compare the function time with the time of `disable`. The memory profiler needs the `memory_profiler` package on the workers.
 
 **The Python data source profiler** (`spark.sql.pyspark.dataSource.profiler`, since 4.2) profiles the Python code of a data source. This includes the code that runs in the planner workers on the driver host, not only the readers on the executors:
 
 ```text
-DS_PROFILE
+data source profiler: sum = 19999900000
+  Profile of create_data_source      1716 function calls in 0.002 seconds
+  ...
+  Profile of plan_data_source_read   4654 function calls (4649 primitive calls) in 0.003 seconds
+  ...
+  Profile of UDF<id=306>             350167 function calls (350128 primitive calls) in 0.152 seconds
+  ...
+  Profile of UDF<id=315>             350167 function calls (350128 primitive calls) in 0.166 seconds
 ```
 
-**py-spy** samples running Python processes without changes to the code. On Linux with `kernel.yama.ptrace_scope=1`, a process can read only its own descendants. Thus, start the driver under py-spy, and use `--subprocesses`, so that py-spy also follows the JVM, the daemon and the workers:
+`create_data_source` and `plan_data_source_read` ran in the planner workers. They made the source object and called `partitions()`. The four `UDF<id=...>` profiles are the four `read()` calls, one for each partition. Spark runs a Python data source reader as a special UDF, so its profile has a UDF ID.
+
+**py-spy** samples Python processes while they run, without changes to the code. On Linux with `kernel.yama.ptrace_scope=1`, a process can read only its own descendants. Thus, start the driver under py-spy, and use `--subprocesses`, so that py-spy also follows the JVM, the daemon and the workers:
 
 ```bash
 py-spy record --subprocesses --format raw --rate 100 -o "$out/stacks.txt" \
@@ -407,7 +439,7 @@ The workers are processes that `pyspark.daemon` forks, so they have the command 
 
 ## Step 11: Structured logging
 
-Spark 4.0 added JSON logs for the JVM side (`spark.log.structuredLogging.enabled`, default `false`). The setting applies when the JVM starts, so give it to `spark-submit` or to the server, not to a running session. PySpark has its own JSON logger, `PySparkLogger`. `logs.sh` runs one application two times:
+Spark 4.0 added JSON logs for the JVM side (`spark.log.structuredLogging.enabled`, default `false`). The config applies when the JVM starts, so give it to `spark-submit` or to the server, not to a session that already runs. PySpark has its own JSON logger, `PySparkLogger`. `logs.sh` runs one application two times:
 
 ```text
 --- spark.log.structuredLogging.enabled=false
@@ -432,7 +464,7 @@ Make the two formats the same in your log pipeline before you join them. The tim
 flowchart TB
   classDef q fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
   classDef a fill:#2f7d4f,fill-opacity:0.72,stroke:#2f7d4f,color:#ffffff
-  live{"application<br/>still running?"}:::q -->|"yes"| rest["REST API: /stages, taskSummary,<br/>/sql, connect/operations"]:::a
+  live{"application<br/>still on?"}:::q -->|"yes"| rest["REST API: /stages, taskSummary,<br/>/sql, connect/operations"]:::a
   live -->|"yes"| prom["/metrics/prometheus<br/>(set spark.metrics.namespace)"]:::a
   live -->|"no"| hist["History Server<br/>(same REST endpoints)"]:::a
   live -->|"no"| log["spark.read.json(event log)<br/>your own diagnosis"]:::a
@@ -448,7 +480,7 @@ flowchart TB
 - **The row UDF profiler costs more than a cheap UDF.** Profile on a sample, or use py-spy.
 - **JVM and Python JSON logs are different** in level names and time zones.
 
-The next chapter takes the Connect server from this chapter into production: one server or many, sessions and isolation, authentication, and a sandbox for each agent.
+The next chapter takes the Connect server from this chapter into production. It examines one server or many, sessions and isolation, authentication, and a sandbox for each agent.
 
 ## Further reading
 

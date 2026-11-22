@@ -1,0 +1,21 @@
+Connect server with spark.connect.authenticate.token:
+  no token                                       StatusCode.UNAUTHENTICATED: No authentication token provided
+  wrong token                                    StatusCode.UNAUTHENTICATED: Invalid authentication token
+  right token, user_id=analyst                   ok (3 rows), user_id analyst
+  right token, user_id=admin (any name works)    ok (3 rows), user_id admin
+  users the server recorded: ['admin', 'analyst']
+  right token, host 127.0.0.1 instead of localhost no answer in 30 s (the client keeps retrying)
+
+through Envoy (TLS on :10282, cleartext to :10280):
+  use_ssl=true, right token                      ok (3 rows), user_id analyst
+  use_ssl=true, no token                         StatusCode.UNAUTHENTICATED: No authentication token provided
+  token without use_ssl (no TLS to localhost)    no answer in 30 s (the client keeps retrying)
+
+Envoy access log: 14 RPCs, for example
+   /spark.connect.SparkConnectService/Config grpc-status=OK auth=Bearer s3cre... ua=grpc-python/1.85.3 
+   /spark.connect.SparkConnectService/ReleaseExecute grpc-status=OK auth=Bearer s3cre... ua=grpc-python
+   /spark.connect.SparkConnectService/ExecutePlan grpc-status=OK auth=Bearer s3cre... ua=grpc-python/1.
+   /spark.connect.SparkConnectService/ReleaseSession grpc-status=OK auth=Bearer s3cre... ua=grpc-python
+   /spark.connect.SparkConnectService/Config grpc-status=Unauthenticated auth=-... ua=grpc-python/1.85.
+   /spark.connect.SparkConnectService/ExecutePlan grpc-status=Unauthenticated auth=-... ua=grpc-python/
+   /spark.connect.SparkConnectService/ReleaseExecute grpc-status=Unauthenticated auth=-... ua=grpc-pyth

@@ -3,6 +3,7 @@ interruption of a running operation by its tag.
 
 Run from code/:  uv run python ch44/lifecycle.py
 """
+import os
 import sys
 import threading
 import time
@@ -49,12 +50,12 @@ def nap(x):
 
 
 d = session(url, user_id="cancel")
-d.addTag("nightly")
-q = d.range(0, 20, numPartitions=20).select(F.sum(F.udf(nap, LongType(), useArrow=False)("id")))
+q = d.range(0, 64, numPartitions=64).select(F.sum(F.udf(nap, LongType(), useArrow=False)("id")))
 result = {}
 
 
 def long_query():
+    d.addTag("nightly")              # tags belong to the thread that adds them
     try:
         q.collect()
         result["outcome"] = "finished"
@@ -64,10 +65,10 @@ def long_query():
 
 t = threading.Thread(target=long_query)
 t.start()
-time.sleep(4)
+time.sleep(3)
 interrupted = d.interruptTag("nightly")
 t.join()
-print(f"  {'interruptTag(nightly) during a 20-task query':52} interrupted {len(interrupted)} "
+print(f"  {'interruptTag(nightly) during a 64-task query':52} interrupted {len(interrupted)} "
       f"operation(s); the query: {result['outcome']}")
 op = next(o for o in rest("connect/operations") if o["operationId"] == interrupted[0])
 print(f"  {'REST record of that operation':52} state {op['state']}, jobs {op['jobIds']}")
@@ -77,3 +78,5 @@ for s in (a, b, c, d):
     except Exception:
         pass
 stop()
+sys.stdout.flush()
+os._exit(0)   # the session that lost its server keeps a retry thread alive

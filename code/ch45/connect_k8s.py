@@ -96,4 +96,5 @@ print(f"a new session on attempt {start + 1}:", spark2.range(3).count(), "rows")
 print("pods:", sorted(l.split()[0] for l in pods()[1:] if l.startswith("connect")))
 spark2.client.close()
 pf.terminate()
+sys.stdout.flush()
 os._exit(0)   # the session that lost its server keeps a retry thread alive

@@ -11,5 +11,5 @@ if sys.argv[1] == "reuse":
     b = b.config("spark.local.connect.reuse", "true")
 spark = b.getOrCreate()
 n = spark.range(10).count()
-print(f"{time.perf_counter() - t:.1f} {os.getpid()} {spark.client._session_id[:8]} {spark.client.host}:{spark.client.port}")
+print(f"{time.perf_counter() - t:.1f} {os.getpid()} {spark.client._session_id[:8]} {spark.client._builder.endpoint}")
 spark.stop()

@@ -7,5 +7,5 @@ what the operator made for it:
   services      ['book-master-svc', 'book-worker-svc']
   pods          ['book-master-0', 'book-worker-0', 'book-worker-1']
 master /json: {'url': 'spark://book-master-0:7077', 'status': 'ALIVE', 'aliveworkers': 2}
-workers: [('20261122', 16, 'ALIVE'), ('20261122', 16, 'ALIVE')]
+workers (host, cores, state): [('10.244.2.25', 16, 'ALIVE'), ('10.244.1.7', 16, 'ALIVE')]
 completed applications: [('zones', 4, 'FINISHED')]
