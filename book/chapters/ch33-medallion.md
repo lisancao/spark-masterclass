@@ -431,14 +431,13 @@ The second log is the Spark event log of the server. Each streaming flow is a st
 
 ```text
 run 1:
-Traceback (most recent call last):
-  File "~/spark-masterclass-parts/part06/code/ch33/progress.py", line 15, in <module>
-    for line in log.open():
-                ^^^^^^^^^^
-  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
-    return io.open(self, mode, buffering, encoding, errors, newline)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-IsADirectoryError: [Errno 21] Is a directory: '~/spark-masterclass/data/work/part06/ch33-shop/spark-events/eventlog_v2_local-1795343159111'
+  started   spark_catalog.default.bronze_orders
+  progress  spark_catalog.default.bronze_orders  batch 0  input rows 11  offsets None -> {"logOffset":0}
+  stopped   420ad4d3...  exception: None
+run 2:
+  started   spark_catalog.default.bronze_orders
+  progress  spark_catalog.default.bronze_orders  batch 1  input rows 4  offsets {"logOffset":0} -> {"logOffset":1}
+  stopped   420ad4d3...  exception: None
 ```
 
 <figure markdown>
