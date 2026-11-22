@@ -1,6 +1,6 @@
 # Chapter 31: Apache Iceberg with Spark: the runtime and catalog management
 
-[Chapter 30](ch30-tables.md) compares Delta and Iceberg tables, with `MERGE` and time travel. This chapter goes deeper into Iceberg only. It starts with the jar that puts Iceberg into Spark, and it continues with the catalogs that find each table. Then it does each table operation and examines the files that the operation writes.
+Chapter 30 compares Delta and Iceberg tables, with `MERGE` and time travel. This chapter goes deeper into Iceberg only. It starts with the jar that puts Iceberg into Spark, and it continues with the catalogs that find each table. Then it does each table operation and examines the files that the operation writes.
 
 **An Iceberg table is a tree of metadata files and data files, with one pointer at the top. The catalog keeps the pointer, and the runtime jar is the code that reads and writes the tree inside Spark. Each change to a table writes new files and then moves the pointer in one atomic step. If you know where the pointer is and what each file in the tree contains, you can explain each Iceberg feature in this chapter.**
 
@@ -47,6 +47,13 @@ CREATE TABLE failed:
     class org.apache.iceberg.spark.source.SparkView can not implement org.apache.spark.sql.connector.catalog.View,
     because it is not an interface
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch31-jar.webp">
+    <source src="../../media/clips/ch31-jar.mp4" type="video/mp4">
+  </video>
+  <figcaption>The released runtime for Spark 4.1 fails on Spark 4.3.0 at the first statement. The build of pull request #18749 runs a query.</figcaption>
+</figure>
 
 The error does not name a Spark version or an Iceberg version. In Spark 4.1, `org.apache.spark.sql.connector.catalog.View` is an interface, and Iceberg's `SparkView` implements it. In Spark 4.2 and later, `View` is a class. The JVM does not load a class that implements a class, so the first statement fails before Spark creates a table. Linkage errors include `NoSuchMethodError`, `IncompatibleClassChangeError` and `AbstractMethodError`. If an Iceberg catalog fails with one of them, first compare the Spark version in the jar name with the Spark version of the cluster.
 
