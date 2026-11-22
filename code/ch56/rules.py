@@ -32,5 +32,9 @@ spark.conf.unset("spark.sql.planChangeLog.level")
 spark.sparkContext.setLogLevel("ERROR")
 
 table = spark._jvm.org.apache.spark.sql.catalyst.rules.RuleExecutor.dumpTimeSpent()
-lines = table.splitlines()
-print("\n".join(lines[:9]))
+lines = [l for l in table.splitlines() if l.strip()]
+print(lines[0]); print(lines[1]); print(lines[2])
+print(f"{'rule (package org.apache.spark.sql. removed)':<58}{'effective ns':>13}{'total ns':>13}  runs")
+for l in lines[4:13]:
+    name, eff, _, tot, runs, _, total_runs = l.split()
+    print(f"{name.replace('org.apache.spark.sql.', ''):<58}{int(eff):>13,}{int(tot):>13,}  {runs}/{total_runs}")

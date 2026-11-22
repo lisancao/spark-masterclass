@@ -21,7 +21,7 @@ Filter CASE WHEN isnull(status#8) THEN cast(raise_error(USER_RAISED_EXCEPTION, m
 == Physical Plan ==
 *(1) Filter CASE WHEN isnull(status#8) THEN cast(raise_error(USER_RAISED_EXCEPTION, map(keys: [errorMessage], values: [Python UDF transpiler: cannot compare NULL with operator `>=`; Python would raise TypeError here. Add an `is not None` guard or filter NULLs upstream.]), NullType) as boolean) ELSE (status#8 >= 400) END
 +- *(1) ColumnarToRow
-   +- FileScan parquet [ip#6,path#7,status#8] Batched: true, DataFilters: [CASE WHEN isnull(status#8) THEN cast(raise_error(USER_RAISED_EXCEPTION, map(keys: [errorMessage]..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/tmp/ch56-_aq4miob/access], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<ip:string,path:string,status:int>
+   +- FileScan parquet [ip#6,path#7,status#8] Batched: true, DataFilters: [CASE WHEN isnull(status#8) THEN cast(raise_error(USER_RAISED_EXCEPTION, map(keys: [errorMessage]..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/tmp/ch56-dx91bfha/access], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<ip:string,path:string,status:int>
 
 
    with an `is not None` guard in the function:
@@ -35,17 +35,23 @@ Filter CASE WHEN isnull(status#8) THEN cast(raise_error(USER_RAISED_EXCEPTION, m
   named lambda    shout = lambda s: s + '!'    native       
       *(1) Project [concat(path#7, !) AS out#22]
   inline lambda   udf(lambda s: s + '!')       stays Python 
-      the source read for this lambda does not define it as a statement of its own -- it i
+      the source read for this lambda does not define it as a statement of its own -- it
+      is wrapped in a call or a tuple assignment, or a surrounding definition, or the
   one expression  band(fare)                   native       
-      *(1) Project [CASE WHEN coalesce(CASE WHEN isnull(status#8) THEN cast(raise_error(US
+      *(1) Project [CASE WHEN coalesce(CASE WHEN isnull(status#8) THEN
+      cast(raise_error(USER_RAISED_EXCEPTION, map(keys: [errorMessage], values: [Python
   two statements  band_statements(fare)        stays Python 
-      functions with more than one top-level statement are not supported by the transpiler
+      functions with more than one top-level statement are not supported by the
+      transpiler', 'functions with more than one top-level statement are not supported
   len(s)                                       native       
-      *(1) Project [CASE WHEN isnull(path#7) THEN cast(raise_error(USER_RAISED_EXCEPTION, 
+      *(1) Project [CASE WHEN isnull(path#7) THEN
+      cast(raise_error(USER_RAISED_EXCEPTION, map(keys: [errorMessage], values: [Python
   str.split                                    stays Python 
-      a numeric-typed lowering does not match the declared return type string; the interpr
+      a numeric-typed lowering does not match the declared return type string; the
+      interpreted path would return NULL where the lowered cast would convert (or fail),
   math.sqrt                                    stays Python 
-      AST node Call is not supported by the transpiler (Call(func=Attribute(value=Name(id=
+      AST node Call is not supported by the transpiler
+      (Call(func=Attribute(value=Name(id='math', ctx=Load()), attr='sqrt', ctx=Load()),
 
 4. ANSI semantics, not Python semantics:
   interpreted  None

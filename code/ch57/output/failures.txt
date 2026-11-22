@@ -1,31 +1,24 @@
-
-
-
-
-
-
---- raise_value: PythonException, condition PYTHON_EXCEPTION, classified 'python_exception', 3.1 s
+--- raise_value: PythonException, condition PYTHON_EXCEPTION, classified 'python_exception', 10.1 s
     ValueError: bad row 0
---- raise_memory: PythonException, condition PYTHON_EXCEPTION, classified 'python_exception', 0.3 s
+--- raise_memory: PythonException, condition PYTHON_EXCEPTION, classified 'python_exception', 1.1 s
     MemoryError: asked for too much
---- exit_hard: Py4JJavaError, condition None, classified 'worker_crashed', 0.5 s
+--- exit_hard: Py4JJavaError, condition None, classified 'worker_crashed', 1.3 s
     Python worker exited unexpectedly (crashed): 
     java.io.EOFException
---- sigkill: Py4JJavaError, condition None, classified 'worker_crashed', 0.4 s
+--- sigkill: Py4JJavaError, condition None, classified 'worker_crashed', 0.8 s
     Python worker exited unexpectedly (crashed): 
     java.io.EOFException
---- segfault: Py4JJavaError, condition None, classified 'idle_timeout', 4.2 s
+--- segfault: Py4JJavaError, condition None, classified 'worker_crashed', 1.1 s
+    Python worker exited unexpectedly (crashed): Fatal Python error: Segmentation fault
     Fatal Python error: Segmentation fault
     File "/usr/lib/python3.12/ctypes/__init__.py", line 525 in string_at
-    PythonWorkerException: Python worker process terminated due to idle timeout (timeout: 3 seconds): Fatal
---- sleep_long: Py4JJavaError, condition None, classified 'idle_timeout', 3.2 s
+    java.io.EOFException
+--- sleep_long: Py4JJavaError, condition None, classified 'idle_timeout', 3.5 s
     PythonWorkerException: Python worker process terminated due to idle timeout (timeout: 3 seconds): 
 
 --- the traceback dump: a worker stuck in time.sleep, dumped every 2 s
-
-
 Timeout (0:00:02)!
-Thread 0x0000770029696080 (most recent call first):
+Thread 0x000076652790b080 (most recent call first):
   File "ch57/failures.py", line 29 in sleep_long
   File ".../pyspark.zip/pyspark/util.py", line 158 in wrapper
   File ".../pyspark.zip/pyspark/worker.py", line 682 in <lambda>
@@ -42,5 +35,5 @@ Thread 0x0000770029696080 (most recent call first):
   File ".../pyspark.zip/pyspark/daemon.py", line 292 in <module>
   File "<frozen runpy>", line 88 in _run_code
   File "<frozen runpy>", line 198 in _run_module_as_main
-(the same dump again every 2 s; 2 dumps in all)
     then: PythonWorkerException: Python worker process terminated due to idle timeout (timeout: 5 seconds): 
+(the same dump again every 2 s; 2 dumps in all)

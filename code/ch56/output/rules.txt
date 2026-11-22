@@ -1,13 +1,3 @@
-=== Metrics of Executed Rules org.apache.spark.sql.internal.BaseSessionStateBuilder$$anon$1 ===
-Total number of runs: 313
-Total time: 32.491894 ms
-Total number of effective runs: 2
-Total time of effective runs: 13.245305 ms
-=== Metrics of Executed Rules org.apache.spark.sql.internal.BaseSessionStateBuilder$$anon$1 ===
-Total number of runs: 219
-Total time: 33.990703 ms
-Total number of effective runs: 2
-Total time of effective runs: 6.448363 ms
 === Applying Rule org.apache.spark.sql.catalyst.optimizer.PushDownPredicates ===
 !Filter (area#11 = api)                                            Project [ip#6, path#7, status#8, _area(path#7)#9 AS area#11]
 !+- Project [ip#6, path#7, status#8, _area(path#7)#9 AS area#11]   +- Filter (_area(path#7)#9 = api)
@@ -30,26 +20,23 @@ Total time of effective runs: 6.448363 ms
 !                                                                     +- Filter (pythonUDF0#12 = api)
 !                                                                        +- ArrowEvalPython [_area(path#7)#9], [pythonUDF0#12], 101
 !                                                                           +- Relation [ip#6,path#7,status#8] parquet
-=== Metrics of Executed Rules org.apache.spark.sql.internal.BaseSessionStateBuilder$$anon$2 ===
-Total number of runs: 262
-Total time: 82.849197 ms
-Total number of effective runs: 2
-Total time of effective runs: 20.002524 ms
-=== Metrics of Executed Rules org.apache.spark.sql.execution.QueryExecution$PhysicalRuleExecutor ===
-Total number of runs: 19
-Total time: 4.926466 ms
-Total number of effective runs: 1
-Total time of effective runs: 1.714754 ms
 == Physical Plan ==
 *(2) Project [ip#6, path#7, status#8, pythonUDF0#13 AS area#11]
 +- ArrowEvalPython [_area(path#7)#9], [pythonUDF0#13], 101
    +- *(1) Project [ip#6, path#7, status#8]
       +- *(1) Filter (pythonUDF0#12 = api)
          +- ArrowEvalPython [_area(path#7)#9], [pythonUDF0#12], 101
-            +- FileScan parquet [ip#6,path#7,status#8] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/tmp/ch56-4ymtxefh/access], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<ip:string,path:string,status:int>
+            +- FileScan parquet [ip#6,path#7,status#8] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/tmp/ch56-fue5o79j/access], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<ip:string,path:string,status:int>
 === Metrics of Analyzer/Optimizer Rules ===
 Total number of runs: 1947
-Total time: 1.185444759 seconds
-Rule                                                                                               Effective Time / Total Time                     Effective Runs / Total Runs
-org.apache.spark.sql.catalyst.analysis.ResolveDataSource                                           564868994 / 565169244                           2 / 13
-org.apache.spark.sql.catalyst.analysis.Analyzer$ResolveReferences                                  35378367 / 58234957                             4 / 13
+Total time: 0.99532005 seconds
+rule (package org.apache.spark.sql. removed)               effective ns     total ns  runs
+catalyst.analysis.ResolveDataSource                         461,085,608  461,314,828  2/13
+execution.datasources.PushVariantIntoScan                             0   51,846,268  0/2
+catalyst.analysis.Analyzer$ResolveReferences                 27,778,008   44,614,055  4/13
+catalyst.analysis.Analyzer$ResolveFunctions                  18,501,811   19,703,089  2/13
+catalyst.optimizer.Optimizer$FinishAnalysis                           0   18,056,478  0/2
+catalyst.analysis.ResolveSessionCatalog                               0   16,630,950  0/13
+catalyst.analysis.TypeCoercionBase$WidenSetOperationTypes             0   16,615,052  0/13
+catalyst.analysis.DeduplicateRelations                                0   16,100,541  0/13
+catalyst.analysis.AnsiTypeCoercion$AnsiCombinedTypeCoercionRule            0   14,829,694  0/13

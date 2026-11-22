@@ -2,7 +2,7 @@
 
 Run from code/:  uv run python ch56/transpile.py
 """
-import math, re, sys, warnings
+import math, re, sys, textwrap, warnings
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -81,7 +81,9 @@ for label, f, ret, col in cases:
     node = python_node(q)
     proj = [l for l in plan(q, "simple").splitlines() if "Project" in l][0].strip()
     print(f"  {label:<44} {'stays Python' if node != 'none' else 'native':<13}")
-    print(f"      {proj[:84] if node == 'none' else reason[:84]}")
+    text = proj if node == "none" else reason
+    for line in textwrap.wrap(text, 82, break_long_words=True)[:2]:
+        print(f"      {line}")
 
 print("\n4. ANSI semantics, not Python semantics:")
 big = spark.range(1).selectExpr("4611686018427387904L AS x")    # 2^62

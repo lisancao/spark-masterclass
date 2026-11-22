@@ -3,19 +3,19 @@
   300m pickled  VmSize 68 MiB, RSS 52 MiB, RLIMIT_AS 300 MiB | 400 MiB MemoryError
   300m pickled  VmSize 68 MiB, RSS 52 MiB, RLIMIT_AS 300 MiB | 900 MiB MemoryError
 -- 300m arrow, allocations 100,400,900 MiB
-  300m Arrow    VmSize 297 MiB, RSS 86 MiB, RLIMIT_AS 300 MiB | 100 MiB MemoryError
-  300m Arrow    VmSize 299 MiB, RSS 89 MiB, RLIMIT_AS 300 MiB | 400 MiB MemoryError
-  300m Arrow    VmSize 299 MiB, RSS 89 MiB, RLIMIT_AS 300 MiB | 900 MiB MemoryError
+  300m Arrow    VmSize 297 MiB, RSS 87 MiB, RLIMIT_AS 300 MiB | 100 MiB MemoryError
+  300m Arrow    VmSize 299 MiB, RSS 90 MiB, RLIMIT_AS 300 MiB | 400 MiB MemoryError
+  300m Arrow    VmSize 299 MiB, RSS 90 MiB, RLIMIT_AS 300 MiB | 900 MiB MemoryError
 -- 1g pickled, allocations 100,400,900 MiB
   1g   pickled  VmSize 68 MiB, RSS 52 MiB, RLIMIT_AS 1024 MiB | 100 MiB ok
   1g   pickled  VmSize 68 MiB, RSS 52 MiB, RLIMIT_AS 1024 MiB | 400 MiB ok
   1g   pickled  VmSize 68 MiB, RSS 52 MiB, RLIMIT_AS 1024 MiB | 900 MiB ok
 -- 1g arrow, allocations 100,400,900 MiB
-  1g   Arrow    VmSize 297 MiB, RSS 86 MiB, RLIMIT_AS 1024 MiB | 100 MiB ok
-  1g   Arrow    VmSize 470 MiB, RSS 126 MiB, RLIMIT_AS 1024 MiB | 400 MiB ok
-  1g   Arrow    VmSize 470 MiB, RSS 126 MiB, RLIMIT_AS 1024 MiB | 900 MiB MemoryError
+  1g   Arrow    VmSize 297 MiB, RSS 88 MiB, RLIMIT_AS 1024 MiB | 100 MiB ok
+  1g   Arrow    VmSize 470 MiB, RSS 128 MiB, RLIMIT_AS 1024 MiB | 400 MiB ok
+  1g   Arrow    VmSize 470 MiB, RSS 128 MiB, RLIMIT_AS 1024 MiB | 900 MiB MemoryError
 -- 2g arrow, allocations 900 MiB
-  2g   Arrow    VmSize 297 MiB, RSS 86 MiB, RLIMIT_AS 2048 MiB | 900 MiB ok
+  2g   Arrow    VmSize 297 MiB, RSS 87 MiB, RLIMIT_AS 2048 MiB | 900 MiB ok
 -- 2g arrow, allocations 900,900 MiB
-  2g   Arrow    VmSize 297 MiB, RSS 86 MiB, RLIMIT_AS 2048 MiB | 900 MiB ok
-  2g   Arrow    VmSize 1366 MiB, RSS 128 MiB, RLIMIT_AS 2048 MiB | 900 MiB MemoryError
+  2g   Arrow    VmSize 297 MiB, RSS 87 MiB, RLIMIT_AS 2048 MiB | 900 MiB ok
+  2g   Arrow    VmSize 1366 MiB, RSS 130 MiB, RLIMIT_AS 2048 MiB | 900 MiB MemoryError

@@ -1,2 +1,2 @@
-False 5.1 Python worker exited unexpectedly (crashed). Consider setting 'spark.sql.execution.pyspark.udf.faulthandler.enabled' or'spark.python.worker.faulthandler.enabled' configuration to 'true' for the better
-True 5.1 Python worker exited unexpectedly (crashed): Fatal Python error: Segmentation fault |  | Current thread 0x00007d7c1e5c0080 (most recent call first): |   File "/usr/lib/python3.12/ctypes/__init__.py", line 5
+False 4.4 Python worker exited unexpectedly (crashed). Consider setting 'spark.sql.execution.pyspark.udf.faulthandler.enabled' or'spark.python.worker.faulthandler.enabled' configuration to 'true' for the better
+True 5.7 Python worker exited unexpectedly (crashed): Fatal Python error: Segmentation fault |  | Current thread 0x00007bad333ad080 (most recent call first): |   File "/usr/lib/python3.12/ctypes/__init__.py", line 5
