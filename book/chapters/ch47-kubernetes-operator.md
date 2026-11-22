@@ -134,6 +134,15 @@ log of zones-0-driver:
 
 The application moved through the states of the operator's state machine. The operator reported `RunningHealthy` when all the executors that the application asked for ran. Each executor pod processed 1,000,000 rows. The driver ran Python 3.10.12, the Python of the image. The operator names the driver pod `<name>-<attempt>-driver`, so each attempt has a new pod.
 
+The animation shows the same run. The state times come from the output above. The clip does not show them to scale.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch47-anim-reconcile.webp">
+    <source src="../../media/clips/ch47-anim-reconcile.mp4" type="video/mp4">
+  </video>
+  <figcaption>The operator makes the driver pod and writes each state into the status. The driver makes the executor pods.</figcaption>
+</figure>
+
 After `Succeeded`, the state became `TerminatedWithoutReleaseResources`, because `resourceRetainPolicy: Always` keeps the pods. The default policy releases them, and then the last state is `ResourceReleased`. For production, keep the pods only `OnFailure`, and set `ttlAfterStopMillis` to remove the resource later.
 
 The operator also adds Spark configs to the driver. `inspect.sh` reads the driver's config map:
@@ -207,15 +216,22 @@ log of flaky-2-driver:
 
 The application ran three times: the first attempt and two restarts. Before each restart, the operator released the resources of the attempt and waited for the backoff. Each attempt had a new driver pod (`flaky-0-driver` to `flaky-2-driver`) and new executor pods. After the third failure, the operator stopped with `ResourceReleased`, and the message said that the application used all restarts. The script polls once a second, so it does not show the short states of each attempt, for example `Failed`.
 
+<figure markdown>
+  ![Timeline of the three attempts of the flaky application](../media/figures/ch47-restart-timeline.svg)
+  <figcaption>The three attempts of <code>flaky</code> on one time axis, from the output above. Each attempt has its own driver pod. A backoff of about 5 seconds comes before each restart.</figcaption>
+</figure>
+
 A restart runs the whole application again from the start. Thus the restart policy is safe only for an application that is correct when it runs again.
 
 [Chapter 43](ch43-determinism-retries.md) shows how to write such an application. Use overwrite, not append, and give each external effect a key.
 
 The operator has more controls in `restartConfig`:
 
-- `restartPolicy` can be `Never`, `Always`, `OnFailure` or `OnInfrastructureFailure`. The last value restarts only after `DriverStartTimedOut`, `ExecutorsStartTimedOut` or `SchedulingFailure`, which usually come from the cluster, not from your code.
-- `maxRestartOnFailure` limits failures in sequence, and a success resets the counter.
-- `restartCounterResetMillis` resets the counters after an attempt that ran long enough, for a streaming job or a server.
+| Field | What it does |
+|---|---|
+| `restartPolicy` | `Never`, `Always`, `OnFailure` or `OnInfrastructureFailure`. The last value restarts only after `DriverStartTimedOut`, `ExecutorsStartTimedOut` or `SchedulingFailure`, which usually come from the cluster, not from your code. |
+| `maxRestartOnFailure` | Limits failures in sequence. A success resets the counter. |
+| `restartCounterResetMillis` | Resets the counters after an attempt that ran long enough, for a streaming job or a server. |
 
 ## Step 4: A standalone cluster with `SparkCluster`
 
@@ -288,6 +304,11 @@ log of zones-standalone-0-driver:
 ```
 
 The driver was a pod, but there were no executor pods. The executors ran as processes in the worker pods, so the UDF reported `book-worker-0` and `book-worker-1`. The master listed the application as `zones` with 4 cores, the value of `spark.cores.max`.
+
+<figure markdown>
+  ![The pods of the zones application with the k8s master and on a SparkCluster](../media/figures/ch47-executor-placement.svg)
+  <figcaption>The same application in the two modes. With the k8s master, the executors are pods. On a <code>SparkCluster</code>, the executors are processes in the worker pods. The pod names come from the output above.</figcaption>
+</figure>
 
 The two modes are for different needs:
 

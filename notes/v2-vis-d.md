@@ -13,3 +13,4 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | Chapter | Figures | Animation | Other | STE findings (before, after) |
 |---|---|---|---|---|
 | 46 | session-scope, fifo-fair, first-answer | anim-fifo-fair (schematic schedule, measured end numbers from contention.txt) | patterns table, two New in 4.3 admonitions | 4, 4 |
+| 47 | restart-timeline, executor-placement | anim-reconcile (state times from zones-app.txt) | restartConfig table | 11, 11 |
