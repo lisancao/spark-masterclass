@@ -98,6 +98,14 @@ Read the four parts of `sys.path` from the top:
 3. **`pyspark.zip`.** This is the PySpark code of the worker. It comes from the Spark install, not from your environment.
 4. **The Py4J zip.**
 
+<figure markdown>
+  ![The first entries of sys.path in a Python worker, in local mode and on a cluster](../media/figures/ch44-syspath-light.svg#only-light)
+
+  ![The first entries of sys.path in a Python worker, in local mode and on a cluster](../media/figures/ch44-syspath-dark.svg#only-dark)
+
+  <figcaption>The first entries of <code>sys.path</code> in a worker. The local column comes from the output of <code>where.py</code>. The cluster column comes from the source paths that this step gives.</figcaption>
+</figure>
+
 The `site-packages` folder of the interpreter comes after these entries. The interpreter is `python3` from the `PATH`, unless you set it (Step 2). In this run, the `PATH` came from `uv run`, so `python3` was the project venv. In a terminal without the venv, the same script started `/usr/bin/python3`.
 
 ## Step 2: Which interpreter the workers run
@@ -119,6 +127,12 @@ executable  /usr/bin/python3.12
 ```
 
 Three facts come from these runs:
+
+| How you set the interpreter | Effect on the workers |
+|---|---|
+| `spark.pyspark.python` in the builder of `python app.py` | None |
+| `spark.pyspark.python` with `spark-submit` | `PythonRunner` copies it into `PYSPARK_PYTHON` |
+| `PYSPARK_PYTHON` in the environment of the driver | The workers start this interpreter |
 
 - **`spark.pyspark.python` in the builder has no effect.** The `SparkContext` reads the environment variable, not the config. The builder sets the config after the Python process started, and nothing copies the config into the environment.
 - **`spark-submit` reads the config.** `PythonRunner` (`core/src/main/scala/org/apache/spark/deploy/PythonRunner.scala`, line 109) copies `spark.pyspark.python` into `PYSPARK_PYTHON` before it starts the driver Python. Thus the config works with `spark-submit` and in cluster mode, but not in `python app.py`.
@@ -258,6 +272,13 @@ sequenceDiagram
   W-->>D: import works (left over path)
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch44-anim-includes.webp">
+    <source src="../../media/clips/ch44-anim-includes.mp4" type="video/mp4">
+  </video>
+  <figcaption>The old UDF keeps an empty include list after <code>addPyFile</code>. A new UDF puts the zip on the path of the two reused workers, and then the old UDF also works on them. The process IDs and the results come from <code>pyfiles.py</code>.</figcaption>
+</figure>
+
 Add all py-files before you make any UDF. If you add a file later, make the UDFs again. Spark Connect does not have this trap: the server reads the includes of the session from its `ArtifactManager` (`getPythonIncludes`) for each plan.
 
 ## Step 6: A module never loads again in a reused worker
@@ -296,6 +317,14 @@ archive ujson    deps/site-packages/ujson.cpython-312-x86_64-linux-gnu.so
 ```
 
 `tabulate` imported from the zip. `ujson` did not, because its code is in a `.so` file. From the archive, the two modules imported, because Spark unpacked the archive into a real folder.
+
+<figure markdown>
+  ![The same site folder shipped as a zip and as an archive, with the import result of each module](../media/figures/ch44-zip-archive-light.svg#only-light)
+
+  ![The same site folder shipped as a zip and as an archive, with the import result of each module](../media/figures/ch44-zip-archive-dark.svg#only-dark)
+
+  <figcaption>The same site folder as a zip and as an archive. <code>ujson</code> has native code, and it imports only from the archive.</figcaption>
+</figure>
 
 The wheel tags tell you the contract. `cp312` means CPython 3.12 only. `manylinux2014_x86_64` means x86-64 Linux with glibc 2.17 or newer. A site folder that you build on a Mac or for Python 3.11 does not import on these executors. Build it with the `--python-platform` and `--python-version` of the executors, as above.
 
