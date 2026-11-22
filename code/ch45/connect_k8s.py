@@ -8,6 +8,7 @@ Run from code/, after:  kubectl --context kind-part08 apply -f ch45/connect-serv
 """
 import json
 import os
+import socket
 import subprocess
 import sys
 import time
@@ -22,10 +23,16 @@ TOKEN, GRPC, UI = "book-token-123", 10283, 4129
 
 
 def forward(attempt):
-    p = subprocess.Popen(["kubectl", "--context", CTX, "port-forward", f"svc/connect-{attempt}-driver-svc",
-                          f"{GRPC}:15002", f"{UI}:4040"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(3)
-    return p
+    """kubectl port-forward to the driver service of one attempt, tried again until the port answers."""
+    for _ in range(30):
+        p = subprocess.Popen(["kubectl", "--context", CTX, "port-forward", f"svc/connect-{attempt}-driver-svc",
+                              f"{GRPC}:15002", f"{UI}:4040"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(3)
+        if p.poll() is None and socket.socket().connect_ex(("127.0.0.1", GRPC)) == 0:
+            return p
+        p.terminate()
+        time.sleep(2)
+    raise RuntimeError(f"no port forward to connect-{attempt}-driver-svc")
 
 
 def rest(path):
