@@ -1,0 +1,6 @@
+pyspark 4.3.0 (full):   pyspark/ 484 MB, jars/ 462 MB in 280 files
+pyspark-client 4.3.0:   pyspark/ 11 MB, jars/ none
+pyspark-client venv, all dependencies: 324 MB
+pyspark-client 4.3.0
+pyspark/jars exists: False | py4j importable: False
+server 4.3.0 | trips: 3,837,248
