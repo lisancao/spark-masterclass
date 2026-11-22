@@ -1,6 +1,11 @@
 # Coverage
 
-Spark Masterclass covers everything SparkTutor teaches, on Spark 4.3. This page maps each SparkTutor lesson to the part of the book that covers it. LS is the Learning Spark course, MD is Messy Data and Python Data Sources, WN is What's New in Spark 4.x and SDP is Spark Declarative Pipelines.
+Spark Masterclass covers all that SparkTutor teaches, on Spark 4.3. This page maps each SparkTutor lesson to the part of the book that covers it. The table uses these abbreviations:
+
+- LS is the Learning Spark course.
+- MD is Messy Data and Python Data Sources.
+- WN is What's New in Spark 4.x.
+- SDP is Spark Declarative Pipelines.
 
 | Part | Chapters | SparkTutor lessons |
 |---|---|---|
@@ -15,4 +20,4 @@ Spark Masterclass covers everything SparkTutor teaches, on Spark 4.3. This page 
 | IX | 47-55 | MD15 first_python_data_source, MD22 custom_file_format, MD23 api_source, MD25 filter_pushdown, MD26 database_source, MD27 writers, MD28 streaming_sources, MD29 packaging_testing, MD42 java_dsv2_connector, MD43 session_extensions, MD44 connect_plugins, MD56 final_project, WN06 python_data_sources |
 | X | 56-59 | MD39 catalyst_python_plans, MD40 python_worker_protocol, MD46 variant_binary_format, MD55 upstream_case_study |
 
-Each part's notes (`notes/partNN.md` in the repo) list, lesson by lesson, the section where each topic lands, and anything left out with the reason.
+In the repo, the notes of each part (`notes/partNN.md`) give each topic of each lesson, and the section that covers it. They also list the topics that the part does not cover, with the reason.

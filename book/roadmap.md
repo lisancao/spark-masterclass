@@ -1,6 +1,6 @@
 # Roadmap
 
-The book is being written a part at a time, in order. Part I is drafted; each later part lists its chapters and what they cover. Chapter numbers may still move. Every SparkTutor lesson lands in one of these chapters; the lesson-to-chapter map is in [coverage](coverage.md).
+The author writes the book one part at a time, in sequence. Part I has a first draft. Each later part lists its chapters and the subjects that they cover. The chapter numbers can still change. Each SparkTutor lesson goes into one of these chapters. The map from lessons to chapters is in [coverage](coverage.md).
 
 ## Part I: Getting started
 *Data: NYC Taxi trips*
