@@ -276,6 +276,13 @@ input 203, parsed 201, rejects 2, balanced: True
 
 The truncated line fails the pattern. The impossible date matches the pattern, but its timestamp is `NULL`. Both go into `rejects` with their file name. Then the count check proves that the job lost no line: 201 + 2 = 203. Write `rejects` to a place where people look at it. A sudden increase in rejects is often the first sign that a format changed at the source.
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch12-quarantine.webp">
+    <source src="../../media/clips/ch12-quarantine.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>logs.py</code> on Spark 4.3.0. Each input line is parsed or rejected, and the two counts add up to the input.</figcaption>
+</figure>
+
 With typed timestamps, analysis by time is ordinary Spark. `session_window` puts the hits of each IP address into sessions. A session closes after 30 seconds without a hit:
 
 ```text

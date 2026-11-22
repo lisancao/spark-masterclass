@@ -544,6 +544,13 @@ after expire_snapshots, files that hold the text: 0
 the blob in the store is a separate file: remove it too, with the hash: cas/f1/f162c9a6dd8b... (this e-mail is small, so it was inline)
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch17-forget.webp">
+    <source src="../../media/clips/ch17-forget.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>blobs.py</code> on Spark 4.3.0 with an Iceberg runtime from a pull request build. The delete hides the row at once, and the bytes leave the disk only after a rewrite and an expire.</figcaption>
+</figure>
+
 ```mermaid
 stateDiagram-v2
   direction LR

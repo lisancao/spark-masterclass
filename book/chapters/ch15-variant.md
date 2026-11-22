@@ -331,6 +331,13 @@ Each function except `variant_delete` and `variant_strip_nulls` also has a `try_
   variant_strip_nulls(v)  (default)                    -> {"a":[1,{}]}
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch15-edit.webp">
+    <source src="../../media/clips/ch15-edit.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>edit.py</code> on Spark 4.3.0. The new functions set, insert, delete and append inside a <code>VARIANT</code> value, and the <code>try_</code> forms give <code>NULL</code> where the plain forms fail.</figcaption>
+</figure>
+
 The rules that follow from this output:
 
 - **`variant_set` makes missing parts of the path.** `$.user.plan` adds `plan` to `user`. With `create_if_missing` set to `false`, the value stays the same. This argument must be a constant.

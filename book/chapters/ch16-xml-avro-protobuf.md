@@ -665,6 +665,13 @@ offset 0: 00 00 00 00 03 00 0a 08 50 41 59 2d 39 30 30 31 12 06 4f 2d  ...
 only showing top 5 rows
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch16-kafka.webp">
+    <source src="../../media/clips/ch16-kafka.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>protobuf.py</code> on Spark 4.3.0. A Confluent message has a magic byte, a schema ID and a message index before the Protobuf bytes. The decode classifies each message.</figcaption>
+</figure>
+
 With the index byte still in the payload, `from_protobuf` fails. The payload for Protobuf starts at byte 7, not at byte 6. The code is the same as for Avro, with one more byte to remove. The decode uses `PERMISSIVE` and `emit.default.values`. `nullif(method, 'METHOD_UNSPECIFIED')` changes the default enum value into `NULL`, because "the producer did not say" is not a payment method.
 
 ## Step 22: Errors and silent results in Protobuf

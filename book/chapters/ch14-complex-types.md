@@ -451,6 +451,13 @@ Project [transform(xs#0, lambdafunction((lambda x_2#7 * 2), lambda x_2#7, false)
 [2, 4]
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch14-lambda.webp">
+    <source src="../../media/clips/ch14-lambda.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>lambdas.py</code> on Spark 4.3.0. The Python function runs one time, on the driver, with a placeholder <code>Column</code>, and the analyzed plan holds a lambda function.</figcaption>
+</figure>
+
 ```mermaid
 sequenceDiagram
   participant P as Python (driver)
@@ -647,6 +654,13 @@ Before Spark 4.3, each higher-order function ran as an interpreted expression. W
 *(1) Project [order_id#167, aggregate(lines#166, 0.0, lambdafunction((lambda x_44#173 + (c
 generated Java loop: /* 058 */         for (int project_i_0 = 0; project_i_0 < project_numElements_0; project_i_0++) {
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch14-codegen.webp">
+    <source src="../../media/clips/ch14-codegen.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>lambdas.py</code> on Spark 4.3.0. The array higher-order functions take part in whole-stage code generation, and the others stay interpreted.</figcaption>
+</figure>
 
 `transform`, `filter`, `exists`, `forall` and `aggregate` now compile to a Java `for` loop over the array. The last line is from the generated code of the `aggregate` on the order lines. `array_sort` with a comparator, `zip_with` and the map functions still use the interpreted path (`CodegenFallback` in `higherOrderFunctions.scala`). Their `Project` has no `*(n)`. The query gives the same result in the two cases. Only the speed is different.
 
