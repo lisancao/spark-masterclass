@@ -14,7 +14,7 @@ from common.book import session, TRIPS
 
 spark = session("ch23-crossover", spark_driver_memory="4g", spark_ui_showConsoleProgress="false")
 FLAG = "spark.sql.optimizer.singleTaskExecution.enabled"
-RUNS = int(os.environ.get("RUNS", 9))
+RUNS = int(os.environ.get("RUNS", 5))
 DIR = Path("/tmp/masterclass-ch23/sizes")
 SIZES = [1_000, 10_000, 100_000, 300_000, 1_000_000, 2_000_000]
 

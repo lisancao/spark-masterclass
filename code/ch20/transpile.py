@@ -93,6 +93,14 @@ except Exception as e:
     print("\nlen(None) in the transpiled UDF ->", (re.findall(r"\[([A-Z][A-Z_.]+)\]", str(e)) or ["?"])[0],
           "|", next((l.strip() for l in str(e).splitlines() if "Python" in l), "")[:90])
 
+# The optimizer reads the setting too: turn it off after the UDF exists, and the UDF runs in Python.
+u = F.udf(band_one_statement, "string", useArrow=False)
+before = "BatchEvalPython" in plan(trips.select(u("fare_amount")), "simple")
+spark.conf.set("spark.sql.experimental.optimizer.transpilePyUDFs", "false")
+after = "BatchEvalPython" in plan(trips.select(u("fare_amount")), "simple")
+spark.conf.set("spark.sql.experimental.optimizer.transpilePyUDFs", "true")
+print(f"\ncreated with the setting on; BatchEvalPython in the plan: setting on {before}, setting turned off later {after}")
+
 # Without ANSI mode, the transpiler does not run.
 spark.conf.set("spark.sql.ansi.enabled", "false")
 with warnings.catch_warnings(record=True) as w:

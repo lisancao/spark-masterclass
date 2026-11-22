@@ -18,4 +18,6 @@ the Project of the transpiled band_one_statement (first 300 characters):
 
 len(None) in the transpiled UDF -> USER_RAISED_EXCEPTION | [USER_RAISED_EXCEPTION] Python UDF transpiler: cannot call len() on NULL; Python would rai
 
+created with the setting on; BatchEvalPython in the plan: setting on False, setting turned off later True
+
 with spark.sql.ansi.enabled=false: True | warning: Python UDF transpilation (spark.sql.experimental.optimizer.transpilePy

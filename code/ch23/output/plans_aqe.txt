@@ -42,7 +42,7 @@ Aggregate Attributes [1]: [count#28L]
 Functions [1]: [count(1)]
 Aggregate Attributes [1]: [count(1)#26L]
 -- the UI: 4 jobs, 4 stages, 4 tasks; shuffle write 1,172 B
--- SQL tab: execution 2, jobs [1, 2, 3, 4], duration 644 ms
+-- SQL tab: execution 2, jobs [1, 2, 3, 4], duration 1933 ms
 
 ==================== spark.sql.optimizer.singleTaskExecution.enabled=true
 -- before the run (explain):
@@ -69,12 +69,12 @@ Aggregate Attributes [1]: [count(1)#57L]
 Functions [1]: [count(1)]
 Aggregate Attributes [1]: [count(1)#57L]
 -- the UI: 1 jobs, 1 stages, 1 tasks; shuffle write 0 B
--- SQL tab: execution 5, jobs [6], duration 111 ms
+-- SQL tab: execution 5, jobs [6], duration 340 ms
 
 ==================== the June trips (62 MB, 3,837,248 rows), groupBy pickup zone
-spark.sql.optimizer.singleTaskExecution.enabled=false: stage 11: 1 tasks, 163 ms task time, stage 12: 16 tasks, 4,153 ms task time, stage 14: 1 tasks, 46 ms task time
+spark.sql.optimizer.singleTaskExecution.enabled=false: stage 11: 1 tasks, 373 ms task time, stage 12: 16 tasks, 7,885 ms task time, stage 14: 1 tasks, 76 ms task time
    partitions of the result that hold rows: 1
    ResultQueryStage 1 | +- AQEShuffleRead coalesced | +- ShuffleQueryStage 0
-spark.sql.optimizer.singleTaskExecution.enabled=true: stage 25: 1 tasks, 12 ms task time, stage 26: 1 tasks, 294 ms task time
+spark.sql.optimizer.singleTaskExecution.enabled=true: stage 25: 1 tasks, 12 ms task time, stage 26: 1 tasks, 821 ms task time
    partitions of the result that hold rows: 1
    ResultQueryStage 0

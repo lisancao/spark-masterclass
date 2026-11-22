@@ -1,0 +1,23 @@
+UI on port 4138
+  job  0  SUCCEEDED  stages 1  tasks   1  1. sort six months by distance, 2 partitions, AQE 
+  job  1  SUCCEEDED  stages 1  tasks  17  1. sort six months by distance, 2 partitions, AQE 
+  job  2  SUCCEEDED  stages 2  tasks  19  1. sort six months by distance, 2 partitions, AQE 
+  job  3  SUCCEEDED  stages 1  tasks   1  2. cache the cleaned June trips
+  job  4  SUCCEEDED  stages 1  tasks  16  2. cache the cleaned June trips
+  job  5  SUCCEEDED  stages 1  tasks  16  2. cache the cleaned June trips
+  job  6  SUCCEEDED  stages 2  tasks  17  2. cache the cleaned June trips
+  job  7  SUCCEEDED  stages 1  tasks  16  3. tips by pickup zone, from the cache
+  job  8  SUCCEEDED  stages 2  tasks  17  3. tips by pickup zone, from the cache
+  stage  0  tasks   1  spill memory      0 MiB  disk     0 MiB  1. sort six months by distance, 2 partit
+  stage  1  tasks  17  spill memory      0 MiB  disk     0 MiB  1. sort six months by distance, 2 partit
+  stage  2  tasks  17  spill memory      0 MiB  disk     0 MiB  1. sort six months by distance, 2 partit
+  stage  3  tasks   2  spill memory  3,520 MiB  disk   971 MiB  1. sort six months by distance, 2 partit
+  stage  4  tasks   1  spill memory      0 MiB  disk     0 MiB  2. cache the cleaned June trips
+  stage  5  tasks  16  spill memory      0 MiB  disk     0 MiB  2. cache the cleaned June trips
+  stage  6  tasks  16  spill memory      0 MiB  disk     0 MiB  2. cache the cleaned June trips
+  stage  8  tasks   1  spill memory      0 MiB  disk     0 MiB  2. cache the cleaned June trips
+  stage  9  tasks  16  spill memory      0 MiB  disk     0 MiB  3. tips by pickup zone, from the cache
+  stage 11  tasks   1  spill memory      0 MiB  disk     0 MiB  3. tips by pickup zone, from the cache
+the stage that spilled: 3, 2 tasks, spill memory 3,520 MiB, disk 971 MiB
+storage: 16/16 partitions, 95 MiB in memory, level Disk Memory Deserialized 1x Replicated
+SQL execution 2 ('3. tips by pickup zone, from the cache'), jobs [7, 8]

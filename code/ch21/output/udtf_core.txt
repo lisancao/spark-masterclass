@@ -1,9 +1,9 @@
 
 === lifecycle: which methods run, in which process, how often
 27 rows from 6 input rows in 3 partitions
-  instance 461591-...: __init__ | terminate after 2 eval calls | cleanup
-  instance 461592-...: __init__ | terminate after 2 eval calls | cleanup
-  instance 461595-...: __init__ | terminate after 2 eval calls | cleanup
+  instance 759558-...: __init__ | terminate after 2 eval calls | cleanup
+  instance 759559-...: __init__ | terminate after 2 eval calls | cleanup
+  instance 759563-...: __init__ | terminate after 2 eval calls | cleanup
   rows from terminate(): [('doc 1 has words', '<end>', 2), ('doc 3 has words', '<end>', 2), ('doc 5 has words', '<end>', 2)]
   rows per partition of a second input: [0, 1, 1]
   lateral join with terminate(), one empty partition -> java.lang.NullPointerException

@@ -18,6 +18,9 @@ string    42              '42'                              '42'
 boolean   1               True                              None
 date      '2026-06-01'    error ArrowTypeError              error AttributeError
 
+spark.sql.execution.pandas.convertToArrowArraySafely = true
+@pandas_udf returns 7.9 for int -> error PySparkValueError | Failed to convert the value of the column '_0' with type 'fl
+
 naive datetime(2026, 6, 1, 8, 0) returned as timestamp and as timestamp_ntz; session zone UTC
 worker TZ             timestamp               timestamp_ntz
 UTC                   2026-06-01 08:00:00     2026-06-01 08:00:00

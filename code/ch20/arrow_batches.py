@@ -78,6 +78,21 @@ for dtype, value in VALUES:
             out.append("error " + (m[-1] if m else type(e).__name__)[:26])
     print(f"{dtype:<10}{value!r:<16}{out[0]:<34}{out[1]}")
 
+# The same 7.9 for an int from a pandas UDF, with convertToArrowArraySafely (default true since 4.1).
+@F.pandas_udf("int")
+def seven_nine(s: pd.Series) -> pd.Series:
+    return pd.Series([7.9] * len(s))
+
+
+print("\nspark.sql.execution.pandas.convertToArrowArraySafely =",
+      spark.conf.get("spark.sql.execution.pandas.convertToArrowArraySafely"))
+try:
+    print("@pandas_udf returns 7.9 for int ->", spark.range(1).select(seven_nine("id").alias("x")).first().x)
+except Exception as e:
+    import re
+    m = re.findall(r"(\w+(?:Error|Invalid)): ([^\n]{0,60})", str(e))
+    print("@pandas_udf returns 7.9 for int -> error", m[-1][0] if m else type(e).__name__, "|", m[-1][1] if m else "")
+
 # A naive datetime from a UDF is read in the worker's time zone, not the session's.
 print(f"\nnaive datetime(2026, 6, 1, 8, 0) returned as timestamp and as timestamp_ntz; session zone UTC")
 print(f"{'worker TZ':<22}{'timestamp':<24}{'timestamp_ntz'}")

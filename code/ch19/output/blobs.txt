@@ -3,7 +3,7 @@ schema: struct<path:string,modificationTime:timestamp,length:bigint,content:bina
 select(path, length): [('huge.bin', 2500000000)]
 count(): 1
 select(content): [FAILED_READ_FILE.NO_HINT] Caused by: org.apache.spark.SparkException: The length of file:huge.bin is 2500000000, which exceeds the max length allowed: 2147483647.
-with maxLength 200 MiB, f300.bin: ion: The length of f300.bin is 314572800, which exceeds the max length allowed: 209715200.
+with maxLength 200 MiB, f300.bin: The length of f300.bin is 314572800, which exceeds the max length allowed: 209715200.
 
 a fresh driver with the default 1g heap, one file each:
   f100.bin (100 MiB): exit code 0; read 104,857,600 bytes

@@ -25,16 +25,16 @@ spark.profile.show(type='perf'), the first lines:
   ============================================================
   Profile of UDF<id=4242>
   ============================================================
-           9400000 function calls in 10.637 seconds
+           9400000 function calls in 21.497 seconds
   
      Ordered by: internal time, cumulative time
   
      ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-     200000    4.100    0.000    4.100    0.000 {method 'disable' of '_lsprof.Profiler' objects}
-     800000    1.118    0.000    1.507    0.000 ipaddress.py:1213(_parse_octet)
-     200000    0.681    0.000    6.268    0.000 calls.py:80(private_ip)
-     200000    0.650    0.000    2.638    0.000 ipaddress.py:1187(_ip_int_from_string)
-     200000    0.523    0.000    1.798    0.000 ipaddress.py:1337(is_private)
-     200000    0.469    0.000    3.184    0.000 ipaddress.py:1286(__init__)
-     800000    0.434    0.000    0.571    0.000 ipaddress.py:739(__contains__)
-     200000    0.365    0.000    1.872    0.000 {built-in method from_bytes}
+     200000    7.947    0.000    7.947    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+     800000    2.273    0.000    2.947    0.000 ipaddress.py:1213(_parse_octet)
+     200000    1.631    0.000   13.090    0.000 calls.py:80(private_ip)
+     200000    1.436    0.000    5.332    0.000 ipaddress.py:1187(_ip_int_from_string)
+     200000    1.147    0.000    3.822    0.000 ipaddress.py:1337(is_private)
+     200000    0.982    0.000    6.447    0.000 ipaddress.py:1286(__init__)
+     800000    0.918    0.000    1.192    0.000 ipaddress.py:739(__contains__)
+     200000    0.715    0.000    3.663    0.000 {built-in method from_bytes}
