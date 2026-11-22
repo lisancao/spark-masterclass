@@ -1,0 +1,4 @@
+{"source": "code/ch28/output/r4_pipeline.txt (stages, tasks) and r2_latency.txt (medians in the Step 4 table)",
+ "source_partitions": 4, "shuffle_partitions": 3, "cores_held": 7,
+ "p50_count_ms": {"micro_batch": 276, "real_time": 28},
+ "timing": "schematic"}

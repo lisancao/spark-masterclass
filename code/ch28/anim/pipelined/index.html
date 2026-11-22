@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from data.json (r4_pipeline.txt, r2_latency.txt). Timing is schematic.
+      // beat open (0.0): one running count, two engines
+      A.title("A running count in two engines", "groupBy(\"user\").count() from Kafka: 4 source partitions, 3 shuffle partitions");
+      const lane = (y, name) => {
+        A.text(name, { x: 0.02, y: y - A.dy(140), size: 32, weight: 700, anchor: "left" });
+        const scans = [], aggs = [];
+        for (let i = 0; i < 4; i++) scans.push(A.box({ x: 0.25, y: y - A.dy(93) + i * A.dy(62), w: 170, h: 50, kind: "ghost", title: `scan ${i}`, size: 22 }));
+        for (let i = 0; i < 3; i++) aggs.push(A.box({ x: 0.60, y: y - A.dy(62) + i * A.dy(62), w: 190, h: 50, kind: "ghost", title: `aggregate ${i}`, size: 22 }));
+        A.box({ x: 0.08, y, w: 130, h: 110, kind: "soft", title: "Kafka", size: 26 });
+        A.box({ x: 0.88, y, w: 150, h: 110, kind: "soft", title: "output", size: 26 });
+        return { scans, aggs };
+      };
+      const Y1 = 0.33, Y2 = 0.69;
+      const mb = lane(Y1, "micro-batch"), rt = lane(Y2, "Real-time Mode");
+      cap("The same query in micro-batch mode and in Real-time Mode", 0.2, 4.7);
+      const flow = (y, t, x0, x1, dur, col) => {
+        const d = A.dot({ x: x0, y: y + (((t * 7.3) % 1) - 0.5) * A.dy(150), r: 9, color: col || "var(--a-fg)" });
+        A.tl.set(d, { opacity: 0.85 }, t); A.tl.to(d, { x: A.X(x1 - x0), duration: dur, ease: "none" }, t); A.tl.set(d, { opacity: 0 }, t + dur);
+      };
+      // beat microbatch (4.8): records wait, then the two stages run one after the other
+      for (let t = 4.9; t < 14; t += 0.25) flow(Y1, t, 0.12, 0.17, 0.4);
+      const stageOn = (els, t0, t1) => { for (const e of els) { A.tl.to(e, { backgroundColor: "var(--a-acc)", duration: 0.2 }, t0); A.tl.to(e, { backgroundColor: "transparent", duration: 0.2 }, t1); } };
+      for (const b of [6.0, 10.0]) {
+        stageOn(mb.scans, b, b + 1.0);
+        for (let k = 0; k < 6; k++) flow(Y1, b + 1.0 + k * 0.05, 0.31, 0.53, 0.5, "var(--a-acc)");
+        stageOn(mb.aggs, b + 1.6, b + 2.6);
+        for (let k = 0; k < 4; k++) flow(Y1, b + 2.6 + k * 0.05, 0.67, 0.83, 0.5, "var(--a-acc)");
+      }
+      cap("Micro-batch: records wait, then two stages run in sequence", 4.8, 9.5);
+      // beat realtime (9.6): all seven tasks run the whole batch; each record goes through at once
+      const all = [...rt.scans, ...rt.aggs];
+      for (const e of all) A.tl.to(e, { backgroundColor: "var(--a-ok)", duration: 0.4 }, 9.7);
+      for (let t = 10.0; t < 19.5; t += 0.22) { flow(Y2, t, 0.12, 0.83, 1.2, "var(--a-ok)"); }
+      const cores = A.text("7 tasks hold 7 cores for the whole batch", { x: 0.98, y: Y2 - A.dy(140), size: 26, color: "var(--a-mute)", anchor: "right" });
+      A.in(cores, 10.4);
+      cap("Real-time Mode: all tasks run, and each record goes straight through", 9.6, 14.3);
+      // beat result (14.4)
+      const res = A.text("p50 latency of the count: 276 ms in micro-batch, 28 ms in Real-time Mode", { x: 0.5, y: 0.505, size: 32, weight: 700 });
+      A.in(res, 14.6);
+      cap("The pipelined shuffle sends rows while both stages run", 14.4);
+      A.in(A.note("task counts from r4_pipeline.txt, latency medians from r2_latency.txt; timing schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>
