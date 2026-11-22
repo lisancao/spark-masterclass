@@ -1,0 +1,24 @@
+1. Without the flag, .name() is refused:
+  AnalysisException: [STREAMING_QUERY_EVOLUTION_ERROR.SOURCE_NAMING_NOT_SUPPORTED]
+  Streaming query evolution error: Streaming source naming is not supported. Source name ...
+
+2. Positional sources: add a second source on restart
+   run 1, yellow only:    [(0, 487)]
+  StreamingQueryException: [STREAM_FAILED] ... assertion failed: There are [1] sources in
+  the checkpoint offsets and now there are [2] sources requested by the query. Cannot
+  continue. SQLSTATE: XXKST
+
+3. With enableSourceEvolution=true and a name on every source
+   run 1, yellow only:    [(0, 487)]
+   run 2, yellow + green: [(1, 958)]
+   offsets/1, the source lines:
+     green_trips:{"logOffset":0}
+     yellow_trips:{"logOffset":1}
+   one source left unnamed:
+  AnalysisException:
+  [STREAMING_QUERY_EVOLUTION_ERROR.UNNAMED_STREAMING_SOURCES_WITH_ENFORCEMENT] Streaming ...
+
+4. Remove the metadata file of a checkpoint that has offsets and commits:
+  SparkRuntimeException: [STREAMING_CHECKPOINT_MISSING_METADATA_FILE] Checkpoint location
+  file:~/spark-masterclass-parts/part05/data/work/ch24/s11/ck_pos is in an
+  inconsistent state: the metadata file is missing but offset and/or commit logs contain ...
