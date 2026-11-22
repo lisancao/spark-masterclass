@@ -29,3 +29,13 @@ print("\nThe same function on a stream: the source schema is one column")
 stream = spark.readStream.text(str(DROPS[0].parent))
 print("  ", stream.schema.simpleString())
 print("  ", parse_events(stream).schema.simpleString()[:120] + " ...")
+
+print("\nparse_json fails the whole job on the first bad line; try_parse_json returns NULL:")
+bad = spark.createDataFrame([('{"event_id": "e900", "user_id": "u3", "type": "page_v',)], "value string")
+try:
+    bad.select(F.parse_json("value")).collect()
+except Exception as e:
+    import re
+    m = re.search(r"\[([A-Z_.]+)\][^\n]*", str(e))
+    print("  parse_json:    ", m.group(0)[:110] if m else type(e).__name__)
+print("  try_parse_json:", bad.select(F.try_parse_json("value").alias("v")).first().v)
