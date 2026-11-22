@@ -2,3 +2,6 @@ clip	source	start	end	poster_at	chapter
 ch74-layers	ch74-chapter.mp4 (01-layers)	0-6, 40-92 at 4x, 92-105.7		last frame	ch74
 ch74-static	ch74-chapter.mp4 (02-static)	4.4	20.4	last frame	ch74
 ch74-connect	ch74-chapter.mp4 (03-connect)	3.0	19.0	last frame	ch74
+ch75-cli	ch75-chapter.mp4 (01-cli)	0-5, 90.1-104.1		last frame	ch75
+ch75-thrift	ch75-chapter.mp4 (02-thrift)	0-5, 44.9-58.9		last frame	ch75
+ch75-catalogs	ch75-chapter.mp4 (03-catalogs)	13.2	29.2	last frame	ch75
