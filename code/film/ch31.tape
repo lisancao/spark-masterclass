@@ -44,10 +44,11 @@ Wait@300s
 Sleep 12s
 
 # beat: maintenance | The maintenance procedures, and the files on disk
+# (catalogs.py removes the Hadoop warehouse, so the table is built again, off camera)
 Hide
 Type "clear" Enter
-Type "python ch31/evolve.py >/dev/null 2>&1; python ch31/snapshots.py >/dev/null 2>&1; clear" Enter
-Wait@600s
+Type "python ch31/tables.py >/dev/null 2>&1; python ch31/evolve.py >/dev/null 2>&1; python ch31/snapshots.py >/dev/null 2>&1; clear" Enter
+Wait@1500s
 Show
 Type "# small INSERTs, then each maintenance procedure. Count the files on disk:" Enter
 Sleep 500ms
