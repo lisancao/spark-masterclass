@@ -1,5 +1,5 @@
 comet on Spark 4.2.0, offload-friendly settings
-boroughs: 13 engine operators, 1 Spark operators, 1 transitions
+boroughs: 12 engine operators, 1 Spark operators, 2 transitions
   . WholeStageCodegenExec
   T   CometColumnarToRowExec
   .     InputAdapter
@@ -17,5 +17,5 @@ boroughs: 13 engine operators, 1 Spark operators, 1 transitions
   E                             CometNativeScanExec
   E                         CometBroadcastExchangeExec
   E                           CometFilterExec
-  E                             CometSparkToColumnarExec
+  T                             CometSparkToColumnarExec
   S                               FileSourceScanExec

@@ -43,6 +43,7 @@ print(f"Spark {pyspark.__version__}, newest release of each engine:\n")
 for engine, release in [("gluten", "Gluten 1.7.0 (bin-spark-4.1)"),
                         ("rapids", "RAPIDS 26.10.0 (cuda13)"),
                         ("comet", "Comet 1.2.0 (spark4.2)"),
+                        ("auron", "Auron 9.0.0 (compiled for spark-4.2)"),
                         ("comet-no-shuffle", "Comet 1.2.0, no CometShuffleManager"),
                         ("comet-spark-shuffle", "Comet 1.2.0, spark.comet.shuffle.enabled=false"
                          " (not a supported setup)")]:

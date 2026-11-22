@@ -6,7 +6,7 @@ export SPARK_LOCAL_IP=${SPARK_LOCAL_IP:-127.0.0.1}
 O=ch24/output; V=$BOOK_DATA/ch24
 P41=$V/venv-4.1.1/bin/python; P42=$V/venv-4.2.0/bin/python
 clean() { sed -e 's/.*\r//' -e "s#$HOME#~#g" | grep -v -e '^\[Stage' -e '^\s*$'; }
-{ $P41 ch24/inject.py gluten; $P42 ch24/inject.py comet; $P42 ch24/inject.py rapids; } \
+{ $P41 ch24/inject.py gluten; $P42 ch24/inject.py comet; $P42 ch24/inject.py rapids; $P42 ch24/inject.py auron; } \
   2>/dev/null | clean > $O/inject.txt
 { $P41 ch24/memory.py gluten-no-offheap; $P42 ch24/memory.py rapids; } 2>/dev/null | clean > $O/memory.txt
 $P42 ch24/repro_comet_udf.py 2>/dev/null | clean > $O/repro_comet_udf.txt

@@ -1,0 +1,2 @@
+machine: 16 cores, 156 GB RAM, NVIDIA GeForce RTX 5070 Ti, 16303 MiB, 595.99.02
+java: openjdk version "17.0.21.1" 2026-11-17

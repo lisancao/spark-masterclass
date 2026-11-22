@@ -1,0 +1,5 @@
+Spark 4.2.0, Comet 1.2.0, one Python UDF over a Comet Parquet scan
+columnarInput.enabled=true: NO RESULT after 120 s
+  +- ArrowEvalPython [<lambda>(x#3L)#4L], [pythonUDF0#10L], 101
+columnarInput.enabled=false: sum = 3999997
+  +- ArrowEvalPython [<lambda>(x#3L)#4L], [pythonUDF0#10L], 101

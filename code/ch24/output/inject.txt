@@ -19,3 +19,10 @@ rapids on Spark 4.2.0
   spark.memory.offHeap   = false, 0
   columnar rules         = ColumnarOverrideRules
   query stage prep rules = GpuQueryStagePrepOverrides, OptimizeSkewedBHJJoinRule
+auron on Spark 4.2.0
+  spark.plugins          = (not set)
+  spark.sql.extensions   = org.apache.spark.sql.auron.AuronSparkSessionExtension
+  spark.shuffle.manager  = org.apache.spark.sql.execution.auron.shuffle.AuronShuffleManager
+  spark.memory.offHeap   = false, 0
+  columnar rules         = AuronColumnarOverrides
+  query stage prep rules = (none)

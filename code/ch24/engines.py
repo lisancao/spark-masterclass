@@ -20,6 +20,7 @@ GLUTEN_JAR = JARS / "gluten-1.7.0" / "apache-gluten-1.7.0-bin-spark-4.1" / \
     "gluten-velox-bundle-spark4.1_2.13-linux_amd64-1.7.0.jar"
 COMET_JAR = JARS / "comet-spark-spark4.2_2.13-1.2.0.jar"
 RAPIDS_JAR = JARS / "rapids-4-spark_2.13-26.10.0-cuda13.jar"
+AURON_JAR = JARS / "auron-spark-4.2_2.13-release-linux-x86_64-9.0.0.jar"   # built: setup.sh
 
 # The same driver for every engine: local mode, 16 task slots, the same heap.
 BASE = {
@@ -68,6 +69,19 @@ ENGINES = {
         "spark.plugins": "com.nvidia.spark.SQLPlugin",
         "spark.rapids.sql.concurrentGpuTasks": "2",
         "spark.rapids.sql.explain": "NOT_ON_GPU",
+    },
+    # Apache Auron 9.0.0, compiled from the source release for Spark 4.2.0 (no binary exists).
+    # Auron has no plugin class: it uses spark.sql.extensions directly.
+    "auron": {
+        **jar_conf(AURON_JAR),
+        "spark.auron.enable": "true",
+        "spark.sql.extensions": "org.apache.spark.sql.auron.AuronSparkSessionExtension",
+        "spark.shuffle.manager":
+            "org.apache.spark.sql.execution.auron.shuffle.AuronShuffleManager",
+        "spark.memory.offHeap.enabled": "false",
+        "spark.executor.memoryOverhead": "8g",       # native memory = overhead x 0.6
+        "spark.driver.memoryOverhead": "8g",         # local mode: the driver is the executor
+        "spark.auron.native.log.level": "warn",
     },
 }
 
@@ -161,16 +175,17 @@ def walk(df):
 GLUE = {"AQEShuffleReadExec", "ColumnarInputAdapter", "InputIteratorTransformer",
         "WholeStageTransformer", "WholeStageCodegenExec", "InputAdapter",
         "VeloxResizeBatchesExec", "CometSinkPlaceHolder", "GpuShuffleCoalesceExec",
-        "GpuCoalesceBatches", "GpuCustomShuffleReaderExec", "ShuffleQueryStageExec"}
+        "GpuCoalesceBatches", "GpuCustomShuffleReaderExec", "ShuffleQueryStageExec",
+        "ForceNativeExecutionWrapper"}
 
 
 def kind(name):
     """'transition', 'glue', 'engine' (runs in the native or GPU engine) or 'spark'."""
-    if any(t in name for t in ("ColumnarToRow", "RowToColumnar", "RowToVelox", "SparkToColumnar")):
+    if any(t in name for t in ("ColumnarToRow", "RowToColumnar", "RowToVelox", "SparkToColumnar", "ConvertToNative")):
         return "transition"
     if name in GLUE:
         return "glue"
-    if name.startswith(("Gpu", "Comet", "Velox", "Columnar")) or "Transformer" in name:
+    if name.startswith(("Gpu", "Comet", "Velox", "Columnar", "Native")) or "Transformer" in name:
         return "engine"
     return "spark"
 

@@ -16,6 +16,7 @@ run() {   # run <engine> <python>
   run cpu    "$V/venv-4.2.0/bin/python"
   run comet  "$V/venv-4.2.0/bin/python"
   run rapids "$V/venv-4.2.0/bin/python"
+  run auron  "$V/venv-4.2.0/bin/python"
   run cpu    "$V/venv-4.1.1/bin/python"
   run gluten "$V/venv-4.1.1/bin/python"
 } | tee $O/bench.txt
