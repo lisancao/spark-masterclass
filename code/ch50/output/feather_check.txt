@@ -1,0 +1,4 @@
+spark.sql.optimizer.singleTaskExecution.enabled = true
+Three  scan partitions: 3, Exchange operators in groupBy plan: 1
+One    scan partitions: 1, Exchange operators in groupBy plan: 1
+the zones CSV file, scan partitions: 1, Exchange operators in groupBy plan: 0

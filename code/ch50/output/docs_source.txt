@@ -1,0 +1,57 @@
+26 files, 63,775 bytes; largest: [('access.log', 21213), ('app.log', 10072), ('silence.wav', 8044)]
+round robin    [(9, 22793), (9, 10884), (8, 30098)] (files, bytes) per task
+largest first  [(3, 21266), (12, 21261), (11, 21248)] (files, bytes) per task
+
+png_size(red_16x8.png) = (16, 8)
+png_size(corrupt.png)  = (None, None)
+wav_seconds(silence.wav) = 0.5  wav_seconds(ticket_0.eml) = None
+
++-----+-----+-----+
+| kind|files|bytes|
++-----+-----+-----+
+|audio|    3|16132|
+|email|    4| 1007|
+|image|    5| 2066|
+| json|    3| 8907|
+|  log|    2|31285|
+|  pdf|    2| 1481|
+| text|    6| 1228|
+|  xml|    1| 1669|
++-----+-----+-----+
+
+that query opened 8 files and planned 1 time(s)
+
+Bytes per task, from spark_partition_id():
++----+-----+-----+
+|task|files|bytes|
++----+-----+-----+
+|   0|    3|21266|
+|   1|   12|21261|
+|   2|   11|21248|
++----+-----+-----+
+
++-------------------+-----+------+
+|               name|width|height|
++-------------------+-----+------+
+|        corrupt.png| NULL|  NULL|
+| gradient_32x32.png|   32|    32|
+|     gray_20x10.png|   20|    10|
+|logo_rgba_12x12.png|   12|    12|
+|       red_16x8.png|   16|     8|
++-------------------+-----+------+
+
+opened 8 files
+
+select('name').count() opened 8 files
+partitions() ran 0 more time(s) for the next three queries on df
+ReadSchema: struct<path:string,name:string,kind:string,size:bigint,modified:timestam ...
+.schema('name string, kind string, size long') then count() opened 0 files
+
+count: 26; after adding late.log, same DataFrame: 26; fresh load(): 27
+partitions() ran 1 time(s) for those three actions
+
+Empty folder: 0 rows
+Bad path: ValueError: option 'path' must be an existing folder, got 'no/such/folder'
+privacy.md removed, same DataFrame: PYTHON_EXCEPTION
+   FileNotFoundError: [Errno 2] No such file or directory: '<sample>/docs/privacy.md'
+fresh load(): 26 rows

@@ -1,0 +1,9 @@
+driver: org.xerial:sqlite-jdbc:3.50.3.0
+qty        bigint         reads; some values: ['0', '1', '2', '3', '4']
+gift       boolean        reads; some values: ['False', 'None', 'True']
+placed_at  date           fails: java.sql.SQLException: Error parsing date
+amount     decimal(10,2)  fails: java.sql.SQLException: Bad value for type BigDecimal : 
+note       decimal(38,18) fails: java.sql.SQLException: column -1 out of bounds [1,2]
+stored qty values that are not integers: [(83, 2.5), (112, 2.5), (145, 2.5), (240, 'two')]
+JDBC reads them as: [(83, 2), (112, 2), (145, 2), (240, 0)]
+gift 'yes' rows, JDBC values: ['False']

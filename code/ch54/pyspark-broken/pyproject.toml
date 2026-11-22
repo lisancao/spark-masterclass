@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyspark-broken"
+version = "0.1.0"
+description = "A pyspark_* module that fails to import, to show what that does to the lookup"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["src"]

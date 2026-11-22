@@ -1,0 +1,9 @@
+pyproject.toml
+src/pyspark_mailbox/__init__.py
+src/pyspark_mailbox/source.py
+src/pyspark_mailbox.egg-info/PKG-INFO
+src/pyspark_mailbox.egg-info/SOURCES.txt
+src/pyspark_mailbox.egg-info/dependency_links.txt
+src/pyspark_mailbox.egg-info/requires.txt
+src/pyspark_mailbox.egg-info/top_level.txt
+tests/test_reader.py

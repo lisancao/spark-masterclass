@@ -1,0 +1,42 @@
+spark.sql.python.filterPushdown.enabled = false (default)
+  SELECT * FROM t: [PYTHON_DATA_SOURCE_ERROR] Failed to initialize Python data source reader
+    [DATA_SOURCE_PUSHDOWN_DISABLED] ProbeReader implements pushFilters() but filter
+    pushdown is disabled because configuration
+    'spark.sql.python.filterPushdown.enabled' is false. Set it to true to enable
+    filter pushdown.
+spark.sql.python.filterPushdown.enabled = true
+
+WHERE                              filters offered to pushFilters()
+kind = 'image'                     IsNotNull(kind), EqualTo(kind, 'image')
+kind <> 'image'                    IsNotNull(kind), Not(EqualTo(kind, 'image'))
+kind <=> 'image'                   EqualNullSafe(kind, 'image')
+id > 3                             IsNotNull(id), GreaterThan(id, int:3)
+NOT (id > 3)                       IsNotNull(id), LessThanOrEqual(id, int:3)
+id BETWEEN 2 AND 5                 IsNotNull(id), GreaterThanOrEqual(id, int:2), LessThanOrEqual(id, int:5)
+id IN (1, 2, 3)                    In(id, list:[1, 2, 3])
+kind IS NULL                       IsNull(kind)
+kind LIKE 'im%'                    IsNotNull(kind), StringStartsWith(kind, 'im')
+kind LIKE '%age'                   IsNotNull(kind), StringEndsWith(kind, 'age')
+kind LIKE '%ma%'                   IsNotNull(kind), StringContains(kind, 'ma')
+kind LIKE 'i%e'                    IsNotNull(kind), StringStartsWith(kind, 'i'), StringEndsWith(kind, 'e')
+lower(kind) = 'image'              IsNotNull(kind)
+id + 1 > 3                         IsNotNull(id)
+id > 1.5                           IsNotNull(id), GreaterThan(id, int:1)
+amount > 100                       IsNotNull(amount), GreaterThan(amount, Decimal:Decimal('100.00'))
+ts >= '2026-10-01 10:00:00'        IsNotNull(ts), GreaterThanOrEqual(ts, datetime:2026-10-01T10:00:00+00:00 (ZoneInfo UTC))
+info.city = 'Hanoi'                IsNotNull(info.city), EqualTo(info.city, 'Hanoi')
+array_contains(tags, 'x')          IsNotNull(tags)
+kind = 'a' OR id = 1               pushFilters() not called
+id > 1 AND (kind = 'a' OR id = 2)  IsNotNull(id), GreaterThan(id, int:1)
+
+explain() alone: pushFilters() calls: 1
+
+yield a copy of a filter:
+    [DATA_SOURCE_EXTRANEOUS_FILTERS] CopyReader.pushFilters() returned filters that
+    are not part of the input. Make sure that each returned filter is one of the input
+    filters by reference. Input filters:
+    [FilterRef(filter=IsNotNull(attribute=('id',)), id=134871703285216),
+    FilterRef(filter=EqualTo(attribute=('id',), value=7), id=134871703280944)].
+    Extraneous filters: [FilterRef(filter=EqualTo(attribute=('id',), value=7),
+    id=134871703282960), FilterRef(filter=IsNotNull(attribute=('id',)),
+    id=134871703279648)].

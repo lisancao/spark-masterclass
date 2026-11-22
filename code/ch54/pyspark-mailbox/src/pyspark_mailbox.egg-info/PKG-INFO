@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: pyspark-mailbox
+Version: 0.1.0
+Summary: format('mailbox'): one row per .eml file, a Python data source for Spark 4
+Requires-Python: >=3.10
+Requires-Dist: pyspark>=4.0
+Provides-Extra: test
+Requires-Dist: pytest>=8; extra == "test"

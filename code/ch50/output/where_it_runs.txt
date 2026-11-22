@@ -1,0 +1,33 @@
++--------+
+|greeting|
++--------+
+|   hello|
+|   world|
++--------+
+
+format('HELLO') also works: 2 rows
+
+CaseInsensitiveDict: 5 5 True row 
+
+driver (this script)         pid 617044
+
+--- after load()
+DataSource.__init__          pid 620466
+DataSource.schema            pid 620466
+[Row(id=0, opt="'42'"), Row(id=1, opt="'42'"), Row(id=2, opt="'42'")]
+--- after the first collect()
+DataSource.reader            pid 621038
+DataSourceReader.__init__    pid 621038
+DataSourceReader.partitions  pid 621038
+read(partition 0)            pid 621403
+read(partition 2)            pid 621920
+read(partition 1)            pid 621919
+--- after a second action on the same DataFrame
+read(partition 2)            pid 621920
+read(partition 0)            pid 621919
+read(partition 1)            pid 621403
+
+The plan names the scan as a Python scan:
+== Physical Plan ==
+*(1) Project [id#17, opt#18]
++- BatchScan traced[id#17, opt#18] (Python) RuntimeFilters: []
