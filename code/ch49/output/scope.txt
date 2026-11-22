@@ -1,0 +1,9 @@
+what the agent's Connect client cannot reach:
+  spark.sparkContext                           JVM_ATTRIBUTE_NOT_SUPPORTED
+  df.rdd                                       NOT_IMPLEMENTED
+  spark._jvm                                   JVM_ATTRIBUTE_NOT_SUPPORTED
+  spark.conf.set('spark.executor.memory')      CANNOT_MODIFY_CONFIG
+a namespace for the agent:
+  write sandbox_agent_7.draft                  ok
+  overwrite prod.daily_revenue                 ok (nothing refused it)
+  namespaces: ['default', 'prod', 'sandbox_agent_7']

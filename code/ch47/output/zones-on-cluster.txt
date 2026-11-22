@@ -1,0 +1,8 @@
+sparkapplication.spark.apache.org/zones-standalone created
+     1.2 s  attempt 0  DriverReady                        Driver has reached ready state.
+    15.9 s  attempt 0  TerminatedWithoutReleaseResources  Application is terminated without releasing 
+executor pods seen: []
+log of zones-standalone-0-driver:
+  top zones: [(0, 7605, 26.99), (1, 7605, 27.0), (3, 7605, 27.0)]
+  rows by executor pod: [('book-worker-0', 1000000), ('book-worker-1', 1000000)]
+  driver pod: zones-standalone-0-driver  spark 4.3.0  python 3.10.12

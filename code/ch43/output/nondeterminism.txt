@@ -1,0 +1,20 @@
+deterministic: 10 UDF calls for 10 rows
+Project [id#0L, pythonUDF0#3L AS y#2L]
++- ArrowEvalPython [plus_one(id#0L)#1L], [pythonUDF0#3L], 101
+   +- Filter (id#0L < 10)
+      +- Range (0, 1000, step=1, splits=Some(4))
+
+asNondeterministic: 1000 UDF calls for 10 rows
+Project [id#0L, pythonUDF0#6L AS y#5L]
++- Filter (id#0L < 10)
+   +- ArrowEvalPython [plus_one(id#0L)#4L], [pythonUDF0#6L], 101
+      +- Range (0, 1000, step=1, splits=Some(4))
+
+INVALID_NON_DETERMINISTIC_EXPRESSIONS | [INVALID_NON_DETERMINISTIC_EXPRESSIONS] The operator expects a deterministic expression, but the actual expression is "((id = j) AND (rand(1) > 0.5))"
+transpile=false add_one           useArrow=None  evalType=101  Python in plan: True   files: 0
+transpile=false add_one           useArrow=False evalType=100  Python in plan: True   files: 0
+transpile=false plus_one_and_mark useArrow=False evalType=100  Python in plan: True   files: 100
+transpile=true  add_one           useArrow=None  evalType=101  Python in plan: True   files: 0
+transpile=true  add_one           useArrow=False evalType=100  Python in plan: False  files: 0
+transpile=true  plus_one_and_mark useArrow=False evalType=100  Python in plan: True   files: 100
+CFG changed from 1 to 2 between df1 and df2: df1 = 1  df2 = 1  a new udf object = 2

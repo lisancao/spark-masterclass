@@ -1,0 +1,28 @@
+200,000 rows, 4 partitions; median wall time of 5 runs after a warmup
+udf           profiler off     perf  ratio
+cheap                0.28s    5.94s   21.4
+slow                 1.49s    6.20s    4.2
+pandas               0.16s    0.13s    0.8
+
+spark.profile.show(type='perf') for the slow UDF, first lines:
+  Profile of UDF<id=289>
+           800000 function calls in 9.774 seconds
+     ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+           800000 function calls in 9.774 seconds
+     200000    6.056    0.000    6.056    0.000 profilers.py:30(slow)
+     200000    3.497    0.000    3.497    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+     200000    0.142    0.000    3.639    0.000 profiler.py:147(stop)
+
+data source profiler: sum = 19999900000
+  Profile of create_data_source      1716 function calls in 0.002 seconds
+      top: 1716 function calls in 0.002 seconds
+  Profile of plan_data_source_read   4654 function calls (4649 primitive calls) in 0.003 seconds
+      top: 4654 function calls (4649 primitive calls) in 0.003 seconds
+  Profile of UDF<id=306>             350167 function calls (350128 primitive calls) in 0.152 seconds
+      top: 350167 function calls (350128 primitive calls) in 0.152 seconds
+  Profile of UDF<id=309>             350167 function calls (350128 primitive calls) in 0.129 seconds
+      top: 350167 function calls (350128 primitive calls) in 0.129 seconds
+  Profile of UDF<id=312>             350167 function calls (350128 primitive calls) in 0.136 seconds
+      top: 350167 function calls (350128 primitive calls) in 0.136 seconds
+  Profile of UDF<id=315>             350167 function calls (350128 primitive calls) in 0.166 seconds
+      top: 350167 function calls (350128 primitive calls) in 0.166 seconds

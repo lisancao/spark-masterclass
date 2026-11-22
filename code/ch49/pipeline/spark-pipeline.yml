@@ -1,0 +1,5 @@
+name: orders
+storage: file:///tmp/ch49-pipeline/storage
+libraries:
+  - glob:
+      include: transformations/**
