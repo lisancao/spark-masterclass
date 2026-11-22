@@ -1,0 +1,12 @@
+# The pi-python example of the Apache Spark Kubernetes Operator 1.1.0 (examples/pi-python.yaml).
+apiVersion: spark.apache.org/v1
+kind: SparkApplication
+metadata:
+  name: pi-python
+spec:
+  pyFiles: "local:///opt/spark/examples/src/main/python/pi.py"
+  sparkConf:
+    spark.kubernetes.authenticate.driver.serviceAccountName: "spark"
+    spark.kubernetes.container.image: "apache/spark:4.3.0-python3"
+  runtimeVersions:
+    sparkVersion: "4.3.0"

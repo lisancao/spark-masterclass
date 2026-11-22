@@ -1,0 +1,4 @@
+java.lang.IllegalArgumentException: spark.shuffle.manager must be a BlockingShuffleManager, 
+but org.apache.spark.shuffle.celeborn.SparkShuffleManager is not. A blocking manager serves 
+regular, materialized shuffles and resolves blocks by id; configure a pipelined manager via 
+spark.shuffle.manager.incremental instead.

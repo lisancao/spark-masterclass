@@ -1,0 +1,15 @@
+SHUFFLE t+  0s  spark 4.2.1, shuffle manager SparkShuffleManager, shuffle tracking false
+SHUFFLE t+ 10s  action 1 done: busiest zone 237, 177,610 trips; executors alive: 2
+SHUFFLE t+ 55s  after 45 s with no tasks: executors alive: 0
+SHUFFLE t+ 63s  action 2 done: 39 zones over $1M; executors alive: 1
+SHUFFLE t+ 63s  stage  0 COMPLETE  tasks=1   shuffle write=        0 B  read=        0 B
+SHUFFLE t+ 63s  stage  1 COMPLETE  tasks=2   shuffle write=   10,467 B  read=        0 B
+SHUFFLE t+ 63s  stage  2 SKIPPED   tasks=2   shuffle write=        0 B  read=        0 B
+SHUFFLE t+ 63s  stage  3 COMPLETE  tasks=1   shuffle write=        0 B  read=   10,467 B
+SHUFFLE t+ 63s  stage  4 SKIPPED   tasks=2   shuffle write=        0 B  read=        0 B
+SHUFFLE t+ 63s  stage  5 COMPLETE  tasks=1   shuffle write=        0 B  read=   10,467 B
+SHUFFLE t+ 63s  executor  1 active=False removed: Executor killed by driver.
+SHUFFLE t+ 63s  executor  2 active=False removed: Executor killed by driver.
+SHUFFLE t+ 63s  executor  3 active=True  removed: -
+CELEBORN 10:13:11  Master: Successfully offered slots for 8 reducers of spark-47cdf7fc…-0 on 2 workers, primary types: Map(HDD -> 8).
+CELEBORN 10:14:08  Master: Removed application spark-47cdf7fc…
