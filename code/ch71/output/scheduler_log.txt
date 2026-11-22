@@ -1,0 +1,49 @@
+INFO DAGScheduler: Registering RDD 5 (collect at scheduler_log.py:25) as input to shuffle 0
+INFO DAGScheduler: Got job 1 (collect at scheduler_log.py:25) with 6 output partitions
+INFO DAGScheduler: Final stage: ResultStage 2 (collect at scheduler_log.py:25)
+INFO DAGScheduler: Parents of final stage: List(ShuffleMapStage 1)
+INFO DAGScheduler: Missing parents: List(ShuffleMapStage 1)
+INFO DAGScheduler: Missing parents found for ResultStage 2: List(ShuffleMapStage 1)
+INFO DAGScheduler: Missing parents found for ShuffleMapStage 1: List()
+INFO DAGScheduler: Submitting ShuffleMapStage 1 (MapPartitionsRDD[5] at collect at scheduler_log.py:25), which has no missing parents
+INFO SparkContext: Created broadcast 2 from broadcast at DAGScheduler.scala:2796
+INFO DAGScheduler: Submitting 4 missing tasks from ShuffleMapStage 1 (MapPartitionsRDD[5] at collect at scheduler_log.py:25) (first 15 tasks are for partitions Vector(0, 1, 2, 3))
+INFO TaskSchedulerImpl: Adding task set 1.0 with 4 tasks resource profile 0
+INFO TaskSetManager: Starting task 0.0 in stage 1.0 (TID 1) (127.0.0.1,executor 1, partition 0, PROCESS_LOCAL, 10274 bytes) 
+INFO TaskSetManager: Starting task 1.0 in stage 1.0 (TID 2) (127.0.0.1,executor 0, partition 1, PROCESS_LOCAL, 10274 bytes) 
+INFO TaskSetManager: Starting task 2.0 in stage 1.0 (TID 3) (127.0.0.1,executor 1, partition 2, PROCESS_LOCAL, 10274 bytes) 
+INFO TaskSetManager: Starting task 3.0 in stage 1.0 (TID 4) (127.0.0.1,executor 0, partition 3, PROCESS_LOCAL, 10274 bytes) 
+INFO TaskSetManager: Finished task 3.0 in stage 1.0 (TID 4) in 1061 ms on 127.0.0.1 (executor 0) (1/4)
+INFO TaskSetManager: Finished task 1.0 in stage 1.0 (TID 2) in 1065 ms on 127.0.0.1 (executor 0) (2/4)
+INFO TaskSetManager: Finished task 2.0 in stage 1.0 (TID 3) in 1751 ms on 127.0.0.1 (executor 1) (3/4)
+INFO TaskSetManager: Finished task 0.0 in stage 1.0 (TID 1) in 1753 ms on 127.0.0.1 (executor 1) (4/4)
+INFO TaskSchedulerImpl: Removed TaskSet 1.0 whose tasks have all completed, from pool 
+INFO DAGScheduler: ShuffleMapStage 1 (collect at scheduler_log.py:25) finished in 1760 ms
+INFO DAGScheduler: looking for newly runnable stages
+INFO DAGScheduler: running: HashSet()
+INFO DAGScheduler: waiting: HashSet(ResultStage 2)
+INFO DAGScheduler: failed: HashSet()
+INFO DAGScheduler: Missing parents found for ResultStage 2: List()
+INFO DAGScheduler: Submitting ResultStage 2 (MapPartitionsRDD[8] at collect at scheduler_log.py:25), which has no missing parents
+INFO SparkContext: Created broadcast 3 from broadcast at DAGScheduler.scala:2796
+INFO DAGScheduler: Submitting 6 missing tasks from ResultStage 2 (MapPartitionsRDD[8] at collect at scheduler_log.py:25) (first 15 tasks are for partitions Vector(0, 1, 2, 3, 4, 5))
+INFO TaskSchedulerImpl: Adding task set 2.0 with 6 tasks resource profile 0
+INFO TaskSetManager: Starting task 0.0 in stage 2.0 (TID 5) (127.0.0.1,executor 0, partition 0, NODE_LOCAL, 9635 bytes) 
+INFO TaskSetManager: Starting task 1.0 in stage 2.0 (TID 6) (127.0.0.1,executor 1, partition 1, NODE_LOCAL, 9635 bytes) 
+INFO TaskSetManager: Starting task 2.0 in stage 2.0 (TID 7) (127.0.0.1,executor 0, partition 2, NODE_LOCAL, 9635 bytes) 
+INFO TaskSetManager: Starting task 3.0 in stage 2.0 (TID 8) (127.0.0.1,executor 1, partition 3, NODE_LOCAL, 9635 bytes) 
+INFO TaskSetManager: Starting task 4.0 in stage 2.0 (TID 9) (127.0.0.1,executor 0, partition 4, NODE_LOCAL, 9635 bytes) 
+INFO TaskSetManager: Starting task 5.0 in stage 2.0 (TID 10) (127.0.0.1,executor 0, partition 5, NODE_LOCAL, 9635 bytes) 
+INFO TaskSetManager: Finished task 2.0 in stage 2.0 (TID 7) in 246 ms on 127.0.0.1 (executor 0) (1/6)
+INFO TaskSetManager: Finished task 0.0 in stage 2.0 (TID 5) in 247 ms on 127.0.0.1 (executor 0) (2/6)
+INFO TaskSetManager: Finished task 1.0 in stage 2.0 (TID 6) in 246 ms on 127.0.0.1 (executor 1) (3/6)
+INFO TaskSetManager: Finished task 3.0 in stage 2.0 (TID 8) in 246 ms on 127.0.0.1 (executor 1) (4/6)
+INFO TaskSetManager: Finished task 4.0 in stage 2.0 (TID 9) in 44 ms on 127.0.0.1 (executor 0) (5/6)
+INFO TaskSetManager: Finished task 5.0 in stage 2.0 (TID 10) in 40 ms on 127.0.0.1 (executor 0) (6/6)
+INFO TaskSchedulerImpl: Removed TaskSet 2.0 whose tasks have all completed, from pool 
+INFO DAGScheduler: ResultStage 2 (collect at scheduler_log.py:25) finished in 295 ms
+INFO DAGScheduler: Job 1 is finished. Cancelling potential speculative or zombie tasks for this job
+INFO TaskSchedulerImpl: Canceling stage 2
+INFO TaskSchedulerImpl: Killing all running tasks in stage 2: Stage finished
+INFO DAGScheduler: Job 1 finished: collect at scheduler_log.py:25, took 2074.647889 ms
+INFO DAGScheduler: Asked to cleanup jobs for query execution 0

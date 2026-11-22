@@ -1,0 +1,13 @@
+t=0: application started, executors: 0
+t=14s: job done, [(0, 12), (1, 12), (2, 12), (3, 12)]
+t=39s: after idling, executors: 0
+
+executor and job events from the event log (seconds after application start):
+     2.6  JobStart         job 0
+     6.8  ExecutorAdded    executor 0
+     8.6  ExecutorAdded    executor 2
+     8.8  ExecutorAdded    executor 1
+    16.1  JobEnd           job 0
+    31.1  ExecutorRemoved  executor 2  reason: Executor killed by driver.
+    31.1  ExecutorRemoved  executor 1  reason: Executor killed by driver.
+    31.2  ExecutorRemoved  executor 0  reason: Executor killed by driver.

@@ -1,0 +1,102 @@
+master: local-cluster[2,2,1024]   default parallelism: 4
+
+executors (REST: /executors)
+       0  127.0.0.1:38065      cores 2  storage memory  434.4 MiB
+       1  127.0.0.1:40703      cores 2  storage memory  434.4 MiB
+  driver  localhost:44645      cores 0  storage memory  434.4 MiB
+
+258 zones back
+
+jobs and stages (REST: /jobs, /stages)
+  job 1: stages [1, 2]
+    stage 1:  4 tasks  shuffle write  19,596 B  shuffle read       0 B  collect
+    stage 2:  6 tasks  shuffle write       0 B  shuffle read  19,596 B  collect
+
+tasks: where each one ran, its locality, and where its shuffle bytes came from
+  stage 1
+    task  0  executor 0  PROCESS_LOCAL  935 ms  rows in 1,048,576  shuffle write  4,720 B
+    task  1  executor 1  PROCESS_LOCAL 1316 ms  rows in 1,048,576  shuffle write  4,876 B
+    task  2  executor 0  PROCESS_LOCAL  933 ms  rows in 1,048,576  shuffle write  4,992 B
+    task  3  executor 1  PROCESS_LOCAL 1315 ms  rows in   691,520  shuffle write  5,008 B
+  stage 2
+    task  0  executor 1  NODE_LOCAL     144 ms  fetched local 1,574 B remote 1,509 B
+    task  1  executor 0  NODE_LOCAL     101 ms  fetched local 1,874 B remote 1,852 B
+    task  2  executor 1  NODE_LOCAL     144 ms  fetched local 1,572 B remote 1,535 B
+    task  3  executor 0  NODE_LOCAL     101 ms  fetched local 1,733 B remote 1,774 B
+    task  4  executor 0  NODE_LOCAL      24 ms  fetched local 1,329 B remote 1,352 B
+    task  5  executor 0  NODE_LOCAL      22 ms  fetched local 1,732 B remote 1,760 B
+
+shuffle files on disk (each map task writes one .data file and one .index file)
+  executor-55e6.../blockmgr-dfcb.../15/shuffle_0_1_0.checksum.ADLER32     48 B
+  executor-55e6.../blockmgr-dfcb.../15/shuffle_0_1_0.data           4,720 B
+  executor-55e6.../blockmgr-dfcb.../0f/shuffle_0_1_0.index             56 B
+  executor-c27e.../blockmgr-f629.../36/shuffle_0_2_0.checksum.ADLER32     48 B
+  executor-c27e.../blockmgr-f629.../36/shuffle_0_2_0.data           4,876 B
+  executor-c27e.../blockmgr-f629.../32/shuffle_0_2_0.index             56 B
+  executor-55e6.../blockmgr-dfcb.../17/shuffle_0_3_0.checksum.ADLER32     48 B
+  executor-55e6.../blockmgr-dfcb.../29/shuffle_0_3_0.data           4,992 B
+  executor-55e6.../blockmgr-dfcb.../0d/shuffle_0_3_0.index             56 B
+  executor-c27e.../blockmgr-f629.../38/shuffle_0_4_0.checksum.ADLER32     48 B
+  executor-c27e.../blockmgr-f629.../38/shuffle_0_4_0.data           5,008 B
+  executor-c27e.../blockmgr-f629.../0c/shuffle_0_4_0.index             56 B
+
+shuffle_0_1_0.index: 7 big-endian longs = offsets of 6 reduce partitions
+  offsets: [0, 722, 1624, 2348, 3193, 3872, 4720]
+  bytes per reduce partition: [722, 902, 724, 845, 679, 848]
+
+first 32 bytes of shuffle_0_1_0.index as hex:
+  0000000000000000 00000000000002d2 0000000000000658 000000000000092c
+
+cache the two columns, then scan them again (BlockManager, PROCESS_LOCAL)
+  cached: +- FileScan parquet [PULocationID#...  4 partitions, 37,125,896 B in memory
+    block rdd_13_0   10,024,768 B  on executor(s) ['1']
+    block rdd_13_1   10,031,392 B  on executor(s) ['0']
+    block rdd_13_2   10,163,072 B  on executor(s) ['1']
+    block rdd_13_3    6,906,664 B  on executor(s) ['0']
+    read cache: task 0  executor 1  PROCESS_LOCAL
+    read cache: task 1  executor 0  PROCESS_LOCAL
+    read cache: task 2  executor 1  PROCESS_LOCAL
+    read cache: task 3  executor 0  PROCESS_LOCAL
+
+event log folder eventlog_v2_app-20261122101601-0000/
+  .appstatus_app-20261122101601-0000.crc  (8 B)
+  appstatus_app-20261122101601-0000  (0 B)
+  events_1_app-20261122101601-0000.zstd  (71,159 B)
+
+events_1_app-20261122101601-0000.zstd after zstd: 95 events
+    26  SparkListenerTaskStart
+    26  SparkListenerTaskEnd
+     7  SparkListenerStageSubmitted
+     7  SparkListenerStageCompleted
+     5  SparkListenerDriverAccumUpdates
+     4  SparkListenerJobStart
+     4  SparkListenerJobEnd
+     3  SparkListenerBlockManagerAdded
+     3  SparkListenerSQLExecutionStart
+     3  SparkListenerSQLExecutionEnd
+     2  SparkListenerExecutorAdded
+     1  SparkListenerLogStart
+     1  SparkListenerResourceProfileAdded
+     1  SparkListenerEnvironmentUpdate
+     1  SparkListenerApplicationStart
+     1  SparkListenerApplicationEnd
+
+one SparkListenerTaskEnd event, trimmed:
+{
+ "Event": "SparkListenerTaskEnd",
+ "Stage ID": 2,
+ "Task Info": {
+  "Task ID": 6,
+  "Index": 1,
+  "Executor ID": "0",
+  "Host": "127.0.0.1",
+  "Locality": "NODE_LOCAL"
+ },
+ "Shuffle Read Metrics": {
+  "Remote Blocks Fetched": 2,
+  "Local Blocks Fetched": 2,
+  "Remote Bytes Read": 1852,
+  "Local Bytes Read": 1874,
+  "Total Records Read": 189
+ }
+}

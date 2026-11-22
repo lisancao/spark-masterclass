@@ -1,0 +1,4 @@
+unified pool (maxMemory): 434.4 MiB, storageFraction 0.5 protects 217.2 MiB
+after the cache:  32/32 partitions cached, 325.6 MiB in memory   storage in use 325.8 MiB
+after the sort:   21/32 partitions cached, 213.6 MiB in memory   storage in use 213.9 MiB
+spill during the sort: 560.0 MiB (in memory size)
