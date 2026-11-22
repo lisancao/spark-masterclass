@@ -102,10 +102,21 @@ The inference job parses every record and merges the types that it finds. Then t
 On one million taxi trips written as JSON Lines, the cost of the extra pass is easy to see:
 
 ```text
-INFER_COST_PLACEHOLDER
+input: 1,000,000 trips as JSON Lines, 450.6 MB, 16 cores, local[*]
+  spark.read.json(path)                     (inference only)     0.60 s
+  spark.read.option(samplingRatio=0.1).json  (inference only)    0.19 s
+  spark.read.json(path).count()                                  0.94 s
+  spark.read.schema(schema).json(path).count()                   0.39 s
+  spark.read.json(path).agg(sum(fare_amount))                    1.19 s
+  spark.read.schema(schema).json.agg(sum(fare_amount))           0.42 s
+inferred == parquet types: {'DOLocationID': 'bigint', 'PULocationID': 'bigint', 'VendorID': 'bigint', 'tpep_dropoff_datetime': 'string', 'tpep_pickup_datetime': 'string'}
 ```
 
-Each time is the median of five runs after one warm-up run. A lock made sure that no other benchmark ran at the same time. Inference alone costs about as much as a full query with a schema, because it is a full parse of the data. A query without a schema thus costs about two parses.
+Each time is the median of five runs after one warm-up run, on 16 cores in `local[*]`. A lock made sure that no other benchmark ran at the same time.
+
+- Inference alone (0.60 s) costs more than the full count with a schema (0.39 s). Inference is a full parse of the data, and it also merges a type for each value.
+- The sum without a schema (1.19 s) costs almost three times the sum with a schema (0.42 s). It is an inference pass and a second parse.
+- `samplingRatio=0.1` makes inference cheaper (0.19 s), but the job still reads all the lines. It parses only the lines of the sample.
 
 The inferred types are also not the types of the source. The trips came from Parquet, where the timestamps are `timestamp_ntz`. In JSON they are strings, and inference keeps them as strings. The last line of the output shows each column whose inferred type is different from the Parquet type.
 

@@ -164,6 +164,14 @@ two = orders.select("order_id", F.explode("tags").alias("t")).select("order_id",
 print("two explodes, one after the other:", two.count(), "rows from",
       orders.select(F.explode("tags")).count(), "tags x 2")
 
+section("the plan of explode: Spark adds a filter before Generate")
+for label, q in [("explode(tags)", orders.select("order_id", F.explode("tags"))),
+                 ("explode_outer(tags)", orders.select("order_id", F.explode_outer("tags")))]:
+    print(label)
+    for l in plan(q, "simple").splitlines()[1:]:
+        if l.strip():
+            print("  " + re.sub(r"#\d+", "", l)[:88])
+
 section("collect_list keeps no order: sort by position")
 long = orders.select("order_id", F.posexplode("lines").alias("pos", "line"))
 back = (long.groupBy("order_id")

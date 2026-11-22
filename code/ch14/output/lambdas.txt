@@ -64,7 +64,29 @@ Project [transform(xs#0, lambdafunction((lambda x_2#7 * 2), lambda x_2#7, false)
 +--------------+-----------------------------+
 
 
-== new in 4.3: higher-order functions take part in whole-stage codegen ==
-*(1) Project [order_id#126, aggregate(lines#125, 0.0, lambdafunction((lambda x_25#132 + (cast(lambda y_26#133.qty as double) * lambda y_26#133.unit_price)), lambda x_25#132, lambda y_26#133, false), lambdafunction(lambda id#134, lambda id#134, false)) AS gross#131]
-+- FileScan json [lines#125,order_
-generated code mentions the lambda loop: False
+== a comparator must return INT ==
+  array_sort(xs, (a, b) -> b - a) on BIGINT      -> DATATYPE_MISMATCH.UNEXPECTED_RETURN_TYPE
+  the same with .cast('int')                     -> [2, 0]
+
+== new in 4.3: Python UDF transpilation, and a UDF inside a lambda ==
+  plan of py_triple(x): *(1) Project [(cast(id#126L as int) * 3) AS t#128]
+  transform(xs, x -> py_triple(x)), transpiled   -> UNSUPPORTED_FEATURE.LAMBDA_FUNCTION_WITH_PYTHON_UDF
+
+== new in 4.3: which higher-order functions take part in whole-stage codegen ==
+  transform                      *(n) Project: in codegen
+  filter                         *(n) Project: in codegen
+  exists                         *(n) Project: in codegen
+  forall                         *(n) Project: in codegen
+  aggregate                      *(n) Project: in codegen
+  array_sort with a comparator   Project: interpreted
+  zip_with                       Project: interpreted
+  transform_values               Project: interpreted
+  map_filter                     Project: interpreted
+*(1) Project [order_id#167, aggregate(lines#166, 0.0, lambdafunction((lambda x_44#173 + (c
+generated Java loop: /* 058 */         for (int project_i_0 = 0; project_i_0 < project_numElements_0; project_i_0++) {
+
+== nested schema pruning: what each query reads from Parquet ==
+  select lines.sku                 struct<lines:array<struct<sku:string>>>
+  transform(lines, l -> l.sku)     struct<lines:array<struct<sku:string>>>
+  explode(lines), then line.sku    struct<lines:array<struct<sku:string>>>
+  select customer.address.city     struct<customer:struct<address:struct<city:string>>>

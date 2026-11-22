@@ -120,11 +120,60 @@ z = spark.sql("SELECT array(1, 2, 3) AS a, array(10, 20) AS b")
 show(z.select(F.zip_with("a", "b", lambda x, y: x + y).alias("zip_with(+)"),
               F.arrays_zip("a", "b").alias("arrays_zip")))
 
-section("new in 4.3: higher-order functions take part in whole-stage codegen")
+section("a comparator must return INT")
+attempt("array_sort(xs, (a, b) -> b - a) on BIGINT", lambda: spark.range(1).select(
+    F.array_sort(F.array(F.col("id"), F.lit(2)), lambda a, b: b - a)).collect())
+attempt("the same with .cast('int')", lambda: spark.range(1).select(
+    F.array_sort(F.array(F.col("id"), F.lit(2)), lambda a, b: (b - a).cast("int"))).first()[0])
+
+section("new in 4.3: Python UDF transpilation, and a UDF inside a lambda")
+spark.conf.set("spark.sql.experimental.optimizer.transpilePyUDFs", "true")
+
+
+@F.udf("int", useArrow=False)   # transpilation applies only to the plain (pickled) Python UDF
+def py_triple(x):
+    return x * 3
+
+
+print("  plan of py_triple(x):", next(l.strip() for l in plan(spark.range(3).select(py_triple(F.col("id").cast("int")).alias("t")), "simple")
+                                       .splitlines() if "Project" in l or "EvalPython" in l)[:88])
+attempt("transform(xs, x -> py_triple(x)), transpiled",
+        lambda: df.select(F.transform("xs", lambda x: py_triple(x))).first()[0])
+spark.conf.unset("spark.sql.experimental.optimizer.transpilePyUDFs")
+
+section("new in 4.3: which higher-order functions take part in whole-stage codegen")
+nums = spark.range(3).select(F.array(F.col("id"), F.lit(5), F.lit(2)).alias("xs"),
+                             F.create_map(F.lit("a"), F.col("id")).alias("m"))
+for name, e in [
+    ("transform", F.transform("xs", lambda x: x * 2)),
+    ("filter", F.filter("xs", lambda x: x > 1)),
+    ("exists", F.exists("xs", lambda x: x > 4)),
+    ("forall", F.forall("xs", lambda x: x > 0)),
+    ("aggregate", F.aggregate("xs", F.lit(0).cast("bigint"), lambda a, x: a + x)),
+    ("array_sort with a comparator", F.array_sort("xs", lambda a, b: (b - a).cast("int"))),
+    ("zip_with", F.zip_with("xs", "xs", lambda a, b: a + b)),
+    ("transform_values", F.transform_values("m", lambda k, v: v + 1)),
+    ("map_filter", F.map_filter("m", lambda k, v: v > 0)),
+]:
+    top = plan(nums.select(e.alias("r")), "simple").splitlines()[1]
+    print(f"  {name:30} {'*(n) Project: in codegen' if top.startswith('*(') else 'Project: interpreted'}")
 orders = spark.read.json(str(MESSY / "nested" / "orders.json"))
 q = orders.select("order_id", F.aggregate("lines", F.lit(0.0),
                                           lambda acc, l: acc + l.qty * l.unit_price).alias("gross"))
-print("\n".join(l for l in plan(q, "simple").splitlines() if "Project" in l or "Scan" in l)[:300])
+print(plan(q, "simple").splitlines()[1][:90])
 cg = plan(q, "codegen")
-print("generated code mentions the lambda loop:",
-      bool(re.search(r"for \(int \w+ = 0; \w+ < \w+\.numElements\(\)", cg)))
+print("generated Java loop:", next(l.strip() for l in cg.splitlines() if re.search(r"for \(int (\w+) = 0; \1 < \w*numElements", l)))
+
+section("nested schema pruning: what each query reads from Parquet")
+pq = "/tmp/ch14_orders_parquet"
+spark.read.schema(spark.read.json(str(MESSY / "nested" / "orders.json")).schema).json(
+    str(MESSY / "nested" / "orders.json")).write.mode("overwrite").parquet(pq)
+po = spark.read.parquet(pq)
+for label, q in [
+    ("select lines.sku", po.select("lines.sku")),
+    ("transform(lines, l -> l.sku)", po.select(F.transform("lines", lambda l: l.sku))),
+    ("explode(lines), then line.sku", po.select(F.explode("lines").alias("l")).select("l.sku")),
+    ("select customer.address.city", po.select("customer.address.city")),
+]:
+    rs = next(l for l in plan(q, "formatted").splitlines() if l.strip().startswith("ReadSchema"))
+    print(f"  {label:32} {rs.split(': ', 1)[1][:100]}")

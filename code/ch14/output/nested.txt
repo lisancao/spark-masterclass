@@ -150,6 +150,19 @@ DataFrame.lateralJoin(spark.tvf.explode_outer(tags.outer())): 41 rows
   generator with an aggregate                  -> MISSING_GROUP_BY
 two explodes, one after the other: 70 rows from 35 tags x 2
 
+== the plan of explode: Spark adds a filter before Generate ==
+explode(tags)
+  *(1) Generate explode(tags), [order_id], false, [col]
+  +- *(1) Filter ((size(tags, false) > 0) AND isnotnull(tags))
+     +- InMemoryTableScan [order_id, tags], [(size(tags, false) > 0), isnotnull(tags)]
+           +- InMemoryRelation [order_id, placed_at, customer, lines, tags, payments, stat
+                 +- FileScan json [order_id,placed_at,customer,lines,tags,payments,status_
+explode_outer(tags)
+  *(1) Generate explode(tags), [order_id], true, [col]
+  +- InMemoryTableScan [order_id, tags]
+        +- InMemoryRelation [order_id, placed_at, customer, lines, tags, payments, status_
+              +- FileScan json [order_id,placed_at,customer,lines,tags,payments,status_his
+
 == collect_list keeps no order: sort by position ==
 +--------+--------+
 |order_id|skus    |
