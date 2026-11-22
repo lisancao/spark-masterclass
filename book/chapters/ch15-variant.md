@@ -184,6 +184,15 @@ This one query finds all five kinds of drift from Chapter 13:
 - `user_id` and `user` are in 20 and 40 rows. The user ID moved into an object.
 - `user` has two shapes, one with `geo` and one without.
 
+<figure markdown>
+![Bar chart of the top-level keys and their kinds of type.](../media/figures/ch15-key-profile-light.svg#only-light)
+
+![Bar chart of the top-level keys and their kinds of type.](../media/figures/ch15-key-profile-dark.svg#only-dark)
+
+<figcaption>The key profile from the output above. <code>amount</code> has three kinds of type. Three other keys show a renamed or a moved field.</figcaption>
+</figure>
+
+
 The `exact` column shows a problem with the profile. Each JSON number with a decimal point is a `DECIMAL` with its own precision, so one field gives many `DECIMAL(p,s)` types. `regexp_extract(..., '^[A-Z]+', 0)` keeps only the name of the kind, and the `types` column is easy to read.
 
 The second table groups by file. Day 1 has one type, day 2 mixes numbers and strings (the merge gives `VARIANT`), and day 3 has an object. This tells you when the producer changed.
@@ -466,6 +475,22 @@ flowchart TB
 
 Each field gets a pair: `typed_value` with a real Parquet type, and `value` for the rows that do not fit. `user.id` is an `int64` column. `amount` has only a `value` column. In this file, its values are a number, a string or an object, and no one type fits enough rows.
 
+<figure markdown>
+![The Parquet columns that a typed extraction reads, with and without shredding.](../media/figures/ch15-shredding-light.svg#only-light)
+
+![The Parquet columns that a typed extraction reads, with and without shredding.](../media/figures/ch15-shredding-dark.svg#only-dark)
+
+<figcaption>The columns that a typed extraction of <code>user.id</code> reads. Without shredding, the scan reads the full binary value. With shredding, it reads one <code>int64</code> column.</figcaption>
+</figure>
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch15-anim-shredding.webp">
+    <source src="../../media/clips/ch15-anim-shredding.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the writer puts each field with one type into its own typed column. The <code>amount</code> values stay binary. A typed extraction reads one column. The times are from Step 13.</figcaption>
+</figure>
+
+
 ### How the writer selects the shredding schema
 
 The writer selects a separate shredding schema for each file. The rules are in `ParquetOutputWriterWithVariantShredding.scala` and `InferVariantShreddingSchema.scala`:
@@ -582,6 +607,15 @@ query: avg(fare_amount) WHERE payment_type = 1
   VARIANT shredded, try_variant_get          0.31 s
 all answers equal: True [19.769948]
 ```
+
+<figure markdown>
+![Bar chart of the time of the same query in seven forms.](../media/figures/ch15-extraction-cost-light.svg#only-light)
+
+![Bar chart of the time of the same query in seven forms.](../media/figures/ch15-extraction-cost-dark.svg#only-dark)
+
+<figcaption>The times and the file sizes from the output above. JSON text is the slowest. A shredded <code>VARIANT</code> with <code>try_variant_get</code> is as fast as typed columns.</figcaption>
+</figure>
+
 
 Each time is the median of five runs after one warm-up run, on 16 cores in `local[*]`, under the benchmark lock. All seven queries give the same answer. The results show four points:
 
