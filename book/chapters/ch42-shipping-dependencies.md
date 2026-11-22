@@ -84,6 +84,13 @@ sys.path    <code>/.venv/lib/python3.12/site-packages/pyspark/python/lib/py4j-0.
 messytools 1.0 from <work>/messytools-1.0-dxes1pyf/messytools
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch42-where.webp">
+    <source src="../../media/clips/ch42-where.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>where.py</code> runs from <code>code/</code>, then from a folder that holds a <code>messytools/</code> package. In local mode, the worker starts in the folder of the driver, so the second run imports the package without a shipped file.</figcaption>
+</figure>
+
 Read the four parts of `sys.path` from the top:
 
 1. **The current folder of the worker.** The worker starts with `python -m`, and `python -m` puts the current folder first on `sys.path`. In local mode, the worker inherits the current folder of the driver. Thus the second run found `messytools` without a shipped file, because the driver started in the folder that contains the package. On a cluster, the current folder of a worker is a work folder of the executor. Your project folder is not there. This is the most frequent cause of "it works locally".
@@ -222,6 +229,13 @@ new udf, after:        ['142738 1.0 <userFiles>/messytools.zip/messytools/__init
   captured includes: ['messytools.zip']
 old udf, again:        ['142738 1.0 <userFiles>/messytools.zip/messytools/__init__.py', '142740 1.0 <userFiles>/messytools.zip/messytools/__init__.py']
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch42-includes.webp">
+    <source src="../../media/clips/ch42-includes.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>pyfiles.py</code> makes a UDF, uses it, then calls <code>addPyFile</code>. The old UDF keeps its empty include list. The process IDs change in each run.</figcaption>
+</figure>
 
 The old UDF still had an empty include list after `addPyFile`, and its tasks did not find the module. The new UDF recorded `['messytools.zip']`, and its tasks found the module.
 
@@ -370,6 +384,13 @@ A adds changed bytes: SparkRuntimeException [ARTIFACT_ALREADY_EXISTS] The artifa
 s3 path  -> PySparkRuntimeError [UNSUPPORTED_OPERATION] s3 scheme is not supported.
 wheel    -> PySparkRuntimeError [UNSUPPORTED_OPERATION] <work>/messytools-1.0-py3-none-any.whl file format is not supported.
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch42-artifacts.webp">
+    <source src="../../media/clips/ch42-artifacts.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>artifacts.py</code>: two sessions on one Connect server ship two versions of the same module. The session IDs, folders and process IDs change in each run.</figcaption>
+</figure>
 
 The output shows how the server isolates sessions:
 
