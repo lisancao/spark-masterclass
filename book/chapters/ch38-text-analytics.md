@@ -63,6 +63,14 @@ gaps=False, \d+:   ['1000']
 default stop words: 181 English words
 ```
 
+<figure markdown>
+  ![One sentence as tokens from Tokenizer, RegexTokenizer, StopWordsRemover and a gaps=False pattern](../media/figures/ch38-tokens-light.svg#only-light)
+
+  ![One sentence as tokens from Tokenizer, RegexTokenizer, StopWordsRemover and a gaps=False pattern](../media/figures/ch38-tokens-dark.svg#only-dark)
+
+  <figcaption>The tokens of one sentence after each stage. <code>Tokenizer</code> keeps the punctuation on <code>hello,</code>, <code>problem.</code> and <code>help.</code>. <code>StopWordsRemover</code> removes <code>has</code> and <code>a</code>.</figcaption>
+</figure>
+
 `Tokenizer` changes the text to lower case and cuts it at white space only. Thus, `problem.` with its period is a different token from `problem`. A query for "problem" does not find it.
 
 `RegexTokenizer` cuts at each match of `pattern`, and it also changes the text to lower case (`toLowercase=True` is the default). With `gaps=False`, the pattern matches the tokens, not the gaps between them. `minTokenLength` removes short tokens.
@@ -109,8 +117,11 @@ If you add one page to a corpus, the weights of all words change. Thus, you must
 
 The stage that counts terms must put each word in a position (a slot) of a vector. MLlib has two methods.
 
-- `CountVectorizer` is an estimator. It learns a vocabulary from the data and gives each word its own slot. The fitted model has a `vocabulary` attribute, so you can find the word for each slot.
-- `HashingTF` is a transformer. It calculates a hash of each word, and the hash modulo `numFeatures` is the slot. It needs no fit and no vocabulary. But two words can get the same slot, and you cannot find the word from the slot.
+| | `CountVectorizer` | `HashingTF` |
+|---|---|---|
+| Stage type | Estimator. It learns a vocabulary from the data. | Transformer. It needs no fit and no vocabulary. |
+| Slot of a word | Each word gets its own slot. | The hash of the word modulo `numFeatures`. Two words can get the same slot. |
+| Word for a slot | The fitted model has a `vocabulary` attribute, so you can find the word for each slot. | You cannot find the word from the slot. |
 
 The script counts how many of the 127 distinct words in the tickets share a slot, for different values of `numFeatures`:
 
@@ -122,6 +133,14 @@ The script counts how many of the 127 distinct words in the tickets share a slot
     numFeatures 2^12 =    4096: 125 slots,   2 words share a slot
     numFeatures 2^18 =  262144: 127 slots,   0 words share a slot
 ```
+
+<figure markdown>
+  ![Bar chart of the words that share a HashingTF slot for five values of numFeatures](../media/figures/ch38-collisions-light.svg#only-light)
+
+  ![Bar chart of the words that share a HashingTF slot for five values of numFeatures](../media/figures/ch38-collisions-dark.svg#only-dark)
+
+  <figcaption>The words of the tickets that share a slot, for each value of <code>numFeatures</code>. At the default of 2^18, no words share a slot.</figcaption>
+</figure>
 
 The default is 2^18 slots. With that value, no words share a slot here. Even at 4,096 slots, two words share a slot. A collision adds the counts of two words together, and a query for one word then also finds the other word. For a small vocabulary that does not change, use `CountVectorizer`. For a vocabulary that grows, or for a stream where you cannot fit first, use `HashingTF` with enough slots.
 
@@ -233,6 +252,13 @@ These results show three important points:
 - **`HashingTF(binary=True)`** makes a set, not a count. MinHash works on sets, so the count of a word has no effect.
 - **The distance is exact, but the candidates are approximate.** The distance of `ticket_0` and `ticket_1` is 0.2222, the same as the calculation by hand (7 shared words of 9). LSH chose which pairs to compare. It did not estimate the distance.
 - **The threshold sets what "duplicate" means.** At 0.1, only the two chat messages match, because their only differences are punctuation. At 0.3, the four template e-mails also match each other. For templated text, a loose threshold finds the template, not the duplicate. Choose the threshold on labelled pairs from your own data.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch38-anim-lsh.webp">
+    <source src="../../media/clips/ch38-anim-lsh.mp4" type="video/mp4">
+  </video>
+  <figcaption>The seven messages go into buckets. Only messages in one bucket become candidate pairs, and Spark calculates their exact distance. The bucket of each message is schematic. The distances and the pair counts come from <code>near_duplicates.py</code>.</figcaption>
+</figure>
 
 `approxNearestNeighbors` finds the nearest sets to one key. The result includes the key itself at distance 0. Remove it if you want other messages only.
 
