@@ -1,0 +1,4 @@
+2026-11-22 02:56:56: Registering SQL file 
+~/spark-masterclass/data/work/part06/ch35-pipeline/transformations/product_metrics.sql...
+pyspark.errors.exceptions.connect.AnalysisException: [PIPELINE_SQL_GRAPH_ELEMENT_REGISTRATION_ERROR] 
+Unsupported plan CreateMetricView parsed from SQL query

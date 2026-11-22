@@ -1,42 +1,32 @@
-# Spark Masterclass, Chapter 30: Declarative Pipelines. Storyboard: notes/part06.md (film section).
-#   film render code/film/ch30.tape --format chapter
+# Spark Masterclass, Chapter 30: tables. Storyboard: notes/part06.md (film section).
+#   film render code/film/ch30.tape --format chapter   (after ch30/delta_log.py and ch30/iceberg_log.py ran)
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} CONNECT_PORT=10260 SPARK_UI_PORT=4126 HIVE=spark.sql.catalogImplementation=hive && setopt interactivecomments" Enter
-Type "pl() { common/pipeline.sh $1 part06/$2 ${@:3} 2>&1 | grep -E 'Failed to resolve flow:|Error|Exception|Flow|Run is' | sed -E 's/^[0-9-]+ //; s/spark_catalog.default.//g' | cut -c1-92; }" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 W=${BOOK_DATA:-$HOME/spark-masterclass/data}/work/part06 && setopt interactivecomments" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: dryrun | A dry run finds a cycle, then a wrong table name
-Hide
-Type "FRESH=1 common/pipeline.sh ch30/broken part06/film30-broken prepare; F=$BOOK_DATA/work/part06/film30-broken/transformations/revenue.py; clear" Enter
-Sleep 1s
-Show
-Type "# two datasets that read each other: dry-run checks the graph, reads no data" Enter
-Sleep 500ms
-Type "grep -n -E 'def |spark.table' $F | sed -n '7,20p' | cut -c1-88" Enter
+# beat: delta | The Delta log: one JSON file per commit
+Type "cd $W/ch30-delta/employees && ls _delta_log | head -4" Enter
 Sleep 2s
-Type "pl ch30/broken film30-broken dry-run" Enter
-Wait@120s
-Sleep 6s
-Type "# fix the cycle, and run the dry run again" Enter
+Type "# version 1 was the MERGE: which actions did it write?" Enter
 Sleep 500ms
-Type `sed -i 's/table("top_customers").groupBy/table("orders_enriched").groupBy/' $F` Enter
-Type "pl ch30/broken film30-broken dry-run | grep -v upstream" Enter
-Wait@120s
-Sleep 8s
+Type "jq -c 'keys[0]' _delta_log/00000000000000000001.json" Enter
+Sleep 2s
+Type `jq -c '(.add // .remove) | select(.) | {path: .path[0:22], dataChange, rows: (.stats // "{}" | fromjson | .numRecords)}' _delta_log/00000000000000000001.json` Enter
+Sleep 9s
 
-# beat: run | A run: each flow waits for its inputs
+# beat: iceberg | The Iceberg tree: metadata file, snapshots, manifests
 Hide
-Type "FRESH=1 common/pipeline.sh ch30/retail part06/film30-retail prepare; clear" Enter
-Sleep 1s
+Type "clear" Enter
 Show
-Type "# run the retail pipeline with a Hive metastore, and read the event stream" Enter
+Type `cd $W/ch30-iceberg/hr/employees/metadata && echo "version-hint: $(cat version-hint.text)  avro files: $(ls | grep -c avro)"` Enter
+Sleep 2s
+Type "# the root of the tree: every snapshot, and its parent" Enter
 Sleep 500ms
-Type "SERVER_CONF=$HIVE pl ch30/retail film30-retail run | grep -E 'RUNNING|COMPLETED'" Enter
-Wait@180s
+Type `jq -c '.snapshots[0:3][] | {id: ."snapshot-id", parent: ."parent-snapshot-id", op: .summary.operation, files: .summary."total-data-files"}' v$(cat version-hint.text).metadata.json` Enter
 Sleep 10s

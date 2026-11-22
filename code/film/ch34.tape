@@ -1,5 +1,5 @@
-# Spark Masterclass, Chapter 34: end to end. Storyboard: notes/part06.md (film section).
-#   film render code/film/ch34.tape --format chapter (after ch34/end_to_end.sh)
+# Spark Masterclass, Chapter 34: Auto CDC. Storyboard: notes/part06.md (film section).
+#   film render code/film/ch34.tape --format chapter (after ch34/drops.sh)
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
@@ -10,17 +10,9 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: trace | What the CLI sent to the server
-Type "# the dry run, command by command, as the CLI sent it" Enter
+# beat: history | Toronto, Ottawa, Hanoi: the late event in the history
+Type "# three change files applied: the SCD Type 2 history, read from Iceberg" Enter
 Sleep 500ms
-Type "grep -E 'create_|start_run|SINK|_feed' ch34/output/trace.txt | cut -c1-92" Enter
-Sleep 9s
-
-# beat: server | What the server did in run 2
-Hide
-Type "clear" Enter
-Show
-Type "# the server log of run 2: tables first, then flows in topological order" Enter
-Sleep 500ms
-Type "grep -v checkpoint ch34/output/server_log_short.txt | sed -E 's/^INFO //' | head -18 | cut -c1-90" Enter
-Sleep 10s
+Type "python ch34/show_targets.py 2>/dev/null | sed -n '/customers_history/,/^$/p'" Enter
+Wait@120s
+Sleep 12s
