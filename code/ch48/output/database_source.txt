@@ -1,0 +1,51 @@
+(12.5, 'real', 7, 'integer', '42', 'text', 2, 'integer', 'text')
+('N/A', 'text', 'seven', 'text', 'x', 'text', 2.7, 'real', 'integer')
+('12,50', 'text', 8, 'integer', None, 'null', 1.5, 'real', 'blob')
+affinity: {'DECIMAL(10,2)': 'NUMERIC', 'INT': 'INTEGER', 'VARCHAR(10)': 'TEXT', 'FLOATING POINT': 'INTEGER', '': 'BLOB'}
+ProgrammingError: Error binding parameter 1: type 'decimal.Decimal' is not supported
+TypeError: cannot pickle 'sqlite3.Connection' object
+SQLite 3.45.1
+
+shop.db: 1207 orders
+root
+ |-- order_id: long (nullable = true)
+ |-- customer: string (nullable = true)
+ |-- status: string (nullable = true)
+ |-- amount: decimal(10,2) (nullable = true)
+ |-- qty: long (nullable = true)
+ |-- placed_at: timestamp (nullable = true)
+ |-- gift: boolean (nullable = true)
+ |-- note: string (nullable = true)
+
+Stored values and what the source made of them:
+  (88.61, 4, '2026-09-02T07:00:00Z', 'yes', '42')    -> 88.61, 4, 09-02 07:00, True, 42
+  ('', 4, 1788505200, 0, None)                       -> None, 4, 09-04 07:00, False, None
+  (235.72, 6, '2026-09-04 07:00:00', 'yes', '42')    -> 235.72, 6, 09-04 07:00, True, 42
+  (157.16, 1, '2026-09-14T07:00:00Z', 'true', '42')  -> 157.16, 1, 09-14 07:00, True, 42
+  (229.76, 2, '2026-09-03 07:00:00', 'yes', None)    -> 229.76, 2, 09-03 07:00, True, None
+  (26.96, 6, 1789974000, 'no', '42')                 -> 26.96, 6, 09-21 07:00, False, 42
+
+connection on self: TypeError: cannot pickle 'sqlite3.Connection' object
+
+JDBC, lowerBound=1 upperBound=1000001 numPartitions=4:
+   "ID" < 250001 or "ID" is null
+   "ID" >= 250001 AND "ID" < 500001
+   "ID" >= 500001 AND "ID" < 750001
+   "ID" >= 750001
+rows per partition: [1001, 0, 0, 2] of 1003
+bounds 100..200 (not a filter): 1003 rows, [125, 25, 25, 828]
+bounds 1..3 with numPartitions=8: 2 partitions
+predicates: [500, 500, 3]
+
+range_partitions('order_id', [100, 200]):
+   ("order_id" < ? OR "order_id" IS NULL) [100]
+   ("order_id" >= ? AND "order_id" < ?) [100, 200]
+   "order_id" >= ? [200]
+Python source, min..max stride ranges: [1201, 0, 0, 6]
+Python source, quantile ranges:       [301, 302, 302, 302]
+quantile split points: [302, 604, 906]
+[(8, 0, 0, 'SCAN orders')]
+
+1207 rows when planned. Rows read, and copies of order 1:
+  no snapshot mark:   (1209, 2)
+  rowid <= max(rowid): (1208, 2)

@@ -11,6 +11,7 @@ DATA = Path(os.environ.get("BOOK_DATA", ROOT / "data"))   # BOOK_DATA lets a sec
 TAXI = DATA / "nyc-taxi"
 TRIPS = TAXI / "yellow"
 ZONES = TAXI / "taxi_zone_lookup.csv"
+MESSY = ROOT / "code" / "data" / "messy"   # small messy files from SparkTutor (Part IX)
 MONTH_START, MONTH_END = "2026-06-01", "2026-07-01"   # the month the book downloads
 
 

@@ -1,0 +1,58 @@
+plan_ranges: [(0, 4), (4, 7), (7, 10)] [(0, 1), (1, 2)] []
++---------+-----+----+----+
+|partition|first|last|rows|
++---------+-----+----+----+
+|        0|    0|   3|   4|
+|        1|    4|   6|   3|
+|        2|    7|   9|   3|
++---------+-----+----+----+
+
+rows=0 (no partitions planned): 1 partition, 0 rows
+
+A user schema, in another order:
++-----+---+
+|label| id|
++-----+---+
+|row-0|  0|
+|row-1|  1|
++-----+---+
+
++---+-----+
+| id|label|
++---+-----+
+|  3|  n-3|
+|  4|  n-4|
++---+-----+
+
+without Spark: [(0, 'row-0'), (1, 'row-1'), (2, 'row-2')]
+the reader pickles
+
+When each kind of error appears:
+
+schema() raises                    fails at build: PYTHON_DATA_SOURCE_ERROR
+    Failed to create Python data source instance
+    RuntimeError: schema() broke
+required option missing            fails at action: PYTHON_DATA_SOURCE_ERROR
+    Failed to initialize Python data source reader
+    ValueError: option 'rows' is required
+option is not a number             fails at action: PYTHON_DATA_SOURCE_ERROR
+    Failed to initialize Python data source reader
+    ValueError: option 'rows' must be a whole number, got 'ten'
+partitions() is a generator        fails at action: PYTHON_DATA_SOURCE_ERROR
+    Failed to generate Python data source read partitions
+    PySparkRuntimeError: [DATA_SOURCE_TYPE_MISMATCH] Expected 'partitions' to return a lis
+socket kept on the reader          fails at action: PYTHON_DATA_SOURCE_ERROR
+    Failed to initialize Python data source reader
+    PicklingError: Could not serialize object: TypeError: cannot pickle 'socket' object
+row too short                      fails at action: PYTHON_EXCEPTION
+    An exception was thrown from the Python worker
+    PySparkRuntimeError: [DATA_SOURCE_RETURN_SCHEMA_MISMATCH] Return schema mismatch in th
+row is a dict                      fails at action: PYTHON_EXCEPTION
+    An exception was thrown from the Python worker
+    PySparkRuntimeError: [DATA_SOURCE_INVALID_RETURN_TYPE] Unsupported return type ('dict'
+schema asks for a column we lack   fails at action: PYTHON_DATA_SOURCE_ERROR
+    Failed to initialize Python data source reader
+    ValueError: counter has no column(s) ['colour']
+user schema, fixed tuple order     fails at action: PYTHON_EXCEPTION
+    An exception was thrown from the Python worker
+    ArrowInvalid: Could not convert 'row-0' with type str: tried to convert to int64
