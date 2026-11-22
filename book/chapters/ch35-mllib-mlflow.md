@@ -180,7 +180,7 @@ linear regression         4.2    6.99    4.14   0.838
 gradient-boosted trees   34.3    8.12    3.49   0.781
 ```
 
-The first row is the baseline: a prediction of the mean fare for each trip. Both models are much better than the baseline. The fit times are single runs on a shared machine. They show the order of size only.
+The first row is the baseline: a prediction of the mean fare for each trip. Both models are much better than the baseline. The fit times come from single runs on a machine that other jobs also used. They are not measurements.
 
 The two models are good at different things. The linear model has the lower root mean square error (RMSE). The boosted trees have the lower mean absolute error (MAE). RMSE gives a large weight to large errors, and MAE gives the same weight to each error. The table by rate code shows where the large errors are:
 

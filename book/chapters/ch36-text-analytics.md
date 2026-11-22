@@ -185,7 +185,7 @@ The plans show the difference. The UDF adds an `ArrowEvalPython` operator, so ea
 
 The SQL functions came in Spark 4.2. **New in 4.3:** PySpark has Python wrappers for them (`F.vector_inner_product`, `F.vector_cosine_similarity`, `F.vector_l2_distance`, `F.vector_norm`, `F.vector_normalize`, `F.vector_avg`, `F.vector_sum`). In 4.2, you had to call them with `F.call_function`. The functions take `array<float>`, not the MLlib vector type. Thus, `vector_to_array(col, "float32")` converts the MLlib vector first. [Chapter 37](ch37-similarity-search.md) gives the rules for these functions.
 
-The times are medians of three runs on a local machine. The difference is small here because the data is small. The plan difference is the important part: one plan has a Python boundary and the other plan does not.
+The times in this output come from a machine that other jobs also used, so they are not a measurement. The book quotes no speed result here. The plan difference is the important part: one plan has a Python boundary and the other plan does not.
 
 Both plans use `BroadcastNestedLoopJoin`, because a cross join compares each query with each document. For many more documents, this is too slow, and you need an index. Step 7 and Chapter 37 show indexes.
 

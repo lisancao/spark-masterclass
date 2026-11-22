@@ -336,7 +336,11 @@ The script compares the two algorithms on paths and on a random graph. It also c
    exchanges in one large-star round over cleaned edges (cleanup distinct, window, distinct): 3 exchanges
 ```
 
-Label propagation needs 200 rounds for a path of 200 nodes. Large-star and small-star need 8 rounds. On the random graph of 3,000 edges, the result agrees with the union-find: 3,457 nodes in 483 components. Label propagation needed 43 rounds, so at least one component has a long shortest path. The star algorithm needed 6 rounds. The number of rounds of the star algorithm grows about with the logarithm of the path length. The times are single runs on a shared machine, so use them only to compare the two columns. The plan of one large-star round over the clean edges has three exchanges. They are for the `distinct` of the edge cleanup, the window and the last `distinct`.
+Label propagation needs 200 rounds for a path of 200 nodes. Large-star and small-star need 8 rounds.
+
+On the random graph of 3,000 edges, the result agrees with the union-find: 3,457 nodes in 483 components. Label propagation needed 43 rounds, so at least one component has a long shortest path. The star algorithm needed 6 rounds.
+
+The number of rounds of the star algorithm grows about with the logarithm of the path length. The times come from single runs on a machine that other jobs also used, so they are not measurements. The round counts are the result. The plan of one large-star round over the clean edges has three exchanges. They are for the `distinct` of the edge cleanup, the window and the last `distinct`.
 
 GraphX has a `ConnectedComponents` algorithm, which is label propagation with Pregel, but GraphX has no Python API. GraphFrames is a separate package. This chapter did not test a GraphFrames release against Spark 4.3.
 
