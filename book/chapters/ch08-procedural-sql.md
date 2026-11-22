@@ -170,6 +170,15 @@ the same total as one query: 149702 (2 jobs)
 
 One call to `spark.sql` became 20 SQL executions and 27 jobs. Only 5 of the executions scan the trips. The other 15 are the loop condition, `SET i`, the declarations and the final `SELECT`. Each one is a full query: Spark parses it, analyzes it, optimizes it and runs it. The same total from one query with `BETWEEN 132 AND 136` runs 2 jobs.
 
+<figure markdown>
+![The SQL executions of one script against one query.](../media/figures/ch08-script-executions-light.svg#only-light)
+
+![The SQL executions of one script against one query.](../media/figures/ch08-script-executions-dark.svg#only-dark)
+
+<figcaption>The SQL executions of the script and of one query, from the output above. Each square is one SQL execution. The two forms give the same total.</figcaption>
+</figure>
+
+
 ```mermaid
 sequenceDiagram
   participant P as Python
@@ -350,6 +359,15 @@ flowchart LR
 
 The Python UDF adds an `ArrowEvalPython` operator. Spark sends the fares to a Python worker process in Arrow batches, and it reads the results back. The SQL UDF runs in the executor JVM, in the generated code. On this machine, the Python UDF took about three times as long. Spark 4.3 can change some simple Python UDFs into Catalyst expressions (Chapter 20). This UDF did not change, because the plan still has `ArrowEvalPython`.
 
+<figure markdown>
+![The median times of the SQL UDF and the Python UDF.](../media/figures/ch08-udf-cost-light.svg#only-light)
+
+![The median times of the SQL UDF and the Python UDF.](../media/figures/ch08-udf-cost-dark.svg#only-dark)
+
+<figcaption>The median times from the output above. The SQL UDF becomes a <code>CASE WHEN</code> in the generated code. The Python UDF sends Arrow batches to a Python worker.</figcaption>
+</figure>
+
+
 `PushedFilters` is empty in both rows. A filter on the result of a function cannot go into the Parquet reader, because the reader only accepts filters on plain columns.
 
 ## Step 10: A SQL table function
@@ -484,6 +502,15 @@ SELECT c.step, z.Zone FROM chain c JOIN zones z ON z.LocationID = c.zone_id ORDE
 
 The trips move north through Brooklyn, one zone at a time. After Bushwick South, the next zone is already in `path`, so the `WHERE` returns no row, and the recursion stops.
 
+<figure markdown>
+![The seven zones of the chain and the stop condition.](../media/figures/ch08-zone-chain-light.svg#only-light)
+
+![The seven zones of the chain and the stop condition.](../media/figures/ch08-zone-chain-dark.svg#only-dark)
+
+<figcaption>The chain from the output above. Each arrow is one pass of the recursive query. The pass after step 6 returns no row.</figcaption>
+</figure>
+
+
 The physical operator is `UnionLoop`, and `UnionLoopRef` marks the place where the recursive query reads the last pass. In the 4.3.0 source, `UnionLoopExec` runs the anchor, materializes it, and then runs the recursive query with the last result in place of `UnionLoopRef`. It stops when a pass returns no rows. Each pass is a separate job, as in a script loop. But the loop is in the engine, and a small result becomes a local relation, so a pass on a few rows costs little.
 
 ```mermaid
@@ -497,6 +524,16 @@ flowchart LR
   r0 & r1 & r2 -->|"UNION ALL"| out["result"]:::q
 ```
 
+The animation shows the passes of `UnionLoop` on the zone chain.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch08-anim-recursion.webp">
+    <source src="../../media/clips/ch08-anim-recursion.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: the anchor gives the first row. Each pass of the recursive query reads only the rows of the last pass. A pass with no rows stops the loop. The zone names are from the output above.</figcaption>
+</figure>
+
+
 ## Step 15: When a recursion does not stop
 
 Without the cycle check, the chain goes round a cycle for ever. Spark stops it at a limit:
@@ -508,9 +545,12 @@ a LIMIT stops the recursion: Row(count(1)=12)
 plan nodes: ['UnionLoop', 'UnionLoopRef']
 ```
 
-- **The default limit is 100 levels.** It comes from `spark.sql.cteRecursionLevelLimit`. Spark also stops at 1,000,000 rows (`spark.sql.cteRecursionRowLimit`). Both are internal configs in 4.3.0.
-- **`MAX RECURSION LEVEL n` sets the limit for one CTE.** Write it after the column list.
-- **A `LIMIT` on the outer query stops the recursion early.** The planner gives the limit to `UnionLoop`, and it stops after 12 rows.
+| Limit | Default or value | Where you set it |
+|---|---|---|
+| levels | 100 | `spark.sql.cteRecursionLevelLimit` (internal config in 4.3.0) |
+| rows | 1,000,000 | `spark.sql.cteRecursionRowLimit` (internal config in 4.3.0) |
+| levels for one CTE | `n` | `MAX RECURSION LEVEL n`, after the column list |
+| rows of the result | here 12 | a `LIMIT` on the outer query. The planner gives the limit to `UnionLoop`, and the recursion stops early. |
 
 The limit is an error, not a silent stop. This is correct behavior: a result that a limit cut is not the answer to the query. Write the stop condition in the recursive query.
 

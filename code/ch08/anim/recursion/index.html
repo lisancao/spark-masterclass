@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13.5" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 8: a recursive CTE runs as UnionLoop: anchor, then passes that read only the last pass.
+      // Zone names from code/ch08/output/functions.txt, section 7.
+      const D = {"zones": ["Marine Park/Floyd Bennett Field", "Marine Park/Mill Basin", "Flatlands", "Flatbush/Ditmas Park", "Park Slope", "Crown Heights North", "Bushwick South"]};
+      A.mount();
+      // beat open (0.0)
+      A.title("How a recursive CTE runs");
+      const XA = 0.17, YA = 0.30, YQ = 0.66, XS = 0.45, YS = 0.48, XR = 0.79, YR = 0.25, GR = 0.075;
+      const anc = A.box({ x: XA, y: YA, w: 380, h: 100, kind: "accent", title: "anchor", sub: "SELECT 0, 154, array(154)", size: 30 });
+      const rq = A.box({ x: XA, y: YQ, w: 380, h: 100, kind: "soft", title: "recursive query", sub: "JOIN next_zone, NOT in path", size: 30 });
+      const sl = A.box({ x: XS, y: YS, w: 420, h: 96, kind: "ghost", radius: 14 });
+      const slt = A.text("last pass", { x: XS, y: YS - A.dy(72), size: 26, weight: 600, color: "var(--a-mute)" });
+      const rt = A.text("result (UNION ALL)", { x: XR, y: YR - A.dy(56), size: 28, weight: 700, color: "var(--a-mute)" });
+      for (const b of [anc, rq]) b.style.zIndex = 5;
+      A.in([anc, rq, sl, slt, rt], 0.2, { stagger: 0.05 });
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.915, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      const passLbl = [];
+      function chip(name, x, y) { const c = A.box({ x, y, w: 400, h: 60, kind: "paper", title: name, size: 24, radius: 10 }); A.tl.set(c, { opacity: 0 }, 0); return c; }
+      const P = 1.05, T0 = 1.2;
+      cap("The anchor gives the first row: zone 154", 1.0, 3.2);
+      D.zones.forEach((z, j) => {
+        const t = T0 + j * P;
+        const from = j === 0 ? [XA, YA] : [XA, YQ];
+        const c = chip(z, from[0], from[1]);
+        A.tl.set(c, { opacity: 1 }, t);
+        A.tl.to(c, { x: A.X(XS - from[0]), y: A.Y(YS - from[1]), duration: 0.45, ease: "power2.out" }, t);
+        // copy into the result
+        const r = A.text(j + "  " + z, { x: XR - A.dx(230), y: YR + j * GR, size: 26, weight: 500, anchor: "left" });
+        A.in(r, t + 0.45, { dur: 0.3 });
+        const pl = A.text("pass " + j, { x: XS, y: YS + A.dy(68), size: 26, weight: 700, color: "var(--a-acc)" });
+        A.tl.set(pl, { opacity: 0 }, 0); A.tl.set(pl, { opacity: 1 }, t + 0.3); A.tl.set(pl, { opacity: 0 }, t + P + 0.3);
+        // the slot row goes into the recursive query
+        A.tl.to(c, { x: A.X(XA - from[0]), y: A.Y(YQ - from[1]), duration: 0.45, ease: "power2.in" }, t + 0.6);
+        A.tl.set(c, { opacity: 0 }, t + 1.05);
+      });
+      cap("Each pass reads only the rows of the last pass", 3.4, 8.4);
+      // beat stop (8.6): the next zone is already in the path, the pass has no rows
+      const tStop = T0 + D.zones.length * P;
+      const none = A.text("no rows", { x: XS, y: YS, size: 40, weight: 700, color: "var(--a-acc)" });
+      A.in(none, tStop);
+      A.tl.to(rq, { scale: 1.08, duration: 0.2, yoyo: true, repeat: 1 }, tStop - 0.2);
+      cap("A pass with no rows stops the loop", 8.6, 10.9);
+      cap("Seven rows. Each pass is a separate job.", 11.0);
+      A.in(A.note("one row in each pass here; plan operators: UnionLoop and UnionLoopRef"), 0.5);
+      A.finish(13.5);
+    </script>
+  </body>
+</html>
