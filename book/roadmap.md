@@ -67,7 +67,7 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 | # | Chapter | Covers |
 |---|---|---|
 | 30 | Tables: Delta and Iceberg, MERGE and time travel | The transaction log on disk. |
-| 31 | Apache Iceberg with Spark: the runtime and catalog management | The `iceberg-spark-runtime` jar, Spark catalogs (`SparkCatalog`, `SparkSessionCatalog`), REST, JDBC and Hadoop catalogs, namespaces, Iceberg SQL extensions and procedures, table maintenance |
+| 31 | [Apache Iceberg with Spark: the runtime and catalog management](chapters/ch31-iceberg.md) | The `iceberg-spark-runtime` jar, Spark catalogs (`SparkCatalog`, `SparkSessionCatalog`), REST, JDBC and Hadoop catalogs, namespaces, Iceberg SQL extensions and procedures, table maintenance |
 | 32 | Declarative Pipelines: the model and the CLI | The project layout and spec the tutor used to hide; dry-run output |
 | 33 | Medallion in practice: bronze, silver, gold and quality | Incrementality shown across two runs; the event log |
 | 34 | Change data capture: reading changes and Auto CDC | **4.3:** SCD Type 2 on the Toronto, Ottawa, Hanoi changes |

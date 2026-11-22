@@ -75,5 +75,7 @@ nav:
       - "2. Installing Spark 4.3": chapters/ch02-installing.md
       - "3. Quick start": chapters/ch03-quick-start.md
       - "4. Spark Connect": chapters/ch04-spark-connect.md
+  - "Part VI: Pipelines and tables":
+      - "31. Apache Iceberg with Spark": chapters/ch31-iceberg.md
   - Roadmap: roadmap.md
   - Coverage: coverage.md
