@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import os
+os.environ["PYTHONPATH"] = os.pathsep.join(filter(None, [str(Path(__file__).parent), os.environ.get("PYTHONPATH")]))  # the Python workers import the lib too
 from pyspark.sql import functions as F
 from common.book import session, work, ROCKSDB
 from checkout import drop, SCHEMA
@@ -15,7 +17,6 @@ from t2_sessions_lib import Sessionizer
 
 spark = session("ch26-sessions", spark_sql_shuffle_partitions="2", spark_sql_session_timeZone="UTC",
                 spark_sql_streaming_stateStore_providerClass=ROCKSDB)
-spark.sparkContext.addPyFile(str(Path(__file__).with_name("t2_sessions_lib.py")))   # workers import it too
 w = work("ch26/t2")
 inbox, ck = w / "inbox", w / "checkpoint"
 inbox.mkdir()
