@@ -1,0 +1,159 @@
+
+== headers ==
+header=false: ['_c0', '_c1', '_c2', '_c3', '_c4']
+header=true:  ['id0', 'name', 'id2', '_c3', '  city  ']
+ID,id:        ['ID0', 'id1']
+select("e.mail") -> [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter wi
+select("`e.mail`") -> a@x.ca
+
+== enforceSchema: the schema wins by position, silently ==
++----+----+
+|id  |name|
++----+----+
+|NULL|1   |
+|NULL|2   |
++----+----+
+
+enforceSchema=false -> CSV header does not conform to the schema.
+    Header: name, id
+    Schema: id, name
+    Expected: id but found: name
+
+== inferSchema: what it guesses ==
+struct<sku:int,zip:int,qty:int,price:double,day:date,ts:timestamp,flag:boolean,mixed:string,padded:double>
++---+-----+---+-----+----------+-------------------+-----+-----+------+
+|sku|zip  |qty|price|day       |ts                 |flag |mixed|padded|
++---+-----+---+-----+----------+-------------------+-----+-----+------+
+|123|2139 |1  |1.5  |2026-01-05|2026-01-05 10:00:00|true |7    |7.0   |
+|456|10001|2  |2.25 |2026-01-06|2026-01-06 11:30:00|false|x    |8.0   |
++---+-----+---+-----+----------+-------------------+-----+-----+------+
+
+
+== inferSchema: what it costs, in jobs, before any action ==
+schema given        : 0 jobs
+header only         : 1 jobs
+header + inferSchema: 2 jobs
+samplingRatio=1.0: n is string and the row 'hello' reads as 'hello'
+samplingRatio=0.1: n is int    and the row 'hello' reads as None
+
+== separators ==
+default sep: [Row(a;b='1')]
+sep=';'    : [Row(a='1,5', b='2')]
+sep='||'   : [Row(_c0='1|x', _c1='2')]
+sep=''     : Delimiter cannot be empty
+
+== quotes and escapes: RFC 4180 or backslash ==
++---+-----------------+
+|id |note             |
++---+-----------------+
+|1  |hello, world     |
+|2  |"she said ""hi"""|
+|3  |back"slash       |
++---+-----------------+
+
++---+-------------+
+|id |note         |
++---+-------------+
+|1  |hello, world |
+|2  |she said "hi"|
+|3  |"back\"slash"|
++---+-------------+
+
+
+== stray quotes: unescapedQuoteHandling ==
+  STOP_AT_DELIMITER      -> note='"x"y', n='z"'
+  STOP_AT_CLOSING_QUOTE  -> note='x"y,z', n='8'
+  BACK_TO_DELIMITER      -> note='xy,z', n='8'
+  SKIP_VALUE             -> note=None, n='z"'
+  RAISE_ERROR            -> fails: Unescaped quote character '"' inside quoted value of CSV field. To allow un
+
+== line breaks inside quoted fields: multiLine ==
+line mode rows: 17
++---------------+-------------+---------------------+
+|sku            |name         |description          |
++---------------+-------------+---------------------+
+|00042          |Kettle, steel|Boils 1.7 L.         |
+|Auto shut-off."|39.99        |yes                  |
+|00107          |Tea mug      |"The ""classic"" mug"|
++---------------+-------------+---------------------+
+
+multiLine + escape rows: 15
++-----+-------------+----------------------------+
+|sku  |name         |description                 |
++-----+-------------+----------------------------+
+|00042|Kettle, steel|Boils 1.7 L.\nAuto shut-off.|
+|00107|Tea mug      |The "classic" mug           |
+|00230|Spoon set    |NULL                        |
++-----+-------------+----------------------------+
+
+unterminated quote, line mode: [Row(id='1', note='never closed'), Row(id='2', note='b'), Row(id='3', note='c')]
+unterminated quote, multiLine: [Row(id='1', note='never closed\n2,b\n3,c\n')]
+
+== NULL, empty and NaN ==
+raw line        default s          x   nullValue=NA s          x
+1,,1.5               None        1.5             None        1.5
+2,"",NaN             None        nan               ''        nan
+3,NA,NA              'NA'       None             None       None
+4,  ,-Inf            '  '       -inf             '  '       -inf
+5,null,Inf         'null'        inf           'null'        inf
+6,N/A,inf           'N/A'       None            'N/A'       None
+
+== whitespace: each type parser has its own rule ==
+default: [Row(a=None, b=2.5, c=datetime.date(2026, 1, 1))]
+trimmed: [Row(a=7, b=2.5, c=datetime.date(2026, 1, 1))]
+SQL CAST(' 7 ' AS INT): 7
+
+== dates and the European export ==
++--------+--------+----------+
+|order_id|amount  |order_date|
++--------+--------+----------+
+|1001    |1.234,50|NULL      |
+|1002    |12,50   |NULL      |
+|1003    |7,00    |NULL      |
++--------+--------+----------+
+
++--------+--------+----------+
+|order_id|amount  |order_date|
++--------+--------+----------+
+|1001    |1.234,50|2026-10-01|
+|1002    |12,50   |2026-10-02|
+|1003    |7,00    |NULL      |
++--------+--------+----------+
+
+'6 janv. 2026', dateFormat='d MMM yyyy', locale=en-US: None
+'6 janv. 2026', dateFormat='d MMM yyyy', locale=fr-FR: 2026-01-06
+'2026-01-05 10:00:00' as TIMESTAMP, timeZone=America/Toronto: 2026-01-05 15:00:00 (session time zone UTC)
+'2026-01-05 10:00:00' as TIMESTAMP_NTZ, same option:           2026-01-05 10:00:00
+
+== decimal commas ==
+DECIMAL(10,2) en-US: ['1.23', '1250.00', '700.00', '25.00']
+DECIMAL(10,2) de-DE: ['1234.50', '12.50', '7.00', '25.00']
+DOUBLE        en-US: [None, None, None, '25.0']
+DOUBLE        de-DE: [None, None, None, '25.0']
+file says:      ['1.234,50', '12,50', '7,00', '25']
+
+== encodings ==
++-----+---------+
+|name1|city     |
++-----+---------+
+|Zo�  |Montr�al |
+|Jos� |S�o Paulo|
++-----+---------+
+
++-----+---------+
+|name1|city     |
++-----+---------+
+|Zoë  |Montréal |
+|José |São Paulo|
++-----+---------+
+
+UTF-16, line mode: [Row(id='1', name='Zoë�'), Row(id='2', name='NguyÅṮ�'), Row(id='�', name=None)]
+UTF-16, multiLine: [Row(id='1', name='Zoë'), Row(id='2', name='Nguyễn')]
+windows-1252: [INVALID_PARAMETER_VALUE.CHARSET] The value of parameter(s) `charset` in `CSVOptions` is invalid: expects one of the iso-8859-1, us-ascii, utf-16, utf-16be, utf-16le, utf-32, utf-8, but got windows-1252. SQLSTATE: 22023
+as ISO-8859-1: '\x93quoted\x94 \x805'
+
+== byte order mark and comment lines ==
+first bytes: b'\xef\xbb\xbfid,'  columns: ['id', 'name']  len(columns[0]): 2
+wholetext keeps it: '\ufeffid'
+no comment option: ['# Export Kassensystem 2026-10-05']
+comment='//': [OPTION_VALUE_EXCEEDS_ONE_CHARACTER] The value of comment cannot be more than on

@@ -1,0 +1,114 @@
+
+== the text source: one line, one row ==
+root
+ |-- value: string (nullable = true)
+
+app.log lines: 134  scan tasks: 1
+app.log.gz lines: 134 (decompressed by its extension)
+maxPartitionBytes=1KB  : app.log -> 10 tasks, app.log.gz -> 1 task
+maxPartitionBytes=128MB: app.log ->  1 tasks, app.log.gz -> 1 task
+
+== wholetext, three ways ==
+option("wholetext", True).text(p)          -> 134
+text(p, wholetext=True)                    -> 1
+format("text").option("wholetext", True)   -> 1
+
+== regex fields from an access log ==
++----------+--------------------------+------------+------+
+|ip        |raw_ts                    |url         |status|
++----------+--------------------------+------------+------+
+|10.0.2.238|01/Oct/2026:10:00:00 +0000|/?session=s1|404   |
+|          |                          |            |NULL  |
++----------+--------------------------+------------+------+
+
+
+== what each regex function returns when nothing matches ==
+  regexp_extract       -> ''
+  regexp_extract_all   -> []
+  regexp_substr        -> None
+  regexp_count         -> 0
+  rlike                -> False
+  cast("int") on ""     -> [CAST_INVALID_INPUT] The value '' of the type "STRING" cannot be cast to "INT" because it is malformed. Correct the value
+  pattern as a plain str -> [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `status=(\d+)` cannot be resolved. Did you mean 
+
+== timestamps: a pattern, a bad date, and try_ ==
++--------------------------+-------------------+
+|raw                       |try_to_timestamp   |
++--------------------------+-------------------+
+|01/Oct/2026:10:00:00 +0000|2026-10-01 10:00:00|
+|31/Sep/2026:11:00:00 +0000|NULL               |
++--------------------------+-------------------+
+
+to_timestamp -> [CANNOT_PARSE_TIMESTAMP] Text '31/Sep/2026:11:00:00 +0000' could not be parsed: Invalid date 'SEPTEMBER 31'. Use `try_to_time
+
+== URLs: split_part and try_parse_url ==
++-------------------------+--------------+-------+
+|url                      |path          |session|
++-------------------------+--------------+-------+
+|/api/orders/42?session=s9|/api/orders/42|s9     |
+|/cart?session=s12&x=1    |/cart         |s12    |
+|http://[bad              |http://[bad   |NULL   |
++-------------------------+--------------+-------+
+
+
+== multi-line events: split whole files where an event starts ==
+lines: 134  events: 80
++-------------------------------+------------------------------------------------+
+|exception                      |frames                                          |
++-------------------------------+------------------------------------------------+
+|java.lang.IllegalStateException|[order.Inventory.reserve, order.Service.process]|
+|java.lang.IllegalStateException|[order.Inventory.reserve, order.Service.process]|
++-------------------------------+------------------------------------------------+
+
+
+== a log that switches from text to JSON ==
++----+-----+---+------+-----------------------+-----------------------+
+|fmt |level|n  |avg_ms|first                  |last                   |
++----+-----+---+------+-----------------------+-----------------------+
+|json|INFO |20 |415.0 |2026-10-01 11:00:00    |2026-10-01 11:19:00    |
+|text|ERROR|18 |535.0 |2026-10-01 10:02:00.123|2026-10-01 10:58:00.123|
+|text|INFO |26 |410.0 |2026-10-01 10:01:00.123|2026-10-01 10:57:00.123|
+|text|WARN |16 |477.0 |2026-10-01 10:00:00.123|2026-10-01 10:59:00.123|
++----+-----+---+------+-----------------------+-----------------------+
+
+
+== quarantine: parsed + rejects = input ==
+input 203, parsed 201, rejects 2, balanced: True
++----------------+------------------------------------------------------------+
+|file            |value                                                       |
++----------------+------------------------------------------------------------+
+|access_extra.log|10.0.9.9 - - [01/Oct/2026:12:00:01 +0000] "GET /ca          |
+|access_extra.log|10.0.9.9 - - [31/Sep/2026:12:00:02 +0000] "GET /cart?session|
++----------------+------------------------------------------------------------+
+
++--------------+----+------+
+|path          |hits|errors|
++--------------+----+------+
+|/             |38  |8     |
+|/api/orders   |27  |8     |
+|/api/orders/42|43  |6     |
+|/login        |35  |6     |
+|/cart         |26  |5     |
++--------------+----+------+
+
+
+== sessions from the access log ==
++----------+-------------------+-------------------+----+
+|ip        |start              |end                |hits|
++----------+-------------------+-------------------+----+
+|10.0.0.170|2026-10-01 10:02:43|2026-10-01 10:03:18|2   |
+|10.0.2.12 |2026-10-01 10:00:08|2026-10-01 10:00:54|2   |
+|10.0.2.197|2026-10-01 10:00:43|2026-10-01 10:01:32|2   |
++----------+-------------------+-------------------+----+
+
+
+== encodings: text decodes UTF-8, always ==
+text                          -> 'Caf� cr�me, r�sum�: d�j� vu.'
+text, encoding=ISO-8859-1     -> 'Caf� cr�me, r�sum�: d�j� vu.'
+binaryFile + decode           -> 'Café crème, résumé: déjà vu.\n'
++-------------+----------------------------+
+|is_valid_utf8|make_valid_utf8             |
++-------------+----------------------------+
+|false        |Caf� cr�me, r�sum�: d�j� vu.|
++-------------+----------------------------+
+
