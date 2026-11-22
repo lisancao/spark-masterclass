@@ -147,7 +147,7 @@ AdaptiveSparkPlan isFinalPlan=true
          :  +- BatchScan jdocs[name#557, kind#558] jdocs[files=8, pushed=[]] RuntimeFilters: [dynamicpruningexpression(kind#558 IN dynamicpruning#565)]
    +- BroadcastHashJoin [kind#558], [kind#553], Inner, BuildRight, false, false
       :  +- BatchScan jdocs[name#557, kind#558] jdocs[files=8, pushed=[]] RuntimeFilters: [dynamicpruningexpression(kind#558 IN dynamicpruning#565)]
-filter() received: kind IN ('audio', 'image')
+filter() received: kind IN ('image', 'audio')
 rows: 8 kinds: ['audio', 'image']
 
 == 13. A custom metric in the Spark UI
