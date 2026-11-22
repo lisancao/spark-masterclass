@@ -29,3 +29,31 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | 60 | processes, response, rlimit | anim-frames (frame sizes from tap.txt) | none | 10, 10 |
 | 61 | bytes, bench | anim-decode (bytes from layout.txt) | none | 15, 15 |
 | 62 | namespaces, boundaries | anim-resolve (results from repro.txt and test_fix.txt) | none | 6, 6 |
+
+Totals: 36 SVG figures (about 239 KB), 17 animations (mp4 plus webp poster, about 3.6 MB in all; each mp4 under 230 KB).
+
+## Sources of the numbers
+
+Every figure script (`code/figures/chNN.py`) and every animation (`code/chNN/anim/<name>/data.json`, `storyboard.md`) names the output file that its numbers come from. Two derived data sets:
+
+- ch50 `anim-deal` and `ch50-balance.svg`: per-file sizes of the 26 sample files that `docs_source.py` copies (computed from `code/data/messy`). The script asserts that the round-robin and largest-first totals equal `docs_source.txt` (22,793 / 10,884 / 30,098 and 21,266 / 21,261 / 21,248).
+- ch58 `anim-stream` and `ch58-stream-batches.svg`: byte ranges from `casefile.ChangesStreamReader` run in plain Python on the sample (`code/ch58/anim/stream_plan.json`). Rows per batch (7, 7, 8, 7, 7, 7), total 43 and the end offset of batch 0 agree with `demo.txt`.
+
+Labelled schematic: the ch46 FIFO/FAIR task schedule (end numbers measured), the clip timing of the ch47, ch48, ch51 animations (state times and logs measured), the module order in ch54 `anim-lookup`, the logical plan before pushdown in ch55 `anim-countpush`.
+
+## STE allowlists used (from the part notes)
+
+- ch48: `partitioning pruning coalescing monitoring tuning warning streaming scheduling tracking docstring finding Running` (notes/ch48.md)
+- ch50 to ch54: `planning reading attempt listing docstring staging processing programming packaging` (notes/part09a.md)
+- ch58: `decreasing testing` (notes/part09b.md)
+- others: shared list only. The counts in the table above compare the chapter at commit 3f6ec08 and after, with the same allowlist.
+
+## Open findings and changes to prose
+
+- ch56 Step 11 said "2,000,000 cached binary values". `bench.py` (`N_BLOBS = 20_000_000`) and `bench.txt` ("is_png over 20,000,000 cached values", 6,666,667 matching rows) show 20,000,000. Changed the number in the prose to 20,000,000.
+- Rendering note: HyperFrames renders took several minutes each late in the session (load average near 50 from other agents). No effect on output.
+
+## For the integrator
+
+- No nav or roadmap changes. New files: `book/media/figures/ch46-*` to `ch62-*`, `book/media/clips/chNN-anim-*`, `code/figures/`, `code/chNN/anim/`.
+- `code/figures/svgkit.py` is a small shared kit; other vis branches may add their own figure code.
