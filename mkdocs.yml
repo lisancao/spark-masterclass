@@ -48,6 +48,9 @@ theme:
   icon:
     repo: fontawesome/brands/github
 
+extra_css:
+  - stylesheets/extra.css
+
 markdown_extensions:
   - admonition
   - attr_list
@@ -58,6 +61,8 @@ markdown_extensions:
       permalink: true
   - pymdownx.highlight:
       anchor_linenums: true
+      pygments_lang_class: true
+      line_spans: __span
   - pymdownx.inlinehilite
   - pymdownx.details
   - pymdownx.tabbed:
