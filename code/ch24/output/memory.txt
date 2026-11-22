@@ -1,0 +1,7 @@
+Gluten without off-heap memory:
+  org.apache.gluten.exception.GlutenException: Must set 'spark.memory.offHeap.enabled' to true and set 'spark.memory.offHeap.size' to be greater than 1MB
+GPU memory, total 16303 MiB
+  before the session            412 MiB used
+  after the first GPU task    15181 MiB used
+  after the routes query      15265 MiB used
+  after spark.stop()            727 MiB used

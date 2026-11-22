@@ -1,0 +1,30 @@
+gluten on Spark 4.1.1, default settings
+hourly: 8 engine operators, 2 Spark operators, 3 transitions
+  T VeloxColumnarToRowExec
+  .   WholeStageTransformer
+  E     SortExecTransformer
+  .       InputIteratorTransformer
+  .         ColumnarInputAdapter
+  .           AQEShuffleReadExec
+  E             ColumnarShuffleExchangeExec
+  .               VeloxResizeBatchesExec
+  .                 WholeStageTransformer
+  E                   ProjectExecTransformer
+  E                     RegularHashAggregateExecTransformer
+  .                       InputIteratorTransformer
+  .                         ColumnarInputAdapter
+  .                           AQEShuffleReadExec
+  E                             ColumnarShuffleExchangeExec
+  .                               VeloxResizeBatchesExec
+  .                                 WholeStageTransformer
+  E                                   ProjectExecTransformer
+  E                                     FlushableHashAggregateExecTransformer
+  E                                       ProjectExecTransformer
+  .                                         InputIteratorTransformer
+  .                                           ColumnarInputAdapter
+  T                                             RowToVeloxColumnarExec
+  .                                               WholeStageCodegenExec
+  S                                                 FilterExec
+  T                                                   ColumnarToRowExec
+  .                                                     InputAdapter
+  S                                                       FileSourceScanExec

@@ -19,7 +19,7 @@ conf = spark.sparkContext.getConf()
 
 
 def short(name):
-    return name.split(".")[-1].split("$")[0] or name
+    return name.split(".")[-1].rstrip("$")      # keep inner classes: Outer$Inner
 
 
 def seq(s):

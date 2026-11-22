@@ -166,7 +166,7 @@ GLUE = {"AQEShuffleReadExec", "ColumnarInputAdapter", "InputIteratorTransformer"
 
 def kind(name):
     """'transition', 'glue', 'engine' (runs in the native or GPU engine) or 'spark'."""
-    if any(t in name for t in ("ColumnarToRow", "RowToColumnar", "RowToVelox")):
+    if any(t in name for t in ("ColumnarToRow", "RowToColumnar", "RowToVelox", "SparkToColumnar")):
         return "transition"
     if name in GLUE:
         return "glue"

@@ -1,0 +1,9 @@
+     10 Validation failed for plan: HashAggregate, due to: does not support ansi mode
+     10 Validation failed for plan: Filter, due to: does not support ansi mode
+     10 Validation failed for plan: Exchange, due to: does not support ansi mode
+      9 Validation failed for plan: Project, due to: does not support ansi mode
+      6 Validation failed for plan: Scan parquet , due to: does not support ansi mode
+      4 Validation failed for plan: Scan csv , due to: does not support ansi mode
+      4 Validation failed for plan: BroadcastExchange, due to: does not support ansi mode
+      3 Validation failed for plan: BroadcastHashJoin, due to: does not support ansi mode
+      2 Validation failed for plan: Sort, due to: does not support ansi mode

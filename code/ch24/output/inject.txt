@@ -1,0 +1,21 @@
+gluten on Spark 4.1.1
+  spark.plugins          = org.apache.gluten.GlutenPlugin
+  spark.sql.extensions   = org.apache.gluten.extension.GlutenSessionExtensions
+  spark.shuffle.manager  = org.apache.spark.shuffle.sort.ColumnarShuffleManager
+  spark.memory.offHeap   = true, 8g
+  columnar rules         = InjectorControl$Disabler$DisablerOps$$anon$5
+  query stage prep rules = (none)
+comet on Spark 4.2.0
+  spark.plugins          = org.apache.spark.CometPlugin
+  spark.sql.extensions   = org.apache.comet.CometSparkSessionExtensions
+  spark.shuffle.manager  = org.apache.spark.sql.comet.execution.shuffle.CometShuffleManager
+  spark.memory.offHeap   = true, 8g
+  columnar rules         = CometSparkSessionExtensions$CometColumnar
+  query stage prep rules = CometRule
+rapids on Spark 4.2.0
+  spark.plugins          = com.nvidia.spark.SQLPlugin
+  spark.sql.extensions   = com.nvidia.spark.rapids.SQLExecPlugin,com.nvidia.spark.udf.Plugin,com.nvidia.spark.DFUDFPlugin,com.nvidia.spark.rapids.optimizer.SQLOptimizerPlugin
+  spark.shuffle.manager  = com.nvidia.spark.rapids.spark420.RapidsShuffleManager
+  spark.memory.offHeap   = false, 0
+  columnar rules         = ColumnarOverrideRules
+  query stage prep rules = GpuQueryStagePrepOverrides, OptimizeSkewedBHJJoinRule

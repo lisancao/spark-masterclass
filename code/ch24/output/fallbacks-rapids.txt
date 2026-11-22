@@ -1,0 +1,58 @@
+          !Exec <ProjectExec> cannot run on GPU because not all expressions can be replaced; unsupported data types in input: TimestampNTZType [tpep_pickup_datetime]
+            @Expression <AttributeReference> total_amount could run on GPU
+            @Expression <Alias> hour(tpep_pickup_datetime, Some(UTC)) AS _groupingexpression could run on GPU
+              !Expression <Hour> hour(tpep_pickup_datetime, Some(UTC)) cannot run on GPU because input expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+                !Expression <AttributeReference> tpep_pickup_datetime cannot run on GPU because expression AttributeReference tpep_pickup_datetime produces an unsupported type TimestampNTZType
+            !Exec <FilterExec> cannot run on GPU because unsupported data types in output: TimestampNTZType [tpep_pickup_datetime]; not all expressions can be replaced; unsupported data types in input: TimestampNTZType [tpep_pickup_datetime]
+              @Expression <And> ((isnotnull(tpep_pickup_datetime) AND (tpep_pickup_datetime >= 2025-07-01 00:00:00)) AND (tpep_pickup_datetime < 2026-07-01 00:00:00)) could run on GPU
+                @Expression <And> (isnotnull(tpep_pickup_datetime) AND (tpep_pickup_datetime >= 2025-07-01 00:00:00)) could run on GPU
+                  !Expression <IsNotNull> isnotnull(tpep_pickup_datetime) cannot run on GPU because input expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+                    !Expression <AttributeReference> tpep_pickup_datetime cannot run on GPU because expression AttributeReference tpep_pickup_datetime produces an unsupported type TimestampNTZType
+                  !Expression <GreaterThanOrEqual> (tpep_pickup_datetime >= 2025-07-01 00:00:00) cannot run on GPU because rhs expression Literal 2025-07-01 00:00:00 (TimestampNTZType is not supported); lhs expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+                    !Expression <Literal> 2025-07-01 00:00:00 cannot run on GPU because expression Literal 2025-07-01 00:00:00 produces an unsupported type TimestampNTZType
+                !Expression <LessThan> (tpep_pickup_datetime < 2026-07-01 00:00:00) cannot run on GPU because rhs expression Literal 2026-07-01 00:00:00 (TimestampNTZType is not supported); lhs expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+                  !Expression <AttributeReference> tpep_pickup_datetime cannot run on GPU because expression AttributeReference tpep_pickup_datetime produces an unsupported type TimestampNTZType
+                  !Expression <Literal> 2026-07-01 00:00:00 cannot run on GPU because expression Literal 2026-07-01 00:00:00 produces an unsupported type TimestampNTZType
+              !Exec <FileSourceScanExec> cannot run on GPU because unsupported data types in output: TimestampNTZType [tpep_pickup_datetime]; unsupported data types TimestampNTZType [tpep_pickup_datetime] in read for Parquet
+    !Exec <ProjectExec> cannot run on GPU because not all expressions can be replaced; unsupported data types in input: TimestampNTZType [tpep_pickup_datetime]
+      @Expression <AttributeReference> total_amount could run on GPU
+      @Expression <Alias> hour(tpep_pickup_datetime, Some(UTC)) AS _groupingexpression could run on GPU
+        !Expression <Hour> hour(tpep_pickup_datetime, Some(UTC)) cannot run on GPU because input expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+          !Expression <AttributeReference> tpep_pickup_datetime cannot run on GPU because expression AttributeReference tpep_pickup_datetime produces an unsupported type TimestampNTZType
+      !Exec <FilterExec> cannot run on GPU because unsupported data types in output: TimestampNTZType [tpep_pickup_datetime]; not all expressions can be replaced; unsupported data types in input: TimestampNTZType [tpep_pickup_datetime]
+        @Expression <And> ((isnotnull(tpep_pickup_datetime) AND (tpep_pickup_datetime >= 2025-07-01 00:00:00)) AND (tpep_pickup_datetime < 2026-07-01 00:00:00)) could run on GPU
+          @Expression <And> (isnotnull(tpep_pickup_datetime) AND (tpep_pickup_datetime >= 2025-07-01 00:00:00)) could run on GPU
+            !Expression <IsNotNull> isnotnull(tpep_pickup_datetime) cannot run on GPU because input expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+              !Expression <AttributeReference> tpep_pickup_datetime cannot run on GPU because expression AttributeReference tpep_pickup_datetime produces an unsupported type TimestampNTZType
+            !Expression <GreaterThanOrEqual> (tpep_pickup_datetime >= 2025-07-01 00:00:00) cannot run on GPU because rhs expression Literal 2025-07-01 00:00:00 (TimestampNTZType is not supported); lhs expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+              !Expression <Literal> 2025-07-01 00:00:00 cannot run on GPU because expression Literal 2025-07-01 00:00:00 produces an unsupported type TimestampNTZType
+          !Expression <LessThan> (tpep_pickup_datetime < 2026-07-01 00:00:00) cannot run on GPU because rhs expression Literal 2026-07-01 00:00:00 (TimestampNTZType is not supported); lhs expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+            !Expression <AttributeReference> tpep_pickup_datetime cannot run on GPU because expression AttributeReference tpep_pickup_datetime produces an unsupported type TimestampNTZType
+            !Expression <Literal> 2026-07-01 00:00:00 cannot run on GPU because expression Literal 2026-07-01 00:00:00 produces an unsupported type TimestampNTZType
+        !Exec <FileSourceScanExec> cannot run on GPU because unsupported data types in output: TimestampNTZType [tpep_pickup_datetime]; unsupported data types TimestampNTZType [tpep_pickup_datetime] in read for Parquet
+              !Exec <ProjectExec> cannot run on GPU because unsupported data types in input: TimestampNTZType [tpep_pickup_datetime]
+                @Expression <AttributeReference> PULocationID could run on GPU
+                @Expression <AttributeReference> fare_amount could run on GPU
+                @Expression <AttributeReference> tip_amount could run on GPU
+                !Exec <FilterExec> cannot run on GPU because unsupported data types in output: TimestampNTZType [tpep_pickup_datetime]; not all expressions can be replaced; unsupported data types in input: TimestampNTZType [tpep_pickup_datetime]
+                  @Expression <And> (((isnotnull(tpep_pickup_datetime) AND (tpep_pickup_datetime >= 2025-07-01 00:00:00)) AND (tpep_pickup_datetime < 2026-07-01 00:00:00)) AND isnotnull(PULocationID)) could run on GPU
+                    @Expression <And> ((isnotnull(tpep_pickup_datetime) AND (tpep_pickup_datetime >= 2025-07-01 00:00:00)) AND (tpep_pickup_datetime < 2026-07-01 00:00:00)) could run on GPU
+                      @Expression <And> (isnotnull(tpep_pickup_datetime) AND (tpep_pickup_datetime >= 2025-07-01 00:00:00)) could run on GPU
+                        !Expression <IsNotNull> isnotnull(tpep_pickup_datetime) cannot run on GPU because input expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+                          !Expression <AttributeReference> tpep_pickup_datetime cannot run on GPU because expression AttributeReference tpep_pickup_datetime produces an unsupported type TimestampNTZType
+                        !Expression <GreaterThanOrEqual> (tpep_pickup_datetime >= 2025-07-01 00:00:00) cannot run on GPU because rhs expression Literal 2025-07-01 00:00:00 (TimestampNTZType is not supported); lhs expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+                          !Expression <Literal> 2025-07-01 00:00:00 cannot run on GPU because expression Literal 2025-07-01 00:00:00 produces an unsupported type TimestampNTZType
+                      !Expression <LessThan> (tpep_pickup_datetime < 2026-07-01 00:00:00) cannot run on GPU because rhs expression Literal 2026-07-01 00:00:00 (TimestampNTZType is not supported); lhs expression AttributeReference tpep_pickup_datetime (TimestampNTZType is not supported)
+                        !Expression <AttributeReference> tpep_pickup_datetime cannot run on GPU because expression AttributeReference tpep_pickup_datetime produces an unsupported type TimestampNTZType
+                        !Expression <Literal> 2026-07-01 00:00:00 cannot run on GPU because expression Literal 2026-07-01 00:00:00 produces an unsupported type TimestampNTZType
+                    @Expression <IsNotNull> isnotnull(PULocationID) could run on GPU
+                      @Expression <AttributeReference> PULocationID could run on GPU
+                  !Exec <FileSourceScanExec> cannot run on GPU because unsupported data types in output: TimestampNTZType [tpep_pickup_datetime]; unsupported data types TimestampNTZType [tpep_pickup_datetime] in read for Parquet
+        !Exec <ProjectExec> cannot run on GPU because unsupported data types in input: TimestampNTZType [tpep_pickup_datetime]
+          @Expression <AttributeReference> PULocationID could run on GPU
+          @Expression <AttributeReference> fare_amount could run on GPU
+          @Expression <AttributeReference> tip_amount could run on GPU
+          !Exec <FilterExec> cannot run on GPU because unsupported data types in output: TimestampNTZType [tpep_pickup_datetime]; not all expressions can be replaced; unsupported data types in input: TimestampNTZType [tpep_pickup_datetime]
+            @Expression <And> (((isnotnull(tpep_pickup_datetime) AND (tpep_pickup_datetime >= 2025-07-01 00:00:00)) AND (tpep_pickup_datetime < 2026-07-01 00:00:00)) AND isnotnull(PULocationID)) could run on GPU
+              @Expression <IsNotNull> isnotnull(PULocationID) could run on GPU
+            !Exec <FileSourceScanExec> cannot run on GPU because unsupported data types in output: TimestampNTZType [tpep_pickup_datetime]; unsupported data types TimestampNTZType [tpep_pickup_datetime] in read for Parquet
