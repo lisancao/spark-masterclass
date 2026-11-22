@@ -15,3 +15,4 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | 46 | session-scope, fifo-fair, first-answer | anim-fifo-fair (schematic schedule, measured end numbers from contention.txt) | patterns table, two New in 4.3 admonitions | 4, 4 |
 | 47 | restart-timeline, executor-placement | anim-reconcile (state times from zones-app.txt) | restartConfig table | 11, 11 |
 | 48 | gang-timeline, executors-alive | anim-handoff (task times and log lines from dag_submit.txt) | YuniKorn and Volcano table | 0, 0 (chapter allowlist from notes/ch48.md) |
+| 49 | checks, average-of-ratios | anim-sieve (outcomes from dryrun.txt) | none | 4, 4 |
