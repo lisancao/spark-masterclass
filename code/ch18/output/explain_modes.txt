@@ -1,0 +1,169 @@
+[Stage 1:==============================================>          (13 + 3) / 16]                                                                                
+######## explain('extended')
+
+== Parsed Logical Plan ==
+'Aggregate ['PULocationID], ['PULocationID, 'count(*) AS trips#22, 'avg('fare_amount) AS avg_fare#23]
++- Filter (((tpep_pickup_datetime#1 >= cast(2026-06-01 as timestamp_ntz)) AND (tpep_pickup_datetime#1 < cast(2026-07-01 as timestamp_ntz))) AND (passenger_count#3L = cast(1 as bigint)))
+   +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== Analyzed Logical Plan ==
+PULocationID: int, trips: bigint, avg_fare: double
+Aggregate [PULocationID#7], [PULocationID#7, count(1) AS trips#22L, avg(fare_amount#10) AS avg_fare#23]
++- Filter (((tpep_pickup_datetime#1 >= cast(2026-06-01 as timestamp_ntz)) AND (tpep_pickup_datetime#1 < cast(2026-07-01 as timestamp_ntz))) AND (passenger_count#3L = cast(1 as bigint)))
+   +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== Optimized Logical Plan ==
+Aggregate [PULocationID#7], [PULocationID#7, count(1) AS trips#22L, avg(fare_amount#10) AS avg_fare#23]
++- Project [PULocationID#7, fare_amount#10]
+   +- Filter ((isnotnull(tpep_pickup_datetime#1) AND isnotnull(passenger_count#3L)) AND (((tpep_pickup_datetime#1 >= 2026-06-01 00:00:00) AND (tpep_pickup_datetime#1 < 2026-07-01 00:00:00)) AND (passenger_count#3L = 1)))
+      +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- HashAggregate(keys=[PULocationID#7], functions=[count(1), avg(fare_amount#10)], output=[PULocationID#7, trips#22L, avg_fare#23])
+   +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=15]
+      +- HashAggregate(keys=[PULocationID#7], functions=[partial_count(1), partial_avg(fare_amount#10)], output=[PULocationID#7, count#50L, sum#51, count#52L])
+         +- Project [PULocationID#7, fare_amount#10]
+            +- Filter ((((isnotnull(tpep_pickup_datetime#1) AND isnotnull(passenger_count#3L)) AND (tpep_pickup_datetime#1 >= 2026-06-01 00:00:00)) AND (tpep_pickup_datetime#1 < 2026-07-01 00:00:00)) AND (passenger_count#3L = 1))
+               +- FileScan parquet [tpep_pickup_datetime#1,passenger_count#3L,PULocationID#7,fare_amount#10] Batched: true, DataFilters: [isnotnull(tpep_pickup_datetime#1), isnotnull(passenger_count#3L), (tpep_pickup_datetime#1 >= 202..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [IsNotNull(tpep_pickup_datetime), IsNotNull(passenger_count), GreaterThanOrEqual(tpep_pickup_date..., ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,passenger_count:bigint,PULocationID:int,fare_amount:dou...
+
+
+
+######## explain('formatted')
+
+== Physical Plan ==
+AdaptiveSparkPlan (7)
++- HashAggregate (6)
+   +- Exchange (5)
+      +- HashAggregate (4)
+         +- Project (3)
+            +- Filter (2)
+               +- Scan parquet  (1)
+
+
+(1) Scan parquet 
+Output [4]: [tpep_pickup_datetime#1, passenger_count#3L, PULocationID#7, fare_amount#10]
+Batched: true
+Location: InMemoryFileIndex [file:~/spark-masterclass/data/nyc-taxi/yellow]
+PushedFilters: [IsNotNull(tpep_pickup_datetime), IsNotNull(passenger_count), GreaterThanOrEqual(tpep_pickup_datetime,2026-06-01T00:00), LessThan(tpep_pickup_datetime,2026-07-01T00:00), EqualTo(passenger_count,1)]
+ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,passenger_count:bigint,PULocationID:int,fare_amount:double>
+
+(2) Filter
+Input [4]: [tpep_pickup_datetime#1, passenger_count#3L, PULocationID#7, fare_amount#10]
+Condition : ((((isnotnull(tpep_pickup_datetime#1) AND isnotnull(passenger_count#3L)) AND (tpep_pickup_datetime#1 >= 2026-06-01 00:00:00)) AND (tpep_pickup_datetime#1 < 2026-07-01 00:00:00)) AND (passenger_count#3L = 1))
+
+(3) Project
+Output [2]: [PULocationID#7, fare_amount#10]
+Input [4]: [tpep_pickup_datetime#1, passenger_count#3L, PULocationID#7, fare_amount#10]
+
+(4) HashAggregate
+Input [2]: [PULocationID#7, fare_amount#10]
+Keys [1]: [PULocationID#7]
+Functions [2]: [partial_count(1), partial_avg(fare_amount#10)]
+Aggregate Attributes [3]: [count#47L, sum#48, count#49L]
+Results [4]: [PULocationID#7, count#50L, sum#51, count#52L]
+
+(5) Exchange
+Input [4]: [PULocationID#7, count#50L, sum#51, count#52L]
+Arguments: hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=15]
+
+(6) HashAggregate
+Input [4]: [PULocationID#7, count#50L, sum#51, count#52L]
+Keys [1]: [PULocationID#7]
+Functions [2]: [count(1), avg(fare_amount#10)]
+Aggregate Attributes [2]: [count(1)#45L, avg(fare_amount#10)#46]
+Results [3]: [PULocationID#7, count(1)#45L AS trips#22L, avg(fare_amount#10)#46 AS avg_fare#23]
+
+(7) AdaptiveSparkPlan
+Output [3]: [PULocationID#7, trips#22L, avg_fare#23]
+Arguments: isFinalPlan=false
+
+
+
+
+######## explain('cost'): the optimized plan with size estimates
+
+== Optimized Logical Plan ==
+Aggregate [PULocationID#7], [PULocationID#7, count(1) AS trips#22L, avg(fare_amount#10) AS avg_fare#23], Statistics(sizeInBytes=9.3 MiB)
++- Project [PULocationID#7, fare_amount#10], Statistics(sizeInBytes=6.6 MiB)
+   +- Filter ((isnotnull(tpep_pickup_datetime#1) AND isnotnull(passenger_count#3L)) AND (((tpep_pickup_datetime#1 >= 2026-06-01 00:00:00) AND (tpep_pickup_datetime#1 < 2026-07-01 00:00:00)) AND (passenger_count#3L = 1))), Statistics(sizeInBytes=62.4 MiB)
+      +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet, Statistics(sizeInBytes=62.4 MiB)
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- HashAggregate(keys=[PULocationID#7], functions=[count(1), avg(fare_amount#10)], output=[PULocationID#7, trips#22L, avg_fare#23])
+   +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=15]
+      +- HashAggregate(keys=[PULocationID#7], functions=[partial_count(1), partial_avg(fare_amount#10)], output=[PULocationID#7, count#50L, sum#51, count#52L])
+         +- Project [PULocationID#7, fare_amount#10]
+            +- Filter ((((isnotnull(tpep_pickup_datetime#1) AND isnotnull(passenger_count#3L)) AND (tpep_pickup_datetime#1 >= 2026-06-01 00:00:00)) AND (tpep_pickup_datetime#1 < 2026-07-01 00:00:00)) AND (passenger_count#3L = 1))
+               +- FileScan parquet [tpep_pickup_datetime#1,passenger_count#3L,PULocationID#7,fare_amount#10] Batched: true, DataFilters: [isnotnull(tpep_pickup_datetime#1), isnotnull(passenger_count#3L), (tpep_pickup_datetime#1 >= 202..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [IsNotNull(tpep_pickup_datetime), IsNotNull(passenger_count), GreaterThanOrEqual(tpep_pickup_date..., ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,passenger_count:bigint,PULocationID:int,fare_amount:dou...
+
+
+
+
+######## explain('codegen') before the query runs
+
+Found 0 WholeStageCodegen subtrees.
+
+######## explain() after collect() (256 rows): the final plan
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   ResultQueryStage 1
+   +- *(2) HashAggregate(keys=[PULocationID#7], functions=[count(1), avg(fare_amount#10)])
+      +- AQEShuffleRead coalesced
+         +- ShuffleQueryStage 0
+            +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=39]
+               +- *(1) HashAggregate(keys=[PULocationID#7], functions=[partial_count(1), partial_avg(fare_amount#10)])
+                  +- *(1) Project [PULocationID#7, fare_amount#10]
+                     +- *(1) Filter ((((isnotnull(tpep_pickup_datetime#1) AND isnotnull(passenger_count#3L)) AND (tpep_pickup_datetime#1 >= 2026-06-01 00:00:00)) AND (tpep_pickup_datetime#1 < 2026-07-01 00:00:00)) AND (passenger_count#3L = 1))
+                        +- *(1) ColumnarToRow
+                           +- FileScan parquet [tpep_pickup_datetime#1,passenger_count#3L,PULocationID#7,fare_amount#10] Batched: true, DataFilters: [isnotnull(tpep_pickup_datetime#1), isnotnull(passenger_count#3L), (tpep_pickup_datetime#1 >= 202..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [IsNotNull(tpep_pickup_datetime), IsNotNull(passenger_count), GreaterThanOrEqual(tpep_pickup_date..., ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,passenger_count:bigint,PULocationID:int,fare_amount:dou...
++- == Initial Plan ==
+   HashAggregate(keys=[PULocationID#7], functions=[count(1), avg(fare_amount#10)])
+   +- Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=15]
+      +- HashAggregate(keys=[PULocationID#7], functions=[partial_count(1), partial_avg(fare_amount#10)])
+         +- Project [PULocationID#7, fare_amount#10]
+            +- Filter ((((isnotnull(tpep_pickup_datetime#1) AND isnotnull(passenger_count#3L)) AND (tpep_pickup_datetime#1 >= 2026-06-01 00:00:00)) AND (tpep_pickup_datetime#1 < 2026-07-01 00:00:00)) AND (passenger_count#3L = 1))
+               +- FileScan parquet [tpep_pickup_datetime#1,passenger_count#3L,PULocationID#7,fare_amount#10] Batched: true, DataFilters: [isnotnull(tpep_pickup_datetime#1), isnotnull(passenger_count#3L), (tpep_pickup_datetime#1 >= 202..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [IsNotNull(tpep_pickup_datetime), IsNotNull(passenger_count), GreaterThanOrEqual(tpep_pickup_date..., ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,passenger_count:bigint,PULocationID:int,fare_amount:dou...
+
+
+
+
+######## explain('codegen') after collect(): the start of one generated class
+
+Found 2 WholeStageCodegen subtrees.
+== Subtree 1 / 2 (maxMethodCodeSize:482; maxConstantPoolSize:341(0.52% used); numInnerClasses:1) ==
+*(1) HashAggregate(keys=[PULocationID#7], functions=[partial_count(1), partial_avg(fare_amount#10)], output=[PULocationID#7, count#50L, sum#51, count#52L])
++- *(1) Project [PULocationID#7, fare_amount#10]
+...
+/* 251 */   protected void processNext() throws java.io.IOException {
+/* 252 */     if (!hashAgg_initAgg_0) {
+/* 253 */       hashAgg_initAgg_0 = true;
+/* 254 */       hashAgg_fastHashMap_0 = new hashAgg_FastHashMap_0(((org.apache.spark.sql.execution.aggregate.HashAggregateExec) references[0] /* plan */).getTaskContext().taskMemoryManager(), ((org.apache.spark.sql.execution.aggregate.HashAggregateExec) references[0] /* plan */).getEmptyAggregationBuffer());
+/* 255 */
+/* 256 */       ((org.apache.spark.sql.execution.aggregate.HashAggregateExec) references[0] /* plan */).addFastHashMapCloseHook(hashAgg_fastHashMap_0);
+/* 257 */
+/* 258 */       hashAgg_hashMap_0 = ((org.apache.spark.sql.execution.aggregate.HashAggregateExec) references[0] /* plan */).createHashMap();
+/* 259 */       long wholestagecodegen_beforeAgg_0 = System.nanoTime();
+/* 260 */       hashAgg_doAggregateWithKeys_0(partitionIndex);
+/* 261 */       ((org.apache.spark.sql.execution.metric.SQLMetric) references[13] /* aggTime */).add((System.nanoTime() - wholestagecodegen_beforeAgg_0) / 1000000);
+/* 262 */     }
+/* 263 */     // output the result
+/* 264 */
+/* 265 */     while ( hashAgg_fastHashMapIter_0.next()) {
+/* 266 */       UnsafeRow hashAgg_aggKey_0 = (UnsafeRow) hashAgg_fastHashMapIter_0.getKey();
+/* 267 */       UnsafeRow hashAgg_aggBuffer_0 = (UnsafeRow) hashAgg_fastHashMapIter_0.getValue();
+/* 268 */       hashAgg_doAggregateWithKeysOutput_0(hashAgg_aggKey_0, hashAgg_aggBuffer_0);
+/* 269 */
+/* 270 */       if (shouldStop()) return;
+/* 271 */     }
+/* 272 */     hashAgg_fastHashMap_0.close();
+/* 273 */
+/* 274 */     while ( hashAgg_mapIter_0.next()) {
+... (585 lines in all)
+
+######## a mode that does not exist
+
+IllegalArgumentException: Unknown explain mode: bogus. Accepted explain modes are 'simple', 'extended', 'codegen', 'cost', 'formatted'.

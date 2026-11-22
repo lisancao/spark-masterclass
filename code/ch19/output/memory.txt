@@ -1,0 +1,6 @@
+configuration                   heap  (heap-300)*f  on-heap pool  off-heap  maxMemory   (MiB)
+defaults                        1024         434.4         434.4         0      434.4
+driver 2g                       2048        1048.8        1048.8         0     1048.8
+driver 2g, off-heap 256m        2048        1048.8        1048.8       256     1304.8
+driver 4g, fraction 0.8         4096        3036.8        3036.8         0     3036.8
+driver 400m                   fails: [INVALID_DRIVER_MEMORY.SYSTEM_MEMORY] Insufficient driver memory: System memory 419430400 must be at least 471859200.
