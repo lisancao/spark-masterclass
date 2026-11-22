@@ -2,7 +2,6 @@
 count with min_fare = 50: Row(n=269258)
 count with min_fare = 100: Row(n=15202)
 the variable after SET VAR = (query): Row(min_fare=83.5)
-a variable in a view: []
 
 == 2. a script, its control flow and its result
 fib(10) with WHILE: Row(n=10, fib=55)

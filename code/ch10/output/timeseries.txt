@@ -1,0 +1,79 @@
+== 1. date_trunc, window and time_bucket
++-------------------+-------------------+-------------------+-------------------+-------------------+
+|                 ts|         trunc_hour|         window_15m|         bucket_15m|   bucket_15m_at_05|
++-------------------+-------------------+-------------------+-------------------+-------------------+
+|2026-06-03 08:07:30|2026-06-03 08:00:00|2026-06-03 08:00:00|2026-06-03 08:00:00|2026-06-03 08:05:00|
+|2026-06-03 08:21:00|2026-06-03 08:00:00|2026-06-03 08:15:00|2026-06-03 08:15:00|2026-06-03 08:20:00|
++-------------------+-------------------+-------------------+-------------------+-------------------+
+
+types: [('w', 'struct<start:timestamp_ntz,end:timestamp_ntz>'), ('b', 'timestamp_ntz')]
+
+== 2. bucket sizes and origins
++-------------------+-------------------+-------------------+-------------------+-------------------+
+|                  d|         trunc_week|    bucket_7d_epoch|   bucket_7d_sunday|    month_from_15th|
++-------------------+-------------------+-------------------+-------------------+-------------------+
+|2026-06-10 12:00:00|2026-06-08 00:00:00|2026-06-04 00:00:00|2026-06-07 00:00:00|2026-05-15 00:00:00|
+|2026-06-14 09:00:00|2026-06-08 00:00:00|2026-06-11 00:00:00|2026-06-14 00:00:00|2026-05-15 00:00:00|
++-------------------+-------------------+-------------------+-------------------+-------------------+
+
+1970-01-01 was a Thursday
+  window with a month             _LEGACY_ERROR_TEMP_3231: Intervals greater than a month is not supported (1 month).
+  time_bucket with 0 minutes      DATATYPE_MISMATCH.VALUE_OUT_OF_RANGE: Cannot resolve "time_bucket(INTERVAL '00' MINUTE, TIMESTAMP_NTZ '2026-06
+  time_bucket with a column size  DATATYPE_MISMATCH.NON_FOLDABLE_INPUT: Cannot resolve "time_bucket(make_dt_interval(0, 0, id, 0.000000), TIMEST
+  time_bucket on a DATE           DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE: Cannot resolve "time_bucket(INTERVAL '1' DAY, DATE '2026-06-10', TIMESTA
+
+== 3. daily buckets over the March DST change, session zone America/New_York
++-------------------+-------------------+-------------------+-------------------+
+|local_time         |ltz_bucket         |ntz_bucket         |ltz_6h             |
++-------------------+-------------------+-------------------+-------------------+
+|2026-03-08 01:30:00|2026-03-08 00:00:00|2026-03-08 00:00:00|2026-03-08 00:00:00|
+|2026-03-08 03:30:00|2026-03-08 00:00:00|2026-03-08 00:00:00|2026-03-08 00:00:00|
+|2026-03-09 05:00:00|2026-03-09 00:00:00|2026-03-09 00:00:00|2026-03-09 01:00:00|
++-------------------+-------------------+-------------------+-------------------+
+
+== 4. what each one adds to the plan
+  time_bucket 15 min        ['HashAggregate', 'HashAggregate', 'Project', 'Filter']  rows: 2,880
+  window 15 min             ['HashAggregate', 'HashAggregate', 'Project', 'Filter']  rows: 2,880
+  window 1 h, slide 15 min  ['HashAggregate', 'HashAggregate', 'Expand', 'Filter']  rows: 2,883
+
+== 5. buckets with no trips, zone 108 (Gravesend), first day
+hours with a row: 3 of 24
+after the fill: 24 rows
++-------------------+-----+------+------+
+|               hour|trips|avg_3h|change|
++-------------------+-----+------+------+
+|2026-06-01 00:00:00|    1|   1.0|  NULL|
+|2026-06-01 01:00:00|    0|   0.5|    -1|
+|2026-06-01 02:00:00|    1|  0.67|     1|
+|2026-06-01 03:00:00|    0|  0.33|    -1|
+|2026-06-01 04:00:00|    0|  0.33|     0|
+|2026-06-01 05:00:00|    0|   0.0|     0|
+|2026-06-01 06:00:00|    0|   0.0|     0|
+|2026-06-01 07:00:00|    1|  0.33|     1|
+|2026-06-01 08:00:00|    0|  0.33|    -1|
++-------------------+-----+------+------+
+
+hours where the average over 3 rows is not the average over 3 hours: 2
+
+== 6. sessions: bursts of pickups in zone 108 with gaps over 10 minutes
++--------+-------+-----------+-------------+
+|sessions|largest|avg_minutes|single_pickup|
++--------+-------+-----------+-------------+
+|      66|      2|       10.2|           62|
++--------+-------+-----------+-------------+
+
+sessions with lag + running sum: 66
+
+== 7. trip minutes by hour of day (all June)
++----+------+------------------+------------------+
+|hour| trips|           p50_min|           p90_min|
++----+------+------------------+------------------+
+|   4| 31726|13.133333333333333|              26.6|
+|   8|147003|              13.7|31.633333333333333|
+|  13|193764|15.116666666666667| 37.13333333333333|
+|  17|250959|15.266666666666667| 37.28333333333333|
+|  22|212386|14.233333333333333|29.366666666666667|
++----+------+------------------+------------------+
+
+== 8. time_bucket on a nanosecond timestamp (4.3 preview type)
+DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE: Cannot resolve "time_bucket(INTERVAL '01' SECOND, CAST(2026-06-01 08:00:

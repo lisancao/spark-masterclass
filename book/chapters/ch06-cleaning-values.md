@@ -580,7 +580,7 @@ A hash aggregate needs keys that are equal only when their bytes are equal. In t
 
 `UNICODE` is case-sensitive, but it is not binary stable either. Its comparison uses the ICU rules, not the bytes.
 
-For a cleaning step or a small dimension table, this cost is small. For a join key or a group key on billions of rows, calculate a normalized key one time, for example with `lower` and the accent removal of Step 7. Store it, and group or join on the stored key with the binary collation.
+For a cleaning step or a small dimension table, this cost is small. For a join key or a group key on billions of rows, calculate a normalized key one time. For example, use `lower` and the accent removal of Step 7. Store it, and group or join on the stored key with the binary collation.
 
 ## Step 10: Invalid UTF-8
 
@@ -731,7 +731,7 @@ city != 'Paris': 2 | city == None: 0 | isNull: 1
 
 - `NULL` is the SQL value for "unknown". It is not equal to any value, also not to another NULL.
 - `""` is a string with length 0.
-- `"N/A"` is a string that a person wrote to mean "no value". Spark does not know this meaning.
+- `"N/A"` is a string that a person wrote to mean "no value". Spark does not know this.
 - `NaN` ("not a number") is a floating-point value.
 
 A comparison with NULL gives NULL, and `filter` removes the rows where the condition is NULL. Thus `city != 'Paris'` returns 2 rows, not 3: the NULL row is not in the result. `F.col("city") == None` makes the SQL `city = NULL`, which is never true. Use `isNull()` and `isNotNull()`.
@@ -871,7 +871,7 @@ rows kept: 40 | rows with a reject reason: 5
 unmapped countries: ['Mars']
 ```
 
-C003 has no age in the source, so its age is NULL and it has no reason. C004 has an age of `-3`, which is a valid integer, so its age is NULL and its reason is `bad_age`. The two NULL values have different meanings, and `reject_reason` keeps the difference.
+C003 has no age in the source, so its age is NULL and it has no reason. C004 has an age of `-3`, which is a valid integer, so its age is NULL and its reason is `bad_age`. The two NULL values have different causes, and `reject_reason` keeps the difference.
 
 All 40 rows stay. You can count the problems for each check. You can send the rows with a reason to a quarantine table. You can still load the good columns of a row that is partly bad. A left anti join finds the values that need a new mapping entry: only `Mars` here.
 

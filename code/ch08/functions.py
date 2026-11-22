@@ -2,6 +2,9 @@
 
 Run from code/:  uv run python ch08/functions.py
 """
+import contextlib
+import fcntl
+import os
 import re
 import sys
 import tempfile
@@ -12,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from py4j.protocol import Py4JJavaError
 from pyspark.errors import PySparkException
 from pyspark.sql import functions as F
-from common.book import session, plan, TRIPS, ZONES, MONTH_START, MONTH_END
+from common.book import session, plan, TRIPS, ZONES, MONTH_START, MONTH_END, DATA
 
 spark = session("ch08-functions", spark_sql_session_timeZone="UTC",
                 spark_sql_warehouse_dir=tempfile.mkdtemp(prefix="ch08-"))
@@ -34,6 +37,21 @@ def run(label, sql, **kw):
         print(f"{label}: {rows if len(rows) != 1 else rows[0]}")
     except (PySparkException, Py4JJavaError) as e:
         print(f"{label}: {err(e)}")
+
+
+@contextlib.contextmanager
+def bench_lock():
+    """Hold the shared bench lock only while a timing runs (the book quotes these timings).
+    BOOK_NO_LOCK=1 skips the lock, for films and test runs whose timings the book does not quote."""
+    if os.environ.get("BOOK_NO_LOCK"):
+        yield
+        return
+    with open(DATA / ".bench.lock", "a") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 # 1. A scalar SQL UDF. Its body is an expression, and Catalyst puts that expression into the plan.
@@ -72,10 +90,11 @@ for name in ("fare_band", "fare_band_py"):
     p = plan(df, "simple")
     ops = sorted({w for w in re.findall(r"\b(ArrowEvalPython|BatchEvalPython|PushedFilters: \[[^\]]*\])", p)})
     t = []
-    for _ in range(4):
-        t0 = time.perf_counter()
-        n = df.first()[0]
-        t.append(time.perf_counter() - t0)
+    with bench_lock():
+        for _ in range(4):
+            t0 = time.perf_counter()
+            n = df.first()[0]
+            t.append(time.perf_counter() - t0)
     print(f"  {name:<13} {n:>7,} rows  median {sorted(t[1:])[1]:.2f} s  {ops}")
 
 # 3. A SQL table function: a parameterized view.
