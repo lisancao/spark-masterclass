@@ -1,0 +1,13 @@
+clip	source	start	end	poster_at	chapter
+ch11-bytes	01-ch11-bytes.mp4	0	55.3	52.3	ch11
+ch12-quarantine	01-ch12-quarantine.mp4	0	34.0	31.0	ch12
+ch13-quarantine	01-ch13-quarantine.mp4	0	44.3	41.3	ch13
+ch14-lambda	01-ch14-lambda.mp4	0	42.9	39.9	ch14
+ch15-edit	01-ch15-edit.mp4	0	35.3	32.3	ch15
+ch16-kafka	01-ch16-kafka.mp4	0	53.1	50.1	ch16
+ch17-forget	01-ch17-forget.mp4	0	66.3	63.3	ch17
+ch11-archives	02-ch11-archives.mp4	0	45.8	42.8	ch11
+ch12-decimal	02-ch12-decimal.mp4	0	69.1	66.1	ch12
+ch13-json-table	02-ch13-json-table.mp4	0	51.5	48.5	ch13
+ch14-codegen	02-ch14-codegen.mp4	0	40.2	37.2	ch14
+ch12-modes	03-ch12-modes.mp4	0	52.0	49.0	ch12
