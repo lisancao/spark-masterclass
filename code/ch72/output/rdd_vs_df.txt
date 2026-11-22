@@ -1,11 +1,11 @@
 same answer from both: True   hour 18: (18, (262898, 20.29))
 
 median of 5 runs over 3,837,248 rows:
-  rdd (Python lambdas)           10.32 s
-  dataframe                       0.24 s    43.2x faster than rdd
-  dataframe, wholeStage=false     0.27 s     1.2x slower than with codegen
+  rdd (Python lambdas)           12.71 s
+  dataframe                       0.28 s    45.7x faster than rdd
+  dataframe, wholeStage=false     0.29 s     1.1x slower than with codegen
 
-range(400M), filter, sum:  codegen on  0.14 s   off  1.36 s    9.8x slower without it
+range(400M), filter, sum:  codegen on  0.14 s   off  1.52 s   11.0x slower without it
 
 what Spark knows about the RDD version (toDebugString):
 (16) PythonRDD[349] at RDD at PythonRDD.scala:59 []
