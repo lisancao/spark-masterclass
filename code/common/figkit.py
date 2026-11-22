@@ -152,9 +152,9 @@ def render_png(svg: Path, scheme: str, w: int, h: int, png: Path):
 
 
 def embed(name: str, alt: str, caption: str, indent: str = "") -> str:
-    """The markdown for a chapter: both variants in one <figure>."""
+    """The markdown for a chapter: both variants in one <figure>. Blank lines keep the caption a separate paragraph for scripts/ste-check."""
     return (f'{indent}<figure markdown>\n'
-            f'{indent}  ![{alt}](../media/figures/{name}-light.svg#only-light)\n'
-            f'{indent}  ![{alt}](../media/figures/{name}-dark.svg#only-dark)\n'
+            f'{indent}  ![{alt}](../media/figures/{name}-light.svg#only-light)\n\n'
+            f'{indent}  ![{alt}](../media/figures/{name}-dark.svg#only-dark)\n\n'
             f'{indent}  <figcaption>{caption}</figcaption>\n'
             f'{indent}</figure>\n')

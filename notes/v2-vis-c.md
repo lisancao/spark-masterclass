@@ -25,3 +25,28 @@ Scope: figures, animations, tables and captions added to existing chapters 33 to
 | 43 | `ch43-attempts` (attempt files under local[4,2], row 120 values), `ch43-connect-matrix` (same value in two actions, Classic against Connect), `ch43-fragile` (outputs of the two jobs, clean and chaos) | `ch43-anim-rerun` (a failed attempt leaves no file; append against overwrite on a rerun; timing schematic) | determinism level table (Step 4), save mode table (Step 8) | `code/ch43/output/attempts.txt`, `connect_determinism.txt`, `writes.txt`, `fragile_job.txt` |
 | 44 | `ch44-syspath` (worker sys.path, local against cluster), `ch44-zip-archive` (pure and native modules from a zip and an archive) | `ch44-anim-includes` (include list captured once, reused workers keep the path; timing schematic) | interpreter setting table (Step 2) | `code/ch44/output/workers.txt`, `pyfiles.txt` |
 | 45 | `ch45-diagnosis` (run time per stage with Python share and flags), `ch45-connect-ops` (sessions, operations, job IDs), `ch45-profiler` (UDF profiler cost) | `ch45-anim-bus` (listener bus fan-out, a full queue drops events; slots and speed schematic) | log format table (Step 11) | `code/ch45/output/eventlog.txt`, `connect_obs.txt`, `profilers.txt`, `LiveListenerBus.scala` |
+
+Every figure was rendered to PNG on a white and on a slate background (`#1e2129`) and read before it was embedded. Every animation was checked on frames during the beats and on its poster frame.
+
+## Totals
+
+- 32 figures (64 SVG files, light and dark), 614 KB in all.
+- 13 animations (`book/media/clips/chNN-anim-*.mp4` and `.webp`), 1.97 MB in all. Each mp4 is between about 90 and 200 KB.
+
+## STE
+
+Captions, lead-in sentences and table cells are STE. `scripts/ste-check` gives the same findings before and after the change in each chapter (compared with `git stash`): ch33 2, ch34 1, ch35 1, ch36 0, ch37 13, ch38 0, ch39 6, ch40 23, ch41 0, ch42 5, ch43 15, ch44 5, ch45 1. All are findings of the existing prose. No `--allow` words were added.
+
+## Changes to existing text
+
+- Lists that only compared items became tables, with the same content: ch33 Step 2 (file source options), ch34 Step 2 (read options), ch35 Steps 2 and 8, ch36 Step 3 (commands), ch37 Step 3 (`handleInvalid`), ch38 Step 4, ch40 Step 9, ch41 Step 4, ch42 Step 6, ch43 Steps 4 and 8, ch45 Step 11. New summary tables with no prose removed: ch33 Step 1 (layer contracts), ch44 Step 2 (interpreter settings).
+- One sentence of instruction came with a table cell: ch35 Step 8, "Do not use it on a metric view" for `ALTER VIEW ... AS SELECT` (it follows from the result in the same row).
+- In ch33 to ch36, the edits are only added figures, tables and captions, as agreed with the writer of ch32.
+
+## Open findings (observed, not changed)
+
+- ch33 Step 7 shows a Python traceback (`IsADirectoryError` in `code/ch33/progress.py`) in place of the progress output, because Spark 4.3 writes the event log as a folder. The script needs to read `eventlog_v2_*/events_*`. The clip `ch33-incremental` shows the intended output. Not changed here: it is a code and output fix, outside this slice.
+
+## Nav and roadmap
+
+No new pages. No nav or roadmap rows.
