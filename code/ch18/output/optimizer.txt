@@ -1,0 +1,45 @@
+== Analyzed Logical Plan ==
+Aggregate [Zone#40], [Zone#40, round(sum(fare#44), 0) AS fares#45]
++- Project [Zone#40, (fare_amount#10 * ((cast(1 as double) + 0.5) - 0.5)) AS fare#44]
+   +- Filter ((Borough#39 = Queens) AND (PULocationID#7 < 140))
+      +- Join Inner, (PULocationID#7 = LocationID#38)
+         :- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6, ...
+         +- Relation [LocationID#38,Borough#39,Zone#40,service_zone#41] csv
+== Optimized Logical Plan ==
+Aggregate [Zone#40], [Zone#40, round(sum(fare#44), 0) AS fares#45]
++- Project [Zone#40, (fare_amount#10 * 1.0) AS fare#44]
+   +- Join Inner, (PULocationID#7 = LocationID#38)
+      :- Project [PULocationID#7, fare_amount#10]
+      :  +- Filter (isnotnull(PULocationID#7) AND (PULocationID#7 < 140))
+      :     +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag ...
+      +- Project [LocationID#38, Zone#40]
+         +- Filter ((isnotnull(Borough#39) AND (Borough#39 = Queens)) AND ((LocationID#38 < 140) AND isnotnull(LocationID#38)))
+            +- Relation [LocationID#38,Borough#39,Zone#40,service_zone#41] csv
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- HashAggregate(keys=[Zone#40], functions=[sum(fare#44)], output=[Zone#40, fares#45])
+   +- Exchange hashpartitioning(Zone#40, 200), ENSURE_REQUIREMENTS, [plan_id=59]
+      +- HashAggregate(keys=[Zone#40], functions=[partial_sum(fare#44)], output=[Zone#40, sum#50])
+         +- Project [Zone#40, (fare_amount#10 * 1.0) AS fare#44]
+            +- BroadcastHashJoin [PULocationID#7], [LocationID#38], Inner, BuildRight, false, false
+               :- Filter (isnotnull(PULocationID#7) AND (PULocationID#7 < 140))
+               :  +- FileScan parquet [PULocationID#7,fare_amount#10] Batched: true, DataFilters: [isnotnull(PULocationID#7), (PULocationID#7 < 140)], ...
+               +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, true] as bigint)),false), [plan_id=54]
+                  +- Project [LocationID#38, Zone#40]
+                     +- Filter (((isnotnull(Borough#39) AND (Borough#39 = Queens)) AND (LocationID#38 < 140)) AND isnotnull(LocationID#38))
+                        +- FileScan csv [LocationID#38,Borough#39,Zone#40] Batched: false, DataFilters: [isnotnull(Borough#39), (Borough#39 = Queens), ...
+
+272 rules ran; 9 of them changed the plan:
+
+  rule                                              runs  changed
+  Analyzer$ResolveFunctions                            2        1
+  Analyzer$ResolveReferences                           2        1
+  ColumnPruning                                        6        1
+  ConstantFolding                                      5        1
+  EnsureRequirements                                   2        1
+  InferFiltersFromConstraints                          1        1
+  InsertAdaptiveSparkPlan                              1        1
+  PushDownPredicates                                   6        2
+  RemoveRedundantProjects                              2        1
+
+Planning phases: analysis 20 ms, optimization 113 ms, planning 91 ms

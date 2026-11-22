@@ -1,0 +1,33 @@
+schema: struct<v:variant>
+61 rows from 3 files; Python type of one value: VariantVal
+rows with a NULL variant (the broken last line of day 3): 1
+value bytes: min 44, max 104; metadata bytes: min 27, max 78
+distinct metadata blobs among 60 rows: 3
+
+--- metadata of {"event", "user_id", "amount", "ts"}: 27 bytes
+0000  01 04 00 05 0c 12 14 65 76 65 6e 74 75 73 65 72  .......eventuser  <- header: version, sorted_strings, offset_size; dictionary size (1 byte); 5 offsets; UTF-8 strings, no separators
+0010  5f 69 64 61 6d 6f 75 6e 74 74 73                 _idamountts     
+header 0x01: version 1, sorted_strings 0, offset_size 1
+size 4, offsets [0, 5, 12, 18, 20], keys ['event', 'user_id', 'amount', 'ts']
+
+--- value: 44 bytes
+0000  02 04 02 00 03 01 07 00 0d 05 21 11 76 69 65 77  ..........!.view  <- header; size; field ids; field offsets; field data
+0010  0c 00 20 02 65 02 00 00 4d 32 30 32 36 2d 31 30  .. .e...M2026-10
+0020  2d 30 31 54 31 30 3a 30 30 3a 30 30              -01T10:00:00    
+header 0x02 = 0b00000010: basic type 2 (OBJECT), is_large 0, id size 1, offset size 1
+size 4; ids [2, 0, 3, 1] = ['amount', 'event', 'ts', 'user_id']; offsets [7, 0, 13, 5, 33]
+  amount   at data+7   20 02 65 02 00 00                             DECIMAL4  Decimal('6.13')
+  event    at data+0   11 76 69 65 77                                SHORT_STR 'view'
+  ts       at data+13  4d 32 30 32 36 2d 31 30 2d 30 31 54 31 30 3a 30 30 3a 30 30 SHORT_STR '2026-10-01T10:00:00'
+  user_id  at data+5   0c 00                                         INT1      0
+
+--- a nested value: 49 bytes; keys ['user', 'id', 'plan', 'items', 'sku', 'qty']
+0000  02 02 03 00 0d 00 2a 02 02 01 02 00 02 06 0c 02  ......*.........  <- object: 2 fields; data of field 'user' (an object)
+0010  0d 70 72 6f 03 02 00 0c 18 02 02 05 04 03 00 05  .pro............
+0020  09 50 39 0c 03 02 02 05 04 03 00 05 09 50 36 0c  .P9..........P6.
+0030  02                                               .               
+'items' at 0x0014: header 0x03 (ARRAY), size 2, offset size 1, offsets [0, 12, 24]
+decoded: {'items': [{'qty': 3, 'sku': 'P9'}, {'qty': 2, 'sku': 'P6'}], 'user': {'id': 2, 'plan': 'pro'}}
+one dictionary for all levels: 'sku' and 'qty' appear once in the metadata, used by 2 objects
+
+reader vs json.loads on every line: 60 equal, 0 different, 1 not JSON (try_parse_json gave NULL)

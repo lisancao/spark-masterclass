@@ -1,0 +1,22 @@
+Spark 4.3.0, no engine
+  spark.plugins                  = (not set)
+  spark.sql.extensions           = (not set)
+  spark.shuffle.manager          = (not set)
+  spark.memory.offHeap.enabled   = (not set)
+hourly, from Parquet:
+  operator                                 supportsColumnar
+    SortExec                               False
+          ShuffleExchangeExec              False
+              HashAggregateExec            False
+                    ShuffleExchangeExec    False
+                        HashAggregateExec  False
+                          ProjectExec      False
+                            FilterExec     False
+                              ColumnarToRowExec False
+                                  FileSourceScanExec True
+an aggregate over a cached DataFrame (ArrowCachedBatchSerializer):
+  operator                                 supportsColumnar
+    HashAggregateExec                      False
+          ShuffleExchangeExec              False
+              HashAggregateExec            False
+                  InMemoryTableScanExec    True

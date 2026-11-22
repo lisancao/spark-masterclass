@@ -1,0 +1,35 @@
+spark.sql.ansi.enabled = true
+spark.sql.execution.pythonUDF.arrow.enabled = true
+
+built-in when():
+   (no Python node: the JVM evaluates it)
+
+@udf (Arrow by default):
+   ArrowEvalPython [band_udf(fare_amount#10)#23], [pythonUDF0#48], 101
+
+@udf(useArrow=False):
+   BatchEvalPython [band_udf(fare_amount#10)#25], [pythonUDF0#49]
+
+@pandas_udf, scalar:
+   ArrowEvalPython [band_pandas(fare_amount#10)#27], [pythonUDF0#50], 200
+
+@arrow_udf, scalar:
+   ArrowEvalPython [tip_share(tip_amount#13, fare_amount#10)#29], [pythonUDF0#51], 250
+
+mapInPandas:
+   MapInPandas <lambda>(PULocationID#7, fare_amount#10, tip_amount#13)#31, [PULocationID#32, fare_amoun
+
+mapInArrow:
+   MapInArrow <lambda>(PULocationID#7, fare_amount#10, tip_amount#13)#35, [PULocationID#36, fare_amount
+
+groupBy().applyInPandas:
+   FlatMapGroupsInPandas [PULocationID#7], per_zone(PULocationID#7, fare_amount#10, tip_amount#13)#39, 
+   Sort [PULocationID#7 ASC NULLS FIRST], false, 0
+   Exchange hashpartitioning(PULocationID#7, 200), ENSURE_REQUIREMENTS, [plan_id=110]
+
+two @udf, nested:
+   ArrowEvalPython [band_udf(band_udf(fare_amount#10)#42)#43], [pythonUDF0#52], 101
+
+@udf inside @pandas_udf:
+   ArrowEvalPython [band_pandas(length(pythonUDF0#53))#46], [pythonUDF0#54], 200
+   ArrowEvalPython [band_udf(fare_amount#10)#45], [pythonUDF0#53], 101

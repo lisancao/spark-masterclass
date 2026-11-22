@@ -1,0 +1,4 @@
+clip	source	start	end	poster_at	chapter
+ch24-blocked	ch24-chapter.mp4	0	38.0	34	ch24
+ch24-fallback	ch24-chapter.mp4	38.0	119.5	116	ch24
+ch24-gpu	ch24-chapter.mp4	119.5	162.9	160	ch24

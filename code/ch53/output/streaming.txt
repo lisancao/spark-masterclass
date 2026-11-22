@@ -1,0 +1,41 @@
+run 1, availableNow: [(0, 3), (1, 1)]
+   prepareForTriggerAvailableNow() -> ticket_3.eml
+   initialOffset()
+   latestOffset((start), ReadMaxFiles) -> ticket_2.eml
+   initialOffset()
+   partitions((start), ticket_2.eml) -> 3
+   writer.commit(batch 0): 3 rows published
+   latestOffset(ticket_2.eml, ReadMaxFiles) -> ticket_3.eml
+   reader.commit(ticket_2.eml)
+   partitions(ticket_2.eml, ticket_3.eml) -> 1
+   writer.commit(batch 1): 1 rows published
+   latestOffset(ticket_3.eml, ReadMaxFiles) -> ticket_3.eml
+
+checkpoint folders: ['commits', 'metadata', 'offsets']
+offsets/: ['0', '1']  commits/: ['0', '1']
+offsets/1:
+   v1
+   {"batchWatermarkMs":0,"batchTimestampMs":1795342269771,"conf":{"spark.sql.streaming...
+   {"v": 1, "mtime_ns": 1790000003000000000, "name": "ticket_3.eml"}
+
+run 2, restart, processingTime: [(2, 3), (3, 1)]
+run 3, after deleting commits/3: [(3, 1)]
+   writer.commit(batch 3): already published, replay skipped
+sink: 8 rows, 8 distinct files, folders ['batch=00000', 'batch=00001', 'batch=00002', 'batch=00003']
+
+the same 8 files, a new checkpoint:
+  with SupportsTriggerAvailableNow:    [(0, 3), (1, 3), (2, 2)]
+  without SupportsTriggerAvailableNow: [(0, 8)]
+
+realTime trigger, inbox sink: STREAMING_REAL_TIME_MODE.OPERATOR_OR_SINK_NOT_IN_ALLOWLIST
+   Streaming real-time mode has the following limitation: The sink(s):
+   org.apache.spark.sql.execution.datasources.v2.python.PythonTable is not in the
+   sink allowlist for Real-Time Mode. To bypass this check, set [...]
+
+realTime trigger, console sink: STREAMING_REAL_TIME_MODE.INPUT_STREAM_NOT_SUPPORTED
+   Streaming real-time mode has the following limitation: The input stream org.apach
+   e.spark.sql.execution.datasources.v2.python.PythonMicroBatchStreamWithTriggerAvai
+   lableNow is not supported in Real-time Mode.
+
+simple reader, stuck=false: batches [(0, 4), (1, 4), (2, 4)] ...
+simple reader, stuck=true: SIMPLE_STREAM_READER_OFFSET_DID_NOT_ADVANCE

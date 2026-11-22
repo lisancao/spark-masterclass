@@ -1,0 +1,124 @@
+== 1. longest trip per borough, three ways
++-------------+-----------------------+-------------+
+|Borough      |Zone                   |trip_distance|
++-------------+-----------------------+-------------+
+|Bronx        |Allerton/Pelham Gardens|83.2         |
+|Brooklyn     |East New York          |77.6         |
+|EWR          |Newark Airport         |65.56        |
+|Manhattan    |Upper East Side South  |99.26        |
+|N/A          |Outside of NYC         |91.02        |
+|Queens       |JFK Airport            |94.78        |
+|Staten Island|West Brighton          |41.39        |
+|Unknown      |N/A                    |59.1         |
++-------------+-----------------------+-------------+
+
+same rows: True
+same optimized plan, subquery vs QUALIFY: True
+same optimized plan, QUALIFY vs pipe:     False
+same operators, QUALIFY vs pipe:          True
+the one difference: ['+- Project [trip_distance#4, Borough#39, Zone#40]', ':- Project [trip_distance#4, PULocationID#7]']
+
+== 2. the physical plan of the QUALIFY query
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   ResultQueryStage 3
+   +- *(5) Sort [Borough#39 ASC NULLS FIRST], true, 0
+      +- AQEShuffleRead coalesced
+         +- ShuffleQueryStage 2
+            +- Exchange rangepartitioning(Borough#39 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [pl
+               +- *(4) Project [Borough#39, Zone#40, trip_distance#4]
+                  +- *(4) Filter (row_number() OVER (PARTITION BY june.Borough ORDER BY june.trip_di
+                     +- Window [row_number() windowspecdefinition(Borough#39, trip_distance#4 DESC N
+                        +- WindowGroupLimit [Borough#39], [trip_distance#4 DESC NULLS LAST], row_num
+                           +- *(3) Sort [Borough#39 ASC NULLS FIRST, trip_distance#4 DESC NULLS LAST
+                              +- AQEShuffleRead coalesced
+with windowGroupLimitThreshold = -1: ['Window']
+
+== 3. which rank filters get a WindowGroupLimit
+  row_number() = 1   WindowGroupLimit x2
+  rank() <= 3        WindowGroupLimit x2
+  dense_rank() < 4   WindowGroupLimit x2
+  row_number() > 1   WindowGroupLimit x0
+  ntile(4) = 1       WindowGroupLimit x0
+
+== 4. QUALIFY rules
+  alias of a window      ok, 13 rows, first ('Bronx', 'Mott Haven/Port Morris', 1765, 1)
+  no window function     QUALIFY_REQUIRES_WINDOW_FUNCTION: The QUALIFY clause requires at least one window function in the current 
+  aggregate in QUALIFY   QUALIFY_AGGREGATE_NOT_ALLOWED: Aggregate functions are not supported in QUALIFY: "count(1)". SQLSTATE: 
+
+== 5. ties
+  row_number() = 1 on passenger_count: 8 rows
+  rank() = 1 on passenger_count: 4,498 rows
+
+== 6. top-N without a window
++-------------+-----------------------+------------------+
+|Borough      |zone_of_longest        |top3              |
++-------------+-----------------------+------------------+
+|Bronx        |Allerton/Pelham Gardens|[83.2, 82.3, 67.6]|
+|Brooklyn     |East New York          |[77.6, 63.4, 62.7]|
+|EWR          |Newark Airport         |[65.6, 36.9, 27.2]|
+|Manhattan    |Upper East Side South  |[99.3, 98.6, 98.5]|
+|N/A          |Outside of NYC         |[91.0, 86.7, 73.4]|
+|Queens       |JFK Airport            |[94.8, 93.8, 91.6]|
+|Staten Island|West Brighton          |[41.4, 32.9, 30.3]|
+|Unknown      |N/A                    |[59.1, 37.2, 35.5]|
++-------------+-----------------------+------------------+
+
+plan nodes: ['SortAggregate(key=[Borough#39],', 'Exchange', 'SortAggregate(key=[Borough#39],', 'BroadcastExchange']
+
+== 7. pipe operators
++---------+------------+-------+-------------+
+|  Borough|payment_type|  trips|avg_tip_share|
++---------+------------+-------+-------------+
+| Brooklyn|           0|  87202|        0.012|
+| Brooklyn|           1|   9197|        0.233|
+|Manhattan|           1|2183587|        0.263|
+|Manhattan|           0| 759665|        0.018|
+|   Queens|           1| 207275|        0.218|
+|   Queens|           2|  52960|          0.0|
++---------+------------+-------+-------------+
+
+== 8. AGGREGATE against SELECT with an aggregate
+AGGREGATE columns: ['Borough', 'trips'] | SELECT columns: ['Borough', 'trips']
+pipe SELECT count(*), no GROUP BY: 3663191
+pipe SELECT with a bare column and an aggregate: MISSING_GROUP_BY: The query does not include a GROUP BY clause. Add GROUP BY or turn it in
+
+== 9. | as a pipe
+  FROM zones | WHERE Borough = 'Queens' | AGGREGATE count(*) AS n    -> 69
+  SELECT 1 | 2 AS bits                                               -> 3
+
+== 10. pipes after a query, in a CTE
+[Row(Zone='Upper East Side South', n=173550), Row(Zone='Midtown Center', n=156493), Row(Zone='Upper East Side North', n=152687)]
+
+== 11. PIVOT and UNPIVOT
++---------+-------+------+
+|  Borough|   card|  cash|
++---------+-------+------+
+|Manhattan|2183587|283543|
+|   Queens| 207275| 52960|
++---------+-------+------+
+
++---------+------+-------+
+|  Borough|method|  trips|
++---------+------+-------+
+|Manhattan|  card|2183587|
+|Manhattan|  cash| 283543|
+|   Queens|  card| 207275|
+|   Queens|  cash|  52960|
++---------+------+-------+
+
+== 12. listagg and approx_top_k
++-------------+----------------------+
+|Borough      |zones                 |
++-------------+----------------------+
+|Bronx        |Boro Zone             |
+|Brooklyn     |Boro Zone             |
+|EWR          |EWR                   |
+|Manhattan    |Boro Zone, Yellow Zone|
+|N/A          |N/A                   |
+|Queens       |Airports, Boro Zone   |
+|Staten Island|Boro Zone             |
+|Unknown      |N/A                   |
++-------------+----------------------+
+
+[Row(item='Upper East Side South', count=173550), Row(item='Midtown Center', count=156493), Row(item='Upper East Side North', count=152687)]

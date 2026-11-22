@@ -1,0 +1,44 @@
+Spark 4.3.0, newest release of each engine:
+Gluten 1.7.0 (bin-spark-4.1)
+  FAILS AT START: java.lang.NoSuchMethodError:
+    'org.apache.spark.internal.config.ConfigEntry
+    org.apache.spark.sql.internal.StaticSQLConf$.UI_RETAINED_EXECUTIONS()'
+RAPIDS 26.10.0 (cuda13)
+  FAILS AT START: java.lang.IllegalArgumentException: This RAPIDS Plugin build does not
+    support Spark build 4.3.0. Supported Spark versions: 3.5.0 {buildver=350}, 3.5.1
+    {buildver=351}, 3.5.2 {buildver=352}, 3.5.3 {buildver=353}, 3.5.4 {buildver=354},
+    3.5.5 {buildver=355}, 3.5.6 {buildver=356}, 3.5.7 {buildver=357}, 3.5.8
+    {buildver=358}, 3.5.9 {buildver=359}, 4.0.0 {buildver=400}, 4.0.0-databricks17.3
+    {buildver=400db173}, 4.0.1 {buildver=401}, 4.0.2 {buildver=402}, 4.0.3
+    {buildver=403}, 4.0.4 {buildver=404}, 4.1.1 {buildver=411}, 4.1.2 {buildver=412},
+    4.1.3 {buildver=413}, 4.2.0 {buildver=420}. Consult the Release documentation at
+    https://nvidia.github.io/cudf-spark/docs/download.html
+Comet 1.2.0 (spark4.2)
+  FAILS AT START: java.lang.IllegalArgumentException: spark.shuffle.manager must be a
+    BlockingShuffleManager, but
+    org.apache.spark.sql.comet.execution.shuffle.CometShuffleManager is not. A blocking
+    manager serves regular, materialized shuffles and resolves blocks by id; configure a
+    pipelined manager via spark.shuffle.manager.incremental instead.
+Auron 9.0.0 (compiled for spark-4.2)
+  FAILS AT START: java.lang.IllegalArgumentException: spark.shuffle.manager must be a
+    BlockingShuffleManager, but
+    org.apache.spark.sql.execution.auron.shuffle.AuronShuffleManager is not. A blocking
+    manager serves regular, materialized shuffles and resolves blocks by id; configure a
+    pipelined manager via spark.shuffle.manager.incremental instead.
+Comet 1.2.0, no CometShuffleManager
+  STARTS on 4.3.0: hourly ran with 0 engine operators, 8 Spark operators, first row (0,
+    1487816, 28.88)
+  log: CometSparkSessionExtensions: Comet extension is disabled because
+    spark.shuffle.manager is not set to
+    org.apache.spark.sql.comet.execution.shuffle.CometShuffleManager or
+    org.apache.spark.sql.comet.execution.shuffle.CometCelebornShuffleManager. Comet
+    provides limited benefit without its shuffle manager. Set
+    spark.comet.shuffle.enabled=false to keep Comet enabled with Spark's default shuffle
+    manager.
+Comet 1.2.0, spark.comet.shuffle.enabled=false (not a supported setup)
+  FAILS AT QUERY: java.lang.NoSuchMethodError:
+    'org.apache.spark.sql.execution.FileSourceScanExec org.apache.spark.sql.execution.Fi
+    leSourceScanExec.copy(org.apache.spark.sql.execution.datasources.HadoopFsRelation,
+    scala.Option, scala.collection.immutable.Seq, org.apache.spark.sql.types.StructType,
+    scala.collection.immutable.Seq, scala.Option, scala.Option,
+    scala.collection.immutable.Seq, scala.Option, boolean)'

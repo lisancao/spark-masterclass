@@ -1,0 +1,79 @@
+== 1. one question, three syntaxes
++---------+-------+--------+
+|  Borough|  trips|avg_fare|
++---------+-------+--------+
+|Manhattan|3241273|   18.03|
+|   Queens| 304954|   51.62|
+| Brooklyn|  98710|   31.96|
+|    Bronx|  13638|   29.59|
++---------+-------+--------+
+
+same rows: True
+same optimized plan, DataFrame vs SQL: True
+same optimized plan, SQL vs pipe:      True
+
+== 2. parsed plans (node names only)
+--- sql
+Sort
+  UnresolvedHaving
+    Aggregate
+      Filter
+        Join
+          SubqueryAlias
+            UnresolvedRelation
+          SubqueryAlias
+            UnresolvedRelation
+--- pipe
+Sort
+  PipeOperator
+    Filter
+      PipeOperator
+        Aggregate
+          Join
+            Filter
+              PipeOperator
+                Filter
+                  PipeOperator
+                    SubqueryAlias
+                      UnresolvedRelation
+            SubqueryAlias
+              UnresolvedRelation
+
+== 3. each prefix of the pipe query
+  1 operators: 21 columns, 3,837,248 rows   FROM trips AS t
+  2 operators: 21 columns, 3,837,231 rows   |> WHERE t.tpep_pickup_datetime >= '2026-06-01
+  3 operators: 21 columns, 3,663,191 rows   |> WHERE t.fare_amount > 0 AND t.trip_distance
+  4 operators: 25 columns, 3,663,191 rows   |> JOIN zones AS z ON t.PULocationID = z.Locat
+  5 operators:  3 columns,         8 rows   |> AGGREGATE count(*) AS trips, round(avg(t.fa
+  6 operators:  3 columns,         4 rows   |> WHERE trips > 10000
+  7 operators:  3 columns,         4 rows   |> ORDER BY trips DESC
+
+== 4. explain modes
+  simple       41 lines  == Physical Plan ==
+  extended     80 lines  == Parsed Logical Plan == == Analyzed Logical Plan == == Optimized Log
+  formatted   199 lines  == Physical Plan ==
+  cost         54 lines  == Optimized Logical Plan == == Physical Plan ==
+  codegen     821 lines  == Subtree 1 / 4 (maxMethodCodeSize:181; maxConstantPoolSize:118(0.18%
+  cost mode, first operator lines:
+    Sort [trips#73L DESC NULLS LAST], true, Statistics(sizeInBytes=35.5 GiB)
+    +- Filter (trips#73L > 10000), Statistics(sizeInBytes=35.5 GiB)
+    +- Aggregate [Borough#39], [Borough#39, count(1) AS trips#73L, round(avg(fare_amount#10), 2) AS avg_
+
+== 5. constant folding
+['Project [7 AS x#302, NYC AS y#303]']
+defined a query with 1/0 and WHERE false: ['x']
+collect(): DIVIDE_BY_ZERO: Division by zero. Use `try_divide` to tolerate divisor being 0 and ret
+  first Spark frames:
+    org.apache.spark.sql.catalyst.expressions.DivModLike.eval
+    org.apache.spark.sql.catalyst.expressions.DivModLike.eval$
+    org.apache.spark.sql.catalyst.expressions.Divide.eval
+    org.apache.spark.sql.catalyst.optimizer.ConstantFolding$.tryFold
+
+== 6. parameters
+named   :min_fare, :zone  -> 5216
+positional ?, ?            -> 5216
+IDENTIFIER(:tbl)           -> 265
+DataFrame as {t}           -> 69
+f-string with user input   -> 3837248
+the same input as :v       -> CAST_INVALID_INPUT: The value '0 OR 1 = 1' of the type "STRING" cannot be cast to "DOUBLE"
+IDENTIFIER with a bad name -> PARSE_SYNTAX_ERROR: Syntax error at or near ';'. SQLSTATE: 42601

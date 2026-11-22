@@ -1,10 +1,10 @@
 # Chapter 3: Quick start
 
-Most quick starts count words in a text file, which teaches you the API and nothing about data. This one asks a question somebody might actually want answered (which parts of New York generate the most taxi trips, and how well do those riders tip?) and answers it twice, once with the DataFrame API and once in SQL, against a month of real trip records that have all the problems real data has.
+Most quick starts count words in a text file. This teaches you the API, but it teaches you nothing about data. This quick start asks a real question. In which parts of New York do the most taxi trips start, and how much do those riders tip? It answers the question two times, once with the DataFrame API and once in SQL. The data is a month of real trip records, with all the problems of real data.
 
-**DataFrames and SQL in Spark are two ways of writing the same logical plan, so the choice between them is about which reads better for the person maintaining the code; the work that actually decides whether the answer is right is the cleaning in front of the aggregation, because a month of real trips contains enough impossible rows to move every average you compute from it.**
+**DataFrames and SQL in Spark are two methods to write the same logical plan. Thus, choose the one that is easier to read for the person who maintains the code. The work that decides if the answer is correct is to clean the data before the aggregation. A month of real trips contains enough impossible rows to change each average that you calculate from it.**
 
-The code is [`code/ch03/quickstart.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch03), it runs on the pip install from [Chapter 2](ch02-installing.md) in about ten seconds, and every table below is its saved output.
+The code is [`code/ch03/quickstart.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch03). It runs on the pip install from [Chapter 2](ch02-installing.md) in about ten seconds. Each table below is its saved output.
 
 ## Step 1: Load the trips and the zones
 
@@ -13,9 +13,11 @@ trips = spark.read.parquet(str(TRIPS))
 zones = spark.read.option("header", True).option("inferSchema", True).csv(str(ZONES))
 ```
 
-Two reads, two very different amounts of work. Parquet stores its schema in the file footer, so `spark.read.parquet` knows that `tpep_pickup_datetime` is a `timestamp_ntz` and `fare_amount` a `double` without reading any data. CSV stores nothing but text, so `header=true` makes Spark run a small job to read the first line for column names, and `inferSchema=true` makes it scan the whole file a second time to guess each column's type; on a 265-row lookup table that costs nothing, and on a large CSV it's a full extra pass, which is why production code passes an explicit schema instead.
+The two reads do very different quantities of work. Parquet keeps its schema in the file footer. Thus, `spark.read.parquet` knows that `tpep_pickup_datetime` is a `timestamp_ntz` and `fare_amount` is a `double`, before it reads any data. CSV keeps only text. Thus, `header=true` makes Spark run a small job that reads the first line to get the column names.
 
-Each trip has a pickup zone (`PULocationID`) and a drop-off zone (`DOLocationID`), integers that the zone lookup maps to names:
+`inferSchema=true` makes Spark scan the full file a second time to infer the type of each column. On a 265-row lookup table, this costs nothing. On a large CSV file, it is a full extra pass. That is why production code gives an explicit schema.
+
+Each trip has a pickup zone (`PULocationID`) and a drop-off zone (`DOLocationID`). These zones are integers, and the zone lookup maps them to names:
 
 | LocationID | Borough | Zone | service_zone |
 |---|---|---|---|
@@ -25,7 +27,7 @@ Each trip has a pickup zone (`PULocationID`) and a drop-off zone (`DOLocationID`
 
 ## Step 2: Look before you aggregate
 
-Before asking anything of the data, ask what's in it:
+Before you ask a question of the data, find what the data contains:
 
 ```python
 trips.select(F.min("tpep_pickup_datetime").alias("first_pickup"),
@@ -42,7 +44,7 @@ trips.select(F.min("tpep_pickup_datetime").alias("first_pickup"),
 +-------------------+-------------------+-----------+------------------+
 ```
 
-The June 2026 file contains a pickup from New Year's Eve 2008 (a meter with a dead clock, most likely), a negative fare (refunds and voided trips are recorded as trips), and a trip longer than twelve times around the Earth. `code/ch03/what_cleaning_drops.py` counts how many rows each problem affects, each rule on its own:
+The June 2026 file contains a pickup from New Year's Eve 2008. Most likely, the clock in that meter was defective. The file contains a negative fare, because the TLC records refunds and voided trips as trips. It also contains a trip that is longer than twelve times around the Earth. `code/ch03/what_cleaning_drops.py` counts the rows that each problem affects, with each rule by itself:
 
 ```text
   all                                  3,837,248  100.0%
@@ -53,7 +55,11 @@ The June 2026 file contains a pickup from New Year's Eve 2008 (a meter with a de
   not paid by card (no tip recorded)   1,404,377   36.6%
 ```
 
-The first three are just wrong and get filtered out. The last two are different, and more interesting. A missing passenger count isn't a broken trip; a quarter of June's rows have it, which is far too many to be meter errors and probably reflects how some trips are recorded rather than a defect in them, so dropping them would throw away a quarter of the month for no reason when the question doesn't involve passengers at all. Card payment matters only for tips: the TLC's data dictionary notes that the `tip_amount` field is populated for credit-card tips, and cash tips aren't recorded, so a tip percentage computed over every trip would count 36.6% of trips as tipping nothing. The right move is to keep those trips for the trip counts and fares, and leave them out of the tip calculation only.
+The first three problems are errors, and the filter removes these rows. The last two problems are different, and they need more thought.
+
+A trip with no passenger count is not an incorrect trip. A quarter of the rows in June have no passenger count. This quantity is too large for meter errors. Probably, it comes from the method that records some trips, and it is not a defect in the trips. The question does not use passengers. Thus, if you remove these rows, you lose a quarter of the month for no reason.
+
+Card payment is important only for tips. The data dictionary of the TLC says that the `tip_amount` field contains credit-card tips, and that the TLC does not record cash tips. Thus, a tip percentage over all trips counts 36.6% of trips as trips with a tip of zero. The correct method is to keep these trips for the trip counts and the fares. Remove them only from the tip calculation.
 
 ## Step 3: The question, with DataFrames
 
@@ -77,7 +83,9 @@ by_zone = (clean
 by_zone.show(truncate=False)
 ```
 
-The tip percentage is the one line worth slowing down for. `F.when(card, F.col("tip_amount"))` with no `otherwise` returns null for non-card trips, and `sum` ignores nulls, so the numerator is the total of card tips and the denominator the total of card fares; the cash trips still count towards `trips` and `avg_fare` in the same aggregation, without a second pass or a second DataFrame. It's also a ratio of sums rather than an average of per-trip ratios, which weights each trip by its fare and keeps a $3 fare with a $3 tip from counting as a 100% tipper.
+Look carefully at the line for the tip percentage. `F.when(card, F.col("tip_amount"))` with no `otherwise` returns null for the trips without a card payment. `sum` ignores nulls. Thus, the numerator is the total of card tips, and the denominator is the total of card fares. The cash trips are still part of `trips` and `avg_fare` in the same aggregation. You do not need a second pass or a second DataFrame.
+
+Also, the value is a ratio of sums, not an average of the ratios for each trip. Thus, the fare of each trip sets its weight. A $3 fare with a $3 tip does not count as a 100% tip.
 
 ```text
 +---------+----------------------------+------+--------+-------+
@@ -96,11 +104,13 @@ The tip percentage is the one line worth slowing down for. `F.when(card, F.col("
 +---------+----------------------------+------+--------+-------+
 ```
 
-Eight of the ten busiest pickup zones are in Manhattan, and the Upper East Side (south and north together) beats Midtown, which surprised me, though it's a dense residential neighbourhood with a lot of short trips (its average fare is the lowest in the table). The two airports are where the money is, with JFK's average fare more than four times the Upper East Side's, and JFK is also the one zone whose riders tip noticeably less, at 19.0% against roughly 23 to 25% everywhere else; a large share of JFK pickups pay the flat Manhattan airport fare, and a fixed fare with tolls on top seems to get tipped like a fixed price rather than like a meter.
+Eight of the ten busiest pickup zones are in Manhattan. The Upper East Side (south and north together) has more trips than Midtown. This result can be a surprise. But the Upper East Side is a dense residential area with many short trips, and its average fare is the lowest in the table.
+
+The two airports have the largest fares. The average fare at JFK is more than four times the average fare of the Upper East Side. JFK is also the only zone where riders tip clearly less: 19.0%, against about 23 to 25% in all other zones. Many JFK pickups pay the flat airport fare to Manhattan. Possibly, riders tip a fixed fare plus tolls as a fixed price, and not as a meter fare.
 
 ## Step 4: The same question in SQL
 
-A DataFrame can be registered as a temporary view and queried with SQL in the same session:
+You can register a DataFrame as a temporary view, and then query it with SQL in the same session:
 
 ```python
 trips.createOrReplaceTempView("trips")
@@ -119,7 +129,9 @@ by_zone_sql = spark.sql(f"""
     LIMIT 10""")
 ```
 
-A temporary view is just a name for a DataFrame's plan in this session's catalog; nothing is copied or materialized, and the SQL text is parsed into the same kind of logical plan the DataFrame calls built. (The f-string is fine here because the values are constants in my own code; for anything that comes from a user, `spark.sql` takes named parameters, `spark.sql("... WHERE fare_amount > :min_fare", args={"min_fare": 0})`, which [Chapter 7](../roadmap.md) covers.)
+A temporary view is only a name for the plan of a DataFrame in the catalog of this session. Spark does not copy or materialize data. Spark parses the SQL text into the same type of logical plan that the DataFrame calls built.
+
+The f-string is safe here, because the values are constants in the code of the book. For values from a user, use the named parameters of `spark.sql`: `spark.sql("... WHERE fare_amount > :min_fare", args={"min_fare": 0})`. [Chapter 7](ch07-spark-sql-in-depth.md) shows this method.
 
 ```text
 Same answer: True
@@ -127,7 +139,9 @@ Same analyzed plan (sameSemantics): False
 Same optimized plan (sameResult):   True
 ```
 
-Same rows, and yet `sameSemantics` says the two queries differ, while comparing the optimized plans says they're the same. The difference is which plan each comparison looks at. `sameSemantics` compares the **analyzed** plans, which are your query as you wrote it, with names resolved and types checked but nothing rearranged; printing the two trees with their arguments stripped shows why they disagree:
+The rows are the same. But `sameSemantics` says that the two queries are different, and a comparison of the optimized plans says that they are the same. The difference is in the plan that each comparison examines. `sameSemantics` compares the **analyzed** plans. An analyzed plan is your query as you wrote it. Spark resolves the names and checks the types, but it does not change the sequence of the operators.
+
+If you print the two trees without their arguments, you can see why they are different:
 
 ```text
 dataframe, analyzed:                 sql, analyzed:
@@ -147,11 +161,19 @@ dataframe, analyzed:                 sql, analyzed:
                                                                +- Relation
 ```
 
-The DataFrame version filters the trips before joining them, because that's the order I chained the calls in; the SQL version joins first and filters afterwards, because that's where `WHERE` sits in a `SELECT`, and it wraps each table in the view and alias nodes that `FROM trips t` introduced. The **optimizer** then rewrites both: it pushes the filter below the join (filtering 3.8 million rows before a join is cheaper than after it), removes the view and alias nodes, which only existed to resolve names, and normalizes the order of operands in commutative expressions, which is why `100 * col` in Python (where `Column.__rmul__` builds `col * 100`) and `100 * sum(...)` in SQL end up identical. After that the two plans pass `sameResult`, and everything downstream (the physical plan, the generated code, the tasks) is the same.
+The DataFrame version filters the trips before the join, because the calls have that sequence in the code. The SQL version does the join first and filters after it, because `WHERE` has that position in a `SELECT`. The SQL version also puts each table in the view and alias nodes that `FROM trips t` added.
 
-The general point is worth keeping: the order you write transformations in is a suggestion. Spark keeps the meaning and throws away the order, so there's no performance reason to put a filter before a join by hand, and no reason to prefer one API over the other for speed.
+Then the **optimizer** changes the two plans:
 
-## Step 5: What actually runs
+- It pushes the filter below the join. A filter on 3.8 million rows before a join costs less than after the join.
+- It removes the view and alias nodes. These nodes were necessary only to resolve names.
+- It normalizes the sequence of operands in commutative expressions. In Python, `Column.__rmul__` builds `col * 100` from `100 * col`. After the optimizer normalizes it, this expression and `100 * sum(...)` in SQL are identical.
+
+After these changes, the two plans pass `sameResult`. All the later parts (the physical plan, the generated code, the tasks) are the same.
+
+Remember this general point: the sequence in which you write transformations is only a suggestion. Spark keeps what the query means, and it discards the sequence. Thus, you do not need to put a filter before a join manually for performance. Also, one API is not faster than the other.
+
+## Step 5: What runs
 
 ```text
 == Physical Plan ==
@@ -188,30 +210,34 @@ flowchart BT
   j --> pa["HashAggregate (partial)"]:::op --> x["Exchange<br/>986 partial rows"]:::ex --> fa["HashAggregate (final)"]:::op --> t["TakeOrderedAndProject<br/>top 10 by trips"]:::op
 ```
 
-The formatted plan numbers each operator and then lists its details, and three of those details are worth knowing how to find:
+The formatted plan gives a number to each operator, and then it lists the details of each operator. Learn how to find these three details:
 
-- **The scan reads 6 of the 21 columns and pushes 9 filters into Parquet** (`PushedFilters: [IsNotNull(tpep_pickup_datetime), ..., GreaterThan(fare_amount,0.0), GreaterThanOrEqual(trip_distance,0.1), ...]`), including `IsNotNull(PULocationID)`, which nobody wrote: an inner join can never match a null key, so the optimizer added it.
-- **The join is a broadcast hash join.** The zones table is tiny, so instead of shuffling 3.6 million trips by zone ID to meet the zones, Spark sends the whole zone table to every task and joins locally, which is why there's no exchange on the trips side of the join. (The `32.0 MiB` estimate for 265 rows is the size of the hash table it builds, which has a minimum allocation, not the data.)
-- **`ORDER BY ... LIMIT 10` became `TakeOrderedAndProject`**, which keeps only the top ten per task and merges them, rather than sorting every zone's group globally. The planner makes this rewrite whenever a sort is followed by a small limit (below `spark.sql.execution.topKSortFallbackThreshold`).
+- **The scan reads 6 of the 21 columns, and it pushes 9 filters into Parquet** (`PushedFilters: [IsNotNull(tpep_pickup_datetime), ..., GreaterThan(fare_amount,0.0), GreaterThanOrEqual(trip_distance,0.1), ...]`). One of these filters is `IsNotNull(PULocationID)`, which is not in the query. An inner join never matches a null key, so the optimizer added this filter.
+- **The join is a broadcast hash join.** The zones table is very small. Thus, Spark does not shuffle 3.6 million trips by zone ID to the zones. Spark sends the full zone table to each task, and each task does the join locally. That is why there is no exchange on the trips side of the join. The `32.0 MiB` estimate for 265 rows is the size of the hash table that Spark builds, not the size of the data. This hash table has a minimum allocation.
+- **`ORDER BY ... LIMIT 10` became `TakeOrderedAndProject`.** This operator keeps only the top ten rows of each task, and then it merges them. It does not do a global sort of all the zone groups. The planner makes this change when a small limit follows a sort (a limit below `spark.sql.execution.topKSortFallbackThreshold`).
 
-The `*` in front of an operator means it's part of whole-stage code generation: Spark fuses the operators in a stage into a single generated Java function, so `ColumnarToRow`, `Filter`, `Project`, the join and the partial aggregate run as one loop over each batch of rows with no virtual calls between them. Under the final plan, the formatted output also prints the initial plan, the one before AQE saw any data, and diffing the two is the quickest way to see what adaptive execution changed; here it's the `AQEShuffleRead ... coalesced` node, which merged the planned 200 shuffle partitions down to one.
+The `*` before an operator shows that the operator is part of whole-stage code generation. Spark fuses the operators in a stage into a single generated Java function. Thus, `ColumnarToRow`, `Filter`, `Project`, the join and the partial aggregate run as one loop over each batch of rows. There are no virtual calls between them.
+
+Below the final plan, the formatted output also prints the initial plan, which is the plan before AQE saw data. Compare the two plans to see quickly what adaptive execution changed. Here, the change is the `AQEShuffleRead ... coalesced` node, which merged the 200 planned shuffle partitions into one.
 
 ## Which one to write
 
-Since the plans are the same, the choice is about the people reading the code. SQL is easier to hand to an analyst and closer to how most people think about a question like this one; the DataFrame API composes better, because each intermediate step is a Python value you can name, test, pass to a function or build in a loop, and mistakes like a misspelled column surface as Python errors at the line that made them. Most real codebases mix the two, and nothing stops you from writing `spark.sql(...)` against views built from DataFrames, or calling `.where()` on the result of `spark.sql`.
+The plans are the same, so the choice is about the people who read the code. It is easier to give SQL to an analyst. SQL is also nearer to how most people think about a question like this one. The DataFrame API composes better. Each intermediate step is a Python value that you can name, test, give to a function or build in a loop. Also, errors such as an incorrect column name show as Python errors at the line that caused them.
+
+Most real codebases mix the two APIs. You can write `spark.sql(...)` against views from DataFrames. You can also call `.where()` on the result of `spark.sql`.
 
 ## The whole chapter, on one page
 
-- **Look at the data before you aggregate it.** A month of real trips has impossible dates, negative fares and absurd distances, and each one moves an average.
-- **Filter what's wrong, scope what's partial.** Broken rows go; rows that only lack something irrelevant to a calculation (a passenger count, a cash tip) stay, and the calculation that needs it excludes them on its own.
-- **`F.when` without `otherwise` gives you conditional aggregates** in the same pass as unconditional ones.
-- **DataFrames and SQL compile to the same optimized plan.** `sameSemantics` compares the plans as written, before the optimizer reorders them, so it can say `False` for two queries that run identically.
-- **Read the physical plan for what actually runs:** columns pruned, filters pushed, a broadcast instead of a shuffle, a top-k instead of a sort.
+- **Look at the data before you aggregate it.** A month of real trips has impossible dates, negative fares and incorrect distances, and each of these problems changes an average.
+- **Filter the incorrect rows, and limit the scope of the partial rows.** The filter removes incorrect rows. Some rows do not have a value that one calculation needs (a passenger count, a cash tip). Keep these rows. Only the calculation that needs the value excludes them.
+- **`F.when` without `otherwise` gives you conditional aggregates** in the same pass as unconditional aggregates.
+- **DataFrames and SQL compile to the same optimized plan.** `sameSemantics` compares the plans as you wrote them, before the optimizer changes their sequence. Thus, it can say `False` for two queries that run identically.
+- **Read the physical plan to see what runs.** It shows pruned columns, pushed filters, a broadcast in place of a shuffle, and a top-k in place of a sort.
 
-The next chapter asks the same kind of question through Spark Connect, where the code that builds the plan and the driver that runs it are in different processes, and possibly on different machines.
+The next chapter asks the same type of question through Spark Connect. With Spark Connect, the code that builds the plan and the driver that runs it are in different processes. They can also be on different machines.
 
 ## Further reading
 
-- [The Spark SQL guide](https://spark.apache.org/docs/4.3.0/sql-programming-guide.html), for both APIs side by side.
-- [`EXPLAIN`](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-qry-explain.html), every mode and what it prints.
+- [The Spark SQL guide](https://spark.apache.org/docs/4.3.0/sql-programming-guide.html), with the two APIs side by side.
+- [`EXPLAIN`](https://spark.apache.org/docs/4.3.0/sql-ref-syntax-qry-explain.html), with all modes and their output.
 - [The TLC yellow-taxi data dictionary](https://www.nyc.gov/assets/tlc/downloads/pdf/data_dictionary_trip_records_yellow.pdf), which explains `payment_type`, the tip field and the surcharges.

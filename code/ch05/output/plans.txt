@@ -1,0 +1,73 @@
+== 1. a DataFrame is a schema and a plan
+struct<fare_amount:double,tip_amount:double,tolls_amount:double>
+jobs run by read + select: [('parquet at NativeMethodAccessorImpl.java:0', 1)]
+same object after withColumn? False
+
+== 2. column references
+Column<'fare_amount'> Column<'fare_amount'> Column<'fare_amount * 2'>
+F.col('no_such_column') -> Column<'no_such_column'>
+fares['no_such_column'] -> [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function pa
+
+== 3. withColumn x3: parsed (unresolved) plan
+'Project [unresolvedstarwithcolumns(fare_band, CASE WHEN '`<`('fare_amount, 10) THEN short ELSE long END, None)]
++- Project [fare_amount#10, tip_amount#13, tolls_amount#14, tip_pct#23, (tolls_amount#14 > cast(0 as double)) AS has_toll#24]
+   +- Project [fare_amount#10, tip_amount#13, tolls_amount#14, (tip_amount#13 / fare_amount#10) AS tip_pct#23]
+      +- Project [fare_amount#10, tip_amount#13, tolls_amount#14]
+         +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== analyzed plan
+Project [fare_amount#10, tip_amount#13, tolls_amount#14, tip_pct#23, has_toll#24, CASE WHEN (fare_amount#10 < cast(10 as double)) THEN short ELSE long END AS fare_band#25]
++- Project [fare_amount#10, tip_amount#13, tolls_amount#14, tip_pct#23, (tolls_amount#14 > cast(0 as double)) AS has_toll#24]
+   +- Project [fare_amount#10, tip_amount#13, tolls_amount#14, (tip_amount#13 / fare_amount#10) AS tip_pct#23]
+      +- Project [fare_amount#10, tip_amount#13, tolls_amount#14]
+         +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== optimized plan
+Project [fare_amount#10, tip_amount#13, tolls_amount#14, (tip_amount#13 / fare_amount#10) AS tip_pct#23, (tolls_amount#14 > 0.0) AS has_toll#24, CASE WHEN (fare_amount#10 < 10.0) THEN short ELSE long END AS fare_band#25]
++- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+== withColumns: analyzed plan
+Project [fare_amount#10, tip_amount#13, tolls_amount#14, (tip_amount#13 / fare_amount#10) AS tip_pct#26, (tolls_amount#14 > cast(0 as double)) AS has_toll#27, CASE WHEN (fare_amount#10 < cast(10 as double)) THEN short ELSE long END AS fare_band#28]
++- Project [fare_amount#10, tip_amount#13, tolls_amount#14]
+   +- Relation [VendorID#0,tpep_pickup_datetime#1,tpep_dropoff_datetime#2,passenger_count#3L,trip_distance#4,RatecodeID#5L,store_and_fwd_flag#6,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,extra#11,mta_tax#12,tip_amount#13,tolls_amount#14,improvement_surcharge#15,total_amount#16,congestion_surcharge#17,Airport_fee#18,cbd_congestion_fee#19,request_source#20] parquet
+
+same optimized plan: True
+
+== 4. build + analyze + optimize, median of 7 after a warmup (ms)
+ columns  withColumn loop  withColumns  Projects (loop)
+      25             48.9         25.3               26
+      50            101.1         47.4               51
+     100            286.2        110.7              101
+     200            957.4        285.9              201
+     400           7582.4        703.5              401
+
+== 5. nullability in the plan
+range: struct<id:bigint> False
+== Physical Plan ==
+LocalTableScan <empty>, [id#14404L]
+--- the same filter on a nullable column
+== Physical Plan ==
+*(1) Filter isnull(fare_amount#10)
++- *(1) ColumnarToRow
+   +- FileScan parquet [fare_amount#10,tip_amount#13,tolls_amount#14] Batched: true, DataFilters: [isnull(fare_amount#10)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [IsNull(fare_amount)], ReadSchema: struct<fare_amount:double,tip_amount:double,tolls_amount:double>
+  a: bigint nullable=False
+  b: double nullable=True
+  c: int nullable=True
+  d: int nullable=False
+
+== 6. DataFrame.zip (4.3)
++------------+-----------+-------------------+
+|PULocationID|fare_amount|            tip_pct|
++------------+-----------+-------------------+
+|         140|       16.3|0.39263803680981596|
+|         138|       16.3| 0.4380368098159509|
+|         138|       39.4|0.12690355329949238|
++------------+-----------+-------------------+
+
+== Physical Plan ==
+CollectLimit 3
++- *(1) Project [PULocationID#7, fare_amount#10, (tip_amount#13 / fare_amount#10) AS tip_pct#14412]
+   +- *(1) ColumnarToRow
+      +- FileScan parquet [PULocationID#7,fare_amount#10,tip_amount#13] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<PULocationID:int,fare_amount:double,tip_amount:double>
+zip with a filtered side: [ZIP_PLANS_NOT_MERGEABLE] The two DataFrames in zip() cannot be merged. They must produc
+zip with a different source: [ZIP_PLANS_NOT_MERGEABLE] The two DataFrames in zip() cannot be merged. They must produc

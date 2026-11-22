@@ -1,0 +1,36 @@
+parquet: where fare.tip > 10, select fare.tip
+  FileScan parquet [fare#30]
+    Batched: true
+    DataFilters: [isnotnull(fare#30.tip), (fare#30.tip > 10.0)]
+    Format: Parquet
+    Location: InMemoryFileIndex(1 paths)[file:/tmp/masterclass-ch18/nested_parquet]
+    PartitionFilters: []
+    PushedFilters: [IsNotNull(fare.tip), GreaterThan(fare.tip,10.0)]
+    ReadSchema: struct<fare:struct<tip:double>>
+
+json: where fare.tip > 10, select fare.tip
+  FileScan json [fare#44]
+    Batched: false
+    DataFilters: [isnotnull(fare#44.tip), (fare#44.tip > 10.0)]
+    Format: JSON
+    Location: InMemoryFileIndex(1 paths)[file:/tmp/masterclass-ch18/nested_json]
+    PartitionFilters: []
+    PushedFilters: []
+    ReadSchema: struct<fare:struct<amount:double,payment:bigint,tip:double>>
+
+The Filter above a pushed filter:
+  *(1) Filter (isnotnull(trip_distance#52) AND (trip_distance#52 > 30.0))
+  +- *(1) ColumnarToRow
+     +- FileScan parquet [pickup#50,fare#51,trip_distance#52] Batched: true, DataFilters: [isnotnull(trip_distance#52), (trip_distance#52 > 30.0)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/tmp/masterclass-ch18/nested_parquet], PartitionFilters: [], PushedFilters: [IsNotNull(trip_distance), GreaterThan(trip_distance,30.0)], ReadSchema: struct<pickup:struct<zone:int,ts:timestamp_ntz>,fare:struct<amount:double,tip:double,payment:bigi...
+
+good rows: [(1, 12.5), (2, 7.0)]
+good.count() -> AnalysisException: [UNSUPPORTED_FEATURE.QUERY_ONLY_CORRUPT_RECORD_COLUMN] The feature is not supported: Queries from raw JSON/CSV/XML files are disallowed when the
+The plan count() runs:
+  AdaptiveSparkPlan isFinalPlan=false
+  +- HashAggregate(keys=[], functions=[count(1)])
+     +- Exchange SinglePartition, ENSURE_REQUIREMENTS, [plan_id=244]
+        +- HashAggregate(keys=[], functions=[partial_count(1)])
+           +- Project
+              +- Filter isnull(_corrupt_record#56)
+                 +- FileScan json [_corrupt_record#56] Batched: false, DataFilters: [isnull(_corrupt_record#56)], Format: 
+good.where(id IS NOT NULL).count(): 2

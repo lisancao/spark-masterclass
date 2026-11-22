@@ -1,0 +1,60 @@
+driver loop: 60 rows, then HTTPError: HTTP Error 503: Service Unavailable
+driver loop: 4 requests: p0 p1 p2 p3(503) 
+
+no url: [PYTHON_DATA_SOURCE_ERROR] Failed to create Python data source instance 
+        ValueError: option 'url' is required 
+
+no url, user schema: load() returned a DataFrame with columns ['id', 'status', 'subject', 'meta']
+  first action: [PYTHON_DATA_SOURCE_ERROR] Failed to create Python data source instance 
+                ValueError: option 'url' is required 
+
+load(): 0 requests
+== Physical Plan ==
+*(1) Project [id#12, status#13, subject#14, meta#15]
++- BatchScan tickets[id#12, status#13, subject#14, meta#15] (Python) RuntimeFilters: []
+
+
+explain(): 0 requests
+count() = 95 in 5 partitions: 7 requests: p0 p0 p1 p2 p3(503) p3 p4
++-------+-----+
+| status|count|
++-------+-----+
+| closed|   38|
+|   open|   38|
+|pending|   19|
++-------+-----+
+
+groupBy().count(): 6 requests: p0 p1 p2 p3(503) p3 p4
+cache() + count(): 6 requests: p0 p1 p2 p3(503) p3 p4
+two more queries on the cached df: 0 requests
+
++--------+-----+
+|     tag|count|
++--------+-----+
+| account|   19|
+| billing|   19|
+|  damage|   19|
+|  refund|   19|
+|shipping|   38|
++--------+-----+
+
++--------+-----+
+|priority|count|
++--------+-----+
+|    NULL|   63|
+|    high|   16|
+|     low|   16|
++--------+-----+
+
+gold customers: 11  tickets without a customer: 24
+
+page_size=50: 95 rows in 2 partitions: 3 requests: p0 p0 p1
+retries=0: [PYTHON_EXCEPTION] An exception was thrown from the Python worker: 
+           HTTPError: HTTP Error 503: Service Unavailable
+retries=0: 6 requests: p0 p0 p1 p2 p3(503) p4
+duplicate ids: 0 | 5 requests: p0 p1 p2 p3 p4
+pages_per_partition=2: 95 rows in 3 partitions: 7 requests: p0 p0 p1 p2 p3(503) p3 p4
+api_token in explain() output: False
+dict for a variant column:
+  [PYTHON_EXCEPTION] An exception was thrown from the Python worker:
+  PySparkValueError: [MALFORMED_VARIANT] Variant binary is malformed. Please check the dat

@@ -1,0 +1,17 @@
+clip	source	start	end	poster_at	chapter
+ch43-attempts	ch43-chapter/01-attempts.mp4	0	32.200000	30.2	ch43
+ch43-shuffle	ch43-chapter/02-shuffle.mp4	0	31.800000	29.8	ch43
+ch43-reattach	ch43-chapter/03-reattach.mp4	0	26.880000	24.9	ch43
+ch43-fragile	ch43-chapter/04-fragile.mp4	0	45.160000	43.2	ch43
+ch44-where	ch44-chapter/01-where.mp4	0	67.240000	65.2	ch44
+ch44-includes	ch44-chapter/02-includes.mp4	0	68.520000	66.5	ch44
+ch44-artifacts	ch44-chapter/03-artifacts.mp4	0	31.040000	29.0	ch44
+ch45-connect	ch45-chapter/01-connect.mp4	0	32.040000	30.0	ch45
+ch45-listener	ch45-chapter/02-listener.mp4	0	24.440000	22.4	ch45
+ch46-isolation	ch46-chapter/01-isolation.mp4	0	23.840000	21.8	ch46
+ch46-lifecycle	ch46-chapter/02-lifecycle.mp4	0	47.280000	45.3	ch46
+ch46-feather	ch46-chapter/03-feather.mp4	0	27.320000	25.3	ch46
+ch49-dryrun	ch49-chapter/01-dryrun.mp4	0	94.320000	92.3	ch49
+ch49-metrics	ch49-chapter/02-metrics.mp4	0	24.240000	22.2	ch49
+ch47-app	ch47-chapter/01-app.mp4	0	33.200000	31.2	ch47
+ch47-connect	ch47-chapter/02-connect.mp4	0	82.440000	80.4	ch47

@@ -1,0 +1,19 @@
+--- dry-run, gold_typo.py
+Error: [TABLE_OR_VIEW_NOT_FOUND] The table or view `spark_catalog`.`default`.`silver_order` cannot be found. Verify the spelling and correctness of th
+pyspark.errors.exceptions.connect.AnalysisException: 
+--- dry-run, gold_column.py
+Error: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `amount_usd` cannot be resolved. Did you mean one of th
+pyspark.errors.exceptions.connect.AnalysisException: 
+--- dry-run, gold_conf.py
+    raise PySparkException(
+pyspark.errors.exceptions.base.PySparkException: [SESSION_MUTATION_IN_DECLARATIVE_PIPELINE.SET_RUNTIME_CONF] Session mutation 'RuntimeConf.set' is not
+--- dry-run, gold_epoch.py
+Run is COMPLETED.
+--- dry-run, gold_ok.py
+Run is COMPLETED.
+--- run, gold_epoch.py
+Run is COMPLETED.
+gold_daily_revenue: [('+58384-08-15', 20.58), ('+58384-08-23', 26.35), ('+58384-08-28', 70.32)] ... 561 rows
+--- run, gold_ok.py
+Run is COMPLETED.
+gold_daily_revenue: [('2026-06-01', 4757.14), ('2026-06-02', 5755.45), ('2026-06-03', 5380.04)] ... 5 rows

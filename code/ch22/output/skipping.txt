@@ -1,0 +1,55 @@
+2,000,000 events; probe row: user_id 16073, session_id 8bb0cf6eb9b17d0f
+
+layout                               files row groups     MB
+A: as generated, 8 files                 8          8   64.2
+B: sorted by user_id, 8 files            8          8   52.1
+C: B + 1 MB row groups                   8        135   54.3
+D: C + bloom filter on session_id        8        134   58.5
+
+rows that the Parquet reader returned (of 2,000,000):
+query                            A           B           C           D
+user_id = probe          2,000,000      20,000      15,360      15,360
+event = 'refund'         2,000,000     242,200      15,272      15,272
+session_id = probe       2,000,000   2,000,000   2,000,000      15,360
+ts in one hour           2,000,000   2,000,000   2,000,000   2,000,000
+
+PushedFilters for user_id = probe: [IsNotNull(user_id), EqualTo(user_id,16073)]
+layout C, first file, row group 0: 15,360 rows, user_id min 17475 max 17628; 17 row groups in the file
+
+layout D with one reader feature off (rows returned):
+setting                                       user_id = p  event = 're  session_id   ts in one h
+all on (defaults)                                  15,360       15,272       15,360    2,000,000
+spark.sql.parquet.filterPushdown=false          2,000,000    2,000,000    2,000,000    2,000,000
+stats off                                          15,360       15,272       15,360    2,000,000
+column index off                                   15,360       15,272       15,360    2,000,000
+stats and column index off                         15,360       15,272       15,360    2,000,000
+stats, column index and dictionary off          2,000,000    2,000,000       15,360    2,000,000
+dictionary off                                     15,360    2,000,000       15,360    2,000,000
+bloom filter off                                   15,360       15,272    2,000,000    2,000,000
+
+=== timestamps: the physical type decides if a filter can skip
+  INT96              physical INT96  stats no   ts filter in PushedFilters: True   rows returned 2,000,000
+  TIMESTAMP_MICROS   physical INT64  stats yes  ts filter in PushedFilters: True   rows returned    29,232
+  default spark.sql.parquet.outputTimestampType: INT96
+
+=== the v1 and v2 page formats
+  v1: 6.46 MB
+    id          10 pages  DATA_PAGE PLAIN
+    user_id     10 pages  DATA_PAGE PLAIN
+    event       11 pages  DATA_PAGE PLAIN_DICTIONARY, DICTIONARY_PAGE PLAIN_DICTIONARY
+    session_id  10 pages  DATA_PAGE PLAIN
+    ts          11 pages  DATA_PAGE PLAIN, DATA_PAGE PLAIN_DICTIONARY, DICTIONARY_PAGE PLAIN_DICTIONARY
+    amount      11 pages  DATA_PAGE PLAIN_DICTIONARY, DICTIONARY_PAGE PLAIN_DICTIONARY
+  v2: 4.82 MB
+    id          10 pages  DATA_PAGE_V2 DELTA_BINARY_PACKED
+    user_id     10 pages  DATA_PAGE_V2 DELTA_BINARY_PACKED
+    event       11 pages  DATA_PAGE_V2 RLE_DICTIONARY, DICTIONARY_PAGE PLAIN
+    session_id  10 pages  DATA_PAGE_V2 DELTA_BYTE_ARRAY
+    ts          11 pages  DATA_PAGE_V2 PLAIN, DATA_PAGE_V2 RLE_DICTIONARY, DICTIONARY_PAGE PLAIN
+    amount      11 pages  DATA_PAGE_V2 RLE_DICTIONARY, DICTIONARY_PAGE PLAIN
+
+=== nanosecond timestamps (4.3 preview)
+  schema in the JVM: struct<t:timestamp_ntz(9)> | as a string: 2026-06-01 08:00:00.123456789
+  df.schema in classic PySpark -> CANNOT_PARSE_DATATYPE
+  written as: INT64, Timestamp(isAdjustedToUTC=false, timeUnit=nanoseconds, is_from_converted_type=false, force_set_converted_type=false)
+  read back: struct<t:timestamp_ntz(9)> 2026-06-01 08:00:00.123456789

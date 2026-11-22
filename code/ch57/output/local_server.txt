@@ -1,0 +1,6 @@
+something already listens on 15002: False
+pyspark.sql.connect.session | server runs Spark 4.3.0
+warning: Failed to set spark.jars due to [CANNOT_MODIFY_CONFIG]
+warning: Failed to set spark.connect.extensions.relation.classes due to [CANNOT_MODIFY_STATIC_CONFIG]
+warning: Failed to set spark.ui.port due to [CANNOT_MODIFY_CONFIG]
+[Row(node='Filter', parent=None), Row(node='Range', parent=0)]

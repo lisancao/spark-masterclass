@@ -1,0 +1,12 @@
+os       Ubuntu 22.04.5 LTS
+python   Python 3.10.12
+java     openjdk version "21.0.13" 2026-10-20 LTS
+user     spark (185)
+pyarrow  ModuleNotFoundError: No module named 'pyarrow'
+pandas   ModuleNotFoundError: No module named 'pandas'
+pythonpath libs: py4j-0.10.9.9-src.zip PY4J_LICENSE.txt pyspark.zip 
+
+python 3.10.12
+/opt/spark/python/lib/pyspark.zip/pyspark/sql/udf.py:120: RuntimeWarning: Arrow optimization failed to enable because PyArrow or Pandas is not installed. Falling back to a non-Arrow-optimized UDF.
+pythonUDF.arrow.enabled=true: [1, 2, 3]
+pythonUDF.arrow.enabled=false: [1, 2, 3]

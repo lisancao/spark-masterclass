@@ -1,0 +1,6 @@
+# GET .../connect/sessions
+session 96d207f9  user=airflow  started 09:56:15  finished 09:56:20  operations=1
+
+# GET .../connect/operations
+operation eb52e92f  session 96d207f9  state=CLOSED  jobs=0,1,2  sql=0
+  call site: ch48/dags/taxi_connect.py:28

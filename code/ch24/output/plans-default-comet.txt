@@ -1,0 +1,42 @@
+comet on Spark 4.2.0, default settings
+hourly: 8 engine operators, 0 Spark operators, 1 transitions
+  . WholeStageCodegenExec
+  T   CometColumnarToRowExec
+  .     InputAdapter
+  E       CometSortExec
+  .         AQEShuffleReadExec
+  E           CometShuffleExchangeExec
+  E             CometHashAggregateExec
+  .               AQEShuffleReadExec
+  E                 CometShuffleExchangeExec
+  E                   CometHashAggregateExec
+  E                     CometProjectExec
+  E                       CometFilterExec
+  E                         CometNativeScanExec
+boroughs: 5 engine operators, 8 Spark operators, 2 transitions
+  . WholeStageCodegenExec
+  T   CometColumnarToRowExec
+  .     InputAdapter
+  E       CometSortExec
+  .         AQEShuffleReadExec
+  E           CometShuffleExchangeExec
+  .             WholeStageCodegenExec
+  S               HashAggregateExec
+  .                 InputAdapter
+  .                   AQEShuffleReadExec
+  S                     ShuffleExchangeExec
+  .                       WholeStageCodegenExec
+  S                         HashAggregateExec
+  S                           ProjectExec
+  S                             BroadcastHashJoinExec
+  T                               CometColumnarToRowExec
+  .                                 InputAdapter
+  E                                   CometProjectExec
+  E                                     CometFilterExec
+  E                                       CometNativeScanExec
+  .                               InputAdapter
+  S                                 BroadcastExchangeExec
+  .                                   WholeStageCodegenExec
+  S                                     FilterExec
+  .                                       InputAdapter
+  S                                         FileSourceScanExec

@@ -1,0 +1,21 @@
+--- defaults
+driver python 812921, JVM 812941
+  job 0: worker pids ['814942', '814943']  parent ['814789']  most rows seen by one worker 4
+  job 1: worker pids ['814942', '814943']  parent ['814789']  most rows seen by one worker 8
+  job 2: worker pids ['814942', '814943']  parent ['814789']  most rows seen by one worker 12
+  distinct worker pids over 3 jobs: 2
+  daemon command: -m pyspark.daemon pyspark.worker
+--- {'spark.python.worker.reuse': 'false'}
+driver python 815191, JVM 815205
+  job 0: worker pids ['816013', '816014', '816034', '816036']  parent ['815986']  most rows seen by one worker 2
+  job 1: worker pids ['816147', '816152', '816170', '816172']  parent ['815986']  most rows seen by one worker 2
+  job 2: worker pids ['816183', '816191', '816294', '816297']  parent ['815986']  most rows seen by one worker 2
+  distinct worker pids over 3 jobs: 12
+  daemon command: -m pyspark.daemon pyspark.worker
+--- {'spark.python.use.daemon': 'false'}
+driver python 816380, JVM 816388
+  job 0: worker pids ['818678', '818757', '818918', '819065']  parent ['816388']  most rows seen by one worker 2
+  job 1: worker pids ['819249', '819578', '819711', '819822']  parent ['816388']  most rows seen by one worker 2
+  job 2: worker pids ['819914', '820017', '820240', '820332']  parent ['816388']  most rows seen by one worker 2
+  distinct worker pids over 3 jobs: 12
+  daemon command: none

@@ -1,0 +1,45 @@
+gluten on Spark 4.1.1, default settings
+hourly: 0 engine operators, 8 Spark operators, 1 transitions
+  . WholeStageCodegenExec
+  S   SortExec
+  .     InputAdapter
+  .       AQEShuffleReadExec
+  S         ShuffleExchangeExec
+  .           WholeStageCodegenExec
+  S             HashAggregateExec
+  .               InputAdapter
+  .                 AQEShuffleReadExec
+  S                   ShuffleExchangeExec
+  .                     WholeStageCodegenExec
+  S                       HashAggregateExec
+  S                         ProjectExec
+  S                           FilterExec
+  T                             ColumnarToRowExec
+  .                               InputAdapter
+  S                                 FileSourceScanExec
+boroughs: 0 engine operators, 13 Spark operators, 1 transitions
+  . WholeStageCodegenExec
+  S   SortExec
+  .     InputAdapter
+  .       AQEShuffleReadExec
+  S         ShuffleExchangeExec
+  .           WholeStageCodegenExec
+  S             HashAggregateExec
+  .               InputAdapter
+  .                 AQEShuffleReadExec
+  S                   ShuffleExchangeExec
+  .                     WholeStageCodegenExec
+  S                       HashAggregateExec
+  S                         ProjectExec
+  S                           BroadcastHashJoinExec
+  S                             ProjectExec
+  S                               FilterExec
+  T                                 ColumnarToRowExec
+  .                                   InputAdapter
+  S                                     FileSourceScanExec
+  .                             InputAdapter
+  S                               BroadcastExchangeExec
+  .                                 WholeStageCodegenExec
+  S                                   FilterExec
+  .                                     InputAdapter
+  S                                       FileSourceScanExec

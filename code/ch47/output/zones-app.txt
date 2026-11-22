@@ -1,0 +1,11 @@
+sparkapplication.spark.apache.org/zones created
+     0.1 s  attempt 0  DriverRequested                    Requested driver from resource scheduler.
+     1.3 s  attempt 0  DriverReady                        Driver has reached ready state.
+    15.2 s  attempt 0  RunningHealthy                     Application is running healthy.
+    27.5 s  attempt 0  Succeeded                          Driver has critical container(s) exited with
+    31.2 s  attempt 0  TerminatedWithoutReleaseResources  Application is terminated without releasing 
+executor pods seen: ['zones-exec-1', 'zones-exec-2']
+log of zones-0-driver:
+  top zones: [(0, 7605, 26.99), (1, 7605, 27.0), (3, 7605, 27.0)]
+  rows by executor pod: [('zones-exec-1', 1000000), ('zones-exec-2', 1000000)]
+  driver pod: zones-0-driver  spark 4.3.0  python 3.10.12

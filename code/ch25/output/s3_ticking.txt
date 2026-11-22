@@ -1,0 +1,16 @@
+  1.6s  started   id=a1a43df8 runId=7194b0a7
+  6.3s  + trips_0800.jsonl (487 trips)
+ 10.0s  batch  0  rows  487  state rows  95  took 2385 ms
+ 10.3s  + trips_0805.jsonl (508 trips)
+ 11.9s  batch  1  rows  508  state rows 118  took  465 ms
+ 14.3s  + trips_0810.jsonl (450 trips)
+ 15.9s  batch  2  rows  450  state rows 132  took  392 ms
+ 18.3s  + trips_0815.jsonl (461 trips)
+ 19.7s  batch  3  rows  461  state rows 140  took  309 ms
+ 22.3s  + trips_0820.jsonl (518 trips)
+ 23.6s  batch  4  rows  518  state rows 152  took  232 ms
+ 26.3s  + trips_0825.jsonl (500 trips)
+ 27.7s  batch  5  rows  500  state rows 162  took  278 ms
+ 30.3s  status: 'Waiting for next trigger', active queries: 1
+ 30.3s  stopped
+memory sink: 532 rows appended in update mode (one per changed zone per batch), 162 zones

@@ -9,7 +9,7 @@ AdaptiveSparkPlan isFinalPlan=false
             +- HashAggregate(keys=[_groupingexpression#48], functions=[partial_count(1), partial_avg(total_amount#16)])
                +- Project [total_amount#16, hour(tpep_pickup_datetime#1, Some(America/Los_Angeles)) AS _groupingexpression#48]
                   +- Filter ((isnotnull(tpep_pickup_datetime#1) AND (tpep_pickup_datetime#1 >= 2026-06-01 00:00:00)) AND (tpep_pickup_datetime#1 < 2026-07-01 00:00:00))
-                     +- FileScan parquet [tpep_pickup_datetime#1,total_amount#16] Batched: true, DataFilters: [isnotnull(tpep_pickup_datetime#1), (tpep_pickup_datetime#1 >= 2026-06-01 00:00:00), (tpep_pickup..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/home/lnc/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [IsNotNull(tpep_pickup_datetime), GreaterThanOrEqual(tpep_pickup_datetime,2026-06-01T00:00), Less..., ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,total_amount:double>
+                     +- FileScan parquet [tpep_pickup_datetime#1,total_amount#16] Batched: true, DataFilters: [isnotnull(tpep_pickup_datetime#1), (tpep_pickup_datetime#1 >= 2026-06-01 00:00:00), (tpep_pickup..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:~/spark-masterclass/data/nyc-taxi/yellow], PartitionFilters: [], PushedFilters: [IsNotNull(tpep_pickup_datetime), GreaterThanOrEqual(tpep_pickup_datetime,2026-06-01T00:00), Less..., ReadSchema: struct<tpep_pickup_datetime:timestamp_ntz,total_amount:double>
 
 
 

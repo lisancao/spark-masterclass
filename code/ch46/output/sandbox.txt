@@ -1,0 +1,6 @@
+agent-a: server on :10284, ready and answered in 4.9 s, JVM resident memory 481 MB
+agent-b: server on :10285, ready and answered in 4.9 s, JVM resident memory 479 MB
+agent-b sees agent-a's table: TABLE_OR_VIEW_NOT_FOUND
+agent-a after its server stopped: no answer in 20 s (the client keeps retrying)
+agent-b still answers: 3 rows
+a new session on a running shared server answered in 1.64 s

@@ -1,0 +1,43 @@
+auron on Spark 4.2.0, default settings
+hourly: 1 engine operators, 7 Spark operators, 2 transitions
+  E NativeSortExec
+  T   ConvertToNativeExec
+  .     AQEShuffleReadExec
+  S       ShuffleExchangeExec
+  .         WholeStageCodegenExec
+  S           HashAggregateExec
+  .             InputAdapter
+  .               AQEShuffleReadExec
+  S                 ShuffleExchangeExec
+  .                   WholeStageCodegenExec
+  S                     HashAggregateExec
+  S                       ProjectExec
+  S                         FilterExec
+  T                           ColumnarToRowExec
+  .                             InputAdapter
+  S                               FileSourceScanExec
+boroughs: 2 engine operators, 11 Spark operators, 2 transitions
+  E NativeSortExec
+  T   ConvertToNativeExec
+  .     AQEShuffleReadExec
+  S       ShuffleExchangeExec
+  .         WholeStageCodegenExec
+  S           HashAggregateExec
+  .             InputAdapter
+  .               AQEShuffleReadExec
+  S                 ShuffleExchangeExec
+  .                   WholeStageCodegenExec
+  S                     HashAggregateExec
+  S                       ProjectExec
+  S                         BroadcastHashJoinExec
+  S                           ProjectExec
+  S                             FilterExec
+  T                               ColumnarToRowExec
+  .                                 InputAdapter
+  S                                   FileSourceScanExec
+  .                           InputAdapter
+  E                             NativeBroadcastExchangeExec
+  .                               WholeStageCodegenExec
+  S                                 FilterExec
+  .                                   InputAdapter
+  S                                     FileSourceScanExec

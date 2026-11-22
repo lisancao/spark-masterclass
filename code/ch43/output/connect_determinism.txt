@@ -1,0 +1,8 @@
+classic  spark.sql           same rand: True   same uuid: True   same timestamp: True 
+classic  spark.sql rand(42)  same rand: True   same uuid: True   same timestamp: True 
+classic  DataFrame API       same rand: True   same uuid: True   same timestamp: True 
+connect  spark.sql           same rand: False  same uuid: False  same timestamp: False
+connect  spark.sql rand(42)  same rand: True   same uuid: False  same timestamp: False
+connect  DataFrame API       same rand: True   same uuid: True   same timestamp: False
+
+the client-side seed in the plan sent for F.rand(): 4578929883635751434

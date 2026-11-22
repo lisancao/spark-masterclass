@@ -1,0 +1,11 @@
+StructType.fromDDL without a session: [SESSION_OR_CONTEXT_NOT_EXISTS] SparkContext or SparkSession should be
+plan_ranges: 3 checks pass
+rows=5, partitions=2: (2, [(0, 'row-0'), (1, 'row-1'), (2, 'row-2'), (3, 'row-3'), (4, 'row-4')])
+rows=0: (1, [])
+user schema (label, id): [('row-0', 0), ('row-1', 1)]
+options {}: ValueError: option 'rows' is required
+options {'rows': 'ten'}: ValueError: option 'rows' must be a whole number, got 'ten'
+options {'rows': 3, 'partitions': 0}: ValueError: option 'partitions' must be >= 1, got 0
+generator partitions: TypeError: partitions() must return a list, got generator
+
+No JVM started.

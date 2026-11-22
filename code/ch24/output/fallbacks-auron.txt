@@ -1,0 +1,5 @@
+      2 Falling back exec: ProjectExec: Data type conversion not implemented TimestampNTZType
+      2 Falling back exec: HashAggregateExec: assertion failed: partial AggregateExec is not native
+      2 Falling back exec: FilterExec: Data type conversion not implemented TimestampNTZType
+      2 Falling back exec: FileSourceScanExec: Unsupported data type: timestamp_ntz
+      1 Falling back exec: FileSourceScanExec: Cannot convert FileSourceScanExec (CSV scan)

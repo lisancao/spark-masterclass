@@ -1,0 +1,4 @@
+spark.sql.optimizer.singleTaskExecution.enabled: session off = false, session on = true
+  single-task off:   99.0 ms median of 20, 5.0 jobs and 9.0 tasks per operation
+  single-task on :   54.7 ms median of 20, 2.0 jobs and 2.0 tasks per operation
+first row: Row(Borough='Queens', zones=69)

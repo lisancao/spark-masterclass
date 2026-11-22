@@ -1,0 +1,12 @@
+SHUFFLE t+  0s  spark 4.3.0, shuffle manager sort, shuffle tracking true
+SHUFFLE t+  9s  action 1 done: busiest zone 237, 177,610 trips; executors alive: 2
+SHUFFLE t+ 54s  after 45 s with no tasks: executors alive: 2
+SHUFFLE t+ 54s  action 2 done: 39 zones over $1M; executors alive: 2
+SHUFFLE t+ 55s  stage  0 COMPLETE  tasks=1   shuffle write=        0 B  read=        0 B
+SHUFFLE t+ 55s  stage  1 COMPLETE  tasks=2   shuffle write=   10,547 B  read=        0 B
+SHUFFLE t+ 55s  stage  2 SKIPPED   tasks=2   shuffle write=        0 B  read=        0 B
+SHUFFLE t+ 55s  stage  3 COMPLETE  tasks=1   shuffle write=        0 B  read=   10,547 B
+SHUFFLE t+ 55s  stage  4 SKIPPED   tasks=2   shuffle write=        0 B  read=        0 B
+SHUFFLE t+ 55s  stage  5 COMPLETE  tasks=1   shuffle write=        0 B  read=   10,547 B
+SHUFFLE t+ 55s  executor  1 active=True  removed: -
+SHUFFLE t+ 55s  executor  2 active=True  removed: -

@@ -1,0 +1,11 @@
+classic: this process is PID 633407
+   ('started', 'events_q', 633407)
+  progress batch 0: 20 rows, quality={'rows': 20, 'null_user': 20, 'null_event': 0}, pid 633407
+      durationMs: {'addBatch': 943, 'commitOffsets': 33, 'getBatch': 65, 'latestOffset': 45, 'queryPlanning': 385, 'triggerExecution': 1527, 'walCommit': 43}
+  progress batch 1: 20 rows, quality={'rows': 20, 'null_user': 0, 'null_event': 0}, pid 633407
+      durationMs: {'addBatch': 66, 'commitOffsets': 20, 'getBatch': 8, 'latestOffset': 24, 'queryPlanning': 18, 'triggerExecution': 165, 'walCommit': 26}
+  progress batch 2: 21 rows, quality={'rows': 21, 'null_user': 1, 'null_event': 21}, pid 633407
+      durationMs: {'addBatch': 57, 'commitOffsets': 31, 'getBatch': 7, 'latestOffset': 21, 'queryPlanning': 15, 'triggerExecution': 153, 'walCommit': 20}
+   ('terminated', None, 633407)
+json.dumps(q.lastProgress): TypeError Object of type UUID is not JSON serializable
+q.lastProgress.json starts: {"id": "05050c33-bc79-41e6-bfe1-29dd6c447e94", "runId": "da6

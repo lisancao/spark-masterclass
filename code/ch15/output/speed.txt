@@ -1,0 +1,14 @@
+input: 1,000,000 taxi trips, 9 columns, 16 cores, local[*]
+  typed             9.0 MB on disk
+  json             30.1 MB on disk
+  variant_plain    19.8 MB on disk
+  variant_shred     9.0 MB on disk
+query: avg(fare_amount) WHERE payment_type = 1
+  typed columns                              0.33 s
+  JSON text, get_json_object                 5.40 s
+  JSON text, from_json                       5.19 s
+  VARIANT unshredded, v:path::type           1.15 s
+  VARIANT unshredded, try_variant_get        1.40 s
+  VARIANT shredded, v:path::type             2.85 s
+  VARIANT shredded, try_variant_get          0.31 s
+all answers equal: True [19.769948]

@@ -1,0 +1,21 @@
+sparkapplication.spark.apache.org/flaky created
+     1.2 s  attempt 0  DriverReady                        Driver has reached ready state.
+    16.0 s  attempt 0  RunningHealthy                     Application is running healthy.
+    30.4 s  attempt 1  ScheduledToRestart                 Application is configured to restart, resour
+    36.2 s  attempt 1  DriverRequested                    Requested driver from resource scheduler.
+    46.5 s  attempt 1  RunningHealthy                     Application is running healthy.
+    61.2 s  attempt 2  ScheduledToRestart                 Application is configured to restart, resour
+    66.1 s  attempt 2  DriverRequested                    Requested driver from resource scheduler.
+    75.3 s  attempt 2  DriverReady                        Driver has reached ready state.
+    76.5 s  attempt 2  RunningHealthy                     Application is running healthy.
+    90.5 s  attempt 2  ResourceReleased                   The maximum number of restart attempts (2) h
+executor pods seen: ['flaky-2e9b95a202eeda79-exec-1', 'flaky-aac648a202ef63d2-exec-1', 'flaky-c34217a202efd87f-exec-1']
+log of flaky-0-driver:
+  rows: 1000
+  RuntimeError: the input folder is empty
+log of flaky-1-driver:
+  rows: 1000
+  RuntimeError: the input folder is empty
+log of flaky-2-driver:
+  rows: 1000
+  RuntimeError: the input folder is empty

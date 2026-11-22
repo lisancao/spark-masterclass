@@ -1,0 +1,6 @@
+one action, every task retried once: 400
+after a second action:               800
+observe() on the write: {'rows': 400, 'total': 79800}  accumulator: 400
+part files: 4  rows read back: 400
+CollectMetrics in the plan: True
+cached: two actions, UDF calls: 400

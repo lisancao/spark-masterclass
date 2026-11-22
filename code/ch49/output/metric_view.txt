@@ -1,0 +1,9 @@
+DESCRIBE delivery_metrics: [('region', 'string'), ('session_date', 'string'), ('total_sessions', 'bigint'), ('converted_sessions', 'bigint'), ('conversion_rate', 'double'), ('active_users', 'bigint')]
+conversion rate  by hand (average of regional rates) 0.2384   MEASURE() 0.0923
+active users     by hand (sum of daily distinct users) 69,420   MEASURE() 9,994
+MEASURE() at the region grain:
+  metro        0.0787   6,370
+  remote        0.515      32
+  rural        0.3775      99
+  suburban     0.1218     974
+  urban         0.099   2,519

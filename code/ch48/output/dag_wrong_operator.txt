@@ -1,0 +1,10 @@
+10:23:49  running task apache_app_with_kubeflow_operator
+10:23:53  Creating sparkApplication.
+          labels=self.spark_obj_spec["spec"]["driver"].get("labels"),
+          KeyError: 'driver'
+10:23:53  task state -> failed
+10:23:53  DagRun Finished: run_duration=4.00715, state=failed
+
+$ kubectl -n spark-apps get sparkapplications
+NAME                 AGE   CURRENT STATE
+pi-python-udtf08cz   14s   DriverReady

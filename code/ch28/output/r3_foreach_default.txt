@@ -1,0 +1,11 @@
+spark.buffer.size = default (65536): one record a second, 20 s Real-time batches
+  record  0  reached Python after  11846 ms
+  record  1  reached Python after  11833 ms
+  record  2  reached Python after  11517 ms
+  record  3  reached Python after  10518 ms
+  record  4  reached Python after   9517 ms
+  record  5  reached Python after   8515 ms
+  record  6  reached Python after   7517 ms
+  record  7  reached Python after   6517 ms
+  record  8  reached Python after   5517 ms
+  record  9  reached Python after   4517 ms

@@ -75,4 +75,72 @@ nav:
       - "2. Installing Spark 4.3": chapters/ch02-installing.md
       - "3. Quick start": chapters/ch03-quick-start.md
       - "4. Spark Connect": chapters/ch04-spark-connect.md
+  - "Part II: DataFrames and SQL":
+      - "5. DataFrames, columns and schemas": chapters/ch05-dataframes-columns-schemas.md
+      - "6. Cleaning values": chapters/ch06-cleaning-values.md
+      - "7. Spark SQL in depth": chapters/ch07-spark-sql-in-depth.md
+      - "8. Procedural SQL": chapters/ch08-procedural-sql.md
+      - "9. Joins": chapters/ch09-joins.md
+      - "10. Time series and geospatial": chapters/ch10-time-series-geospatial.md
+  - "Part III: Files, formats and messy data":
+      - "11. Files as files": chapters/ch11-files-as-files.md
+      - "12. Text, logs and CSV": chapters/ch12-text-logs-csv.md
+      - "13. JSON": chapters/ch13-json.md
+      - "14. Structs, arrays, maps and lambdas": chapters/ch14-complex-types.md
+      - "15. VARIANT": chapters/ch15-variant.md
+      - "16. XML, Avro and Protobuf": chapters/ch16-xml-avro-protobuf.md
+      - "17. Documents, images and audio": chapters/ch17-documents-images-audio.md
+  - "Part IV: Performance":
+      - "18. Reading query plans": chapters/ch18-query-plans.md
+      - "19. Partitions, caching, memory and spill": chapters/ch19-partitions-caching-memory.md
+      - "20. Python on Spark: UDFs and Arrow": chapters/ch20-python-udfs-arrow.md
+      - "21. Python UDTFs": chapters/ch21-python-udtfs.md
+      - "22. Parquet from the inside": chapters/ch22-parquet-inside.md
+      - "23. Project Feather": chapters/ch23-project-feather.md
+      - "24. Acceleration: Gluten and Velox, RAPIDS and cuDF, Comet": chapters/ch24-acceleration.md
+  - "Part V: Streaming":
+      - "25. Structured Streaming fundamentals": chapters/ch25-structured-streaming.md
+      - "26. Streaming messy data": chapters/ch26-streaming-messy-data.md
+      - "27. Stateful processing with transformWithState": chapters/ch27-transform-with-state.md
+      - "28. Real-time Mode": chapters/ch28-real-time-mode.md
+      - "29. Inside a checkpoint and the state store": chapters/ch29-checkpoints-and-state-store.md
+  - "Part VI: Pipelines and tables":
+      - "30. Tables: Delta and Iceberg": chapters/ch30-tables-delta-iceberg.md
+      - "31. Apache Iceberg with Spark": chapters/ch31-iceberg.md
+      - "32. Declarative Pipelines": chapters/ch32-declarative-pipelines.md
+      - "33. Medallion in practice": chapters/ch33-medallion.md
+      - "34. Change data capture": chapters/ch34-change-data-capture.md
+      - "35. Metric views": chapters/ch35-metric-views.md
+      - "36. A pipeline end to end": chapters/ch36-pipeline-end-to-end.md
+  - "Part VII: Machine learning and applied algorithms":
+      - "37. ML pipelines with MLlib and MLflow": chapters/ch37-mllib-mlflow.md
+      - "38. Text analytics without an LLM": chapters/ch38-text-analytics.md
+      - "39. Similarity search": chapters/ch39-similarity-search.md
+      - "40. Entity resolution": chapters/ch40-entity-resolution.md
+      - "41. Sketches": chapters/ch41-sketches.md
+      - "42. Calling models and services": chapters/ch42-calling-models.md
+  - "Part VIII: Running Spark in production":
+      - "43. Determinism, retries and fault injection": chapters/ch43-determinism-retries.md
+      - "44. Shipping Python dependencies": chapters/ch44-shipping-dependencies.md
+      - "45. Observability": chapters/ch45-observability.md
+      - "46. Spark Connect in production": chapters/ch46-connect-in-production.md
+      - "47. The Spark Kubernetes Operator": chapters/ch47-kubernetes-operator.md
+      - "48. Orchestrating Spark": chapters/ch48-orchestration.md
+      - "49. Writing Spark pipelines with agents": chapters/ch49-pipelines-with-agents.md
+  - "Part IX: Extending Spark":
+      - "50. Python data sources I: readers": chapters/ch50-python-data-sources-readers.md
+      - "51. Python data sources II: APIs, databases, Arrow": chapters/ch51-python-data-sources-apis-databases.md
+      - "52. Python data sources III: filter pushdown": chapters/ch52-python-data-sources-pushdown.md
+      - "53. Python data sources IV: writers and streaming": chapters/ch53-python-data-sources-writers-streaming.md
+      - "54. Shipping a Python data source": chapters/ch54-shipping-a-python-data-source.md
+      - "55. A DSv2 connector in Java": chapters/ch55-dsv2-connector-java.md
+      - "56. Catalyst extensions": chapters/ch56-catalyst-extensions.md
+      - "57. Spark Connect plugins": chapters/ch57-connect-plugins.md
+      - "58. Capstone: your own connector": chapters/ch58-capstone-connector.md
+  - "Part X: Internals":
+      - "59. How Catalyst plans Python": chapters/ch59-catalyst-plans-python.md
+      - "60. The Python worker protocol": chapters/ch60-python-worker-protocol.md
+      - "61. The VARIANT binary format": chapters/ch61-variant-binary-format.md
+      - "62. From wrong results to a fix": chapters/ch62-upstream-case-study.md
   - Roadmap: roadmap.md
+  - Coverage: coverage.md

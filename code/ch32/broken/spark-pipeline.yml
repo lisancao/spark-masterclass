@@ -1,0 +1,5 @@
+name: broken
+storage: file://@WORK@/pipeline-storage
+libraries:
+  - glob:
+      include: transformations/**

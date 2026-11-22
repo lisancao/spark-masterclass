@@ -1,0 +1,29 @@
+defaults: spark.sql.experimental.optimizer.transpilePyUDFs = false | spark.sql.ansi.enabled = true | spark.sql.execution.pythonUDF.arrow.enabled = true
+
+== 1. flag on, plain @udf (Arrow-optimized by default in 4.3)
+   eval type: 101 | Python node in plan: ArrowEvalPython
+   warning: Cannot infer the eval type from type hints. 
+
+== 2. flag on, useArrow=False
+   eval type: 100 | Python node in plan: none
+   the plan's Project, start: *(1) Project [CASE WHEN coalesce((isnull(fare_amount#10) OR CASE WHEN isnull(fare_amount#10) THEN cast(raise_error(USER_RAISED_EXCEPTION, map(keys: [e
+   ... 1178 characters in all
+
+== 3. what the transpiler refuses (useArrow=False)
+   band_if  -> functions with more than one top-level statement are not supported by the transpiler
+   tip_pct  -> binary operator Div is not supported by the transpiler
+   is_png   -> a numeric-typed lowering does not match the declared return type boolean; the interpreted path would return NULL where t
+
+== 4. the flag is read twice: when the UDF is built, and when the query is optimized
+   built with the flag off, optimized with it on: Python node = BatchEvalPython
+   built with the flag on, optimized with it off: Python node = BatchEvalPython
+   built with the flag on, optimized with it on:  Python node = none
+
+== 5. ANSI mode off
+   warning: Python UDF transpilation (spark.sql.experimental.optimizer.transpilePyUDFs) is only supported when ANSI mode is enabled 
+   Python node: BatchEvalPython
+
+== 6. same answer, Python and transpiled
+   Python:     [('$10 to $30', 2192451), ('invalid', 16815), ('over $30', 777470), ('under $10', 850512)]
+   transpiled: [('$10 to $30', 2192451), ('invalid', 16815), ('over $30', 777470), ('under $10', 850512)]
+   equal: True

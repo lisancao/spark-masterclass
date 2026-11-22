@@ -1,0 +1,80 @@
+== 1. typeof over literals
+  true                                     boolean
+  1Y                                       tinyint
+  1S                                       smallint
+  1                                        int
+  1L                                       bigint
+  1.5F                                     float
+  1.5D                                     double
+  1.5                                      decimal(2,1)
+  'x'                                      string
+  X'00'                                    binary
+  DATE'2026-06-01'                         date
+  TIMESTAMP'2026-06-01 10:00:00'           timestamp
+  TIMESTAMP_NTZ'2026-06-01 10:00:00'       timestamp_ntz
+  INTERVAL 2 DAYS                          interval day
+  INTERVAL '1-2' YEAR TO MONTH             interval year to month
+  array(1, 2)                              array<int>
+  map('a', 1)                              map<string,int>
+  named_struct('id', 1, 'plan', 'pro')     struct<id:int,plan:string>
+  parse_json('{"a": 1}')                   variant
+  'x' COLLATE UTF8_LCASE                   string collate UTF8_LCASE
+  TIME'10:07:00'                           time(6)
+
+== 2. numbers
+  SELECT CAST(300 AS TINYINT)                  ERROR [CAST_OVERFLOW] The value 300 of the type "INT" cannot be cast to "TINYINT" due to an overflow. 
+  SELECT 2147483647 + 1                        ERROR [ARITHMETIC_OVERFLOW] overflow. Use 'try_add' to tolerate overflow and return NULL instead. If n
+  SELECT CAST(12345.678 AS DECIMAL(5,2))       ERROR [NUMERIC_VALUE_OUT_OF_RANGE.WITH_SUGGESTION]  12345.678 cannot be represented as Decimal(5, 2). 
+   Row(dbl=0.30000000000000004, dec=Decimal('0.3'), rounded=Decimal('123.46'), too_big=None)
+   DecimalType() is decimal(10,0)
+
+== 3. TIMESTAMP vs TIMESTAMP_NTZ under two session time zones
+  UTC               ts_epoch=1780308000  ntz_epoch=1780308000
+  America/New_York  ts_epoch=1780322400  ntz_epoch=1780308000
+  python TZ=UTC               collect: datetime.datetime(2026, 6, 1, 10, 0) | toPandas: 2026-06-01 10:00:00
+  python TZ=Asia/Ho_Chi_Minh  collect: datetime.datetime(2026, 6, 1, 17, 0) | toPandas: 2026-06-01 10:00:00
+  interval day to second -> datetime.timedelta(days=2, seconds=7200)
+  interval year to month -> ERROR [NOT_IMPLEMENTED] YearMonthIntervalType.fromInternal is not implemented.
+  TIME literal           -> datetime.time(10, 7)
+  CAST('10:07' AS TIME)  -> ERROR [UNSUPPORTED_TIME_TYPE] The data type TIME is not supported. SQLSTATE: 0A000
+
+== 4. DDL, StructType, JSON
+struct<id:bigint,name:string,tags:array<string>,address:struct<city:string,zip:string>,amount:double>
+id BIGINT NOT NULL,name STRING,tags ARRAY<STRING>,address STRUCT<city: STRING, zip: STRING>,amount DOUBLE COMMENT 'order total in CAD'
+root
+ |-- id: long (nullable = false)
+ |-- name: string (nullable = true)
+ |-- tags: array (nullable = true)
+ |    |-- element: string (containsNull = true)
+ |-- address: struct (nullable = true)
+ |    |-- city: string (nullable = true)
+ |    |-- zip: string (nullable = true)
+ |-- amount: double (nullable = true)
+
+comment lives in metadata: {'comment': 'order total in CAD'}
+fromDDL == hand-built (without amount)? True
+{"fields":[{"metadata":{},"name":"id","nullable":false,"type":"long"},{"metadata":{},"na
+round trip equal: True
+differ only in nullability: == False | simpleString equal True
+
+== 5. nested types and paths
+StructField('geo', StructType([StructField('country', StringType(), True)]), True)
+['_corrupt_record', 'amount', 'event', 'event_type', 'items', 'ts', 'user', 'user_id']
++-------+--------+-----------+
+|country|items[0]|tags[color]|
++-------+--------+-----------+
+|     CA|      10|        red|
++-------+--------+-----------+
+
+== 6. nullability
+struct<event:string,user_id:bigint> [True, True]
+events with no user_id: 41 of 61
+createDataFrame with None: ERROR [FIELD_NOT_NULLABLE_WITH_NAME] field id: This field is not nullable, but got None.
+verifySchema=False: [Row(id=1), Row(id=0)]
+
+== 7. createDataFrame and toArrow
+struct<zone:string,trips:bigint>
+struct<zone:string,fare:double>
+struct<zone:string,fare:double>
+Table id: int64 not null
+arrow for pandas conversions: true

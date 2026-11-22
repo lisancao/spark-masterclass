@@ -1,0 +1,4 @@
+$ grep -n sequence_by transformations/customers.py
+20:    sequence_by="sequence",
+32:    sequence_by="sequence",
+pyspark.errors.exceptions.connect.AnalysisException: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `sequence` cannot be resolved. Did you mean one of the foll

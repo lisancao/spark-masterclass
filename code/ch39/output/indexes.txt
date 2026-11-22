@@ -1,0 +1,57 @@
+== 424 listings, 89,676 pairs
+  sequence(1, 0) = [1, 0]  (counts down, which is why short text needs its own branch)
+  exact all-pairs Jaccard: 89,676 pairs; plan join: ['BroadcastNestedLoopJoin']
++------+-----+
+|j from|count|
++------+-----+
+|   0.0|70475|
+|   0.1|13164|
+|   0.2| 2689|
+|   0.3| 1408|
+|   0.4|  796|
+|   0.5|  548|
+|   0.6|  161|
+|   0.7|  113|
+|   0.8|  150|
+|   0.9|  107|
+|   1.0|   65|
++------+-----+
+
+  inverted index on shingles: 1,674,500 join rows for 87,566 distinct pairs
+
+== MinHash signatures: one Project, no Python, no shuffle
+  operators above the cached shingles: ['InMemoryTableScan', 'InMemoryRelation', '*'] | Exchange: False | Python: False
+  BIGINT overflow under ANSI: [ARITHMETIC_OVERFLOW]
+  estimate error over 87,566 pairs with J > 0, K=100:
+    J in [0.0, 0.3): mean |error| 0.0164   theory sd at J=0.15: 0.0357   pairs 84,218
+    J in [0.3, 0.6): mean |error| 0.0354   theory sd at J=0.45: 0.0497   pairs 2,752
+    J in [0.6, 0.9): mean |error| 0.0337   theory sd at J=0.75: 0.0433   pairs 424
+    J in [0.9, 1.0): mean |error| 0.0132   theory sd at J=0.95: 0.0218   pairs 172
+
+== banding: 435 pairs with J >= 0.7
+   b   r  threshold  P(cand | J=0.7)  candidates  of all pairs  recall
+  100   1      0.010           1.0000      82,593       92.10%  1.000
+   50   2      0.141           1.0000      18,862       21.03%  1.000
+   25   4      0.447           0.9990       2,244        2.50%  1.000
+     band join plan: ['BroadcastHashJoin', 'Generate']
+     after exact verification: 435 pairs, precision 1.0 by construction
+   20   5      0.549           0.9748       1,431        1.60%  1.000
+   10  10      0.794           0.2491         414        0.46%  0.830
+
+== MLlib MinHashLSH (OR-amplification only)
+  numHashTables=5   candidates  26,292 (29.3% of pairs), recall 1.000
+  numHashTables=25  candidates  71,889 (80.2% of pairs), recall 1.000
+
+== IVF
+  createDataFrame with a numpy array: [FIELD_DATA_TYPE_UNACCEPTABLE_WITH_NAME]
+  KMeans k=64 on 20,000 vectors of 32 values, 20 iterations
+  list sizes: largest [610, 597, 581, 576, 559], smallest [19, 18, 16], mean 312
+  nprobe  vectors scored  of brute force  recall@10
+       1          79,820            2.0%      0.424
+       2         157,827            3.9%      0.591
+       4         308,524            7.7%      0.765
+       8         588,344           14.7%      0.913
+      16       1,004,910           25.1%      0.988
+      64       4,000,000          100.0%      1.000
+  NEAREST 10 BY DISTANCE: 4,000,000 distances, recall@10 1.000
+  plan: ['BroadcastNestedLoopJoin', 'SortAggregate', 'Generate']

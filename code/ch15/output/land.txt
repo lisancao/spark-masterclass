@@ -1,0 +1,139 @@
+
+== parse_json and try_parse_json ==
+  parse_json('{"a": 1}')                       -> {"a":1}
+  parse_json('{"a": ')                         -> MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION
+  try_parse_json('{"a": ')                     -> None
+  parse_json('{"a": '), ANSI off               -> MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION
+  collected: VariantVal  toPython(): {'amount': '12.50', 'items': [{'sku': 'P1'}, {'sku': 'P2'}], 'note': None, 'odd key': 1, 'user': {'id': 7, 'plan': 'pro'}}
+
+== paths and casts ==
+  v:user.id                                    -> 7
+  typeof(v:user.id)                            -> variant
+  v:user.id::int                               -> 7
+  v:items[1].sku::string                       -> P2
+  v:['odd key']                                -> 1
+  v:User.id (case)                             -> None
+  v:missing                                    -> None
+  variant_get(v, '$.user.plan', 'string')      -> pro
+  v:amount::double  (a string)                 -> 12.5
+  v:user.plan::int                             -> INVALID_VARIANT_CAST
+  try_variant_get(v, '$.user.plan', 'int')     -> None
+  parse_json('12.5')::int                      -> 12
+  parse_json('"12.5"')::int                    -> INVALID_VARIANT_CAST
+  v:items::array<variant>                      -> 2
+  v:user::map<string,string>                   -> {'plan': 'pro', 'id': '7'}
+
+== JSON null and a missing key ==
++----------------+-----------------+-------------------+--------------------+--------------+
+|note_is_sql_null|note_is_json_null|missing_is_sql_null|missing_is_json_null|note_as_string|
++----------------+-----------------+-------------------+--------------------+--------------+
+|false           |true             |true               |false               |NULL          |
++----------------+-----------------+-------------------+--------------------+--------------+
+
+
+== schema_of_variant and schema_of_variant_agg ==
++--------------------------------------------------------------------------------------------------------------------------------+
+|one_row                                                                                                                         |
++--------------------------------------------------------------------------------------------------------------------------------+
+|OBJECT<amount: STRING, items: ARRAY<OBJECT<sku: STRING>>, note: VOID, `odd key`: BIGINT, user: OBJECT<id: BIGINT, plan: STRING>>|
++--------------------------------------------------------------------------------------------------------------------------------+
+
+OBJECT<a: VARIANT, b: ARRAY<BIGINT>>
+OBJECT<a: DECIMAL(21,1)>
+
+== land the three days as VARIANT ==
+root
+ |-- v: variant (nullable = true)
+ |-- _bad: string (nullable = true)
+ |-- file: string (nullable = false)
+
+rows: 61  malformed: 1
++----+-------------------------------------------+----------------------+
+|v   |_bad                                       |file                  |
++----+-------------------------------------------+----------------------+
+|NULL|{"event_type": "purchase", "user": {"id": 9|events_2026-10-03.json|
++----+-------------------------------------------+----------------------+
+
+only singleVariantColumn, no schema: ['v']  NULL rows: 1
+  schema() before the options (classic)        -> INVALID_SINGLE_VARIANT_COLUMN
+no inference job: the read gives the schema without a pass over the data
+
+== profile: every top-level key, how often, and its types ==
++----------+---+-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|key       |n  |types                    |exact                                                                                                                                                                                                        |
++----------+---+-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|amount    |60 |[DECIMAL, OBJECT, STRING]|[DECIMAL(2,1), DECIMAL(3,1), DECIMAL(3,2), DECIMAL(4,2), OBJECT<currency: STRING, value: DECIMAL(3,1)>, OBJECT<currency: STRING, value: DECIMAL(3,2)>, OBJECT<currency: STRING, value: DECIMAL(4,2)>, STRING]|
+|event     |40 |[STRING]                 |[STRING]                                                                                                                                                                                                     |
+|event_type|20 |[STRING]                 |[STRING]                                                                                                                                                                                                     |
+|items     |40 |[ARRAY]                  |[ARRAY<OBJECT<qty: BIGINT, sku: STRING>>]                                                                                                                                                                    |
+|ts        |60 |[STRING]                 |[STRING]                                                                                                                                                                                                     |
+|user      |40 |[OBJECT]                 |[OBJECT<geo: OBJECT<country: STRING>, id: BIGINT, plan: STRING>, OBJECT<id: BIGINT, plan: STRING>]                                                                                                           |
+|user_id   |20 |[BIGINT]                 |[BIGINT]                                                                                                                                                                                                     |
++----------+---+-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
++----------------------+---------------------------------------------+
+|file                  |amount_schema                                |
++----------------------+---------------------------------------------+
+|events_2026-10-01.json|DECIMAL(4,2)                                 |
+|events_2026-10-02.json|VARIANT                                      |
+|events_2026-10-03.json|OBJECT<currency: STRING, value: DECIMAL(4,2)>|
++----------------------+---------------------------------------------+
+
+
+== variant_explode: what it gives for an object, an array and a scalar ==
++------+---+----+-----+
+|input |pos|key |value|
++------+---+----+-----+
+|object|0  |a   |1    |
+|object|1  |b   |2    |
+|array |0  |NULL|"x"  |
+|array |1  |NULL|"y"  |
++------+---+----+-----+
+
+variant_explode_outer(v:items): 82  variant_explode(v:items): 61
+
+== normalize the three shapes into typed columns ==
+root
+ |-- event_type: string (nullable = true)
+ |-- user_id: long (nullable = true)
+ |-- plan: string (nullable = true)
+ |-- amount: double (nullable = true)
+ |-- ts: timestamp (nullable = true)
+ |-- file: string (nullable = false)
+
++----------------------+----+------+----------+------------+
+|file                  |rows|amount|null_users|null_amounts|
++----------------------+----+------+----------+------------+
+|events_2026-10-01.json|20  |530.03|0         |0           |
+|events_2026-10-02.json|20  |609.83|0         |0           |
+|events_2026-10-03.json|20  |433.54|0         |0           |
++----------------------+----+------+----------+------------+
+
++---+---+
+|sku|qty|
++---+---+
+|P1 |8  |
+|P2 |12 |
+|P3 |3  |
+|P4 |18 |
+|P5 |7  |
+|P6 |11 |
+|P7 |14 |
+|P8 |11 |
+|P9 |14 |
++---+---+
+
+items via explode(try_variant_get(v, '$.items', 'array<variant>')): 61
+
+== the rules of the type ==
+  GROUP BY v                                   -> GROUP_EXPRESSION_TYPE_IS_NOT_ORDERABLE
+  ORDER BY v                                   -> DATATYPE_MISMATCH.INVALID_ORDERING_TYPE
+  v = v                                        -> DATATYPE_MISMATCH.INVALID_ORDERING_TYPE
+  DISTINCT v                                   -> UNSUPPORTED_FEATURE.SET_OPERATION_ON_VARIANT_TYPE
+  GROUP BY to_json(v)                          -> 60
+  to_json sorts keys: {"a":2,"b":1}
+  number types: ['DECIMAL(4,2)', 'DOUBLE', 'BIGINT', 'DECIMAL(20,0)']
+  0.1 + 0.2 as DECIMAL: 0.30  as DOUBLE: 0.30000000000000004
+  to_variant_object(struct): {"a":1,"b":[1,2]}
+  CAST(named_struct('a', 1) AS VARIANT)        -> DATATYPE_MISMATCH.CAST_WITHOUT_SUGGESTION
+  CAST(map('a', 1) AS VARIANT)                 -> DATATYPE_MISMATCH.CAST_WITHOUT_SUGGESTION

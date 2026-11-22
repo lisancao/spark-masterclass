@@ -1,0 +1,8 @@
++--------+--------+--------------+
+|category|products|avg_list_price|
++--------+--------+--------------+
+|hardware|       2|     17.245000|
+|   merch|       2|     61.625000|
++--------+--------+--------------+
+
+second run: TABLE_OR_VIEW_ALREADY_EXISTS

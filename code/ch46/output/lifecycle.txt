@@ -1,0 +1,7 @@
+server: defaultSessionTimeout=10s, maintenanceInterval=2s
+  a new session runs a query                           ok: 3
+  the same session after 15 s without RPCs             INVALID_HANDLE.SESSION_CLOSED
+  a session after release_session()                    INVALID_HANDLE.SESSION_CLOSED
+  a session after the server restarted                 NO_ACTIVE_SESSION
+  interruptTag(nightly) during a 64-task query         interrupted 1 operation(s); the query: OPERATION_CANCELED
+  REST record of that operation                        state CLOSED, jobs ['0']

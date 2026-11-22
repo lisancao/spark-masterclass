@@ -1,0 +1,24 @@
+--- kind nodes
+part08-control-plane   v1.37.0
+part08-worker          v1.37.0
+part08-worker2         v1.37.0
+--- helm release
+spark spark-kubernetes-operator-1.9.0 1.1.0
+--- CRDs
+sparkapplications.spark.apache.org
+sparkclusters.spark.apache.org
+--- operator pod
+spark-kubernetes-operator-6db444dd5d-42jwr   apache/spark-kubernetes-operator:1.1.0   Running
+--- short names
+sparkapplications sparkapp
+sparkclusters sparkcluster
+--- configs in the driver config map of sparkapp/zones (selected)
+spark.app.id=zones-0
+spark.authenticate=true
+spark.io.encryption.enabled=true
+spark.kubernetes.container.image=spark-masterclass/spark\:4.3.0-book
+spark.kubernetes.driver.annotateExitException=true
+spark.kubernetes.executor.deleteOnTermination=false
+spark.kubernetes.executor.useDriverPodIP=true
+spark.master=k8s\://https\://$KUBERNETES_SERVICE_HOST\:$KUBERNETES_SERVICE_PORT
+spark.submit.pyFiles=local\:///opt/book/zones.py

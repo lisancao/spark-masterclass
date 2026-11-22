@@ -1,0 +1,75 @@
+== 1. a scalar SQL UDF
++-------+-------+
+|   band|      n|
++-------+-------+
+|  short|1803039|
+| medium|1571902|
+|   long| 445492|
+|invalid|  16815|
++-------+-------+
+
+analyzed plan mentions the function: ["+- 'Aggregate [unresolvedordinal(1)], ['fare_band('fare_amount) AS band#44, 'count(1) AS n"]
+optimized plan lines with the name: ['+- Aggregate [fare_band#47], [fare_band#47 AS band#44, count(1) AS n#4', '+- Project [CASE WHEN (isnull(fare_amount#10) OR (fare_amount#10 <= 0.']
+optimized plan: ['+- Project [CASE WHEN (isnull(fare_amount#10) OR (fare_amount#10 <= 0.0)) THEN invalid WHEN (far']
+
+== 2. the same logic as a Python UDF
+  fare_band     445,492 rows  median 0.35 s  ['PushedFilters: []']
+  fare_band_py  445,492 rows  median 1.13 s  ['ArrowEvalPython', 'PushedFilters: []']
+
+== 3. a SQL table function
++--------------------+----+--------+
+|        dropoff_zone|   n|avg_fare|
++--------------------+----+--------+
+|      Outside of NYC|6597|  112.06|
+|Times Sq/Theatre ...|6203|    70.8|
+|         JFK Airport|3974|   76.26|
+|       Midtown South|3197|   70.56|
++--------------------+----+--------+
+
+plan of the table function: ['+- BroadcastHashJoin [DOLocationID#8], [LocationID#128], Inner, BuildRight, fals', ':  +- BroadcastHashJoin [PULocationID#7], [LocationID#38], Inner, BuildRight, fa', ':     :  +- FileScan parquet [tpep_pickup_datetime#1,PULocationID#7,DOLocationID']
+
+== 4. what a SQL UDF refuses
+a SQL UDF named like a built-in: USER_DEFINED_FUNCTIONS.CANNOT_REPLACE_NON_SQL_UDF_WITH_SQL_UDF: User defined function is invalid: Cannot replace the non-SQL function up
+a non-constant LIMIT: INVALID_LIMIT_LIKE_EXPRESSION.IS_UNFOLDABLE: The limit like expression "outer(top_fares.n)" is invalid. The limit exp
+a parameter used as a table name: NOT_A_CONSTANT_STRING.NOT_CONSTANT: The expression outer(cnt.t) used for the routine or clause IDENTIFIER mu
+a wrong argument type: CAST_INVALID_INPUT: The value 'ten' of the type "STRING" cannot be cast to "INT" because it 
+a scalar UDF with a subquery: []
+  ... and its use: Row(z='JFK Airport', missing=None)
+
+== 5. a persistent SQL function
+   Function:      spark_catalog.default.tip_pct
+   Type:          SCALAR
+   Input:         tip  DOUBLE
+   Returns:       DOUBLE
+   Deterministic: true
+   Body:          round(100 * tip / nullif(fare, 0), 1)
+tip_pct(5, 20): Row(pct=25.0, div0=None)
+
+== 6. the SQL path
+current_path() by default: Row(current_path()='system.builtin,system.session,spark_catalog.default')
+SET PATH, default config: UNSUPPORTED_FEATURE.SET_PATH_WHEN_DISABLED: The feature is not supported: SET PATH is disabled. Set spark.sql.path.e
+current_path() with spark.sql.path.enabled: Row(current_path()='system.builtin,system.session,spark_catalog.default')
+unqualified tip_pct, default path: Row(spark_catalog.default.tip_pct(5, 20)=25.0)
+after SET PATH = spark_catalog.finance, ...: Row(path='spark_catalog.finance,system.builtin,system.session', tip=0.25)
+after SET PATH = DEFAULT_PATH: Row(path='system.builtin,system.session,spark_catalog.default', tip=25.0)
+
+== 7. a recursive CTE
++----+-------------------------------+
+|step|Zone                           |
++----+-------------------------------+
+|0   |Marine Park/Floyd Bennett Field|
+|1   |Marine Park/Mill Basin         |
+|2   |Flatlands                      |
+|3   |Flatbush/Ditmas Park           |
+|4   |Park Slope                     |
+|5   |Crown Heights North            |
+|6   |Bushwick South                 |
++----+-------------------------------+
+
+no cycle check: Py4JJavaError RECURSION_LEVEL_LIMIT_EXCEEDED: Recursion level limit 100 reached but query has not exhauste
+no cycle check, MAX RECURSION LEVEL 20: Py4JJavaError RECURSION_LEVEL_LIMIT_EXCEEDED: Recursion level limit 20 reached but query has not exhausted
+a LIMIT stops the recursion: Row(count(1)=12)
+plan nodes: ['UnionLoop', 'UnionLoopRef']
+
+== 8. a calendar from a recursive CTE
+days in June with no trip from zone 108: Row(days=30, days_with_no_trip=6)

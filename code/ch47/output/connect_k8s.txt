@@ -1,0 +1,15 @@
+without the token: status = StatusCode.UNAUTHENTICATED
+query over Connect, executors in pods: [(0, 7605), (1, 7605), (3, 7605)]
+server: 4.3.0  client python: 3.12.3
+a Python UDF from a 3.12 client: pyspark.errors.exceptions.base.PySparkRuntimeError: [PYTHON_VERSION_MISMATCH] Python in worker has different version: 3.10 than that in driver: 3.12, 
+REST connect/operations on the driver pod: [('laptop', 'CLOSED', 2), ('laptop', 'CLOSED', 1)]
+REST executors: 2
+
+delete pod connect-1-driver
+     0.0 s  attempt 1  RunningHealthy
+    15.6 s  attempt 2  ScheduledToRestart
+    20.8 s  attempt 2  DriverRequested
+    31.2 s  attempt 2  RunningHealthy
+the old session on the new server: SparkConnectException: [NO_ACTIVE_SESSION] No active Spark session found. Please create a new Spark session before running 
+a new session on attempt 2: 3 rows
+pods: ['connect-2-driver', 'connect-exec-1', 'connect-exec-2']

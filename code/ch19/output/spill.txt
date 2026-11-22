@@ -1,0 +1,10 @@
+heap: 1024 MiB; storage+execution pool: 434 MiB
+
+sort all June trips by trip_distance, write to noop; median of 3 runs after a warm-up
+
+shuffle.partitions   AQE  sort tasks  memory spilled  disk spilled  shuffle write    time
+                 2 false           2         370 MiB        98 MiB        197 MiB    5.4s
+                16 false          16         391 MiB       104 MiB        188 MiB    3.8s
+               200 false         200           0 MiB         0 MiB        184 MiB    3.7s
+                 2  true           2         555 MiB       148 MiB        197 MiB    4.7s
+               200  true          17         368 MiB        98 MiB        184 MiB    3.8s

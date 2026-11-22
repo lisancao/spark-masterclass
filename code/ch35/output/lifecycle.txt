@@ -1,0 +1,34 @@
+== create, then replace with one more measure
+  accepted  CREATE VIEW taxi.lifecycle
+  rejected  CREATE VIEW taxi.lifecycle again
+            TABLE_OR_VIEW_ALREADY_EXISTS: Cannot create table or view `taxi`.`lifecycle` because it already exists.
+  rejected  CREATE OR REPLACE VIEW, with revenue
+            TABLE_OR_VIEW_ALREADY_EXISTS: Cannot create table or view `taxi`.`lifecycle` because it already exists.
+  accepted  DROP VIEW, then CREATE VIEW with revenue
+  accepted  SELECT MEASURE(revenue)
+            112897667.0
+
+== inspect
+  rejected  SHOW CREATE TABLE
+            UNSUPPORTED_SHOW_CREATE_TABLE.ON_METRIC_VIEW: Unsupported a SHOW CREATE TABLE command. The command is not supported on a metric view `lifecycle`. 
+  accepted  SHOW VIEWS IN taxi
+            taxi | lifecycle | False
+            taxi | trip_metrics | False
+
+== rename, change, drop
+  accepted  ALTER VIEW ... RENAME TO taxi.lifecycle_v2
+  accepted  SELECT MEASURE(trips) FROM taxi.lifecycle_v2
+            3694387
+  accepted  ALTER VIEW ... AS SELECT
+  rejected  SELECT MEASURE(trips) after ALTER VIEW ... AS
+            INVALID_METRIC_VIEW_YAML: Failed to parse metric view YAML: Failed to parse YAML: Cannot construct instance of `org.apache.spa
+  accepted  DROP TABLE on a metric view
+  rejected  DROP VIEW
+            TABLE_OR_VIEW_NOT_FOUND: The table or view `spark_catalog`.`taxi`.`lifecycle_v2` cannot be found. Verify the spelling and cor
+
+== an unqualified source, read from another current database
+  accepted  CREATE VIEW taxi.unqualified with source: trips
+  accepted  USE taxi; SELECT MEASURE(trips)
+            3694387
+  accepted  USE default; SELECT MEASURE(trips)
+            5

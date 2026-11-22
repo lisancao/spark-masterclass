@@ -1,0 +1,60 @@
+
+== the drop ==
+  events.zip                     1816 bytes
+  events_2026-10-01.json.gz       294 bytes
+  logs.tar.gz                    3863 bytes
+    events.zip!/export/events_2026-10-01.json               1589 ->   262 bytes
+    events.zip!/export/events_2026-10-02.json               3302 ->   434 bytes
+    events.zip!/export/events_2026-10-03.json               4016 ->   392 bytes
+    events.zip!/export/README.txt                             32 ->    32 bytes
+    events.zip!/__MACOSX/export/._events_2026-10-01.json       4 ->     6 bytes
+
+== before 4.3 (and with the flag off): an archive is just bytes ==
+json, .json.gz (a codec, not an archive): 20 rows
+json, .zip: ['_corrupt_record'] 14 rows
+
+== spark.sql.files.archive.reader.enabled=true ==
+columns: ['_corrupt_record', 'amount', 'event', 'event_type', 'items', 'ts', 'user', 'user_id']
+rows: 62
++-------------------------------------------+
+|_corrupt_record                            |
++-------------------------------------------+
+|{"event_type": "purchase", "user": {"id": 9|
+|Exported by the partner portal.            |
++-------------------------------------------+
+
+
+== archivePathFilter picks the entries ==
+archivePathFilter=*.json -> 61 rows, 1 corrupt
++-------------------+-------------------+-----+
+|_metadata.file_name|_metadata.file_size|count|
++-------------------+-------------------+-----+
+|events.zip         |1816               |61   |
++-------------------+-------------------+-----+
+
+scan tasks for one archive: 1
+
+== text from a tar.gz ==
+lines: 334  first: 10.0.2.238 - - [01/Oct/2026:10:00:00 +0000] "GET /?session=s1 HTTP/1.1
+
+== binaryFile: one row per archive, or one per entry with wholeFile=false ==
++-------------------------+------+
+|path                     |length|
++-------------------------+------+
+|logs.tar.gz              |3863  |
+|events.zip               |1816  |
+|events_2026-10-01.json.gz|294   |
++-------------------------+------+
+
++-----------------------------------------+------+-------------+
+|path                                     |length|first 4 bytes|
++-----------------------------------------+------+-------------+
+|logs.tar.gz!/logs/access.log             |21213 |31302E30     |
+|logs.tar.gz!/logs/app.log                |10072 |32303236     |
+|events.zip!/export/events_2026-10-01.json|1589  |7B226576     |
+|events.zip!/export/events_2026-10-02.json|3302  |7B226576     |
+|events.zip!/export/events_2026-10-03.json|4016  |7B226576     |
+|events.zip!/export/README.txt            |32    |4578706F     |
+|events_2026-10-01.json.gz                |294   |1F8B0808     |
++-----------------------------------------+------+-------------+
+

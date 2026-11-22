@@ -1,0 +1,5 @@
+300,000 words, threshold default set pickles to 3,901,147 B   command        56 B   broadcast vars 1   [True, False]
+300,000 words, threshold 100m    set pickles to 3,901,147 B   command 3,901,653 B   broadcast vars 0   [True, False]
+   driver log: DAGScheduler: Broadcasting large task binary with size 3.7 MiB
+ 60,000 words, threshold default set pickles to   780,235 B   command   780,741 B   broadcast vars 0   [True, False]
+300,000 words (sc.broadcast), threshold default set pickles to 3,901,147 B   command       592 B   broadcast vars 1   [True, False]

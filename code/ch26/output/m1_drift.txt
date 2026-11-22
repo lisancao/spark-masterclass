@@ -1,0 +1,32 @@
+1. schemaInference=true infers the schema once, when the query starts
+   drop 1 only:       struct<event_id:string,page:string,ts:string,type:string,user_id:string>
+   after drops 2, 3:  struct<_corrupt_record:string,app_version:string,event_id:string,event_type:string,page:string,ts:string,type:string,user_id:string>
+
+2. The tracker 1.0 schema meets tracker 2.0 (drop 3): no error, and type is NULL
++------------+-----+
+|type_is_null|count|
++------------+-----+
+|       false|   25|
+|        true|   11|
++------------+-----+
+
++--------+-------+----+--------+-------------------+
+|event_id|user_id|type|    page|                 ts|
++--------+-------+----+--------+-------------------+
+|    NULL|   NULL|NULL|    NULL|               NULL|
+|    e023|     u4|NULL| /search|2026-10-05 09:25:15|
+|    e020|     u3|NULL|/p/chair|2026-10-05 09:26:22|
++--------+-------+----+--------+-------------------+
+only showing top 3 rows
+3. The corrupt record column catches broken lines, and only them
++--------+----+------------------------------------------------+
+|event_id|  ts|                                 _corrupt_record|
++--------+----+------------------------------------------------+
+|    NULL|NULL|{"event_id": "e900", "user_id": "u3", "type":...|
+|    e901|NULL|{"event_id": "e901", "user_id": "u3", "type":...|
++--------+----+------------------------------------------------+
+
+4. Selecting only the corrupt record column starts, then fails on the first batch:
+  StreamingQueryException: [STREAM_FAILED] ...
+  [UNSUPPORTED_FEATURE.QUERY_ONLY_CORRUPT_RECORD_COLUMN] The feature is not supported:
+  Queries from raw JSON/CSV/XML files are disallowed when the

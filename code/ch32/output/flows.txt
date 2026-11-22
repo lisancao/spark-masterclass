@@ -1,0 +1,18 @@
+== 1. default catalog (Parquet tables), flows run at the same time
+2026-11-22 10:06:19: Flow 'spark_catalog.default.backfill_orders' has FAILED.
+  Error: [STREAM_FAILED] Query [id = a6e28ccb-42c7-48e3-b357-3f1263a9c2eb, runId = b267e0d0-677b-4689-9273-10d2376d44c7] terminated with exception: Multiple streaming queries are concurrently using file:~/spark-masterclass/data/work/part06...
+2026-11-22 10:06:27: Run is COMPLETED.
+orders_raw: 11 rows
+order_events: 8 rows
+  Parquet files on disk in orders_raw: 3
+
+== 2. default catalog, spark.sql.pipelines.execution.maxConcurrentFlows = 1
+2026-11-22 10:07:12: Run is COMPLETED.
+orders_raw: 11 rows
+order_events: 2 rows
+
+== 3. Iceberg catalog, flows run at the same time
+namespace lake.retail is ready
+2026-11-22 10:08:05: Run is COMPLETED.
+orders_raw: 13 rows
+order_events: 12 rows

@@ -1,0 +1,22 @@
+ 13.4s  (warm-up done)
+ 13.4s  + click a /p/desk
+ 14.7s  batch  9  a  click  state before: None
+ 16.4s  + click a /cart
+ 17.4s  + click b /
+ 17.5s  batch 12  a  click  state before: /p/desk
+ 18.5s  batch 13  b  click  state before: None
+ 23.6s  batch 18  a  timer  state before: /cart
+ 24.6s  batch 19  b  timer  state before: /
+ 28.4s  + click a /p/lamp
+ 29.7s  batch 24  a  click  state before: None
+
+The time-mode rules:
+  timeMode=None: [STATEFUL_PROCESSOR_INCORRECT_TIME_MODE_TO_ASSIGN_TTL]
+   Cannot use TTL for state=last in timeMode=NoTime, use TimeMode.ProcessingTime() instead. SQLSTATE: 42802
+  timeMode=EventTime: [STATEFUL_PROCESSOR_INCORRECT_TIME_MODE_TO_ASSIGN_TTL]
+   Cannot use TTL for state=last in timeMode=EventTime, use TimeMode.ProcessingTime() instead. SQLSTATE: 42802
+
+A TIMESTAMP through state (session time zone UTC, the worker's zone is the machine's):
+  in handleInputRows: 2026-10-05 09:00:00+00:00
+  read back from state: 2026-10-05 02:00:00
+  machine time zone: PST

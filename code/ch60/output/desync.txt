@@ -1,0 +1,7 @@
+schema JSON: 88 bytes; the worker will read that length as the number of UDFs
+then the first 4 bytes of the JSON, b'{"ty' = 2,065,855,609, as the first UDF's argument count
+
+  4.3: a finished, length-bounded message      EOFError: ZeroCopyByteStream.read() tried to read 1937011317 byte(s), however, t (1140.1 ms)
+  4.2-style: an open stream, no length         still blocked after 5 s, waiting for bytes that never come
+
+the unchanged message parses: eval type 101, 1 UDF, eval conf keys ['input_type']

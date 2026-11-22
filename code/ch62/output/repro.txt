@@ -1,0 +1,5 @@
+Spark 4.3.0
+expected everywhere: (east, 10), (west, 20)
+
+USE default  metric view: (east, 10), (west, 20)   regular view: (east, 10), (west, 20)
+USE other    metric view: (east, 999)              regular view: (east, 10), (west, 20)

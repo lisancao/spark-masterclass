@@ -1,0 +1,23 @@
+== 1. skew in the trips
+zones: 258, median pickups per zone: 576, largest zone: 177,610
+
+== 2. a sort-merge join with one hot key
+  AQE skew join off  sum=5401520998929  join stage: 17 tasks, task time median 1390 ms, max 4919 ms, rows read median 1,196,603, max 12,093,305
+                     median of 3: 3.71 s
+  AQE skew join on   sum=5401520998929  join stage: 18 tasks, task time median 679 ms, max 2114 ms, rows read median 1,197,487, max 9,070,277
+                     median of 3: 2.73 s
+  final plan: ['+- *(5) SortMergeJoin(skew=true) [k#81L], [k#83L], Inner', ':  +- AQEShuffleRead coalesced and skewed', '+- AQEShuffleRead coalesced']
+
+== 3. salting with AQE skew join off
+  sum: 5401520998929
+  join stage: 17 tasks, task time median 1730 ms, max 1887 ms, rows read median 1,837,320, max 2,140,324
+  median of 3: 2.26 s
+
+== 4. NULL keys
+  inner join on a key that is 40% NULL, filter in the plan: ['+- Filter isnotnull(k#83L)']
+
+== 5. bucketed tables
+  Exchange operators: 1 | join: ['SortMergeJoin']
+  scan: [':     +- FileScan parquet spark_catalog.default.trips_b[PULocationID#307,fare_amount#308] ']
+  the same join on plain DataFrames, Exchange operators: 3
+  bucketed: 0.16 s | not bucketed: 0.35 s

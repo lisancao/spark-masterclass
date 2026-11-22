@@ -1,0 +1,86 @@
+== run 1, Hive metastore
+10:18:24: Flow spark_catalog.default.placed_by_customer is QUEUED.
+10:18:24: Flow spark_catalog.default.ingest_orders is QUEUED.
+10:18:24: Flow spark_catalog.default.products_by_category is QUEUED.
+10:18:24: Flow spark_catalog.default.products is QUEUED.
+10:18:24: Flow spark_catalog.default.orders_by_status is QUEUED.
+10:18:24: Flow spark_catalog.default.products is PLANNING.
+10:18:24: Flow spark_catalog.default.products is STARTING.
+10:18:24: Flow spark_catalog.default.products is RUNNING.
+10:18:24: Flow spark_catalog.default.ingest_orders is STARTING.
+10:18:25: Flow spark_catalog.default.ingest_orders is RUNNING.
+10:18:28: Flow spark_catalog.default.products has COMPLETED.
+10:18:29: Flow spark_catalog.default.ingest_orders has COMPLETED.
+10:18:29: Flow spark_catalog.default.products_by_category is PLANNING.
+10:18:29: Flow spark_catalog.default.products_by_category is STARTING.
+10:18:29: Flow spark_catalog.default.products_by_category is RUNNING.
+10:18:29: Flow spark_catalog.default.placed_by_customer is PLANNING.
+10:18:29: Flow spark_catalog.default.placed_by_customer is STARTING.
+10:18:29: Flow spark_catalog.default.placed_by_customer is RUNNING.
+10:18:29: Flow spark_catalog.default.orders_by_status is PLANNING.
+10:18:29: Flow spark_catalog.default.orders_by_status is STARTING.
+10:18:29: Flow spark_catalog.default.orders_by_status is RUNNING.
+10:18:33: Flow spark_catalog.default.orders_by_status has COMPLETED.
+10:18:33: Flow spark_catalog.default.placed_by_customer has COMPLETED.
+10:18:33: Flow spark_catalog.default.products_by_category has COMPLETED.
+10:18:34: Run is COMPLETED.
+
+== run 2, Hive metastore
+10:18:51: Flow spark_catalog.default.orders_by_status is QUEUED.
+10:18:51: Flow spark_catalog.default.products_by_category is QUEUED.
+10:18:51: Flow spark_catalog.default.products is QUEUED.
+10:18:51: Flow spark_catalog.default.placed_by_customer is QUEUED.
+10:18:51: Flow spark_catalog.default.ingest_orders is QUEUED.
+10:18:51: Flow spark_catalog.default.products is PLANNING.
+10:18:51: Flow spark_catalog.default.products is STARTING.
+10:18:51: Flow spark_catalog.default.products is RUNNING.
+10:18:51: Flow spark_catalog.default.ingest_orders is STARTING.
+10:18:52: Flow spark_catalog.default.ingest_orders is RUNNING.
+10:18:52: Flow spark_catalog.default.ingest_orders has COMPLETED.
+10:18:53: Flow spark_catalog.default.placed_by_customer is PLANNING.
+10:18:53: Flow spark_catalog.default.placed_by_customer is STARTING.
+10:18:53: Flow spark_catalog.default.placed_by_customer is RUNNING.
+10:18:53: Flow spark_catalog.default.orders_by_status is PLANNING.
+10:18:53: Flow spark_catalog.default.orders_by_status is STARTING.
+10:18:53: Flow spark_catalog.default.orders_by_status is RUNNING.
+10:18:54: Flow spark_catalog.default.products has COMPLETED.
+10:18:54: Flow spark_catalog.default.products_by_category is PLANNING.
+10:18:54: Flow spark_catalog.default.products_by_category is STARTING.
+10:18:54: Flow spark_catalog.default.products_by_category is RUNNING.
+10:18:56: Flow spark_catalog.default.orders_by_status has COMPLETED.
+10:18:56: Flow spark_catalog.default.placed_by_customer has COMPLETED.
+10:18:56: Flow spark_catalog.default.products_by_category has COMPLETED.
+10:18:57: Run is COMPLETED.
+
+tables: ['orders_by_status', 'orders_raw', 'placed_by_customer', 'products', 'products_by_category']
+orders_raw: 11 rows
+tables: ['orders_by_status', 'orders_raw', 'placed_by_customer', 'products', 'products_by_category']
+orders_by_status: 3 rows
++---------+-----------+
+|status   |order_count|
++---------+-----------+
+|shipped  |2          |
+|placed   |8          |
+|cancelled|1          |
++---------+-----------+
+
+placed_by_customer: 6 rows
++-----------+------+
+|customer_id|placed|
++-----------+------+
+|c-01       |2     |
+|c-02       |2     |
+|c-04       |1     |
+|c-05       |1     |
+|c-99       |1     |
+|c-03       |1     |
++-----------+------+
+
+products_by_category: 2 rows
++--------+--------+--------------+
+|category|products|avg_list_price|
++--------+--------+--------------+
+|hardware|2       |17.245000     |
+|merch   |2       |61.625000     |
++--------+--------+--------------+
+

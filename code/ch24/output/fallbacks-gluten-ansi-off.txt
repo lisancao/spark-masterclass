@@ -1,0 +1,3 @@
+      3 Validation failed for plan: Scan parquet , due to: 
+      2 Validation failed for plan: Filter, due to: 
+      1 Validation failed for plan: Filter, due to: Filter has TimestampNTZType in input/output schema

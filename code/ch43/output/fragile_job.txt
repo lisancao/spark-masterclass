@@ -1,0 +1,14 @@
+fragile_job:
+  chaos run: 16 tasks retried
+  charges  clean  6 rows, chaos 12 rows, identical: False
+  audit    clean  1 rows, chaos  6 rows, identical: False
+  ledger   clean 12 rows, chaos 24 rows, identical: False
+  metrics  clean {'charges': 12, 'revenue_usd': 162.69}
+           chaos {'charges': 12, 'revenue_usd': 162.69}
+correct_job:
+  chaos run: 8 tasks retried
+  charges  clean  6 rows, chaos  6 rows, identical: True
+  audit    clean  2 rows, chaos  2 rows, identical: True
+  ledger   clean  6 rows, chaos  6 rows, identical: True
+  metrics  clean {'charges': 6, 'revenue_usd': 162.69}
+           chaos {'charges': 6, 'revenue_usd': 162.69}

@@ -1,0 +1,30 @@
+26 files under the sample root
+
+query                              rows opened  Spark's Filter
+kind = 'image'                        5      5  isnotnull(kind)
+kind IN ('audio', 'pdf')              5      5  -
+name LIKE '%.eml'                     4      4  isnotnull(name)
+size > 4000                           6      6  isnotnull(size)
+kind = 'image' AND width > 12         3      5  ((isnotnull(kind) AND isnotnull(width)) AND (width > 12))
+kind = 'audio' OR size < 100          9     26  ((kind = audio) OR (size < 100))
+lower(kind) = 'image'                 5     26  (isnotnull(kind) AND (lower(kind) = image))
+
+explain('formatted') of the mixed query:
+  +- BatchScan files (1)
+  (1) BatchScan files
+  PushedFilters: [EqualTo(kind,image)]
+  ReadSchema: struct<path:string,name:string,kind:string,size:bigint,width:int,height:in
+
+A reader that yields nothing back, but applies only what it understands:
+  kind = 'image' AND width > 12    correct:  3  lying:  5  lying plan's Filter: -
+  lower(kind) = 'image'            correct:  5  lying:  5  lying plan's Filter: (lower(kind) = image)
+
+push and return, name LIKE 'tick%': 4 rows, 6 files opened, Spark's Filter: (isnotnull(name) AND StartsWith(name, tick))
+
+One DataFrame, a pushed filter first, then other queries on the same DataFrame:
+  df.filter(kind = 'image').count(): 5
+  df.count():                        5 (the folder has 26 files)
+  df.filter(kind = 'audio').count(): 3
+  partitions() calls for the three:  2
+  fresh load(), count():             26
+  fresh d, d.union(d.filter(kind = 'image')).count(): 10 (right answer: 31)

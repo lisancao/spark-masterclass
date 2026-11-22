@@ -1,0 +1,37 @@
+published 2924 trips (dropoffs 08:00 to 08:30)
+
+What the Kafka source gives you:
+root
+ |-- key: binary (nullable = true)
+ |-- value: binary (nullable = true)
+ |-- topic: string (nullable = true)
+ |-- partition: integer (nullable = true)
+ |-- offset: long (nullable = true)
+ |-- timestamp: timestamp (nullable = true)
+ |-- timestampType: integer (nullable = true)
+
+run 1 batches (id, rows): [(0, 1198), (1, 1198), (2, 528)]
++---------+-----+-----------+
+|partition|trips|last_offset|
++---------+-----+-----------+
+|        0|  925|        924|
+|        1| 1018|       1017|
+|        2|  598|        597|
+|        3|  383|        382|
++---------+-----+-----------+
+
+offsets/2, line 3 (the source's offset: next offset to read, per partition):
+  {"trips":{"0":925,"1":1018,"2":598,"3":383}}
+progress, the same source: {"endOffset": {"trips": {"0": 925, "1": 1018, "2": 598, "3": 383}}, "latestOffset": {"trips": {"0": 925, "1": 1018, "2": 598, "3": 383}}}
+
+published 3345 more trips (08:30 to 09:00)
+run 2 batches (id, rows): [(3, 1198), (4, 1199), (5, 948)]
++---------+-----+-----------+
+|partition|trips|last_offset|
++---------+-----+-----------+
+|        0| 1907|       1906|
+|        1| 2184|       2183|
+|        2| 1327|       1326|
+|        3|  851|        850|
++---------+-----+-----------+
+

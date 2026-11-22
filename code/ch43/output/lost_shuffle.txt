@@ -1,0 +1,26 @@
+range                                      DETERMINATE
+groupBy                                    UNORDERED
+hash repartition after groupBy             UNORDERED
+round-robin repartition after groupBy      UNORDERED
+sample after groupBy                       UNORDERED
+round-robin, sortBeforeRepartition=false   INDETERMINATE
+
+modulo  fullRetry=true  same result: True   rows: 4000
+                        first  [(0, 1000), (1, 1000), (2, 1000), (3, 1000)]
+                        second [(0, 1000), (1, 1000), (2, 1000), (3, 1000)]
+                        stage 2 attempt 1: COMPLETE 4 task(s) ran
+                        stage 3 attempt 0: FAILED   4 task(s) ran
+                        stage 3 attempt 1: COMPLETE 2 task(s) ran
+random  fullRetry=false same result: False  rows: 4000
+                        first  [(0, 974), (1, 978), (2, 1047), (3, 1001)]
+                        second [(0, 1039), (1, 977), (2, 1023), (3, 961)]
+                        stage 2 attempt 1: COMPLETE 4 task(s) ran
+                        stage 3 attempt 0: FAILED   4 task(s) ran
+                        stage 3 attempt 1: COMPLETE 2 task(s) ran
+random  fullRetry=true  FAILED:
+    Job aborted due to stage failure: A shuffle map stage with indeterminate output was
+    failed and retried. However, Spark cannot rollback the ResultStage 3 to re-process
+    the input data, and has to fail this job. Please eliminate the indeterminacy by
+    checkpointing the RDD before repartition and try again.
+                        stage 2 attempt 1: FAILED   4 task(s) ran
+                        stage 3 attempt 0: FAILED   4 task(s) ran

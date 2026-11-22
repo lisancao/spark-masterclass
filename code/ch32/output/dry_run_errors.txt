@@ -1,0 +1,56 @@
+== dry run 1
+pyspark.errors.exceptions.connect.AnalysisException: The downstream table 'spark_catalog.default.top_customers' is 
+referenced when creating the upstream table or view 'spark_catalog.default.revenue_by_customer'. Circular dependencies 
+are not supported in a pipeline. Please remove the dependency between 'spark_catalog.default.revenue_by_customer' and 
+'spark_catalog.default.top_customers'.
+
+== fix 1: revenue_by_customer reads orders_enriched. dry run 2
+2026-11-22 10:00:47: Failed to resolve flow due to upstream failure: 'spark_catalog.default.top_customers'.
+Error: Failed to read dataset 'spark_catalog.default.revenue_by_customer'. Dataset is defined in the pipeline but could 
+not be resolved.
+2026-11-22 10:00:47: Failed to resolve flow due to upstream failure: 'spark_catalog.default.revenue_by_customer'.
+Error: Failed to read dataset 'spark_catalog.default.orders_enriched'. Dataset is defined in the pipeline but could not 
+be resolved.
+2026-11-22 10:00:47: Failed to resolve flow due to upstream failure: 'spark_catalog.default.revenue_by_city'.
+Error: Failed to read dataset 'spark_catalog.default.orders_enriched'. Dataset is defined in the pipeline but could not 
+be resolved.
+2026-11-22 10:00:47: Failed to resolve flow: 'spark_catalog.default.orders_enriched'.
+Error: [TABLE_OR_VIEW_NOT_FOUND] The table or view `spark_catalog`.`default`.`orders_bronz` cannot be found. Verify the 
+spelling and correctness of the schema and catalog.
+Search path: [`system`.`builtin`, `system`.`session`, `spark_catalog`.`default`].
+If you did not qualify the name with a schema, verify the current_schema() output, or qualify the name with the correct 
+schema and catalog.
+To tolerate the error on drop use DROP VIEW IF EXISTS or DROP TABLE IF EXISTS. SQLSTATE: 42P01;
+'UnresolvedRelation [spark_catalog, default, orders_bronz], [], false
+pyspark.errors.exceptions.connect.AnalysisException: 
+Failed to resolve flows in the pipeline.
+A flow can fail to resolve because the flow itself contains errors or because it reads
+from an upstream flow which failed to resolve.
+Flows with errors: spark_catalog.default.orders_enriched
+Flows that failed due to upstream errors: spark_catalog.default.revenue_by_city, 
+spark_catalog.default.revenue_by_customer, spark_catalog.default.top_customers
+To view the exceptions that were raised while resolving these flows, look for flow
+failures that precede this log.
+
+== fix 2: orders_bronz -> orders_bronze. dry run 3
+2026-11-22 10:01:20: Failed to resolve flow: 'spark_catalog.default.revenue_by_city'.
+Error: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `region` cannot be 
+resolved. Did you mean one of the following? [`email`, `city`, `name`, `order_id`, `order_ts`]. SQLSTATE: 42703;
+'Aggregate ['region], ['region, sum(line_total#65) AS revenue#22]
++- SubqueryAlias spark_catalog.default.orders_enriched
+   +- LocalRelation <empty>, [customer_id#54, order_id#55, product_id#56, quantity#57, unit_price#58, status#59, 
+order_ts#60, name#61, email#62, city#63, signup_date#64, line_total#65]
+pyspark.errors.exceptions.connect.AnalysisException: 
+Failed to resolve flows in the pipeline.
+A flow can fail to resolve because the flow itself contains errors or because it reads
+from an upstream flow which failed to resolve.
+Flows with errors: spark_catalog.default.revenue_by_city
+Flows that failed due to upstream errors: 
+To view the exceptions that were raised while resolving these flows, look for flow
+failures that precede this log.
+
+== fix 3: region -> city. dry run 4
+2026-11-22 10:02:02: Run is COMPLETED.
+
+== what the dry run wrote
+files under spark-warehouse/ and pipeline-storage/: 0

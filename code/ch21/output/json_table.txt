@@ -1,0 +1,14 @@
+200,000 JSON documents (Parquet, one string column); one row per item
+
+Python UDTF            rows   698,132  sum(qty*price)  84,944,653.68  rows with NULL sku   0  plan: ArrowEvalPythonUDTF items
+JSON_TABLE             rows   698,132  sum(qty*price)  84,944,653.68  rows with NULL sku   0  plan: Generate json_table
+from_json + explode    rows   698,132  sum(qty*price)  84,944,653.68  rows with NULL sku   0  plan: Generate posexplode
+
+noop write, median of 5 runs after a warm-up:
+  Python UDTF             2.47 s
+  JSON_TABLE              1.31 s
+  from_json + explode     0.20 s
+
+JSON_TABLE on a truncated document, the default (NULL ON ERROR) and ERROR ON ERROR:
+  NULL ON ERROR  -> 0 rows
+  ERROR ON ERROR -> MALFORMED_RECORD_IN_PARSING.WITHOUT_SUGGESTION

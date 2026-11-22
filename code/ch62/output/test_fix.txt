@@ -1,0 +1,19 @@
+patched: Analyzer.scala ViewResolution.scala
+compiled with scala-compiler-2.13.18.jar in 9 s: 169 class files
+
+Spark 4.3.0  (patched classes first on the class path)
+expected everywhere: (east, 10), (west, 20)
+
+USE default  metric view: (east, 10), (west, 20)   regular view: (east, 10), (west, 20)
+USE other    metric view: (east, 10), (west, 20)   regular view: (east, 10), (west, 20)
+
+expected: (east, 10), (west, 20)
+
+case                                           metric view                     regular view
+1 USE other (has its own sales)                (east, 10), (west, 20)          (east, 10), (west, 20)
+2 USE empty (no sales table)                   (east, 10), (west, 20)          (east, 10), (west, 20)
+3 USE default, temp view named sales           (east, 10), (west, 20)          (east, 10), (west, 20)
+4 source qualified as default.sales, USE other (east, 10), (west, 20)          (east, 10), (west, 20)
+5 SQL source SELECT * FROM sales, USE other    (east, 10), (west, 20)          (east, 10), (west, 20)
+6 subquery in filter: FROM regions, USE other  (east, 10), (west, 20)          (east, 10), (west, 20)
+

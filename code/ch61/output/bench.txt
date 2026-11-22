@@ -1,0 +1,9 @@
+1,000,000 trips as JSON text (one object of up to 21 fields each; to_json drops NULL fields); local[*] on 16 cores
+
+files: JSON text 59.6 MiB, VARIANT 41.6 MiB, VARIANT shredded 20.4 MiB
+
+  JSON text, get_json_object             median   6.35 s   result 29767512.71
+  JSON text, parse_json + variant_get    median   9.43 s   result 29767512.71
+  VARIANT, variant_get                   median   1.98 s   result 29767512.71
+  VARIANT shredded, variant_get          median   0.68 s   result 29767512.71
+  VARIANT, to_json of the whole value    median   8.91 s   result 440622194

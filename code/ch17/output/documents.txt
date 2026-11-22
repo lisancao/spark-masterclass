@@ -1,0 +1,76 @@
+
+== the export: a zip of e-mails and invoices ==
++---------------------------+------+-------------+
+|entry                      |length|first 5 bytes|
++---------------------------+------+-------------+
+|export/mail/notes.txt      |14    |6E6F742061   |
+|export/mail/ticket_0.eml   |250   |46726F6D3A   |
+|export/mail/ticket_1.eml   |250   |46726F6D3A   |
+|export/mail/ticket_2.eml   |257   |46726F6D3A   |
+|export/mail/ticket_3.eml   |250   |46726F6D3A   |
+|export/pdf/invoice_1001.pdf|878   |255044462D   |
+|export/pdf/invoice_1002.pdf|603   |255044462D   |
++---------------------------+------+-------------+
+
+Python type of content: bytes
+
+== e-mail: a plain Python parser, then a UDF ==
++------------------------+---------------------+------------------+----------------+--------+--------------+
+|entry                   |sender               |subject           |sent_utc        |order_id|error         |
++------------------------+---------------------+------------------+----------------+--------+--------------+
+|export/mail/notes.txt   |NULL                 |NULL              |NULL            |NULL    |no From header|
+|export/mail/ticket_0.eml|customer0@example.com|Broken item       |2026-10-01 09:00|1000    |NULL          |
+|export/mail/ticket_1.eml|customer1@example.com|Broken item       |2026-10-02 09:00|1001    |NULL          |
+|export/mail/ticket_2.eml|customer2@example.com|Where is my order?|2026-10-03 09:00|1002    |NULL          |
+|export/mail/ticket_3.eml|customer3@example.com|Broken item       |2026-10-04 09:00|1003    |NULL          |
++------------------------+---------------------+------------------+----------------+--------+--------------+
+
+collect() gives sent as a naive datetime in the driver's zone: 2026-10-03 02:00:00
+plan: Project <- ArrowEvalPython <- Filter
+pythonUDF.arrow.enabled=false, a new UDF: Project <- BatchEvalPython <- Project
+
+== PDF: one row per page, from a Python UDTF ==
+PDF header: b'%PDF-1.4'  page objects: 2
+one content stream: b'BT /F1 12 Tf 72 720 Td (Invoice 1001 total 42.50 CAD) Tj ET\n'
++---------------------------+----+----------------------------+
+|entry                      |page|text                        |
++---------------------------+----+----------------------------+
+|export/pdf/invoice_1001.pdf|1   |Invoice 1001 total 42.50 CAD|
+|export/pdf/invoice_1001.pdf|2   |Thank you for shopping      |
+|export/pdf/invoice_1002.pdf|1   |Invoice 1002 total 17.00 CAD|
++---------------------------+----+----------------------------+
+
+plan: ArrowEvalPythonUDTF <- Project <- Filter <- FileScan
+  lateralJoin without .outer()                 -> UNRESOLVED_COLUMN.WITHOUT_SUGGESTION
+SQL LATERAL pdf_pages(content): 3 rows
+
+== a UDTF that gives no rows: the inner and the left lateral join ==
+inner lateralJoin:                 2 of 3 files
+lateralJoin(how='left'):           2 of 3 files
+lateralJoin(on=lit(True), 'left'): 3 of 3 files
+SQL LEFT JOIN LATERAL ... ON true: 3 of 3 files
+
+== Markdown: chunks with built-in functions only ==
++----------+--------------+-----+------------------------------------------------+
+|file      |title         |chunk|text                                            |
++----------+--------------+-----+------------------------------------------------+
+|privacy.md|Privacy policy|1    |We store order history for seven years. Customer|
+|privacy.md|Privacy policy|2    |We store order history for seven years. Customer|
+|privacy.md|Privacy policy|3    |We store order history for seven years. Customer|
+|returns.md|Returns policy|1    |Customers can return unopened items within 30 da|
+|returns.md|Returns policy|2    |Customers can return unopened items within 30 da|
+|returns.md|Returns policy|3    |Customers can return unopened items within 30 da|
++----------+--------------+-----+------------------------------------------------+
+only showing top 6 rows
+plan has a Python node: False
+
+== one document table, with provenance and a content hash ==
++--------+----+--------------+
+|kind    |rows|distinct texts|
++--------+----+--------------+
+|email   |4   |4             |
+|markdown|12  |4             |
+|pdf     |3   |3             |
++--------+----+--------------+
+
+all rows: 19  distinct texts: 11

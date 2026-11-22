@@ -15,7 +15,7 @@ root {
                     data_source {
                       format: "parquet"
                       schema: ""
-                      paths: "/home/lnc/spark-masterclass/data/nyc-taxi/yellow"
+                      paths: "~/spark-masterclass/data/nyc-taxi/yellow"
                     }
                   }
                 }

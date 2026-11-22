@@ -1,0 +1,38 @@
+== Schema evolution
+v3.metadata.json  current-schema-id 1  <-  ADD COLUMN tip_pct DOUBLE AFTER tip_amount
+v4.metadata.json  current-schema-id 2  <-  RENAME COLUMN fare_amount TO fare
+v5.metadata.json  current-schema-id 3  <-  ALTER COLUMN PULocationID TYPE BIGINT
+v6.metadata.json  current-schema-id 4  <-  DROP COLUMN payment_type
+
+data files before: 30, after: 30, same files: True
+v6.metadata.json keeps 5 schemas. Field IDs in the current one:
+  1:VendorID:int, 2:tpep_pickup_datetime:timestamp, 3:tpep_dropoff_datetime:timestamp, 4:passenger_count:long, 5:trip_distance:double, 6:PULocationID:long, 7:DOLocationID:int, 9:fare:double, 10:tip_amount:double, 12:tip_pct:double, 11:total_amount:double
+
+an old Parquet file still says (name, field_id):
+  fare_amount:9, PULocationID:6, payment_type:8
+  PULocationID physical type in the file: int32
++--------------------+----+-------+------------+
+|tpep_pickup_datetime|fare|tip_pct|PULocationID|
++--------------------+----+-------+------------+
+| 2026-06-28 00:47:46|17.0|   NULL|         140|
+| 2026-06-28 00:36:53|12.1|   NULL|         148|
++--------------------+----+-------+------------+
+
+== Partition evolution: daily partitions for June, monthly from now on
+  spec 0: day(2) as tpep_pickup_datetime_day
+  spec 1: month(2) as tpep_pickup_datetime_month
+  default-spec-id 1
+
+files per partition spec (lake.nyc.trips.files):
++-------+-----+-------+
+|spec_id|files|   rows|
++-------+-----+-------+
+|      0|   30|3837231|
+|      1|    1|4090822|
++-------+-----+-------+
+
+data/ folders: ['tpep_pickup_datetime_day=2026-06-29', 'tpep_pickup_datetime_day=2026-06-30', 'tpep_pickup_datetime_month=2026-05']
+
+== One query, two layouts
+2026-05-15: 155,772 trips | manifests: scanned 1, skipped 1 | data files: read 1, skipped 0
+2026-06-15: 109,514 trips | manifests: scanned 1, skipped 1 | data files: read 1, skipped 29

@@ -1,0 +1,71 @@
+
+== the image source ==
+root
+ |-- image: struct (nullable = true)
+ |    |-- origin: string (nullable = true)
+ |    |-- height: integer (nullable = true)
+ |    |-- width: integer (nullable = true)
+ |    |-- nChannels: integer (nullable = true)
+ |    |-- mode: integer (nullable = true)
+ |    |-- data: binary (nullable = true)
+
++----------------------------+------+-----+---------+----+----------+
+|origin                      |height|width|nChannels|mode|data_bytes|
++----------------------------+------+-----+---------+----+----------+
+|products/gradient_32x32.png |32    |32   |3        |16  |3072      |
+|products/logo_rgba_12x12.png|12    |12   |4        |24  |576       |
+|products/red_16x8.png       |8     |16   |3        |16  |384       |
+|scans/corrupt.png           |-1    |-1   |-1       |-1  |0         |
+|scans/gray_20x10.png        |10    |20   |1        |0   |200       |
+|scans/readme.txt            |-1    |-1   |-1       |-1  |0         |
++----------------------------+------+-----+---------+----+----------+
+
+count without dropInvalid: 6  with dropInvalid: 4
+mode is an OpenCV type code: 0 = CV_8UC1 (gray), 16 = CV_8UC3, 24 = CV_8UC4
+
+== pixel bytes are B, G, R (and A) ==
+red_16x8.png, first pixel bytes: 00 00 ff  (blue, green, red)
+logo_rgba_12x12.png, first pixel: ff 00 00 ff  (B, G, R, A)
+
+== origin and path are not the same string ==
+image.origin:    file://~/spark-masterclass-parts/part03/code/data/messy/images/products/red_16x8.png
+binaryFile.path: file:~/spark-masterclass-parts/part03/code/data/messy/images/products/red_16x8.png
+join on origin = path: 0 rows
+join on _metadata.file_path: 6 rows
+
+== an Arrow UDF over the pixels ==
++-------------------+-----+-----+-----+
+|file               |r    |g    |b    |
++-------------------+-----+-----+-----+
+|gradient_32x32.png |124.0|124.0|128.0|
+|gray_20x10.png     |114.0|114.0|114.0|
+|logo_rgba_12x12.png|0.0  |0.0  |255.0|
+|red_16x8.png       |255.0|0.0  |0.0  |
++-------------------+-----+-----+-----+
+
+plan: +- ArrowEvalPython [rgb_means(image#0.data, image#0.nChannels)#129], [
+
+== WAV files with the standard library ==
+RIFF header of tone_440.wav: b'RIFF\xc4\x0f\x00\x00WAVEfmt '
++------------------+----+--------+-------+------+
+|file              |rate|channels|seconds|rms   |
++------------------+----+--------+-------+------+
+|silence.wav       |8000|1       |0.5    |0.0   |
+|tone_440.wav      |8000|1       |0.25   |0.3535|
+|tone_880_quiet.wav|8000|1       |0.25   |0.0353|
++------------------+----+--------+-------+------+
+
+
+== mapInArrow: one file in, one row for each 50 ms window out ==
++------------------+-------+--------+
+|file              |windows|max_peak|
++------------------+-------+--------+
+|silence.wav       |10     |0.0     |
+|tone_440.wav      |5      |0.5     |
+|tone_880_quiet.wav|5      |0.05    |
++------------------+-------+--------+
+
+  the same, with int64 for an int column       -> UNSUPPORTED_CALL.WITHOUT_SUGGESTION
+
+== streaming binaryFile needs a schema ==
+  readStream.format('binaryFile') without a schema -> IllegalArgumentException: Schema must be specified when creating a streaming source DataFrame. I

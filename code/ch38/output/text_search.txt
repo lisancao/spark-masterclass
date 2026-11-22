@@ -1,0 +1,55 @@
+== read: 28 rows as lines, 4 rows with wholetext=True
+
+== words without MLlib
++---------+-----+
+|     word|count|
++---------+-----+
+| shipping|    7|
+|customers|    6|
+|     days|    6|
+|   policy|    4|
++---------+-----+
+only showing top 4 rows
++-----------+---------+
+|        doc|sentences|
++-----------+---------+
+| privacy.md|        6|
+| returns.md|        6|
+|shipping.md|        6|
+|warranty.md|        6|
++-----------+---------+
+
+== tokenizers
+Tokenizer:         ['hello,', 'order', '1000', 'has', 'a', 'problem.', 'please', 'help.']
+RegexTokenizer:    ['hello', 'order', '1000', 'has', 'a', 'problem', 'please', 'help']
++ StopWordsRemover: ['hello', 'order', '1000', 'problem', 'please', 'help']
+minTokenLength=4:   ['hello', 'order', '1000', 'problem', 'please', 'help']
+gaps=False, \d+:   ['1000']
+default stop words: 181 English words
+
+== TF-IDF
+  policy     in 4 of 4 docs   IDF 0.0000   log((N+1)/(df+1)) = 0.0000
+  shipping   in 1 of 4 docs   IDF 0.9163   log((N+1)/(df+1)) = 0.9163
+  batteries  in 1 of 4 docs   IDF 0.9163   log((N+1)/(df+1)) = 0.9163
+  days       in 2 of 4 docs   IDF 0.5108   log((N+1)/(df+1)) = 0.5108
+
+  127 distinct words in 400 tickets; slots used by HashingTF:
+    numFeatures 2^6  =      64:  59 slots,  68 words share a slot
+    numFeatures 2^8  =     256: 100 slots,  27 words share a slot
+    numFeatures 2^10 =    1024: 119 slots,   8 words share a slot
+    numFeatures 2^12 =    4096: 125 slots,   2 words share a slot
+    numFeatures 2^18 =  262144: 127 slots,   0 words share a slot
+
+== search the policies
+  how long does express shipping take          best shipping.md  0.3265   others [0.0, 0.0, 0.0]
+  can I return an unopened item for a refund   best returns.md   0.2243   others [0.0, 0.0, 0.0]
+  battery warranty                             best warranty.md  0.2009   others [0.0, 0.0, 0.0]
+  returned items refunded                      best returns.md   0.1197   others [0.0, 0.0, 0.0]
+  pizza                                        best privacy.md   0.0000   others [0.0, 0.0, 0.0]
+
+== every inbox ticket against 160 labelled tickets
+  Python UDF a.dot(b)      240 queries x 160 = 38,400 scores, median 1.28 s, nearest label right for 223/240
+     plan has: ['ArrowEvalPython', 'BroadcastNestedLoopJoin']
+  F.vector_inner_product   240 queries x 160 = 38,400 scores, median 1.17 s, nearest label right for 223/240
+     plan has: ['BroadcastNestedLoopJoin', 'vector_inner_product']
+  inbox tickets with no words at all: 12 (their vector is all zeros, every score is 0)

@@ -1,0 +1,8 @@
+
+=== compression codecs on the June trips (one file each)
+  none       108.2 MB  1 row groups  write   5.1 s  full read  0.91 s
+  snappy      76.8 MB  1 row groups  write   4.3 s  full read  0.78 s
+  lz4_raw     76.2 MB  1 row groups  write   4.3 s  full read  0.70 s
+  gzip        59.2 MB  1 row groups  write   7.5 s  full read  0.90 s
+  zstd        58.2 MB  1 row groups  write   5.8 s  full read  0.84 s
+  default spark.sql.parquet.compression.codec: snappy

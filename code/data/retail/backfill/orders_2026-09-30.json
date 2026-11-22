@@ -1,0 +1,2 @@
+{"order_id": "o-0998", "customer_id": "c-03", "product_id": "p-40", "quantity": 2, "unit_price": "3.25", "status": "shipped", "order_ts": "2026-09-30T17:20:00"}
+{"order_id": "o-0999", "customer_id": "c-05", "product_id": "p-20", "quantity": 1, "unit_price": "24.50", "status": "placed", "order_ts": "2026-09-30T18:05:00"}

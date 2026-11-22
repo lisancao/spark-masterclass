@@ -1,0 +1,55 @@
+
+== filter + two columns: pydocs
+*(1) Project [name#1, width#5]
++- *(1) Filter isnotnull(kind#2)
+   +- BatchScan pydocs[path#0, name#1, kind#2, size#3L, modified#4, width#5, height#6] (Python) RuntimeFilters: []
+-- formatted scan node:
+(1) BatchScan pydocs
+Output [7]: [path#0, name#1, kind#2, size#3L, modified#4, width#5, height#6]
+PushedFilters: [EqualTo(kind,image)]
+ReadSchema: struct<path:string,name:string,kind:string,size:bigint,modified:timestamp,width:int,height:int>
+
+== filter + two columns: jdocs
+*(1) Project [name#17, width#21]
++- BatchScan jdocs[name#17, width#21] jdocs[files=5, pushed=[kind = 'image']] RuntimeFilters: []
+-- formatted scan node:
+(1) BatchScan jdocs
+Output [2]: [name#17, width#21]
+
+== limit(3): pydocs
+CollectLimit 3
++- *(1) Project [name#26]
+   +- BatchScan pydocs[path#25, name#26, kind#27, size#28L, modified#29, width#30, height#31] (Python) RuntimeFilters: []
+
+== limit(3): jdocs
+*(1) Project [name#42]
++- BatchScan jdocs[name#42] jdocs[files=3, pushed=[], limit=3] RuntimeFilters: []
+
+== count(*): pydocs
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   ResultQueryStage 1
+   +- *(2) HashAggregate(keys=[], functions=[count(1)], output=[count#56L])
+      +- ShuffleQueryStage 0
+         +- Exchange SinglePartition, ENSURE_REQUIREMENTS, [plan_id=63]
+            +- *(1) HashAggregate(keys=[], functions=[partial_count(1)], output=[count#66L])
+               +- *(1) Project
+                  +- BatchScan pydocs[path#49, name#50, kind#51, size#52L, modified#53, width#54, height#55] (Python) RuntimeFilters: []
++- == Initial Plan ==
+   HashAggregate(keys=[], functions=[count(1)], output=[count#56L])
+   +- Exchange SinglePartition, ENSURE_REQUIREMENTS, [plan_id=52]
+      +- HashAggregate(keys=[], functions=[partial_count(1)], output=[count#66L])
+         +- Project
+            +- BatchScan pydocs[path#49, name#50, kind#51, size#52L, modified#53, width#54, height#55] (Python) RuntimeFilters: []
+
+== count(*): jdocs
+*(1) Project [count#93L AS count(1)#91L AS count#83L]
++- *(1) LocalTableScan [count#93L]
+
+== statistics the optimizer sees, before any filter
+pydocs  Statistics(sizeInBytes=8.0 EiB)
+jdocs   Statistics(sizeInBytes=3.0 KiB)
+
+== time per query: select name, size (26 files), median of 15 after 3 warm-up runs
+pydocs    74.2 ms
+jdocs     15.1 ms
