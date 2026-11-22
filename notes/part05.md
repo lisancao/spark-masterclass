@@ -140,7 +140,9 @@ Rules broken on purpose:
 - Kafka broker: `apache/kafka:4.0.0` in Docker, one KRaft node, host port 29055 (`code/ch24/kafka.sh`). The producer for ch27 is the broker's own `kafka-console-producer.sh`, so no Python Kafka client is a dependency.
 - State store: RocksDB provider for every TWS script (`ROCKSDB` in `book.py`); ch28 sets each provider explicitly.
 - Spark UI ports: 4025 (assigned) for timed runs and films; 4026 for untimed runs that overlapped them.
-- Timed runs (`ch27/r2_latency.py`, `ch27/r3_foreach.py`) and all film renders ran under `flock ~/spark-masterclass/data/.bench.lock`. Other writers ran their own (also locked) work on the machine between runs.
+- Timed runs (`ch27/r2_latency.py`, `ch27/r3_foreach.py`) ran under `flock ~/spark-masterclass/data/.bench.lock`. After the integrator's rule change, films and untimed scripts ran without the lock.
+- Latency runs: 200 records/s for 30 s, 40 keys, 4 input partitions, 4 shuffle partitions, first 10 s of each run dropped, percentiles over the remaining 4000 inputs. Three runs are quoted (`r2_latency.txt`), medians in the ch27 table. Two other runs are not used: one overlapped this part's own (unlocked) film renders (micro-batch pass-through p50 424 ms, Real-time 1 ms; mentioned in ch27 as a load effect), and one ended with exit code 1 before printing (stderr not kept; the next locked run succeeded).
+- `r3_foreach.py`: one record a second for 10 s, 20 s Real-time batches, one run with each buffer size.
 - Spark source: `~/repos/spark` at tag `v4.3.0` (and `v4.2.0`, `v4.1.0`, `v4.0.0` for version claims).
 
 ## Open findings
@@ -154,14 +156,25 @@ Rules broken on purpose:
 
 ## Not verified
 
-- The latency numbers are from one laptop with other writers' work in between locked runs; they show the order of magnitude and the shape, not a benchmark.
+- The latency numbers are from one laptop with other writers' unlocked work possible during locked runs; they show the order of size and the shape, not a benchmark.
+- The film takes are separate runs from the saved outputs, so their numbers (batch ids, timings) differ from the text; captions say so where it matters.
 - The RocksDB memory settings and `compactOnCommit` are named only through the docs link.
 - `STATE_STORE_KEY_SCHEMA_NOT_COMPATIBLE` is cited from the error conditions file, not run.
 - Ch26's Mermaid diagram of the state server simplifies: the row-based API sends rows to Python in Arrow batches (`TransformWithStateInPySparkPythonRunner`), which the diagram shows, but the response encoding (pickled values) was read from source, not traced on the wire.
 
 ## Clips
 
-See `book/media/clips/clips-part05.tsv`.
+Cut list: `book/media/clips/clips-part05.tsv` (sources are the full cuts `code/film/renders/chNN-chapter.mp4`, not committed). Tapes: `code/film/ch24.tape` to `ch28.tape`; storyboard `code/film/storyboard-part05.md`. Format `chapter` (1280x720), VHS, `spark` theme. Every clip was checked on its last frame (full-size PNG) for readability.
+
+| Clip | Chapter section |
+|---|---|
+| ch24-ticking, ch24-watermark, ch24-restart | ch24 Steps 3, 6, 7 |
+| ch25-dead-letters, ch25-future | ch25 Steps 3, 5 |
+| ch26-sessions, ch26-clock | ch26 Steps 5, 6 |
+| ch27-rules, ch27-latency | ch27 Steps 1, 4 |
+| ch28-decode, ch28-repartition | ch28 Steps 3, 7 |
+
+`ch24/s7_restart.py` waited a fixed time, and under load the first ch24 take did not reach the crash. It now waits for the work (crash inside batch 3, or commit 5 on resume); the saved outputs did not change. The ch27 tape shortens long lines with `sed` (`RTM` for `STREAMING_REAL_TIME_MODE`, `(late)` for "from the running query"); the caption says so.
 
 ## Nav entries
 

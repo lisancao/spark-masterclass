@@ -1,0 +1,12 @@
+clip	source	start	end	poster_at	chapter
+ch24-ticking	ch24-chapter.mp4	0	45.6	42	ch24
+ch24-watermark	ch24-chapter.mp4	45.6	71.0	23	ch24
+ch24-restart	ch24-chapter.mp4	71.0	123.4	50	ch24
+ch25-dead-letters	ch25-chapter.mp4	0	63.6	60	ch25
+ch25-future	ch25-chapter.mp4	63.6	111.56	45	ch25
+ch26-sessions	ch26-chapter.mp4	0	47.64	45	ch26
+ch26-clock	ch26-chapter.mp4	47.64	116.08	66	ch26
+ch27-rules	ch27-chapter.mp4	0	64.8	62	ch27
+ch27-latency	ch27-chapter.mp4	64.8	171.4	104	ch27
+ch28-decode	ch28-chapter.mp4	0	38.72	36	ch28
+ch28-repartition	ch28-chapter.mp4	38.72	81.84	40	ch28
