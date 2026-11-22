@@ -893,7 +893,7 @@ Two Spark processes can use the service at the same time, which embedded Derby r
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch85-hms.webp">
     <source src="../../media/clips/ch85-hms.mp4" type="video/mp4">
   </video>
-  <figcaption><code>remote_metastore.py</code> connects to Hive Metastore 4.0.1 in Docker. The built-in client fails, the 4.0.1 client works, and a second process adds a partition that the first process sees.</figcaption>
+  <figcaption><code>remote_metastore.py</code> connects to Hive Metastore 4.0.1 in Docker. The built-in client fails, the 4.0.1 client works, and a second process adds a partition that the first process sees. The video does not show the wait while the script runs.</figcaption>
 </figure>
 
 ```mermaid
