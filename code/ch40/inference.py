@@ -185,7 +185,8 @@ def make_predict():
     return predict
 
 clear()
-pb = predict_batch_udf(make_predict, return_type="float", batch_size=50)
+from pyspark.sql.types import FloatType
+pb = predict_batch_udf(make_predict, return_type=FloatType(), batch_size=50)
 for _ in range(2):
     inbox.select(pb("text")).collect()
 print(f"\n== predict_batch_udf over two queries: model loaded {marks('load')[0]} times")

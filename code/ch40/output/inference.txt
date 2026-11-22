@@ -24,26 +24,5 @@
    asNondeterministic + filter  rows into the model: 240
    filter plan: ['+- ArrowEvalPython [label_batch(text#25)#701], [pythonUDF0#1062], 200', '+- ArrowEvalPython [label_batch(text#25)#701], [pythonUDF0#1061], 200']
    cache(), count(), then filter: 240 rows, then 0 rows
-Traceback (most recent call last):
-  File "~/spark-masterclass-parts/part07/code/ch40/inference.py", line 190, in <module>
-    inbox.select(pb("text")).collect()
-  File "~/spark-masterclass-parts/part07/code/.venv/lib/python3.12/site-packages/pyspark/sql/classic/dataframe.py", line 504, in collect
-    sock_info = self._jdf.collectToPython()
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "~/spark-masterclass-parts/part07/code/.venv/lib/python3.12/site-packages/py4j/java_gateway.py", line 1362, in __call__
-    return_value = get_return_value(
-                   ^^^^^^^^^^^^^^^^^
-  File "~/spark-masterclass-parts/part07/code/.venv/lib/python3.12/site-packages/pyspark/errors/exceptions/captured.py", line 262, in deco
-    raise converted from None
-  File "~/spark-masterclass-parts/part07/code/.venv/lib/python3.12/site-packages/pyspark/ml/functions.py", line 829, in predict
-    yield _validate_and_transform_prediction_result(preds, num_input_rows, return_type)  # type: ignore
-^^^^^^^^^^^
-  File "~/spark-masterclass-parts/part07/code/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/ml/functions.py", line 368, in _validate_and_transform_prediction_result
-pyspark.errors.exceptions.captured.PythonException: An exception was thrown from the Python worker:
-Traceback (most recent call last):
-  File "~/spark-masterclass-parts/part07/code/.venv/lib/python3.12/site-packages/pyspark/ml/functions.py", line 829, in predict
-    yield _validate_and_transform_prediction_result(preds, num_input_rows, return_type)  # type: ignore
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "~/spark-masterclass-parts/part07/code/.venv/lib/python3.12/site-packages/pyspark/python/lib/pyspark.zip/pyspark/ml/functions.py", line 368, in _validate_and_transform_prediction_result
-    raise ValueError("Unsupported return type")
-ValueError: Unsupported return type
+
+== predict_batch_udf over two queries: model loaded 7 times
