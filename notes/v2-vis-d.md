@@ -18,3 +18,4 @@ Scope: figures, animations, tables and admonitions for the existing chapters 46 
 | 49 | checks, average-of-ratios | anim-sieve (outcomes from dryrun.txt) | none | 4, 4 |
 | 50 | processes, balance | anim-deal (file sizes of the sample folder, totals from docs_source.txt) | file-opens table | 0, 0 (part09a allowlist) |
 | 51 | arrow-timing, key-ranges | anim-requests (request logs from api_source.txt) | pages table | 0, 0 (part09a allowlist) |
+| 52 | files-opened, guarded | anim-pushdown (query, pushed filter and counts from files_pushdown.txt) | none | 0, 0 (part09a allowlist) |

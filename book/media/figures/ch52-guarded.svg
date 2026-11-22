@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 380" width="780" height="380" role="img"><title>Row counts of seven filters: Spark alone, pushed with parameters, pushed with guards</title><defs></defs><text x="220" y="52.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">amount &gt; 100</text>
+<rect x="230" y="32" width="421.6" height="11" rx="2" fill="#4b5563" fill-opacity="1"/>
+<text x="656.6" y="42.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">680</text>
+<rect x="230" y="45" width="470.58" height="11" rx="2" fill="#a8323a" fill-opacity="1"/>
+<text x="705.5799999999999" y="55.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#d9661f" text-anchor="start" font-weight="700">759  wrong</text>
+<rect x="230" y="58" width="421.6" height="11" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="656.6" y="68.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">680</text>
+<text x="220" y="98.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">qty &gt; 3</text>
+<rect x="230" y="78" width="372.62" height="11" rx="2" fill="#4b5563" fill-opacity="1"/>
+<text x="607.62" y="88.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">601</text>
+<rect x="230" y="91" width="378.2" height="11" rx="2" fill="#a8323a" fill-opacity="1"/>
+<text x="613.2" y="101.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#d9661f" text-anchor="start" font-weight="700">610  wrong</text>
+<rect x="230" y="104" width="372.62" height="11" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="607.62" y="114.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">601</text>
+<text x="220" y="144.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">status LIKE &#x27;ship%&#x27;</text>
+<rect x="230" y="124" width="203.98" height="11" rx="2" fill="#4b5563" fill-opacity="1"/>
+<text x="438.98" y="134.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">329</text>
+<rect x="230" y="137" width="403.0" height="11" rx="2" fill="#a8323a" fill-opacity="1"/>
+<text x="638.0" y="147.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#d9661f" text-anchor="start" font-weight="700">650  wrong</text>
+<rect x="230" y="150" width="203.98" height="11" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="438.98" y="160.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">329</text>
+<text x="220" y="190.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">amount IS NULL</text>
+<rect x="230" y="170" width="64.48" height="11" rx="2" fill="#4b5563" fill-opacity="1"/>
+<text x="299.48" y="180.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">104</text>
+<rect x="230" y="183" width="15.5" height="11" rx="2" fill="#a8323a" fill-opacity="1"/>
+<text x="250.5" y="193.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#d9661f" text-anchor="start" font-weight="700">25  wrong</text>
+<rect x="230" y="196" width="64.48" height="11" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="299.48" y="206.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">104</text>
+<text x="220" y="236.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">qty IN (2, 4)</text>
+<rect x="230" y="216" width="233.12" height="11" rx="2" fill="#4b5563" fill-opacity="1"/>
+<text x="468.12" y="226.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">376</text>
+<rect x="230" y="229" width="233.12" height="11" rx="2" fill="#3a5f96" fill-opacity="1"/>
+<text x="468.12" y="239.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">376</text>
+<rect x="230" y="242" width="233.12" height="11" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="468.12" y="252.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">376</text>
+<text x="220" y="282.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">customer = &#x27;ana&#x27;</text>
+<rect x="230" y="262" width="75.02" height="11" rx="2" fill="#4b5563" fill-opacity="1"/>
+<text x="310.02" y="272.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">121</text>
+<rect x="230" y="275" width="75.02" height="11" rx="2" fill="#3a5f96" fill-opacity="1"/>
+<text x="310.02" y="285.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">121</text>
+<rect x="230" y="288" width="75.02" height="11" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="310.02" y="298.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">121</text>
+<text x="220" y="328.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#8a919e" text-anchor="end" font-weight="600">placed_at &gt;= &#x27;2026-09-15&#x27;</text>
+<rect x="230" y="308" width="384.4" height="11" rx="2" fill="#4b5563" fill-opacity="1"/>
+<text x="619.4" y="318.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">620</text>
+<rect x="230" y="321" width="250.48" height="11" rx="2" fill="#a8323a" fill-opacity="1"/>
+<text x="485.48" y="331.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#d9661f" text-anchor="start" font-weight="700">404  wrong</text>
+<rect x="230" y="334" width="384.4" height="11" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="619.4" y="344.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="start" font-weight="400">620</text>
+<rect x="80" y="351" width="14" height="10" rx="2" fill="#4b5563" fill-opacity="1"/>
+<text x="100" y="360.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">Spark alone</text>
+<rect x="290" y="351" width="14" height="10" rx="2" fill="#a8323a" fill-opacity="1"/>
+<text x="310" y="360.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">v2: parameters (wrong: red)</text>
+<rect x="500" y="351" width="14" height="10" rx="2" fill="#2f7d5b" fill-opacity="1"/>
+<text x="520" y="360.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400">v3: parameters and type guards</text></svg>

@@ -144,6 +144,15 @@ yield a copy of a filter:
 
 The reader applies the accepted filters in `partitions()`, before it plans any file. A file that cannot match does not get into a partition, and no task opens it.
 
+The animation follows one query of Step 4 through this contract.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch52-anim-pushdown.webp">
+    <source src="../../media/clips/ch52-anim-pushdown.mp4" type="video/mp4">
+  </video>
+  <figcaption>The <code>files</code> source keeps <code>EqualTo(kind, 'image')</code> and yields the other filters back. Spark applies them above the scan. The counts come from <code>files_pushdown.py</code>.</figcaption>
+</figure>
+
 ## Step 4: Prove that the filter worked
 
 A result with the correct count does not prove that pushdown worked. Spark gives the same count if it applies the filter itself. Two records give the proof. The tasks write an audit file for each file that they open. And the plan shows which filters Spark kept:
@@ -174,6 +183,11 @@ Read the table row by row:
 - **`kind IN (...)` left no `Filter` in Spark.** `In` arrives without `IsNotNull`, and the source took it.
 - **`kind = 'image' AND width > 12` opened the 5 images and returned 3 rows.** The source took the kind. It cannot know the width before it opens a file, so it yielded `width > 12` back, and Spark applied it.
 - **`OR` and `lower()` opened all 26 files.** Spark offered no useful filter, so the source read everything.
+
+<figure markdown>
+  ![Files opened and rows returned for each query on the files source](../media/figures/ch52-files-opened.svg)
+  <figcaption>The table above as bars. A pushed filter decreases the files that the tasks open. Without a useful filter, the tasks open all 26 files.</figcaption>
+</figure>
 
 `explain("formatted")` shows the accepted filters in `PushedFilters`. The `ReadSchema` still has all the columns, because Python sources get no column pruning (Chapter 50, Step 10):
 
@@ -300,6 +314,11 @@ def guarded(f, types):
         return f"({g} AND substr({q}, 1, ?) = ?)", [len(f.value), f.value]   # LIKE ignores case
     return None
 ```
+
+<figure markdown>
+  ![Row counts of seven filters in Spark alone, version 2 and version 3](../media/figures/ch52-guarded.svg)
+  <figcaption>The seven filters of the table above. Version 2 gave four wrong counts and no error. Version 3 gave the counts of Spark.</figcaption>
+</figure>
 
 All seven results of version 3 agree with Spark. Version 3 also refuses some filters:
 
