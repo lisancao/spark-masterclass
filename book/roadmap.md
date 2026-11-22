@@ -29,13 +29,13 @@ The author writes the book one part at a time, in sequence. Part I has a first d
 
 | # | Chapter | Covers |
 |---|---|---|
-| 11 | Files as files, globs and metadata | **4.3:** reading zip and tar archives |
-| 12 | Text, logs and CSV | Corrupt-record modes, layout drift, encodings |
-| 13 | JSON: inference, drift and quarantine | **4.3:** JSON_TABLE |
-| 14 | Structs, arrays, maps and higher-order functions | How lambdas are traced into Catalyst |
-| 15 | VARIANT: landing, profiling and editing | Shredding and extraction speed. **4.3:** VARIANT edits |
-| 16 | XML, Avro and Protobuf | The Kafka wire format |
-| 17 | Documents, images, audio and tables for blobs | Archives as the opener |
+| 11 | [Files as files, globs and metadata](chapters/ch11-files-as-files.md) | **4.3:** reading zip and tar archives |
+| 12 | [Text, logs and CSV](chapters/ch12-text-logs-csv.md) | Corrupt-record modes, layout drift, encodings |
+| 13 | [JSON: inference, drift and quarantine](chapters/ch13-json.md) | **4.3:** JSON_TABLE |
+| 14 | [Structs, arrays, maps and higher-order functions](chapters/ch14-complex-types.md) | How lambdas are traced into Catalyst |
+| 15 | [VARIANT: landing, profiling and editing](chapters/ch15-variant.md) | Shredding and extraction speed. **4.3:** VARIANT edits |
+| 16 | [XML, Avro and Protobuf](chapters/ch16-xml-avro-protobuf.md) | The Kafka wire format |
+| 17 | [Documents, images, audio and tables for blobs](chapters/ch17-documents-images-audio.md) | Archives as the opener |
 
 ## Part IV: Performance
 *Data: NYC Taxi at full months*

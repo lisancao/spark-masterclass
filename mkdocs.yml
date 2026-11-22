@@ -75,6 +75,14 @@ nav:
       - "2. Installing Spark 4.3": chapters/ch02-installing.md
       - "3. Quick start": chapters/ch03-quick-start.md
       - "4. Spark Connect": chapters/ch04-spark-connect.md
+  - "Part III: Files, formats and messy data":
+      - "11. Files as files": chapters/ch11-files-as-files.md
+      - "12. Text, logs and CSV": chapters/ch12-text-logs-csv.md
+      - "13. JSON": chapters/ch13-json.md
+      - "14. Structs, arrays, maps and lambdas": chapters/ch14-complex-types.md
+      - "15. VARIANT": chapters/ch15-variant.md
+      - "16. XML, Avro and Protobuf": chapters/ch16-xml-avro-protobuf.md
+      - "17. Documents, images and audio": chapters/ch17-documents-images-audio.md
   - "Part VI: Pipelines and tables":
       - "31. Apache Iceberg with Spark": chapters/ch31-iceberg.md
   - "Part VII: Machine learning and applied algorithms":
