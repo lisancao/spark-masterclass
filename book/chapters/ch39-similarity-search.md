@@ -358,6 +358,14 @@ The goal is all pairs with a similarity of 0.7 or more (435 pairs):
 - **100 bands of 1** is OR-amplification only. It finds all pairs, but it compares 92.1% of the pairs.
 - **10 bands of 10** move the threshold to 0.794. The prediction at 0.7 is 0.249, and the measured recall drops to 0.830.
 
+<figure markdown>
+  ![Four S-shaped curves of the candidate probability against the Jaccard similarity, with the target at 0.7](../media/figures/ch39-scurve-light.svg#only-light)
+
+  ![Four S-shaped curves of the candidate probability against the Jaccard similarity, with the target at 0.7](../media/figures/ch39-scurve-dark.svg#only-dark)
+
+  <figcaption>The probability that a pair becomes a candidate, from the formula, for the four choices of bands and rows. The legend gives the candidates that each choice made in the run.</figcaption>
+</figure>
+
 The rule is: choose the largest `r` for which the prediction at your threshold is still near 1. Then do a check of each candidate with the exact Jaccard similarity. This check makes the precision 1.0.
 
 MLlib's `MinHashLSH` cannot make bands of more than one value. The comment in `LSH.scala` says: "This LSH class implements OR-amplification". With 5 tables, it compares 29.3% of the pairs. With 25 tables, it compares 80.2%. The 25 bands of 4 above compare 2.5%. For near-duplicate text at a high threshold, build the bands yourself.
@@ -377,6 +385,13 @@ flowchart LR
   l2 --> s
   s --> top["top 10 by distance"]:::v
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch39-anim-ivf.webp">
+    <source src="../../media/clips/ch39-anim-ivf.mp4" type="video/mp4">
+  </video>
+  <figcaption>An IVF search probes the nearest lists of the query. The positions of the 64 lists are schematic. The work and the recall for each value of <code>nprobe</code> are from <code>indexes.py</code>.</figcaption>
+</figure>
 
 The script makes 20,000 unit vectors of 32 values around 40 clusters with very different sizes. It fits `KMeans` with 64 centroids. Then it gives each vector the list of its nearest centroid, with higher-order functions:
 
@@ -412,6 +427,14 @@ index = vectors.withColumn("list", F.array_position(d, F.array_min(d)) - 1).cach
 `createDataFrame` does not accept a NumPy array as a value for `array<double>`. Convert each row with `tolist()` first. `array_position` is 1-based, so the code subtracts 1 to get a list number from 0.
 
 The recall curve is the result to use. With 8 of 64 lists, the search finds 91.3% of the true 10 nearest vectors and scores 14.7% of the vectors. With 16 lists, recall is 98.8% for 25.1% of the work. With all 64 lists, the search is exact. This is a good test of the code: a full probe must give a recall of 1.0.
+
+<figure markdown>
+  ![Two scatter charts of recall against work, for random-projection LSH on the images and for IVF](../media/figures/ch39-tradeoff-light.svg#only-light)
+
+  ![Two scatter charts of recall against work, for random-projection LSH on the images and for IVF](../media/figures/ch39-tradeoff-dark.svg#only-dark)
+
+  <figcaption>Recall against work for the two indexes of this chapter. Left: random-projection LSH on the 42 images (Step 6). Right: IVF on the 20,000 vectors. Each point is one choice of parameters in <code>indexes.py</code>.</figcaption>
+</figure>
 
 The work is more than `nprobe / nlist`. At `nprobe=8`, the share is 8/64 = 12.5%, but the search scored 14.7% of the vectors. The lists have different sizes (from 16 to 610 vectors), and a query usually falls in a dense area, so it probes the large lists. Large lists also make tasks of different sizes. You can split a large list into smaller lists.
 
