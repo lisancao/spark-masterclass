@@ -1,0 +1,16 @@
+# Chapter 48's kind cluster: one control plane and two workers.
+# The taxi data and the chapter's jobs are mounted into every node, so driver and executor pods
+# can read them through hostPath volumes. kind_up.sh fills in the two host paths.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ch48
+nodes:
+  - role: control-plane
+  - role: worker
+    extraMounts:
+      - {hostPath: __TAXI__, containerPath: /data/nyc-taxi, readOnly: true}
+      - {hostPath: __JOBS__, containerPath: /opt/ch48/jobs, readOnly: true}
+  - role: worker
+    extraMounts:
+      - {hostPath: __TAXI__, containerPath: /data/nyc-taxi, readOnly: true}
+      - {hostPath: __JOBS__, containerPath: /opt/ch48/jobs, readOnly: true}

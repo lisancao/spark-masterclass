@@ -1,0 +1,21 @@
+# Helm values for Apache YuniKorn 1.10.0 in Chapter 48's kind cluster.
+# The admission controller is off, as in the Spark 4.3 docs: only pods that ask for
+# schedulerName "yunikorn" (Spark sets it from spark.kubernetes.scheduler.name) go to YuniKorn.
+embedAdmissionController: false
+image: {pullPolicy: IfNotPresent}
+web: {image: {pullPolicy: IfNotPresent}}
+yunikornDefaults:
+  queues.yaml: |
+    partitions:
+      - name: default
+        placementrules:
+          - name: provided       # use the queue that the pod names in its "queue" label
+            create: false
+        queues:
+          - name: root
+            submitacl: "*"
+            queues:
+              - name: default
+              - name: etl        # a small queue: 3 cores in total, for driver and executor pods
+                resources:
+                  max: {vcore: "3", memory: 6Gi}

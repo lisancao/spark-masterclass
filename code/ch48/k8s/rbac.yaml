@@ -1,0 +1,16 @@
+# The namespace for Spark applications, and the service account that the driver pod uses
+# to create and delete its executor pods.
+apiVersion: v1
+kind: Namespace
+metadata: {name: spark-jobs}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: spark, namespace: spark-jobs}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: spark-edit, namespace: spark-jobs}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: edit}
+subjects:
+  - {kind: ServiceAccount, name: spark, namespace: spark-jobs}
