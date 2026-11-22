@@ -94,7 +94,7 @@ A global variable in the script is not a cache. Each task can run in a new Pytho
 == predict_batch_udf over two queries: model loaded 7 times
 ```
 
-Two queries of four tasks each loaded the model seven times. The cache keeps models in each worker process, and local mode started new workers for most tasks. Thus, only one task found the model in a cache. On a cluster with worker reuse (`spark.python.worker.reuse`, on by default), more tasks find it.
+Two queries of four tasks each loaded the model seven times. The cache keeps models in each Python worker process. Here, only one task found the model in a cache. A possible cause is that most tasks ran in a new worker process. This cause is not verified. Worker reuse (`spark.python.worker.reuse`, on by default) lets a later task use the worker of an earlier task.
 
 ## Step 4: mapInPandas: any number of rows, columns by name
 
