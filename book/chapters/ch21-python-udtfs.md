@@ -176,10 +176,22 @@ class Pairs:
                 k, _, v = tok.partition("=")
                 if v:
                     yield k, v
-
-df = lines.lateralJoin(Pairs(F.col("line").outer()))
-spark.sql("SELECT l.line, p.* FROM lines l, LATERAL pairs(l.line) p")
 ```
+
+Then call it in one of the two forms:
+
+=== "DataFrame"
+
+    ```python
+    df = lines.lateralJoin(Pairs(F.col("line").outer()))
+    ```
+
+=== "SQL"
+
+    ```python
+    spark.udtf.register("pairs", Pairs)
+    spark.sql("SELECT l.line, p.* FROM lines l, LATERAL pairs(l.line) p")
+    ```
 
 ```text
 DataFrame lateralJoin: 634 rows
