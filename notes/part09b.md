@@ -158,7 +158,7 @@ Written by the earlier writer (commit 0225fc2); I fixed its STE findings (14 to 
 
 ## Not verified
 
-- ch52's earlier timing sentence ("in four runs, 74 to 131 ms ...") came from the earlier writer's runs, which were not saved. I reran four runs into `ch52/output/capability_runs.txt` and updated the sentence to those numbers.
+- ch52's earlier timing sentence ("in four runs, 74 to 131 ms ...") came from the earlier writer's runs, which were not saved. I reran four runs into `ch52/output/capability_runs.txt` (pydocs 194-278 ms, jdocs 59-120 ms; under the lock, but other writers' unlocked jobs used the machine) and updated the sentence to those numbers. `capability.txt` itself (74.2 / 15.1 ms) is from the earlier, quieter run.
 - ch53 part B: the built-in `when` chain (0.633 s) measured slower than the transpiled UDF (0.451 s). It ran first in its table; I did not measure run-to-run variation, and the chapter says so instead of reading a result into it.
 - The ch54 operations table shows execution times from one run while other writers used the machine; the chapter says they are not a measurement.
 - Clips: rendered with VHS in the chapter format; pacing not reviewed at 1x by a person.

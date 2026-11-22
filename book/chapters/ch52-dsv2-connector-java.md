@@ -90,7 +90,7 @@ jdocs   Statistics(sizeInBytes=3.0 KiB)
 
 A source that reports no statistics gets the default size, `Long.MaxValue` bytes, which `explain` prints as 8.0 EiB. Spark never broadcasts a relation of that size in a join. `jdocs` reports 26 rows of 120 bytes each. Step 9 shows where that number comes from.
 
-The script also measures the time of `select("name", "size")`, with a new DataFrame for each run. Other work used the machine when the script ran. In four runs, the median for `pydocs` went from 74 to 131 ms and the median for `jdocs` went from 15 to 75 ms. `jdocs` was faster in each run.
+The script also measures the time of `select("name", "size")`, with a new DataFrame for each run. Other work used the machine when the script ran. `output/capability_runs.txt` has four runs. In them, the median for `pydocs` went from 194 to 278 ms, and the median for `jdocs` went from 59 to 120 ms. `jdocs` was faster in each run.
 
 The difference is mostly the cost of the Python worker. `pydocs` uses a Python process when Spark plans the query and in each task, and `jdocs` stays in the JVM. These timings are not a benchmark. They only show that the Python path has a fixed cost that the Java path does not have.
 

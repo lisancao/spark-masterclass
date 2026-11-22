@@ -1,0 +1,16 @@
+== run 1
+== time per query: select name, size (26 files), median of 15 after 3 warm-up runs
+pydocs   277.6 ms
+jdocs    120.0 ms
+== run 2
+== time per query: select name, size (26 files), median of 15 after 3 warm-up runs
+pydocs   193.7 ms
+jdocs     59.2 ms
+== run 3
+== time per query: select name, size (26 files), median of 15 after 3 warm-up runs
+pydocs   208.2 ms
+jdocs     67.7 ms
+== run 4
+== time per query: select name, size (26 files), median of 15 after 3 warm-up runs
+pydocs   202.5 ms
+jdocs     80.1 ms
