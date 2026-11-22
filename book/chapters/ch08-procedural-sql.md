@@ -344,11 +344,11 @@ flowchart LR
 
 ```text
 == 2. the same logic as a Python UDF
-  fare_band     445,492 rows  median 0.16 s  ['PushedFilters: []']
-  fare_band_py  445,492 rows  median 0.69 s  ['ArrowEvalPython', 'PushedFilters: []']
+  fare_band     445,492 rows  median 0.35 s  ['PushedFilters: []']
+  fare_band_py  445,492 rows  median 1.13 s  ['ArrowEvalPython', 'PushedFilters: []']
 ```
 
-The Python UDF adds an `ArrowEvalPython` operator. Spark sends the fares to a Python worker process in Arrow batches, and it reads the results back. The SQL UDF runs in the executor JVM, in the generated code. On this machine, the Python UDF took about four times as long. Spark 4.3 can change some simple Python UDFs into Catalyst expressions (Chapter 20). This UDF did not change, because the plan still has `ArrowEvalPython`.
+The Python UDF adds an `ArrowEvalPython` operator. Spark sends the fares to a Python worker process in Arrow batches, and it reads the results back. The SQL UDF runs in the executor JVM, in the generated code. On this machine, the Python UDF took about three times as long. Spark 4.3 can change some simple Python UDFs into Catalyst expressions (Chapter 20). This UDF did not change, because the plan still has `ArrowEvalPython`.
 
 `PushedFilters` is empty in both rows. A filter on the result of a function cannot go into the Parquet reader, because the reader only accepts filters on plain columns.
 
@@ -540,7 +540,7 @@ A `GROUP BY` on the trips cannot show a day with no trips, because that day has 
 - **A script has no transaction.** A failed script keeps the changes of its earlier statements.
 - **`CONTINUE` handlers and cursors are behind internal flags in 4.3.0.** `SET PATH` needs `spark.sql.path.enabled`.
 - **`EXECUTE IMMEDIATE` runs SQL text from a string.** Give values with `USING`, and read one row with `INTO`.
-- **Catalyst puts the body of a SQL UDF (scalar or table) into the plan.** The optimizer sees the body. A Python UDF with the same logic adds a Python worker, and it took about four times as long here.
+- **Catalyst puts the body of a SQL UDF (scalar or table) into the plan.** The optimizer sees the body. A Python UDF with the same logic adds a Python worker, and it took about three times as long here.
 - **A recursive CTE runs in the engine, one pass at a time, until a pass returns no rows.** Write the stop condition. The limits are an error, not a result.
 
 [Chapter 9](ch09-joins.md) goes back to set-based work. It shows how Spark joins two tables, and why the size of each side changes the plan.

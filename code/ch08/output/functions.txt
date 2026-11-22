@@ -13,8 +13,8 @@ optimized plan lines with the name: ['+- Aggregate [fare_band#47], [fare_band#47
 optimized plan: ['+- Project [CASE WHEN (isnull(fare_amount#10) OR (fare_amount#10 <= 0.0)) THEN invalid WHEN (far']
 
 == 2. the same logic as a Python UDF
-  fare_band     445,492 rows  median 0.09 s  ['PushedFilters: []']
-  fare_band_py  445,492 rows  median 0.57 s  ['ArrowEvalPython', 'PushedFilters: []']
+  fare_band     445,492 rows  median 0.35 s  ['PushedFilters: []']
+  fare_band_py  445,492 rows  median 1.13 s  ['ArrowEvalPython', 'PushedFilters: []']
 
 == 3. a SQL table function
 +--------------------+----+--------+
