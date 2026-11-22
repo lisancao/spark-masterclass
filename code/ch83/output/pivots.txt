@@ -1,0 +1,113 @@
+== 1. PIVOT in SQL
++---------+----------+---------+----------+---------+
+|  Borough|card_trips|card_fare|cash_trips|cash_fare|
++---------+----------+---------+----------+---------+
+| Brooklyn|      9197|    25.04|      2165|     22.1|
+|Manhattan|   2183587|     15.9|    283543|    15.72|
+|   Queens|    207275|    57.07|     52960|    47.73|
++---------+----------+---------+----------+---------+
+
+== 2. the optimized plan of the PIVOT
+Sort [Borough ASC NULLS FIRST], true
++- Project [Borough, __pivot_count(1) AS trips AS `count(1) AS trips`[0] AS card_trips, __pivot_r...
+   +- Aggregate [Borough], [Borough, pivotfirst(pay, count(1) AS trips, card, cash, 0, 0) AS __pi...
+      +- Aggregate [Borough, pay], [Borough, pay, count(1) AS count(1) AS trips, round(avg(fare_a...
+         +- Project [Borough, CASE WHEN (payment_type = 1) THEN card WHEN (payment_type = 2) THEN...
+            +- Join Inner, (PULocationID = LocationID)
+               :- Project [PULocationID, payment_type, fare_amount]
+               :  +- Filter ((((isnotnull(tpep_pickup_datetime) AND isnotnull(fare_amount)) AND i...
+               :     +- Relation [VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_c...
+               +- Project [LocationID, Borough]
+                  +- Filter (Borough IN (Manhattan,Queens,Brooklyn) AND isnotnull(LocationID))
+                     +- Relation [LocationID,Borough,Zone,service_zone] csv
+
+== 3. the implicit GROUP BY of a SQL PIVOT
+  subquery with 3 columns      columns: ['Borough', 'fare_amount', 'card', 'cash']  rows: 3,801
+  the whole view (6 columns)   columns: ['Borough', 'fare_amount', 'tip_amount', 'Zone', 'hour', 'card', 'cash']  rows: 714,323
+
+== 4. PIVOT of a string aggregate: no PivotFirst
++---------+------------+--------------+
+|Borough  |card        |cash          |
++---------+------------+--------------+
+|Brooklyn |Bay Ridge   |Bay Ridge     |
+|Manhattan|Clinton West|Midtown Center|
+|Queens   |JFK Airport |Steinway      |
++---------+------------+--------------+
+
+Sort [Borough ASC NULLS FIRST], true
++- Aggregate [Borough], [Borough, max_by(if ((pay <=> card)) Zone else null, if ((pay <=> card)) ...
+   +- Project [Borough, CASE WHEN (payment_type = 1) THEN card WHEN (payment_type = 2) THEN cash ...
+      +- Join Inner, (PULocationID = LocationID)
+         :- Project [PULocationID, payment_type, fare_amount]
+         :  +- Filter ((((isnotnull(tpep_pickup_datetime) AND isnotnull(fare_amount)) AND isnotnu...
+         :     +- Relation [VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,t...
+         +- Project [LocationID, Borough, Zone]
+            +- Filter (Borough IN (Manhattan,Queens,Brooklyn) AND isnotnull(LocationID))
+               +- Relation [LocationID,Borough,Zone,service_zone] csv
+
+== 5. pivot in the DataFrame API
+  jobs run by pivot('pay', ['card', 'cash']): 0
+  jobs run by pivot('pay'):                   5   (before any action)
+  columns: ['Borough', 'card', 'cash']
+  same rows as SQL: True
+  pivot(...).agg(count('*')): [INVALID_USAGE_OF_STAR_OR_REGEX] Invalid usage of '*' in Pivot. SQLSTA
+  pivot('Zone') with spark.sql.pivotMaxValues=100: The pivot column june.Zone has more than 100 distinct values, this could indicate an error. If this was intended, set spark.sql.pivotMaxV...
+
+== 6. UNPIVOT in SQL
++---------+----+----+-----+
+|  Borough| h03| h08|  h18|
++---------+----+----+-----+
+| Brooklyn|3.78|4.41| 3.69|
+|Manhattan|3.22|3.18| 3.42|
+|   Queens|5.81|9.39|10.05|
+|     Test|NULL| 1.0| NULL|
++---------+----+----+-----+
+
+-- UNPIVOT (EXCLUDE NULLS is the default): 10 rows
+-- UNPIVOT INCLUDE NULLS: 12 rows
++---------+----+-------+
+|  Borough|hour|avg_tip|
++---------+----+-------+
+| Brooklyn| h03|   3.78|
+| Brooklyn| h08|   4.41|
+| Brooklyn| h18|   3.69|
+|Manhattan| h03|   3.22|
+|Manhattan| h08|   3.18|
+|Manhattan| h18|   3.42|
+|   Queens| h03|   5.81|
+|   Queens| h08|   9.39|
+|   Queens| h18|  10.05|
+|     Test| h08|    1.0|
++---------+----+-------+
+
+Sort [Borough ASC NULLS FIRST, hour ASC NULLS FIRST], true
++- Filter isnotnull(avg_tip)
+   +- Expand [[Borough, h03, h03], [Borough, h08, h08], [Borough, h18, h18]], [Borough, hour, avg...
+      +- Union false, false
+         :- Project [Borough AS Borough, __pivot_round(avg(__auto_generated_subquery_name.tip_amo...
+         :  +- Aggregate [Borough], [Borough, pivotfirst(hour, round(avg(__auto_generated_subquer...
+         :     +- Aggregate [Borough, hour], [Borough, hour, round(avg(tip_amount), 2) AS round(a...
+         :        +- Project [Borough, hour(tpep_pickup_datetime, Some(UTC)) AS hour, tip_amount]
+         :           +- Join Inner, (PULocationID = LocationID)
+         :              :- Project [tpep_pickup_datetime, PULocationID, tip_amount]
+         :              :  +- Filter ((((isnotnull(tpep_pickup_datetime) AND isnotnull(fare_amoun...
+         :              :     +- Relation [VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,pa...
+         :              +- Project [LocationID, Borough]
+         :                 +- Filter (Borough IN (Manhattan,Queens,Brooklyn) AND isnotnull(Locati...
+         :                    +- Relation [LocationID,Borough,Zone,service_zone] csv
+         +- Project [Test AS Borough, null AS h03, 1.0 AS h08, null AS h18]
+            +- OneRowRelation
+
+== 7. unpivot and melt in the DataFrame API
+  unpivot rows: 12 | melt rows: 12 | same as SQL INCLUDE NULLS: True
++---------+----+-------+-----+
+|  Borough| pay|      n| fare|
++---------+----+-------+-----+
+| Brooklyn|card|   9197|25.04|
+| Brooklyn|cash|   2165| 22.1|
+|Manhattan|card|2183587| 15.9|
+|Manhattan|cash| 283543|15.72|
+|   Queens|card| 207275|57.07|
+|   Queens|cash|  52960|47.73|
++---------+----+-------+-----+
+

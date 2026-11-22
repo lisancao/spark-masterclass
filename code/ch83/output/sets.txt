@@ -1,0 +1,81 @@
+== 1. ROLLUP(Borough, pay)
++---------+----+-------+---+---+---+
+|  Borough| pay|  trips| gb| gp|gid|
++---------+----+-------+---+---+---+
+| Brooklyn|card|   9197|  0|  0|  0|
+| Brooklyn|cash|   2165|  0|  0|  0|
+|Manhattan|card|2183587|  0|  0|  0|
+|Manhattan|cash| 283543|  0|  0|  0|
+|   Queens|card| 207275|  0|  0|  0|
+|   Queens|cash|  52960|  0|  0|  0|
+| Brooklyn|NULL|  11362|  0|  1|  1|
+|Manhattan|NULL|2467130|  0|  1|  1|
+|   Queens|NULL| 260235|  0|  1|  1|
+|     NULL|NULL|2738727|  1|  1|  3|
++---------+----+-------+---+---+---+
+
+== 2. the plan of the ROLLUP
+   +- Exchange rangepartitioning(gid ASC NULLS FIRST, Borough ASC NULLS FIRST, pay ASC NULLS FIRST, 200), ENSURE_REQU...
+      +- HashAggregate(keys=[Borough, pay, spark_grouping_id], functions=[count(1)])
+         +- Exchange hashpartitioning(Borough, pay, spark_grouping_id, 200), ENSURE_REQUIREMENTS
+            +- HashAggregate(keys=[Borough, pay, spark_grouping_id], functions=[partial_count(1)])
+               +- Expand [[Borough, pay, 0], [Borough, null, 1], [null, null, 3]], [Borough, pay, spark_grouping_id]
+                        +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, false] as bigint)),f...
+  rows out: Filter                 199
+  rows out: Filter           2,744,072
+  rows out: Expand           8,216,181
+  rows out: HashAggregate           30
+  rows out: HashAggregate           20
+
+== 3. CUBE(Borough, pay): every combination
++---+----+---------+-----+-------+
+|gid|bits|  Borough|  pay|  trips|
++---+----+---------+-----+-------+
+|  0|   0| Brooklyn| card|   9197|
+|  0|   0| Brooklyn| cash|   2165|
+|  0|   0|Manhattan| card|2183587|
+|  0|   0|Manhattan| cash| 283543|
+|  0|   0|   Queens| card| 207275|
+|  0|   0|   Queens| cash|  52960|
+|  1|   1| Brooklyn|(all)|  11362|
+|  1|   1|Manhattan|(all)|2467130|
+|  1|   1|   Queens|(all)| 260235|
+|  2|  10|    (all)| card|2400059|
+|  2|  10|    (all)| cash| 338668|
+|  3|  11|    (all)|(all)|2738727|
++---+----+---------+-----+-------+
+
+Expand [[Borough, pay, 0], [Borough, null, 1], [null, pay, 2], [null, null, 3]], [Borough, pay, spark_grouping_id]
+
+== 4. GROUPING SETS against UNION ALL
+same rows: True
+  GROUPING SETS  parquet scans: 1, rows read: 3,145,728
+  UNION ALL      parquet scans: 3, rows read: 9,437,184
+
+== 5. NULL keys against subtotal rows
++---------------+-------+---+
+|passenger_count|  trips|  g|
++---------------+-------+---+
+|           NULL| 901951|  0|
+|              1|2257449|  0|
+|           NULL|3159400|  1|
++---------------+-------+---+
+
+== 6. GROUP BY Borough, ROLLUP(pay, hour)
++---+-----+
+|gid|count|
++---+-----+
+|  0|   12|
+|  1|    6|
+|  3|    3|
++---+-----+
+
+== 7. the same in the DataFrame API
+  rollup        rows: 10   same rows as SQL: True
+  cube          rows: 12   same rows as SQL: True
+  groupingSets  rows:  6   same rows as SQL: True
+
+== 8. GROUPING SETS (()) over an empty input
+  1 row(s)   (no GROUP BY)
+  1 row(s)   GROUP BY GROUPING SETS (())
+  0 row(s)   GROUP BY Borough

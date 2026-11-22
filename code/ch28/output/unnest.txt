@@ -1,0 +1,77 @@
+
+== UNNEST of a literal array, WITH ORDINALITY ==
++---+---+
+|tag|pos|
++---+---+
+|a  |1  |
+|b  |2  |
+|c  |3  |
++---+---+
+
+default column names: ['col0', 'col1', 'ordinality'] | one array: ['col']
+
+== several arrays in parallel: padded with NULL, not a cross product ==
++-------+----+---+
+|tag    |n   |pos|
++-------+----+---+
+|fragile|10  |1  |
+|Gift   |20  |2  |
+|gift   |NULL|3  |
++-------+----+---+
+
+arrays_zip + inline gives the same rows: True
+a NULL array counts as empty: [Row(a=1, b=None), Row(a=2, b=None)]
+
+== correlated UNNEST with LATERAL, against LATERAL VIEW posexplode ==
++--------+-------+---+
+|order_id|tag    |pos|
++--------+-------+---+
+|O-1001  |fragile|1  |
+|O-1001  |Gift   |2  |
+|O-1002  |gift   |1  |
+|O-1003  |Gift   |1  |
++--------+-------+---+
+only showing top 4 rows
+UNNEST rows: 35  LATERAL VIEW posexplode rows: 35  same rows: True
+posexplode position starts at: 0 | WITH ORDINALITY starts at: 1
+
+== LEFT JOIN LATERAL keeps the orders with no tags ==
+LEFT JOIN LATERAL UNNEST rows: 41  LATERAL VIEW OUTER explode rows: 41  same rows: True
+rows with a NULL tag: 7 (6 orders with no tags, 1 NULL element)
+
+== an array of structs: UNNEST keeps the struct, inline makes columns ==
++--------+---+---+---+
+|order_id|sku|qty|n  |
++--------+---+---+---+
+|O-1001  |P6 |4  |1  |
+|O-1001  |P5 |2  |2  |
++--------+---+---+---+
+
+UNNEST columns: ['line']
+inline columns: ['sku', 'qty', 'unit_price', 'discounts', 'attrs']
+
+== two arrays of one order, side by side ==
++--------+-------+------+------+---+
+|order_id|tag    |method|amount|i  |
++--------+-------+------+------+---+
+|O-1001  |fragile|card  |125.0 |1  |
+|O-1001  |Gift   |NULL  |NULL  |2  |
+|O-1004  |NULL   |card  |168.0 |1  |
++--------+-------+------+------+---+
+
+
+== the plans: Generate in each case, and whole-stage code ==
+LATERAL UNNEST
+  +- Generate unnest(tags), [order_id], false, [col]
+LEFT JOIN LATERAL UNNEST
+  +- *(4) BroadcastHashJoin [coalesce(tags, []), isnull(tags)], [coalesce(tags, []), isnull(ta
+  +- Generate unnest(tags), [tags], false, [col]
+  +- BroadcastHashJoin [coalesce(tags, []), isnull(tags)], [coalesce(tags, []), isnull(tags)],
+  +- Generate unnest(tags), [tags], false, [col]
+LATERAL VIEW explode
+  *(1) Generate explode(tags), [order_id], false, [tag]
+
+== UNNEST is a non-reserved keyword ==
+a column and a view named unnest: [Row(unnest=1)]
+  SELECT * FROM UNNEST(42)   -> [DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE] Cannot resolve "unnest(42)" due to dat
+  SELECT * FROM UNNEST()     -> [UNRESOLVABLE_TABLE_VALUED_FUNCTION] Could not resolve `UNNEST` to a table-value

@@ -1,0 +1,160 @@
+== 1. GROUP BY payment_type: partial and final aggregates
++------------+-------+--------+
+|payment_type|  trips|avg_fare|
++------------+-------+--------+
+|           0| 901951|   26.07|
+|           1|2404314|   19.53|
+|           2| 339758|    20.8|
+|           3|   6585|   18.68|
+|           4|  10583|   23.03|
++------------+-------+--------+
+
++- Sort [payment_type ASC NULLS FIRST], true, 0
+   +- Exchange rangepartitioning(payment_type ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS
+      +- HashAggregate(keys=[payment_type], functions=[count(1), avg(fare_amount)])
+         +- Exchange hashpartitioning(payment_type, 200), ENSURE_REQUIREMENTS
+            +- HashAggregate(keys=[payment_type], functions=[partial_count(1), partia...
+               +- Project [payment_type, fare_amount]
+                  +- BroadcastHashJoin [PULocationID], [LocationID], Inner, BuildRigh...
+                     :- Project [PULocationID, payment_type, fare_amount]
+                     :  +- Filter ((((((((isnotnull(tpep_pickup_datetime) AND isnotnu...
+                     :     +- FileScan parquet [tpep_pickup_datetime,trip_distance,PU...
+                     +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input...
+                        +- Filter isnotnull(LocationID)
+                           +- FileScan csv [LocationID] Batched: false, DataFilters: ...
+rows out of each node:
+  Scan csv                            265   FileScan csv [LocationID#38] Batched: false, Da...
+  Filter                              265   Filter isnotnull(LocationID#38)
+  Scan parquet                  3,837,248   FileScan parquet [tpep_pickup_datetime#1,trip_d...
+  Filter                        3,663,191   Filter ((((((((isnotnull(tpep_pickup_datetime#1...
+  HashAggregate                        14   HashAggregate(keys=[payment_type#9L], functions...
+  HashAggregate                         5   HashAggregate(keys=[payment_type#9L], functions...
+  shuffle: {'shuffle records written': '14', 'shuffle bytes written': 'total (min, med, max (stageId: taskId))\n1078.0 B (74.0 B, 310.0 B, 384.0 B (stage 4.0: task 14))'}
+tasks in the scan stage: 16
+
+== 2. which aggregate operator
+  count(*), sum(fare_amount)             buffer: numbers     -> HashAggregate
+  max(fare_amount)                       buffer: a number    -> HashAggregate
+  max(Zone)                              buffer: a string    -> SortAggregate
+  first(Zone)                            buffer: a string    -> SortAggregate
+  percentile_approx(fare_amount, 0.5)    buffer: an object   -> ObjectHashAggregate
+  collect_list(VendorID)                 buffer: an object   -> ObjectHashAggregate
+  approx_count_distinct(DOLocationID)    buffer: fixed words -> HashAggregate
+  percentile_approx, useObjectHashAggregateExec=false        -> SortAggregate
+
+== 2b. ObjectHashAggregate: the sort fallback
+  GROUP BY Borough       partial rows out     31, sort fallback tasks: 0
+  GROUP BY PULocationID  partial rows out    990, sort fallback tasks: 4
+
+== 3. GROUP BY after a sort-merge join on the same key
+-- 4.3.0 defaults
+   +- *(5) SortAggregate(key=[PULocationID], functions=[count(1)])
+         +- *(5) SortMergeJoin [PULocationID], [LocationID], Inner
+            :- *(3) Sort [PULocationID ASC NULLS FIRST], false, 0
+            :        +- Exchange hashpartitioning(PULocationID, 200), ENSURE_REQUIREM...
+            +- *(4) Sort [LocationID ASC NULLS FIRST], false, 0
+                     +- Exchange hashpartitioning(LocationID, 200), ENSURE_REQUIREMENTS
+-- combineAdjacentAggregation=false, replaceHashWithSortAgg=false
+   +- *(5) HashAggregate(keys=[PULocationID], functions=[count(1)])
+      +- *(5) HashAggregate(keys=[PULocationID], functions=[partial_count(1)])
+            +- *(5) SortMergeJoin [PULocationID], [LocationID], Inner
+               :- *(3) Sort [PULocationID ASC NULLS FIRST], false, 0
+               :        +- Exchange hashpartitioning(PULocationID, 200), ENSURE_REQUI...
+               +- *(4) Sort [LocationID ASC NULLS FIRST], false, 0
+                        +- Exchange hashpartitioning(LocationID, 200), ENSURE_REQUIRE...
+
+== 3b. SortAggregate with keys in whole-stage code
+  withKeys.enabled=true  count(*) after the join     *(5) SortAggregate
+  withKeys.enabled=true  max(Zone), a string buffer  SortAggregate | SortAggregate
+  withKeys.enabled=false count(*) after the join     SortAggregate
+  withKeys.enabled=false max(Zone), a string buffer  SortAggregate | SortAggregate
+
+== 4. partial aggregation on a key that hardly repeats
+-- bypassPartialAggregation=false
++- HashAggregate(keys=[tpep_pickup_datetime], functions=[count(1)])
+   +- Exchange hashpartitioning(tpep_pickup_datetime, 200), ENSURE_REQUIREMENTS
+      +- HashAggregate(keys=[tpep_pickup_datetime], functions=[partial_count(1)])
+               +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, in...
+     rows out: Scan csv                      265  FileScan csv [LocationID#38] Batched: fal...
+     rows out: Scan parquet            3,837,248  FileScan parquet [tpep_pickup_datetime#1,...
+     rows out: HashAggregate           2,228,358  HashAggregate(keys=[tpep_pickup_datetime#...
+     rows out: HashAggregate           1,763,643  HashAggregate(keys=[tpep_pickup_datetime#...
+-- bypassPartialAggregation=true
++- HashAggregate(keys=[tpep_pickup_datetime], functions=[count(1)])
+   +- Exchange hashpartitioning(tpep_pickup_datetime, 200), ENSURE_REQUIREMENTS
+            +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, ...
+     rows out: Scan csv                      265  FileScan csv [LocationID#38] Batched: fal...
+     rows out: Scan parquet            3,837,248  FileScan parquet [tpep_pickup_datetime#1,...
+     rows out: HashAggregate           1,763,643  HashAggregate(keys=[tpep_pickup_datetime#...
+
+== 5. aggregate FILTER clauses
++-------------+-------+-------+-----------------+-----------+
+|      Borough|  trips| tipped|avg_tip_if_tipped|avg_tip_all|
++-------------+-------+-------+-----------------+-----------+
+|    Manhattan|2183587|2076592|             4.01|       3.81|
+|       Queens| 207275| 194335|            12.64|      11.85|
+|     Brooklyn|   9197|   8104|             5.59|       4.93|
+|      Unknown|   3014|   2849|             6.41|       6.06|
+|        Bronx|    600|    412|            10.26|       7.05|
+|          N/A|    584|    416|             17.0|      12.11|
+|          EWR|     40|     30|            18.83|      14.12|
+|Staten Island|     17|     15|            20.29|      17.91|
++-------------+-------+-------+-----------------+-----------+
+
+same rows as count_if and CASE WHEN: True
+final:  
+    count(1)
+    count(1)
+    avg(tip_amount)
+    avg(tip_amount)
+partial:
+    partial_count(1)
+    partial_count(1) FILTER (WHERE (tip_amount > 0.0))
+    partial_avg(tip_amount) FILTER (WHERE (tip_amount > 0.0))
+    partial_avg(tip_amount)
+
+== 6. DISTINCT aggregates
+-- one DISTINCT
++- HashAggregate(keys=[payment_type], functions=[count(distinct PULocationID)])
+   +- Exchange hashpartitioning(payment_type, 200), ENSURE_REQUIREMENTS
+      +- HashAggregate(keys=[payment_type], functions=[partial_count(distinct PULocat...
+         +- HashAggregate(keys=[payment_type, PULocationID], functions=[])
+            +- Exchange hashpartitioning(payment_type, PULocationID, 200), ENSURE_REQ...
+               +- HashAggregate(keys=[payment_type, PULocationID], functions=[])
+                        +- BroadcastExchange HashedRelationBroadcastMode(List(cast(in...
+     rows out: Scan csv                      265
+     rows out: Scan parquet            3,837,248
+-- two DISTINCT
++- HashAggregate(keys=[payment_type], functions=[count(t.PULocationID), count(t.DOLoc...
+   +- Exchange hashpartitioning(payment_type, 200), ENSURE_REQUIREMENTS
+      +- HashAggregate(keys=[payment_type], functions=[partial_count(t.PULocationID) ...
+         +- HashAggregate(keys=[payment_type, t.PULocationID, t.DOLocationID, gid], f...
+            +- Exchange hashpartitioning(payment_type, t.PULocationID, t.DOLocationID...
+               +- HashAggregate(keys=[payment_type, t.PULocationID, t.DOLocationID, g...
+                  +- Expand [[payment_type, PULocationID, null, 1], [payment_type, nu...
+                           +- BroadcastExchange HashedRelationBroadcastMode(List(cast...
+     rows out: Scan csv                      265
+     rows out: Scan parquet            3,837,248
+     rows out: Expand                  7,326,382
+-- DISTINCT with FILTER
++- HashAggregate(keys=[payment_type], functions=[count(t.PULocationID)])
+   +- Exchange hashpartitioning(payment_type, 200), ENSURE_REQUIREMENTS
+      +- HashAggregate(keys=[payment_type], functions=[partial_count(t.PULocationID) ...
+         +- HashAggregate(keys=[payment_type, t.PULocationID, gid], functions=[max((t...
+            +- Exchange hashpartitioning(payment_type, t.PULocationID, gid, 200), ENS...
+               +- HashAggregate(keys=[payment_type, t.PULocationID, gid], functions=[...
+                  +- Expand [[payment_type, PULocationID, 1, (tip_amount > 0.0)]], [p...
+                           +- BroadcastExchange HashedRelationBroadcastMode(List(cast...
+     rows out: Scan csv                      265
+     rows out: Scan parquet            3,837,248
+     rows out: Expand                  3,663,191
++------------+--------+--------+
+|payment_type|pu_zones|do_zones|
++------------+--------+--------+
+|           0|     254|     259|
+|           1|     251|     261|
+|           2|     240|     260|
+|           3|     145|     218|
+|           4|     134|     228|
++------------+--------+--------+
+
