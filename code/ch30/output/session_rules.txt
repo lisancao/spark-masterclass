@@ -1,0 +1,47 @@
+== variants/conf_set.py
+  | spark.conf.set("spark.sql.shuffle.partitions", "8")   # at module scope
+    spark.conf.set("spark.sql.shuffle.partitions", "8")   # at module scope
+pyspark.errors.exceptions.base.PySparkException: [SESSION_MUTATION_IN_DECLARATIVE_PIPELINE.SET_RUNTIME_CONF] Session 
+mutation 'RuntimeConf.set' is not allowed in declarative pipelines. Instead set configuration via the pipeline spec or 
+use the 'spark_conf' argument in various decorators.
+
+== variants/temp_view.py
+  | spark.range(3).createOrReplaceTempView("ids")   # at module scope
+    spark.range(3).createOrReplaceTempView("ids")   # at module scope
+pyspark.errors.exceptions.base.PySparkException: [SESSION_MUTATION_IN_DECLARATIVE_PIPELINE.CREATE_OR_REPLACE_TEMP_VIEW] 
+Session mutation 'DataFrame.createOrReplaceTempView' is not allowed in declarative pipelines. Instead use the 
+@temporary_view decorator to define temporary views.
+
+== variants/builder.py
+  | from pyspark.sql import SparkSession
+  | mine = SparkSession.builder.config("spark.sql.shuffle.partitions", "3").getOrCreate()
+  | print("builder returned the pipeline session:", mine is spark,
+  |       "| shuffle.partitions =", spark.conf.get("spark.sql.shuffle.partitions"))
+2026-11-22 02:04:19: Importing ~/spark-masterclass/data/work/part06/ch30-session/transformations/variant_builder.py...
+builder returned the pipeline session: True | shuffle.partitions = 3
+2026-11-22 10:04:23: Run is COMPLETED.
+
+== variants/count.py
+  | from pyspark import pipelines as dp
+  | 
+  | @dp.materialized_view
+  | def product_count():
+  |     n = spark.table("products").count()     # an action inside a query function
+  |     return spark.range(1).selectExpr(f"{n} AS products")
+    n = spark.table("products").count()     # an action inside a query function
+pyspark.errors.exceptions.connect.AnalysisException: [ATTEMPT_ANALYSIS_IN_PIPELINE_QUERY_FUNCTION] Operations that 
+trigger DataFrame analysis or execution are not allowed in pipeline query functions. Move code outside of the pipeline 
+query function. SQLSTATE: 0A000
+
+== variants/called.py
+  | from pyspark import pipelines as dp
+  | print("module scope: runs once, when the CLI imports the file")
+  | 
+  | @dp.materialized_view
+  | def products_by_category():
+  |     print("query function: called")
+  |     return spark.table("products").groupBy("category").count()
+module scope: runs once, when the CLI imports the file
+query function: called
+2026-11-22 10:05:08: Run is COMPLETED.
+

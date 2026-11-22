@@ -1,0 +1,5 @@
+name: flows
+storage: file://@WORK@/pipeline-storage
+libraries:
+  - glob:
+      include: transformations/**

@@ -1,7 +1,9 @@
 """A streaming table with an explicit append flow, a temporary view and a materialized view."""
 from pyspark import pipelines as dp
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
+
+spark: SparkSession   # SDP puts `spark` into this module before it runs the file
 
 ORDER_SCHEMA = ("order_id STRING, customer_id STRING, product_id STRING, quantity INT, "
                 "unit_price STRING, status STRING, order_ts STRING")

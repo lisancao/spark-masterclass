@@ -1,0 +1,27 @@
+== 1. fare per mile: the average of borough ratios, and the ratio of the totals
++--------------+-------+-------------+
+|pickup_borough|  trips|fare_per_mile|
++--------------+-------+-------------+
+|     Manhattan|3266362|       7.0777|
+|        Queens| 309265|       4.5503|
+|      Brooklyn|  99965|       6.1579|
+|         Bronx|  13816|        5.138|
+|       Unknown|   3656|       5.3713|
+|           N/A|    983|      12.6907|
+| Staten Island|    209|       4.1866|
+|           EWR|    131|      42.1885|
++--------------+-------+-------------+
+
++-------------------------+---------------+
+|average_of_borough_ratios|ratio_of_totals|
++-------------------------+---------------+
+|                  10.9201|         6.3158|
++-------------------------+---------------+
+
+== 2. active pickup zones: the sum of daily distinct counts, and the distinct count
++-------------------+-----------+----------------+
+|sum_of_daily_counts|average_day|distinct_in_june|
++-------------------+-----------+----------------+
+|               7083|      236.1|             258|
++-------------------+-----------+----------------+
+

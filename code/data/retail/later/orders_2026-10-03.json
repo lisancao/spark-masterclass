@@ -1,0 +1,4 @@
+{"order_id": "o-1011", "customer_id": "c-01", "product_id": "p-40", "quantity": 3, "unit_price": "3.25", "status": "placed", "order_ts": "2026-10-03T09:10:00"}
+{"order_id": "o-1012", "customer_id": "c-05", "product_id": "p-30", "quantity": 1, "unit_price": "120.00", "status": "placed", "order_ts": "2026-10-03T10:30:00"}
+{"order_id": "o-1013", "customer_id": "c-02", "product_id": "p-10", "quantity": 6, "unit_price": "9.99", "status": "shipped", "order_ts": "2026-10-03T11:45:00"}
+{"order_id": "o-1007", "customer_id": "c-05", "product_id": "p-40", "quantity": 4, "unit_price": "3.25", "status": "placed", "order_ts": "2026-10-02T09:45:00"}

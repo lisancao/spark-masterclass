@@ -1,0 +1,46 @@
+== definitions
+  accepted  the base definition
+  rejected  version: 1.0
+            INVALID_METRIC_VIEW_YAML: Failed to parse metric view YAML: Invalid YAML version: 1.0 SQLSTATE: 42K0L
+  accepted  no measures and no dimensions
+  accepted    ... and a query of it
+            3694387
+  rejected  a joins key
+            INVALID_METRIC_VIEW_YAML: Failed to parse metric view YAML: Failed to parse YAML: Unrecognized field "joins" (class org.apache
+  accepted  a query as the source
+  rejected  a temporary view as the source
+            UNRESOLVED_COLUMN.WITH_SUGGESTION: A column, variable, or function parameter with name `pickup_borough` cannot be resolved. Did you mea
+  rejected  a measure with no aggregate function
+            MISSING_AGGREGATION: The non-aggregating expression "fare_amount" is based on columns which are not participating in the 
+  rejected  a dimension with an aggregate function
+            GROUP_BY_AGGREGATE: Aggregate functions are not allowed in GROUP BY, but found max(spark_catalog.taxi.trips.pickup_borou
+  rejected  a column that the source does not have
+            UNRESOLVED_COLUMN.WITH_SUGGESTION: A column, variable, or function parameter with name `tolls` cannot be resolved. Did you mean one of 
+  rejected  two columns with one name
+            COLUMN_ALREADY_EXISTS: The column `borough` already exists. Choose another name or rename the existing column. SQLSTATE: 42
+  rejected  CREATE TEMPORARY VIEW ... WITH METRICS
+            PARSE_SYNTAX_ERROR: 
+  accepted  a column list on the view
+
+== queries
+  rejected  SELECT *
+            org.apache.spark.SparkException: [INTERNAL_ERROR] The Spark SQL phase planning failed with an internal error. You hit a bug in Spark 
+  rejected  a measure without MEASURE()
+            MISSING_AGGREGATION: The non-aggregating expression "trips" is based on columns which are not participating in the GROUP 
+  rejected  a dimension and a measure without GROUP BY
+            MISSING_GROUP_BY: The query does not include a GROUP BY clause. Add GROUP BY or turn it into the window functions usin
+  rejected  a source column that is not a dimension
+            UNRESOLVED_COLUMN.WITH_SUGGESTION: A column, variable, or function parameter with name `payment_type` cannot be resolved. Did you mean 
+  rejected  MEASURE() of a dimension
+            java.util.NoSuchElementException: key not found: ExprId(90,d08d7990-fc5d-4963-a41a-aa5f7077b660)
+  rejected  MEASURE() in ORDER BY
+            UNRESOLVED_COLUMN.WITH_SUGGESTION: A column, variable, or function parameter with name `trips` cannot be resolved. Did you mean one of 
+  rejected  MEASURE() in HAVING
+            UNRESOLVED_COLUMN.WITH_SUGGESTION: A column, variable, or function parameter with name `trips` cannot be resolved. Did you mean one of 
+  accepted  MEASURE() in a window
+            Manhattan | 3266362 | 3694387
+            Queens | 309265 | 3694387
+  accepted  the alias of a measure in ORDER BY
+            Manhattan | 3266362
+  rejected  a join of the metric view to a table
+            org.apache.spark.SparkException: [INTERNAL_ERROR] UnevaluableAggregateFunc.aggBufferAttributes should not be called. SQLSTATE: XX000

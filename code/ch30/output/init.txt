@@ -1,0 +1,30 @@
+$ spark-pipelines init --name retail_demo
+Pipeline project 'retail_demo' created successfully. To run your pipeline:
+cd 'retail_demo'
+spark-pipelines run
+
+$ find retail_demo -type f
+retail_demo/spark-pipeline.yml
+retail_demo/transformations/example_python_materialized_view.py
+retail_demo/transformations/example_sql_materialized_view.sql
+
+$ cat retail_demo/spark-pipeline.yml
+
+name: retail_demo
+storage: file://~/spark-masterclass/data/work/part06/ch30-init/retail_demo/pipeline-storage
+libraries:
+  - glob:
+      include: transformations/**
+
+$ cat retail_demo/transformations/example_python_materialized_view.py
+from pyspark import pipelines as dp
+from pyspark.sql import DataFrame
+
+@dp.materialized_view
+def example_python_materialized_view() -> DataFrame:
+    return spark.range(10)
+
+$ cat retail_demo/transformations/example_sql_materialized_view.sql
+CREATE MATERIALIZED VIEW example_sql_materialized_view AS
+SELECT id FROM example_python_materialized_view
+WHERE id % 2 = 0

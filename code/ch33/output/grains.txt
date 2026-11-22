@@ -1,0 +1,83 @@
+[Stage 0:>                                                        (0 + 15) / 15][Stage 0:=========================================>               (11 + 4) / 15]                                                                                [Stage 12:================================================>       (13 + 2) / 15]                                                                                == the month
++-------+-------------+------------+
+|  trips|fare_per_mile|active_zones|
++-------+-------------+------------+
+|3689748|       6.3138|         256|
++-------+-------------+------------+
+
+== by borough
++-------------+-------+-------------+------------+
+|      borough|  trips|fare_per_mile|active_zones|
++-------------+-------+-------------+------------+
+|    Manhattan|3266362|       7.0777|          66|
+|       Queens| 309265|       4.5503|          69|
+|     Brooklyn|  99965|       6.1579|          61|
+|        Bronx|  13816|        5.138|          43|
+|Staten Island|    209|       4.1866|          16|
+|          EWR|    131|      42.1885|           1|
++-------------+-------+-------------+------------+
+
+== by day type and payment, with a filter on a dimension
++--------+-------+-------+--------+
+|day_type|payment|  trips|tip_rate|
++--------+-------+-------+--------+
+| weekday|   card|1831225|  0.2337|
+| weekday|   cash| 254890|     0.0|
+| weekend|   card| 575316|  0.2221|
+| weekend|   cash|  88715|     0.0|
++--------+-------+-------+--------+
+
+== the busiest pickup hours in Manhattan, ordered by a measure
++-----------+------+---------+
+|pickup_hour| trips|  revenue|
++-----------+------+---------+
+|         18|213882|5570525.0|
+|         17|203760|5545057.0|
+|         21|196962|5171867.0|
++-----------+------+---------+
+
+== the same question from the DataFrame API
++--------+------+-------------+
+|day_type| trips|fare_per_mile|
++--------+------+-------------+
+| weekday|221452|       4.5585|
+| weekend| 87813|       4.5283|
++--------+------+-------------+
+
+== what a metric view does not prevent: aggregate MEASURE() results again
++---------------------------+
+|average_of_borough_measures|
++---------------------------+
+|                    11.5498|
++---------------------------+
+
++---------------------+
+|sum_of_daily_measures|
++---------------------+
+|                 7023|
++---------------------+
+
+== how MEASURE() becomes a plan
+== Analyzed Logical Plan ==
+  borough: string, fare_per_mile: double
+  Aggregate [borough#375], [borough#375, (sum(fare_amount#391) / sum(trip_distance#390)) AS fare_per_mile#374]
+  +- Filter (day_type#378 = weekend)
+     +- ResolvedMetricView `spark_catalog`.`taxi`.`trip_metrics`
+        +- Project [pickup_ts#13 AS pickup_ts#386, pickup_zone_id#15 AS pickup_zone_id#387, pickup_borough#16 AS pickup_borough#388, payment_type#17L AS
+           +- Filter NOT pickup_borough#16 IN (Unknown,N/A)
+              +- SubqueryAlias spark_catalog.taxi.trips
+                 +- Relation spark_catalog.taxi.trips[pickup_ts#13,pickup_date#14,pickup_zone_id#15,pickup_borough#16,payment_type#17L,trip_distance#18,
+== Optimized Logical Plan ==
+  Aggregate [borough#375], [borough#375, (sum(fare_amount#19) / sum(trip_distance#18)) AS fare_per_mile#374]
+  +- Project [trip_distance#18, fare_amount#19, pickup_borough#16 AS borough#375]
+     +- Filter (NOT pickup_borough#16 IN (Unknown,N/A) AND (dayofweek(pickup_date#14) IN (1,7) <=> true))
+        +- Relation spark_catalog.taxi.trips[pickup_ts#13,pickup_date#14,pickup_zone_id#15,pickup_borough#16,payment_type#17L,trip_distance#18,fare_amou
+== Physical Plan ==
+  == Physical Plan ==
+  AdaptiveSparkPlan (7)
+  +- HashAggregate (6)
+     +- Exchange (5)
+        +- HashAggregate (4)
+           +- Project (3)
+              +- Filter (2)
+                 +- Scan parquet spark_catalog.taxi.trips (1)
