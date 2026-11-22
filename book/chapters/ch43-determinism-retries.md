@@ -73,6 +73,14 @@ Under `local[4]`, one failure stops the job, and `spark.task.maxFailures=4` has 
 
 The cause is in `SparkContext.createTaskScheduler` (`core/src/main/scala/org/apache/spark/SparkContext.scala`). For `local` and `local[N]`, it creates the scheduler with `MAX_LOCAL_TASK_FAILURES = 1`. The master `local[N,F]` matches `LOCAL_N_FAILURES_REGEX` and gives F attempts to each task. The scheduler reports 2 for `local[4,2]`, and partition 1 has two attempt files. A test suite that never uses `local[N,F]` never sees a retry.
 
+<figure markdown>
+  ![The output files of four partitions under local[4,2], and the values of row 120 in two tries](../media/figures/ch43-attempts-light.svg#only-light)
+
+  ![The output files of four partitions under local[4,2], and the values of row 120 in two tries](../media/figures/ch43-attempts-dark.svg#only-dark)
+
+  <figcaption>The task tries of <code>attempts.py</code> under <code>local[4,2]</code>. Partition 1 fails one time and runs all of its rows again. Row 120 gets the same <code>rand(7)</code> value and a new <code>random.random()</code> value.</figcaption>
+</figure>
+
 Speculation does not occur in local mode at all. `TaskSchedulerImpl.start` starts the speculation check only when `!isLocal && conf.get(SPECULATION_ENABLED)`. To study speculation, you need a cluster. To protect a job from speculation, apply the rest of this chapter. A speculative copy is a second attempt that runs at the same time as the first.
 
 ## Step 2: Nondeterminism that survives a retry, and nondeterminism that does not
@@ -152,9 +160,11 @@ Make such objects first, give values as columns or literals, or make the UDF ins
 
 The scheduler knows nothing about expressions. It works with RDDs, and each RDD reports `outputDeterministicLevel` (`core/src/main/scala/org/apache/spark/rdd/RDD.scala`). There are three levels:
 
-- `DETERMINATE`: the same data in the same order for each computation.
-- `UNORDERED`: the same data, but the order can change. Each shuffle read has at least this level, because the fetched blocks arrive in a random order.
-- `INDETERMINATE`: the data itself can change.
+| Level | What a new computation gives |
+|---|---|
+| `DETERMINATE` | The same data in the same order. |
+| `UNORDERED` | The same data, but the order can change. Each shuffle read has at least this level, because the fetched blocks arrive in a random order. |
+| `INDETERMINATE` | The data itself can change. |
 
 `getOutputDeterministicLevel` calculates the level from the parents. The important case is an order-sensitive function on `UNORDERED` input, which gives `INDETERMINATE`. A round-robin repartition is the usual example. It sends row k to partition k mod n, so a different input order sends rows to different partitions. In Classic mode, you can read the level of the final RDD of a plan:
 
@@ -372,10 +382,21 @@ partitionOverwriteMode=static  after re-running 2026-06-02: {'2026-06-02': 5}
 partitionOverwriteMode=dynamic after re-running 2026-06-02: {'2026-06-01': 5, '2026-06-02': 5}
 ```
 
-- `append` adds a second copy of all rows.
-- `overwrite` replaces the output. This is idempotent for a job that writes all of the output.
-- For partitioned output, a run often writes only some partitions (one day, one source). With `partitionBy(...)` and `spark.sql.sources.partitionOverwriteMode=dynamic`, `overwrite` replaces only the partitions in the new data. The default is `static`, and then `overwrite` deleted the 2026-06-01 partition.
+| Save mode | Result of a rerun |
+|---|---|
+| `append` | Adds a second copy of all rows. |
+| `overwrite` | Replaces the output. This is idempotent for a job that writes all of the output. |
+| `overwrite` with `partitionBy(...)` and `spark.sql.sources.partitionOverwriteMode=dynamic` | Replaces only the partitions in the new data. A run often writes only some partitions (one day, one source). |
+| `overwrite` with `partitionBy(...)` and the default `static` mode | Deleted the 2026-06-01 partition. |
+
 - Table formats make the replacement explicit, for example Delta's `replaceWhere` or a `MERGE` with a key from the content. [Chapter 30](ch30-tables-delta-iceberg.md) covers them.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch43-anim-rerun.webp">
+    <source src="../../media/clips/ch43-anim-rerun.mp4" type="video/mp4">
+  </video>
+  <figcaption>A task try that fails leaves no file. A second run of the full job is a new job: <code>append</code> gives 20 rows, and <code>overwrite</code> gives 10. The row counts come from <code>writes.py</code>. The speed of the motion is schematic.</figcaption>
+</figure>
 
 Side effects that are not files need the same discipline: an email, a payment, a row sent to another system. Inside a task, they occur again with each retry, each recomputed stage, each speculative copy and each extra action. Give each effect a stable key (the content id, the batch id). Then do the effect one time on the driver after the commit, or make the receiver ignore a key that it saw before.
 
@@ -407,6 +428,14 @@ There are two surprises:
 - In Connect, the DataFrame API gave the same `rand` and `uuid` in both actions, but SQL text did not. The Python client makes the seed itself when you call `F.rand()` or `F.uuid()` without a seed (`python/pyspark/sql/connect/functions/builtin.py`, lines 425 and 4651, `lit(py_random.randint(0, sys.maxsize))`). The last output line shows that seed in the plan that the client sends. The server analyzes SQL text again for each action, and `ResolveRandomSeed` selects a new seed each time.
 
 For pipelines on Connect, this has a direct result. A DataFrame made with `spark.sql("... rand() ...")` gives a different sample to each action. Write the seed into the SQL (`rand(42)`), or write the result to a table before you use it two times.
+
+<figure markdown>
+  ![A grid of six DataFrames by three values, green where two actions gave the same value](../media/figures/ch43-connect-matrix-light.svg#only-light)
+
+  ![A grid of six DataFrames by three values, green where two actions gave the same value](../media/figures/ch43-connect-matrix-dark.svg#only-dark)
+
+  <figcaption>The result of <code>connect_determinism.py</code>. Each cell tells if two actions on one DataFrame gave the same value. Classic keeps the optimized plan. Connect analyzes the plan again for each action.</figcaption>
+</figure>
 
 ## Step 10: Connect operation IDs and reattachable execution
 
@@ -542,6 +571,14 @@ correct_job:
 </figure>
 
 The fragile job is wrong even in the clean run. Its ledger has 12 entries for 6 charges, and its metrics report 12 charges, because the second action ran the UDF again. Under chaos, the rerun appended a second copy of the charges and posted the ledger again. The correct job gives the same charges, audit sample, ledger and metrics in both runs, after 8 retried tasks.
+
+<figure markdown>
+  ![Grouped bar chart of rows in the charges, audit and ledger outputs of the two jobs, clean and under chaos](../media/figures/ch43-fragile-light.svg#only-light)
+
+  ![Grouped bar chart of rows in the charges, audit and ledger outputs of the two jobs, clean and under chaos](../media/figures/ch43-fragile-dark.svg#only-dark)
+
+  <figcaption>The rows in each output of the two jobs, in the clean run and in the chaos run. Only the correct job gives the same outputs in the two runs.</figcaption>
+</figure>
 
 ## A fault injection toolkit
 
