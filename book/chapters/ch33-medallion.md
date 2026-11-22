@@ -39,6 +39,14 @@ flowchart LR
 
 The source is in four files, one for each layer and one for the checks: `bronze.py`, `silver.py`, `gold.py` and `checks.py`. SDP reads all the files into one graph. The split into files is only for the people who read the code.
 
+The table shows the contract of each layer, and the dataset type that the `shop` pipeline uses for it:
+
+| Layer | Contract | Dataset type | What a run reads |
+|---|---|---|---|
+| Bronze | Keep each row as it arrived, and record its source | Streaming table (`@dp.table`) | Only the new files |
+| Silver | Correct types, one row for each order, failed rows in the quarantine | Materialized view | All of bronze |
+| Gold | Answer one question of the business | Materialized view | All of `billable_orders` |
+
 ## Step 2: Bronze keeps each row as it arrived
 
 The bronze contract has three parts. Bronze is append-only. It does not change or remove a row. It records where each row came from.
@@ -67,9 +75,11 @@ Each decision in this function comes from the contract:
 
 The file source has options that control what one run reads:
 
-- `maxFilesPerTrigger` limits the number of files in one micro-batch. A pipeline run reads all new files in one or more batches, and then the flow stops.
-- `pathGlobFilter` reads only file names that match a pattern, for example `*.json`.
-- `recursiveFileLookup` reads files in subfolders too.
+| Option | What it does |
+|---|---|
+| `maxFilesPerTrigger` | Limits the number of files in one micro-batch. A pipeline run reads all new files in one or more batches, and then the flow stops. |
+| `pathGlobFilter` | Reads only file names that match a pattern, for example `*.json`. |
+| `recursiveFileLookup` | Reads files in subfolders too. |
 
 The file source knows each file by its path. If a producer writes a file again with the same path, the source does not read it again.
 
@@ -141,6 +151,23 @@ The first run puts the three bad orders in the quarantine, each with its reason:
 ```
 
 `o-1002` came two times in the first file. It is in silver one time, and it is not in the quarantine.
+
+The figure shows each of the 11 rows of run 1, and the table that it goes to:
+
+<figure markdown>
+  ![The 11 bronze rows of run 1 and the table that each row goes to](../media/figures/ch33-routing-light.svg#only-light)
+
+  ![The 11 bronze rows of run 1 and the table that each row goes to](../media/figures/ch33-routing-dark.svg#only-dark)
+
+  <figcaption>Run 1. Seven orders go to <code>silver_orders</code>, and three go to <code>quarantine_orders</code> with a reason. The second copy of <code>o-1002</code> is not kept. Bronze has 10 unique orders, and 7 plus 3 is 10.</figcaption>
+</figure>
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch33-anim-routing.webp">
+    <source src="../../media/clips/ch33-anim-routing.mp4" type="video/mp4">
+  </video>
+  <figcaption>Each bronze row of run 1 moves to silver, to the quarantine, or out of the result. Bronze keeps all 11 rows.</figcaption>
+</figure>
 
 The SparkTutor course found two problems in Spark 4.2.0 here. First, `dropDuplicates` and `drop` on a pipeline dataset failed at registration. Second, `withColumn` on a pipeline dataset lost the dependency in the second run (SPARK-59663). `variants.sh` replaces `orders_typed` with each form, runs the pipeline, adds the third day of orders and runs it again:
 
@@ -664,6 +691,14 @@ rows now: 0   rows in the last good snapshot: 103
 
 Run 1 is correct: 120 rows in bronze, 14 in quarantine and 103 unique valid orders in silver. Each file has a ratio below the limit of 0.2. The quarantine counts each broken rule, and a row can break more than one rule.
 
+<figure markdown>
+  ![Bar chart of the rows in quarantine for each broken rule in run 1](../media/figures/ch33-rules-light.svg#only-light)
+
+  ![Bar chart of the rows in quarantine for each broken rule in run 1](../media/figures/ch33-rules-dark.svg#only-dark)
+
+  <figcaption>The rule counts of the quarantine after run 1. The counts add up to more than 14, because a row can break more than one rule.</figcaption>
+</figure>
+
 Run 2 shows what the gate does, and one thing that it does not do:
 
 - **The gate stopped silver.** The third file has a ratio of 0.75. `silver_orders` failed with `USER_RAISED_EXCEPTION`. SDP tried the flow again two times, because `spark.sql.pipelines.maxFlowRetryAttempts` is 2 by default. A data error fails each time, so the retries only add time.
@@ -672,6 +707,16 @@ Run 2 shows what the gate does, and one thing that it does not do:
 - **But silver is empty, and so is gold.** `silver_orders` had 103 rows after run 1, and it has 0 rows now. `revenue_by_currency` did not run, and it has 0 rows too.
 
 The cause is in `DatasetManager.materializeTable`. Before any flow runs, SDP prepares each table of the graph. SDP computes a materialized view from scratch in each run. Thus, if the table exists, SDP runs `TRUNCATE TABLE` on it at that point. The flow then appends the new result. If the flow fails or does not run, the table stays empty.
+
+The timeline shows the tables of run 2 in order:
+
+<figure markdown>
+  ![Timeline of run 2: the truncate, three failed attempts of silver_orders and the skipped gold table](../media/figures/ch33-gate-timeline-light.svg#only-light)
+
+  ![Timeline of run 2: the truncate, three failed attempts of silver_orders and the skipped gold table](../media/figures/ch33-gate-timeline-dark.svg#only-dark)
+
+  <figcaption>Run 2 of the quality pipeline. SDP truncates <code>silver_orders</code> and <code>revenue_by_currency</code> before the flows run. The gate fails each of the three attempts, and both tables stay empty.</figcaption>
+</figure>
 
 The Iceberg run shows that a table format does not change this. Silver and gold are empty there too. But Iceberg keeps the history: the `TRUNCATE` is a `delete` snapshot, and the snapshot before it still has the 103 rows. A reader can use time travel to read the last good version, and `CALL lake.system.rollback_to_snapshot` can make it current again (Chapter 30 shows time travel).
 

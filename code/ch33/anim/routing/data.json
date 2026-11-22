@@ -1,0 +1,4 @@
+{"source": "code/data/retail/orders/orders_2026-10-0{1,2}.json and code/ch33/output/two_runs.txt (run 1)",
+ "rows": [["o-1001","silver"],["o-1002","silver"],["o-1003","silver"],["o-1004","silver"],["o-1002","copy"],
+          ["o-1005","invalid_price"],["o-1006","silver"],["o-1007","silver"],["o-1008","invalid_quantity"],
+          ["o-1009","unknown_customer"],["o-1010","silver"]]}
