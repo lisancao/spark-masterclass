@@ -1,0 +1,47 @@
+before cache(): Serialized 1x Replicated | is_cached False
+after cache():  Disk Memory Deserialized 1x Replicated | is_cached True
+cache() is lazy: storage entries now: 0
+
+the plan of a query on the cached DataFrame:
+  +- InMemoryTableScan [PULocationID#7, fare_amount#10], [isnotnull(PULocationID#7), (PULocationID#7 = 132)]
+  +- InMemoryRelation [tpep_pickup_datetime#1, PULocationID#7, DOLocationID#8, fare_amount#10, tip_amount#13, trip_distance#4, payment_type#9L], Storage
+  +- FileScan parquet [tpep_pickup_datetime#1,trip_distance#4,PULocationID#7,DOLocationID#8,payment_type#9L,fare_amount#10,tip_amount#13] Batched: true,
+
+first action fills the cache: 21,828,310 rows in 8.2 s
+Storage tab: '*(1) Project [tpep_pickup_datetime#1, PULocationID#7, DOLoca...'
+  17/17 partitions cached, memory 747 MiB, disk 0 MiB, level 'Disk Memory Deserialized 1x Replicated'
+
+a cheap aggregate, median of 7 runs after a warm-up:
+  from the cache                450 ms
+  a new DataFrame, same plan    480 ms   (cache matched by plan)
+  a different plan              531 ms   (reads the Parquet files)
+  same plan, InMemoryTableScan: True | different plan: False
+
+an expensive step (a shuffle into 8,951,369 route-hours), then a small query on it:
+  recomputed each time         3283 ms
+  the same DataFrame object, collect() again     27 ms   (skipped stages: 2)
+  from a cache of the step      518 ms   (InMemoryTableScan: True)
+
+after persist(DISK_ONLY) on the cached DataFrame: Disk Memory Deserialized 1x Replicated
+after unpersist(): Serialized 1x Replicated | storage entries: 0
+
+CACHE LAZY TABLE: storage entries 0 | cached partitions 0
+CACHE TABLE took 4.3 s: storage entries 1 | name In-memory table clean_trips
+after clearCache(): 0 entries
+
+PySpark storage levels:
+  DISK_ONLY                disk=True  memory=False offHeap=False deserialized=False replicas=1
+  DISK_ONLY_2              disk=True  memory=False offHeap=False deserialized=False replicas=2
+  DISK_ONLY_3              disk=True  memory=False offHeap=False deserialized=False replicas=3
+  MEMORY_AND_DISK          disk=True  memory=True  offHeap=False deserialized=False replicas=1
+  MEMORY_AND_DISK_2        disk=True  memory=True  offHeap=False deserialized=False replicas=2
+  MEMORY_AND_DISK_DESER    disk=True  memory=True  offHeap=False deserialized=True  replicas=1
+  MEMORY_ONLY              disk=False memory=True  offHeap=False deserialized=False replicas=1
+  MEMORY_ONLY_2            disk=False memory=True  offHeap=False deserialized=False replicas=2
+  NONE                     disk=False memory=False offHeap=False deserialized=False replicas=1
+  OFF_HEAP                 disk=True  memory=True  offHeap=True  deserialized=False replicas=1
+
+a file arrives after read.parquet():
+  old DataFrame counts 3,724,889 rows; a new read counts 7,124,755
+  after refreshByPath: old DataFrame counts 3,724,889
+  a listed file is deleted: FAILED_READ_FILE.FILE_NOT_EXIST

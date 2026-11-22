@@ -372,7 +372,7 @@ stateDiagram-v2
   end note
 ```
 
-AQE wraps a plan only if the plan has an `Exchange`, a subquery, or an operator that needs a specific distribution of its input, such as an aggregate or a global sort (`InsertAdaptiveSparkPlan.shouldApplyAQE`). A plan that only scans, filters and projects has no `AdaptiveSparkPlan` at the top, because AQE has nothing to change. [Chapter 23](ch23-project-feather.md) shows a plan that has an `AdaptiveSparkPlan` node but no `Exchange`. AQE does three things that you will see in plans. `aqe.py` makes each of them occur on the taxi data.
+AQE wraps a plan only if the plan has an `Exchange`, a subquery, or an operator that needs a specific input distribution. An aggregate and a global sort are examples of these operators (see `InsertAdaptiveSparkPlan.shouldApplyAQE`). If a plan only scans, filters and projects, AQE has nothing to change. Thus, the plan has no `AdaptiveSparkPlan` node. [Chapter 23](ch23-project-feather.md) shows a plan that has an `AdaptiveSparkPlan` node but no `Exchange`. AQE does three things that you will see in plans. `aqe.py` makes each of them occur on the taxi data.
 
 ### Coalesce: 200 partitions become 1
 
