@@ -17,6 +17,14 @@ The script is [`code/ch41/sketches.py`](https://github.com/lisancao/spark-master
 
 The sum of the daily distinct counts is 89,494, but the week has 33,233 distinct users. A user who comes on three days counts three times in the sum. To get the weekly count, you must know which users each day had. A table of daily counts cannot give that.
 
+<figure markdown>
+  ![Bar chart of seven daily distinct counts, their sum and the distinct count of the week, on one scale](../media/figures/ch41-daily-light.svg#only-light)
+
+  ![Bar chart of seven daily distinct counts, their sum and the distinct count of the week, on one scale](../media/figures/ch41-daily-dark.svg#only-dark)
+
+  <figcaption>The daily distinct users, their sum and the distinct users of the week. The sum is 89,494, but the week has 33,233 users.</figcaption>
+</figure>
+
 The same problem applies to percentiles. The median of a week is not the average of seven daily medians. Both problems need a summary that keeps enough information to merge. That summary is a **sketch**.
 
 ## Step 2: Normalize the value before you hash it
@@ -94,11 +102,21 @@ sk.write.parquet(str(SK))
 
 The 35 rows (7 days × 5 countries) take 0.88 MB. The raw JSON was 15.5 MB. The script then deletes the raw events. `inputFiles()` shows that the next queries read only the sketch table.
 
+<figure markdown>
+  ![A grid of 35 sketch rows by day and country, and the answers that the rows give](../media/figures/ch41-table-light.svg#only-light)
+
+  ![A grid of 35 sketch rows by day and country, and the answers that the rows give](../media/figures/ch41-table-dark.svg#only-dark)
+
+  <figcaption>The sketch table and the answers that it gives after the script deleted the raw events. The intersection of Step 6 reads the rows of day 0 and day 1.</figcaption>
+</figure>
+
 The parameters set the size and the error of each sketch:
 
-- **`lgConfigK`** for HLL: the log2 of the number of buckets, from 4 to 21. The default is 12. The sketch type is `HLL_8` (one byte for each bucket).
-- **`lgNomEntries`** for theta: the log2 of the number of hashes that the sketch keeps. The default is 12.
-- **`k`** for KLL: the size of each level of the sketch. The default is 200.
+| Sketch | Parameter | What it sets | Default |
+|---|---|---|---|
+| HLL | `lgConfigK` | The log2 of the number of buckets, from 4 to 21. The sketch type is `HLL_8` (one byte for each bucket). | 12 |
+| Theta | `lgNomEntries` | The log2 of the number of hashes that the sketch keeps. | 12 |
+| KLL | `k` | The size of each level of the sketch. | 200 |
 
 Keep each parameter the same for a column in all rows. Step 5 shows what occurs when the values are different.
 
@@ -171,6 +189,13 @@ flowchart LR
   int --> e2["error relative to<br/>the union, not the result"]:::i
 ```
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch41-anim-theta.webp">
+    <source src="../../media/clips/ch41-anim-theta.mp4" type="video/mp4">
+  </video>
+  <figcaption>A theta sketch for each day keeps the smallest hashes. The kept hashes that are on both days give the estimate of the intersection. The positions of the hashes are schematic. The result is from <code>sketches.py</code>.</figcaption>
+</figure>
+
 Spark 4.2 added tuple sketches (`tuple_sketch_agg_double` and the other `tuple_*` functions). A tuple sketch keeps a number next to each hash, for example the revenue of each user. This chapter does not measure them.
 
 ## Step 7: KLL: quantiles for the week
@@ -197,6 +222,14 @@ row = merged.select(F.kll_sketch_get_n_double("k").alias("n"),
 The last column is the true rank of each estimate. All of them are within 0.002 of the rank that the query asked for.
 
 But look at the values in the tail. For the 99.9th percentile, the estimate is 790.66 and the exact value is 655.78. A small error in rank is a large error in value where the values are far apart. Latency tails are like that. If you need the value of an extreme percentile, use a larger `k`, or keep the extreme values separately.
+
+<figure markdown>
+  ![Estimate and exact value of the weekly latency at four ranks](../media/figures/ch41-kll-light.svg#only-light)
+
+  ![Estimate and exact value of the weekly latency at four ranks](../media/figures/ch41-kll-dark.svg#only-dark)
+
+  <figcaption>The weekly latency at four ranks, from the merged KLL sketches. The true rank of each estimate is near the rank of the query. At rank 0.999, the value is 790.66 ms, and the exact value is 655.78 ms.</figcaption>
+</figure>
 
 KLL uses random choices. Two runs of this script gave different estimates for the tail. `percentile_approx` gives the same result in each run, but its buffer is internal, so you cannot store or merge it. `kll_merge_agg_double` came in 4.1.2 (its documentation said 4.1.0 until SPARK-57116 corrected it).
 

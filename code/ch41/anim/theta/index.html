@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Result: data.json (sketches.txt). Hash positions and K: schematic.
+      const D = {"source": "code/ch41/output/sketches.txt (theta, days 0 and 1). The hash positions, the 30 users and K = 12 are schematic; the real sketch keeps 4,096 hashes.", "estimate": "5,229", "exact": "5,175", "share_of_union": "32.4%", "k_schematic": 12, "lgNomEntries": 12};
+      A.mount();
+      // beat open (0.0)
+      A.title("Theta sketch: users on day 0 and day 1");
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.875, size: 36 }); A.in(c, t0); if (t1) A.out(c, t1); };
+      let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      const X0 = 0.12, X1 = 0.9, Y0 = 0.38, Y1 = 0.6;
+      A.text("day 0", { x: 0.06, y: Y0, size: 30, weight: 700 });
+      A.text("day 1", { x: 0.06, y: Y1, size: 30, weight: 700 });
+      A.line({ x1: X0, y1: Y0, x2: X1, y2: Y0, color: "var(--a-line)", width: 2 });
+      A.line({ x1: X0, y1: Y1, x2: X1, y2: Y1, color: "var(--a-line)", width: 2 });
+      A.text("hash 0", { x: X0, y: 0.7, size: 22, color: "var(--a-mute)" });
+      A.text("hash 1", { x: X1, y: 0.7, size: 22, color: "var(--a-mute)" });
+      const users = [];
+      for (let i = 0; i < 30; i++) { const h = rnd(); const r = rnd(); users.push({ h, d0: r < 0.66, d1: r > 0.34 }); }
+      users.sort((a, b) => a.h - b.h);
+      const theta = (users[D.k_schematic - 1].h + users[D.k_schematic].h) / 2;
+      const all = [];
+      users.forEach((u, i) => {
+        const x = X0 + u.h * (X1 - X0);
+        const both = u.d0 && u.d1;
+        u.els = [];
+        if (u.d0) u.els.push(A.dot({ x, y: Y0, r: 13, color: "var(--a-fg)", hidden: false }));
+        if (u.d1) u.els.push(A.dot({ x, y: Y1, r: 13, color: "var(--a-fg)", hidden: false }));
+        u.els.forEach((e) => all.push(e));
+        u.x = x; u.both = both; u.kept = i < D.k_schematic;
+      });
+      gsap.set(all, { opacity: 0 });
+      A.tl.to(all, { opacity: 1, duration: 0.3, stagger: 0.03 }, 0.5);
+      cap("Each user becomes a hash between 0 and 1", 0.5, 3.4);
+      // beat keep (3.6): keep the K smallest hashes of the union; theta is the cut
+      const tx = X0 + theta * (X1 - X0);
+      const tl = A.line({ x1: tx, y1: 0.3, x2: tx, y2: 0.66, color: "var(--a-acc)", width: 4 });
+      const tt = A.text("theta", { x: tx, y: 0.27, size: 28, weight: 700, color: "var(--a-acc)" });
+      gsap.set([tl, tt], { opacity: 0 });
+      A.tl.to([tl, tt], { opacity: 1, duration: 0.4 }, 3.6);
+      A.tl.to(users.filter((u) => !u.kept).flatMap((u) => u.els), { opacity: 0.15, duration: 0.5 }, 4.0);
+      cap("The sketch keeps only the smallest hashes. Theta is the cut", 3.6, 7.0);
+      // beat intersect (7.2): kept hashes on both days
+      users.filter((u) => u.kept && u.both).forEach((u) => {
+        const l = A.line({ x1: u.x, y1: Y0, x2: u.x, y2: Y1, color: "var(--a-ok)", width: 5 });
+        gsap.set(l, { opacity: 0 }); A.tl.to(l, { opacity: 1, duration: 0.3 }, 7.2);
+        A.tl.to(u.els, { backgroundColor: "var(--a-ok)", duration: 0.3 }, 7.2);
+      });
+      cap("Estimate = kept hashes on both days / theta", 7.2, 9.8);
+      cap("Days 0 and 1: estimate " + D.estimate + ", exact " + D.exact, 10.0);
+      A.in(A.note("30 users and 12 kept hashes: schematic (the sketch keeps 4,096); result from the run"), 0.3);
+      A.finish(13);
+    </script>
+  </body>
+</html>
