@@ -278,6 +278,15 @@ The column `png_ok` is important, because SQL decodes any bytes that you give it
 
 The "width" 1819877473 is the four letters `ly a` as a big-endian number, and the "height" is the letters ` png`. Thus you must validate the structure before you use a field. Then put the fields in `F.when(valid, ...)`, so that a bad file gives `NULL`, and keep the flag column so that you can count bad files.
 
+<figure markdown>
+![The byte fields of a PNG header and of corrupt.png.](../media/figures/ch11-png-header-light.svg#only-light)
+
+![The byte fields of a PNG header and of corrupt.png.](../media/figures/ch11-png-header-dark.svg#only-dark)
+
+<figcaption>The first 24 bytes of a PNG file. The labels give the byte positions. <code>corrupt.png</code> has a correct signature, but bytes 13 to 16 are not <code>IHDR</code>.</figcaption>
+</figure>
+
+
 ## Step 7: Find duplicate files with a hash
 
 Two files with the same bytes have the same SHA-256 hash. Their names, folders and times have no effect on the hash. `F.sha2("content", 256)` gives the hash as 64 hex characters:
@@ -395,6 +404,15 @@ orc          19.5        0.102       0.687  5
 parquet      21.0        0.048       0.695  5
 ```
 
+<figure markdown>
+![Bar charts of the size and the query time of five formats.](../media/figures/ch11-formats-light.svg#only-light)
+
+![Bar charts of the size and the query time of five formats.](../media/figures/ch11-formats-dark.svg#only-dark)
+
+<figcaption>Size and <code>avg(fare)</code> time of each format, from the output above. Gzip makes the CSV small, but one task must read the full file.</figcaption>
+</figure>
+
+
 These results show three different effects:
 
 - **Column pruning.** For one column, Parquet (0.048 s) and ORC (0.102 s) are fastest, because they store each column separately and read only `fare_amount`. CSV and JSON must read and split every line to find one field. For all 21 columns, the columnar advantage becomes small, because all formats must then decode everything.
@@ -429,6 +447,16 @@ flowchart TB
   s --> p["about 31 files<br/>for each task"]:::t
   p --> r["63 tasks"]:::t
 ```
+
+The animation shows how Spark packs the files with the two open costs.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch11-anim-packing.webp">
+    <source src="../../media/clips/ch11-anim-packing.mp4" type="video/mp4">
+  </video>
+  <figcaption>Animation: with the default open cost of 4 MB, the 2000 small files fill 63 tasks. With 64 KB, the minimum of one task for each core gives 16 tasks. Each square stands for about 16 files.</figcaption>
+</figure>
+
 
 ## Step 12: New in 4.3: read the files inside zip and tar archives
 
