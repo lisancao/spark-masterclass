@@ -33,7 +33,7 @@ Sleep 10s
 
 # beat: thin | The same server from pyspark-client: no jars, no Py4J
 Hide
-Type "export THIN=/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/connect-core; clear" Enter
+Type "export THIN=/tmp/connect-core; clear" Enter
 Show
 Type "# a client environment with only pyspark-client 4.3.0: how big, and does it work?" Enter
 Sleep 500ms

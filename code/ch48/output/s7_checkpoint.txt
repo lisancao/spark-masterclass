@@ -70,7 +70,7 @@ nextBatchWatermarkMs = 2026-06-10 07:54:46 UTC
 
 --- sources/0/1
 v1
-{"path":"file://~/spark-masterclass-parts/part05/data/work/ch48/s7/inbox/trips_0805.jsonl","timestamp":1795337199171,"batchId":1}
+{"path":"file://~/spark-masterclass/data/work/ch48/s7/inbox/trips_0805.jsonl","timestamp":1795337199171,"batchId":1}
 
 The sink's own log, next to the Parquet files:
 0  (266 B)
@@ -78,4 +78,4 @@ The sink's own log, next to the Parquet files:
 2  (266 B)
 3  (266 B)
 v1
-{"path":"file://~/spark-masterclass-parts/part05/data/work/ch48/s7/out/part-00000-2f970f60-d4e5-4433-98cc-6108379b17a1-c000.snappy.parquet","size":384,"isDir":false,"modificationTime":1795337200088,"blockReplication":1,"blockSize":33554432,"action":"add"}
+{"path":"file://~/spark-masterclass/data/work/ch48/s7/out/part-00000-2f970f60-d4e5-4433-98cc-6108379b17a1-c000.snappy.parquet","size":384,"isDir":false,"modificationTime":1795337200088,"blockReplication":1,"blockSize":33554432,"action":"add"}

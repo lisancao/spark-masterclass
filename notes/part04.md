@@ -61,7 +61,7 @@
 
 ## Claim-to-source table
 
-Numbers quoted in the chapters come from the saved outputs below; source claims from the 4.3.0 tag of `~/repos/spark`.
+Numbers quoted in the chapters come from the saved outputs below; source claims from the 4.3.0 tag of `~/spark`.
 
 | Chapter | Claim | Source |
 |---|---|---|

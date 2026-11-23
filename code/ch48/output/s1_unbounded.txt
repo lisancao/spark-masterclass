@@ -6,7 +6,7 @@
 2. With a schema: isStreaming = True
 == Parsed Logical Plan ==
 'Aggregate ['PULocationID], ['PULocationID, 'count(1) AS count#8]
-+- StreamingRelation FileSource[~/spark-masterclass-parts/part05/data/work/ch48/s1/inbox], [trip_id#0, pickup_ts#1, dropoff_ts#2, PULocationID#3, DOLocationID#4, trip_distance#5, fare_amount#6, total_amount#7], name=<Unassigned>
++- StreamingRelation FileSource[~/spark-masterclass/data/work/ch48/s1/inbox], [trip_id#0, pickup_ts#1, dropoff_ts#2, PULocationID#3, DOLocationID#4, trip_distance#5, fare_amount#6, total_amount#7], name=<Unassigned>
 
 
 3. An action on a streaming DataFrame:

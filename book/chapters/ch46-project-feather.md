@@ -6,7 +6,7 @@ Project Feather ([SPARK-56978](https://issues.apache.org/jira/browse/SPARK-56978
 
 **Single-task execution removes the shuffles from a query when the optimizer can prove that the input fits in one task. The rule that decides this is strict and short: one file or one small local relation, and only a fixed list of operators above it. Inside these limits, a small query runs as one job and one task, and the time per query decreases by a large fraction. Outside them, nothing changes. Near the upper size limit, one task is slower than many tasks. Thus, the crossover point is a property of your data, and you must measure it.**
 
-The scripts are in [`code/ch46`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch46), and each output block comes from `code/ch46/output/`. All runs use Spark 4.3.0 in `local[*]` mode on 16 cores, with the session time zone set to UTC. Each timing is a median after warm-up runs, measured while no other benchmark ran on the machine. [Chapter 5](ch05-how-spark-runs.md) gave the first measurement of Feather. This chapter explains the rule, finds its limits, and shows its effect on plans, AQE, the Spark UI and Spark Connect.
+The scripts are in [`code/ch46`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch46), and each output block comes from `code/ch46/output/`. All runs use Spark 4.3.0 in `local[*]` mode on 16 cores, with the session time zone set to UTC. Each timing is a median after warm-up runs, measured while no other benchmark ran on the machine. [Chapter 5](ch05-how-spark-runs.md) gave the first measurement of Feather. This chapter explains the rule, finds its limits, and shows its effect on plans, AQE, the Spark UI and Spark Connect.
 
 ## Step 1: Read the rule in the 4.3 source
 

@@ -6,7 +6,7 @@ A product team asks three questions every Monday. How many distinct users did we
 
 The data is a generated week of app events: 40,000 possible users, about 9,000 new users each day, and users who come back. The user ids are messy. Some are in upper case, some have spaces, and some are empty or NULL. The latencies have a log-normal distribution.
 
-The script is [`code/ch68/sketches.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch68). It ran on `pyspark==4.3.0` in local mode. The exact answers come from plain Python over the same events. Each number is from `code/ch68/output/sketches.txt`.
+The script is [`code/ch68/sketches.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch68). It ran on `pyspark==4.3.0` in local mode. The exact answers come from plain Python over the same events. Each number is from `code/ch68/output/sketches.txt`.
 
 ## Step 1: Distinct counts do not add
 

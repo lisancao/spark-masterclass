@@ -119,7 +119,7 @@ The server's record of the failed operation:
   "jobTag": "SparkConnect_OperationTag_User_lnc_Session_e484384c-bb96-4337-99eb-37304e87a9cd_Operation_eb28b1ec-c374-4cdf-8564-1a27e17bd7d5",
   "operationId": "eb28b1ec-c374-4cdf-8564-1a27e17bd7d5",
   "sessionId": "e484384c-bb96-4337-99eb-37304e87a9cd",
-  "userId": "lnc",
+  "userId": "user",
   "state": "CLOSED",
   "startTimestamp": 1795370579754,
   "finishTimestamp": 1795370579937,

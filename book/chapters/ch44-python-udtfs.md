@@ -6,7 +6,7 @@ A Python user-defined table function (UDTF) is the tool for these tasks. It is a
 
 **A Python UDTF is a small program with a lifecycle. Spark makes one instance for each partition or each partition key, calls `eval` for each row, and calls `terminate` at the end. The form of the input sets which rows go to which instance: a scalar argument in a lateral join, or a `TABLE` argument with `PARTITION BY`. The output schema can come from the arguments at analysis time. A UDTF has the same Python costs as a UDF. Thus, for a task that a built-in table function can do, such as `JSON_TABLE` in Spark 4.3 for JSON, the built-in function is faster.**
 
-The scripts are in [`code/ch44`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch44), and each output block comes from `code/ch44/output/`. The data is a service log in `key=value` format from SparkTutor (`code/data/service_logs/kv.log`, 112 lines), and 200,000 generated JSON order documents. The log has some defects:
+The scripts are in [`code/ch44`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch44), and each output block comes from `code/ch44/output/`. The data is a service log in `key=value` format from SparkTutor (`code/data/service_logs/kv.log`, 112 lines), and 200,000 generated JSON order documents. The log has some defects:
 
 - blank lines and a comment,
 - a repeated key and an upper-case key,

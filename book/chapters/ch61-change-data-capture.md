@@ -12,7 +12,7 @@ Spark 4.3 adds history tables (SCD Type 2) to Auto CDC, and a SQL syntax for it.
 
 This chapter shows each part of that sentence with the same change events for three customers who live in Toronto, Ottawa and Hanoi.
 
-The code is in [`code/ch61`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch61). Each output block comes from `code/ch61/output/`. The pipelines write Iceberg tables with the Iceberg runtime for Spark 4.3 that [Chapter 54](ch54-tables-delta-iceberg.md) describes, an unreleased build.
+The code is in [`code/ch61`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch61). Each output block comes from `code/ch61/output/`. The pipelines write Iceberg tables with the Iceberg runtime for Spark 4.3 that [Chapter 54](ch54-tables-delta-iceberg.md) describes, an unreleased build.
 
 ## Step 1: Apply changes, do not append them
 

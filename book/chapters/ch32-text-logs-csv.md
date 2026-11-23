@@ -10,7 +10,7 @@ In Spark, that information is in the reader options and in your regular expressi
 - **a corrupt record column or a "did it parse" flag,**
 - **a quarantine that you count against the input.**
 
-The first half of the chapter is about logs, with the `text` source and regular expressions. The second half is about CSV, with the CSV reader and its options. The data is SparkTutor's `logs/` and `delimited/` folders in [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy). The scripts are [`code/ch32/logs.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch32), `csv_options.py` and `csv_drift.py`. All output is from `code/ch32/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
+The first half of the chapter is about logs, with the `text` source and regular expressions. The second half is about CSV, with the CSV reader and its options. The data is SparkTutor's `logs/` and `delimited/` folders in [`code/data/messy`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/data/messy). The scripts are [`code/ch32/logs.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch32), `csv_options.py` and `csv_drift.py`. All output is from `code/ch32/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
 
 ## The life of a log line
 

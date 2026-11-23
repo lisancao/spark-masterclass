@@ -1,7 +1,7 @@
 """Chapter 78, Step 7: a metric view gives an agent the definition of a metric. The by-hand SQL that an
 agent writes from the raw table exits 0 with a different number.
 
-Data and YAML: the metric views demo in Lisa Cao's spark-demos (copied to code/ch78/data/metrics/).
+Data and YAML: the metric views demo in the spark-demos repository (copied to code/ch78/data/metrics/).
 Run from code/:  uv run python ch78/metric_view.py
 """
 import sys

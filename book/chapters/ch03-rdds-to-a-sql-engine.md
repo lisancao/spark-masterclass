@@ -6,7 +6,7 @@
 
 This chapter runs one question in the two styles and measures them. Then it opens each layer: the plans, the bytes of a row and the generated Java.
 
-Part VII teaches how to read and tune plans in depth, from [Chapter 40](ch40-query-plans.md) on. This chapter links to it, and it does not repeat it. The scripts are in [`code/ch03`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch03), and each number comes from `code/ch03/output/`.
+Part VII teaches how to read and tune plans in depth, from [Chapter 40](ch40-query-plans.md) on. This chapter links to it, and it does not repeat it. The scripts are in [`code/ch03`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch03), and each number comes from `code/ch03/output/`.
 
 ## Step 1: The history in five releases
 

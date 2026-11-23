@@ -4,7 +4,7 @@
 
 **A Spark application is a small set of services that work together. In the driver, the DAGScheduler cuts a job into stages, and the TaskScheduler places each task on an executor. In each executor, a BlockManager keeps blocks, a memory manager divides the heap, and a shuffle manager writes and fetches files. Each slow job has its cause in one of these services, and each service leaves evidence that you can read.**
 
-The scripts run on `local-cluster[2,2,1024]`. This master URL starts a standalone master and two workers in the driver JVM, and each worker starts one executor JVM. Thus, the driver and two executors are separate processes, and a shuffle moves data between processes, as on a real cluster. The scripts are in [`code/ch02`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch02), and each number comes from `code/ch02/output/`. The source references are to the tag `v4.3.0` of [apache/spark](https://github.com/apache/spark/tree/v4.3.0).
+The scripts run on `local-cluster[2,2,1024]`. This master URL starts a standalone master and two workers in the driver JVM, and each worker starts one executor JVM. Thus, the driver and two executors are separate processes, and a shuffle moves data between processes, as on a real cluster. The scripts are in [`code/ch02`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch02), and each number comes from `code/ch02/output/`. The source references are to the tag `v4.3.0` of [apache/spark](https://github.com/apache/spark/tree/v4.3.0).
 
 ## Step 1: The processes, and who starts them
 

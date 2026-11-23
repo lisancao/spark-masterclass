@@ -6,7 +6,7 @@ Structured Streaming is the part of Spark that does this work. It uses the same 
 
 **A streaming query is a batch query that Spark runs again and again, each time on the input that arrived since the last run. The checkpoint makes the sequence of runs into one query. It records which input each run read, which runs completed, and the state that one run gives to the next. Output modes, triggers, watermarks and restarts are all rules about that sequence.** This chapter follows one stream of real taxi trips through each of these rules. It shows the files and the progress reports that prove each rule.
 
-All the code runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch48`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch48), and each number in the chapter comes from their saved output in `code/ch48/output/`. Most steps use the file source, because it needs no other service. Steps 9 and 15 use Kafka, with a broker in Docker.
+All the code runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch48`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch48), and each number in the chapter comes from their saved output in `code/ch48/output/`. Most steps use the file source, because it needs no other service. Steps 9 and 15 use Kafka, with a broker in Docker.
 
 ## The data: a morning of trips that arrive late
 
@@ -71,7 +71,7 @@ A batch read of JSON can infer a schema, because it can read all the files first
 2. With a schema: isStreaming = True
 == Parsed Logical Plan ==
 'Aggregate ['PULocationID], ['PULocationID, 'count(1) AS count#8]
-+- StreamingRelation FileSource[~/spark-masterclass-parts/part05/data/work/ch48/s1/inbox], [trip_id#0, pickup_ts#1, dropoff_ts#2, PULocationID#3, DOLocationID#4, trip_distance#5, fare_amount#6, total_amount#7], name=<Unassigned>
++- StreamingRelation FileSource[~/spark-masterclass/data/work/ch48/s1/inbox], [trip_id#0, pickup_ts#1, dropoff_ts#2, PULocationID#3, DOLocationID#4, trip_distance#5, fare_amount#6, total_amount#7], name=<Unassigned>
 ```
 
 A streaming DataFrame has no rows that you can count. An action such as `count()` fails, and the message tells you the two correct methods to run it:
@@ -192,7 +192,7 @@ Each micro-batch makes a progress report. `q.recentProgress` holds the most rece
  ],
  "sources": [
   {
-   "description": "FileStreamSource[file:~/spark-masterclass-parts/part05/data/work/ch48/s2/inbox]",
+   "description": "FileStreamSource[file:~/spark-masterclass/data/work/ch48/s2/inbox]",
    "startOffset": {
     "logOffset": 0
    },
@@ -591,7 +591,7 @@ nextBatchWatermarkMs = 2026-06-10 07:54:46 UTC
 ```text
 --- sources/0/1
 v1
-{"path":"file://~/spark-masterclass-parts/part05/data/work/ch48/s7/inbox/trips_0805.jsonl","timestamp":1795337199171,"batchId":1}
+{"path":"file://~/spark-masterclass/data/work/ch48/s7/inbox/trips_0805.jsonl","timestamp":1795337199171,"batchId":1}
 ```
 
 ### The protocol, and what a restart does
@@ -708,7 +708,7 @@ Without `persist()`, three actions loaded the four state stores three times. Wit
 ```text
 3. The memory sink keeps nothing across restarts:
   AnalysisException: This query does not support recovering from checkpoint location.
-  Delete ~/spark-masterclass-parts/part05/data/work/ch48/s8/mem/offsets to start ...
+  Delete ~/spark-masterclass/data/work/ch48/s8/mem/offsets to start ...
 ```
 
 This error occurs in append mode. In complete mode (Step 2), a restart works, because each batch writes the full result again.
@@ -1051,7 +1051,7 @@ The last part of the script shows a protection that Spark 4.2 added. It removes 
 ```text
 4. Remove the metadata file of a checkpoint that has offsets and commits:
   SparkRuntimeException: [STREAMING_CHECKPOINT_MISSING_METADATA_FILE] Checkpoint location
-  file:~/spark-masterclass-parts/part05/data/work/ch48/s11/ck_pos is in an
+  file:~/spark-masterclass/data/work/ch48/s11/ck_pos is in an
   inconsistent state: the metadata file is missing but offset and/or commit logs contain ...
 ```
 
@@ -1098,8 +1098,8 @@ The plan of one micro-batch shows how Spark runs the join:
 
 ```text
 2. The physical plan of one micro-batch (stream LEFT OUTER static):
-      +- StateStoreSave [Borough#26], state info [ checkpoint = file:~/spark-masterclass-parts/streaming/data/work/ch48/s
-            +- StateStoreRestore [Borough#26], state info [ checkpoint = file:~/spark-masterclass-parts/streaming/data/wo
+      +- StateStoreSave [Borough#26], state info [ checkpoint = file:~/spark-masterclass/data/work/ch48/s
+            +- StateStoreRestore [Borough#26], state info [ checkpoint = file:~/spark-masterclass/data/wo
                   +- Exchange hashpartitioning(Borough#26, 4), REQUIRED_BY_STATEFUL_OPERATOR, [plan_id=107]
                            +- *(2) BroadcastHashJoin [PULocationID#128], [PULocationID#29], LeftOuter, BuildRight, false,
                               :- FileScan json [PULocationID#128] Batched: false, DataFilters: [], Format: JSON, Location
@@ -1119,8 +1119,8 @@ If Spark reads the static side in each batch, a change to that table should reac
    batch 0: labels found {'-': 489, 'airport': 19}   (v1 has two airport zones)
    batch 1: labels found {'-': 432, 'airport': 18}   (a new file v2 added)
    StreamingQueryException: [STREAM_FAILED] ... [FAILED_READ_FILE.FILE_NOT_EXIST]
-  Encountered error while reading file file://~/spark-masterclass-parts/streamin
-  g/data/work/ch48/s12/labels/v1/part-00000-2f90ac13-3fab-4003-8e22-1245fa1886ec- ...
+  Encountered error while reading file file://~/spark-masterclass/
+  data/work/ch48/s12/labels/v1/part-00000-2f90ac13-3fab-4003-8e22-1245fa1886ec- ...
    b) read the static side again in each batch, inside foreachBatch:
    batch 0: labels found {'-': 489, 'airport': 19}   (v1 has two airport zones)
    batch 1: labels found {'-': 399, 'airport': 18, 'midtown': 7, 'uptown': 26}   (a new file v2 added)

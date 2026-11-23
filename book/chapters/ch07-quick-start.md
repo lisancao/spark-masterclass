@@ -4,7 +4,7 @@ Most quick starts count words in a text file. This teaches you the API, but it t
 
 **DataFrames and SQL in Spark are two methods to write the same logical plan. Thus, choose the one that is easier to read for the person who maintains the code. The work that decides if the answer is correct is to clean the data before the aggregation. A month of real trips contains enough impossible rows to change each average that you calculate from it.**
 
-The code is [`code/ch07/quickstart.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch07). It runs on the pip install from [Chapter 6](ch06-installing.md) in about ten seconds. Each table below is its saved output.
+The code is [`code/ch07/quickstart.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch07). It runs on the pip install from [Chapter 6](ch06-installing.md) in about ten seconds. Each table below is its saved output.
 
 ## Step 1: Load the trips and the zones
 

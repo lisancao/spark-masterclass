@@ -4,7 +4,7 @@
 
 **The optimizer knows only what the catalog and the files tell it. Without statistics, it knows the size of each table and nothing about its rows, so a filter does not change any estimate. `ANALYZE TABLE` stores row counts, column statistics and histograms, and the cost-based optimizer uses them to select a broadcast and to reorder joins. Partitioned, bucketed and storage-partitioned tables carry their layout into the plan, and Spark uses that layout to skip partitions and to remove shuffles. Hints are for the cases where you know more than all of these.**
 
-The scripts are in [`code/ch41`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch41), and each output block comes from `code/ch41/output/`. The tables are these:
+The scripts are in [`code/ch41`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch41), and each output block comes from `code/ch41/output/`. The tables are these:
 
 - `trips`: the June 2026 taxi trips, 3,709,141 rows after the cleaning in `c86.py`.
 - `fares`: the money columns of the same trips, with the same `trip_id`.

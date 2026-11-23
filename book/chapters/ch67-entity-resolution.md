@@ -6,7 +6,7 @@ A company keeps customers in three systems: a CRM, a web shop and a support desk
 
 The cluster step is also an iterative job. An iterative job builds a larger plan in each round, and the plan can stop the driver. `localCheckpoint()` cuts the plan in each round.**
 
-The data is the SparkTutor sample: `crm.csv`, `shop.csv` and `support.jsonl` in [`code/data/messy/entities`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy/entities). `truth.csv` is the answer key, so each step has a precision and a recall. The scripts are [`code/ch67/resolve.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch67) and `components.py`. They ran on `pyspark==4.3.0` in local mode. The plan measurements use `df._jdf`, so they run in Classic only.
+The data is the SparkTutor sample: `crm.csv`, `shop.csv` and `support.jsonl` in [`code/data/messy/entities`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/data/messy/entities). `truth.csv` is the answer key, so each step has a precision and a recall. The scripts are [`code/ch67/resolve.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch67) and `components.py`. They ran on `pyspark==4.3.0` in local mode. The plan measurements use `df._jdf`, so they run in Classic only.
 
 ```mermaid
 flowchart LR

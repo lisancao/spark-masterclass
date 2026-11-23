@@ -6,7 +6,7 @@
 
 This chapter is the RDD programming guide of 4.3, run and measured. It shows transformations and actions, the key-value operations, partitioners, closures, broadcast variables, accumulators, persistence and checkpoints. Each step ends with the DataFrame equivalent.
 
-The scripts are in [`code/ch12`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch12), and each output block comes from `code/ch12/output/`. All scripts except `connect.py` use Spark Classic, because RDDs are not available over Connect.
+The scripts are in [`code/ch12`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch12), and each output block comes from `code/ch12/output/`. All scripts except `connect.py` use Spark Classic, because RDDs are not available over Connect.
 
 ## Step 1: Make an RDD, transform it, and run an action
 

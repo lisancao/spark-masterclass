@@ -51,7 +51,7 @@ The official dictionary is not available here. These words were used without con
 
 ## Coverage
 
-Lesson topics from the inventories in `~/Documents/spark_content/spark-book-plan/inventory/`.
+Lesson topics from the inventories in the SparkTutor book plan.
 
 ### LS10 mllib (Learning Spark 10)
 

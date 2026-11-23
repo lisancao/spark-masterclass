@@ -6,7 +6,7 @@
 
 This chapter takes each part from the source of Spark 4.3.0 and tests it. The CLI source is `python/pyspark/pipelines/cli.py` and `init_cli.py`. The wrapper is `bin/spark-pipelines` and `core/src/main/scala/org/apache/spark/deploy/SparkPipelines.scala`.
 
-The code is in [`code/ch57`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch57). The scripts use the `taxi_etl` project of [Chapter 56](ch56-first-etl-pipeline.md), with two days of data, and a Connect server with a Hive metastore on port 15104. Each output block comes from `code/ch57/output/`.
+The code is in [`code/ch57`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch57). The scripts use the `taxi_etl` project of [Chapter 56](ch56-first-etl-pipeline.md), with two days of data, and a Connect server with a Hive metastore on port 15104. Each output block comes from `code/ch57/output/`.
 
 ## Step 1: What the command runs
 

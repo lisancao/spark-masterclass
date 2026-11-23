@@ -2,7 +2,7 @@
 release tag), and what 4.3.0 says about a version it dropped or a version that needs other jars.
 
 Run from code/:  uv run python ch17/metastore_versions.py > ch17/output/metastore_versions.txt
-Needs ~/repos/spark with the release tags (SPARK_SRC to change it).
+Needs ~/spark with the release tags (SPARK_SRC to change it).
 """
 import os
 import re
@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from hive import work  # noqa: E402
 
-SRC = os.environ.get("SPARK_SRC", str(Path.home() / "repos" / "spark"))
+SRC = os.environ.get("SPARK_SRC", str(Path.home() / "spark"))
 PKG = "sql/hive/src/main/scala/org/apache/spark/sql/hive/client/package.scala"
 
 print("== 1. HiveVersion objects in sql/hive/.../client/package.scala at each tag")

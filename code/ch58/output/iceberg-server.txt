@@ -58,7 +58,7 @@ lake/taxi/zones
 lake/taxi/zones/data
 lake/taxi/zones/metadata
 $ ls spark-warehouse 2>&1 | head -2
-$ python "~/spark-masterclass-parts/sdp/code/ch56/make_days.py" data/trips 2026-06-03
+$ python "~/spark-masterclass/code/ch56/make_days.py" data/trips 2026-06-03
 trips_2026-06-03.parquet: 140,184 trips
 $ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Run is'
 2026-11-22 18:26:11: Run is COMPLETED.

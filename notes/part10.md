@@ -77,7 +77,7 @@ Chapters: 56 How Catalyst plans Python, 57 The Python worker protocol, 58 The VA
 
 ### MD55 upstream_case_study -> Chapter 91
 
-The lesson's case was the Python data source pushdown leak (`setReadInfo`). That bug is not filed upstream, so the brief rules it out. Chapter 91 teaches the same method on SPARK-60206 (filed by Lisa, public, open PR apache/spark#59416), a wrong-results bug that reproduces on 4.3.0.
+The lesson's case was the Python data source pushdown leak (`setReadInfo`). That bug is not filed upstream, so the brief rules it out. Chapter 91 teaches the same method on SPARK-60206 (filed by the author, public, open PR apache/spark#59416), a wrong-results bug that reproduces on 4.3.0.
 
 | Lesson topic | Where |
 |---|---|
@@ -135,7 +135,7 @@ The lesson's case was the Python data source pushdown leak (`setReadInfo`). That
 | ch91: metric views in v4.2.0 and v4.3.0, not v4.1.0, shallow clone boundary | `history.txt` |
 | ch91: fix works on 4.3.0 classes, 169 class files, 9 s | `test_fix.txt` |
 | ch91: JIRA and PR fields | `jira.txt` (snapshot 2026-11-22) |
-| ch91: review quotes | apache/spark#59416 review comments by HyukjinKwon (2026-10-14), also in `~/repos/LESSONS/spark.md` |
+| ch91: review quotes | apache/spark#59416 review comments by HyukjinKwon (2026-10-14) |
 | ch91: correctness label and Blocker guidance | https://spark.apache.org/contributing.html |
 | ch91: "fail on master without this change" | the description of apache/spark#59416 |
 
@@ -143,7 +143,7 @@ The lesson's case was the Python data source pushdown leak (`setReadInfo`). That
 
 - `pyspark[connect]==4.3.0` from `code/pyproject.toml` (uv), Python 3.12, OpenJDK 17.0.21, Linux, 16 cores. `local[*]`, `local[1]` or `local[2]` as each script says.
 - Spark UI port 4031 where a script uses `common.book.session`; most Part X scripts turn the UI off. Connect server (ch88 Step 10) on gRPC port 15061 by `code/ch88/server.sh` (the earlier writer chose it; the assignment's 10310 was not used and nothing else listens on 15061 here).
-- Spark source: `~/repos/spark` at tag `v4.3.0` (a shallow clone; see ch91 Step 6). PR branch `origin/SPARK-60206-metric-view-namespace` for the ch91 excerpts.
+- Spark source: `~/spark` at tag `v4.3.0` (a shallow clone; see ch91 Step 6). PR branch `origin/SPARK-60206-metric-view-namespace` for the ch91 excerpts.
 - Scala compiler for ch91: `scala-compiler-2.13.18.jar` from the pyspark 4.3.0 wheel.
 - No external packages (no Delta, Iceberg, Kafka, Avro) in this part.
 - Benchmarks ran under `flock $HOME/spark-masterclass/data/.bench.lock`. The ch88 and ch89 films also ran under it (the rule at the time). After the integrator's rule change, the ch90 and ch91 films ran without the lock; no film timing is quoted in the text. ch88 benchmark: one warm-up, median of five fresh DataFrames. ch90 benchmark: one warm-up, median of five runs of each SQL query.
@@ -169,8 +169,8 @@ Rules broken on purpose:
 
 ## Open findings (not in the book as bugs)
 
-1. **Python data source filter pushdown leaks into a reused base scan (4.1.0 to 4.3.0, unfiled).** The MD55 lesson's case. Not used, because it is not filed. Lisa's draft: `~/spark-contributor/drafts/OPP-2026-10-26-PYDS-PUSHDOWN-LEAK/jira.md`.
-2. **SPARK-60206 has no `correctness` label and lists only 4.2.0.** ch91 shows it reproduces on 4.3.0 (pip `pyspark==4.3.0`). Lisa may want to add "4.3.0" to Affects Version/s and the `correctness` label (the chapter says the label is missing; it does not say anything else about the report). If she adds them, update Step 10's snapshot and its paragraph on the label.
+1. **Python data source filter pushdown leaks into a reused base scan (4.1.0 to 4.3.0, unfiled).** The MD55 lesson's case. Not used, because it is not filed. The author's draft (unpublished).
+2. **SPARK-60206 has no `correctness` label and lists only 4.2.0.** ch91 shows it reproduces on 4.3.0 (pip `pyspark==4.3.0`). The author may want to add "4.3.0" to Affects Version/s and the `correctness` label (the chapter says the label is missing; it does not say anything else about the report). If she adds them, update Step 10's snapshot and its paragraph on the label.
 3. **Stale comment in `VariantUtil.java` (v4.3.0):** the class comment says the dictionary size is a 4-byte integer and the offsets are 4-byte; `VariantBuilder.result()` writes `offset_size` bytes for both. Doc gap. Repro: decode any `parse_json` metadata (header `0x01`, size 1 byte). Unfiled.
 4. **`VARIANT_CONSTRUCTOR_SIZE_LIMIT` message says 16 MiB** in `error-conditions.json` at v4.3.0; `SIZE_LIMIT` is 128 MiB outside tests. Doc gap, unfiled.
 5. **No validation of the field-ID sort on read** (ch90 Step 6). Spark's own writer is correct; a foreign writer that breaks the spec gets NULL from `variant_get` from 32 fields up, with no error. The book states this as behavior for spec-breaking input, not as a bug. Possible improvement: validate in `MALFORMED_VARIANT` checks, or document it.

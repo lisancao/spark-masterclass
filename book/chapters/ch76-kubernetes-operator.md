@@ -13,7 +13,7 @@ This chapter runs everything for real on a local `kind` cluster:
 
 [Chapter 77](ch77-orchestration.md) covers orchestration with Airflow, gang scheduler queues with Apache YuniKorn, and remote shuffle with Apache Celeborn.
 
-The code for this chapter is in [`code/ch76`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch76). Each output block comes from `code/ch76/output/`. The versions are:
+The code for this chapter is in [`code/ch76`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch76). Each output block comes from `code/ch76/output/`. The versions are:
 
 | Part | Version |
 |---|---|

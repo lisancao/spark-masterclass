@@ -8,7 +8,7 @@ The names are not important. The contracts are important. Each layer makes a pro
 
 **In SDP, only the streaming tables are incremental, and open source Spark 4.3 has no expectations. Thus, you build the quality checks from datasets, and a check stops bad data only when it is in the path of the data.** This chapter shows each part of that sentence with two pipelines, two runs of each, and the event logs of the runs.
 
-The code is in [`code/ch60`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch60). Each output block comes from `code/ch60/output/`. The pipelines run on `pyspark==4.3.0` with a Hive metastore, as in Step 6 of [Chapter 56](ch56-first-etl-pipeline.md).
+The code is in [`code/ch60`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch60). Each output block comes from `code/ch60/output/`. The pipelines run on `pyspark==4.3.0` with a Hive metastore, as in Step 6 of [Chapter 56](ch56-first-etl-pipeline.md).
 
 ## Step 1: Three layers, three contracts
 

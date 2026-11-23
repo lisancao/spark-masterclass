@@ -9,7 +9,7 @@ This chapter is the first chapter of the Connect part. It shows the architecture
 !!! note "What the default is in Spark 4.3"
     In Spark 4.3, a local `pyspark` session is a Classic session. The configuration `spark.api.mode` selects the mode, and its default value is `classic` (`core/src/main/scala/org/apache/spark/internal/config/package.scala`). This chapter argues that you should select Connect yourself. Step 9 shows the three methods.
 
-The code is [`code/ch24`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch24). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. The client and the server ran on the same machine. The author wrote a longer tour of Connect clients, with more opinions, in [An Idiot's Guide to Spark Connect Clients](https://systemsnull.net/posts/data-engineering-ai/idiots-guide-spark-connect-clients).
+The code is [`code/ch24`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch24). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. The client and the server ran on the same machine. The author wrote a longer tour of Connect clients, with more opinions, in [An Idiot's Guide to Spark Connect Clients](https://systemsnull.net/posts/data-engineering-ai/idiots-guide-spark-connect-clients).
 
 ## The shape of a Connect application
 
@@ -283,7 +283,7 @@ mine = next(o for o in ops if o["operationId"] == failed)
   "jobTag": "SparkConnect_OperationTag_User_lnc_Session_e484384c-bb96-4337-99eb-37304e87a9cd_Operation_eb28b1ec-c374-4cdf-8564-1a27e17bd7d5",
   "operationId": "eb28b1ec-c374-4cdf-8564-1a27e17bd7d5",
   "sessionId": "e484384c-bb96-4337-99eb-37304e87a9cd",
-  "userId": "lnc",
+  "userId": "user",
   "state": "CLOSED",
   "duration": 188,
   "executionTime": 183,

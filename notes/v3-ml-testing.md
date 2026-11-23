@@ -1,6 +1,6 @@
 # v3-ml-testing: MLlib breadth, testing and debugging, TorchDistributor, JVM functions
 
-Branch `v3-ml-testing`, worktree `~/spark-masterclass-parts/ml-testing`. Ports: `SPARK_UI_PORT=4158`, Connect gRPC 15118 (UI 4159, `code/ch64/server.sh`).
+Branch `v3-ml-testing`, worktree `ml-testing`. Ports: `SPARK_UI_PORT=4158`, Connect gRPC 15118 (UI 4159, `code/ch64/server.sh`).
 
 ## Scope and changes
 
@@ -144,4 +144,4 @@ Coverage rows (gap audit): Clustering, ALS, FPM, basic statistics -> ch64, Featu
 
 ## Cleanup
 
-Connect server stopped with `ch64/server.sh stop`. No containers or clusters started. Scratch files under `/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/ml-testing/`.
+Connect server stopped with `ch64/server.sh stop`. No containers or clusters started. Scratch files under `/tmp/ml-testing/`.

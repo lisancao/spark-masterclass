@@ -10,7 +10,7 @@ This chapter opens the Background part of the book. The next chapters continue t
 - [Chapter 3](ch03-rdds-to-a-sql-engine.md) follows the move from RDDs to a SQL engine.
 - [Chapter 4](ch04-one-engine-batch-and-streaming.md) shows how one engine came to do batch and streaming.
 
- The scripts are in [`code/ch01`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch01). Each number in the chapter comes from their saved output in `code/ch01/output/`.
+ The scripts are in [`code/ch01`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch01). Each number in the chapter comes from their saved output in `code/ch01/output/`.
 
 ## Step 1: What MapReduce solved
 

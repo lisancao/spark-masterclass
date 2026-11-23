@@ -151,7 +151,7 @@ Rules broken on purpose: quotations of the talk's slides keep their wording (ch7
 | ch76 states, pods, logs | `code/ch76/output/*.txt` |
 | Operator adds `spark.authenticate`, `spark.io.encryption.enabled`, master | operator 1.1.0 `SparkAppSubmissionWorker.java` 166-183; `inspect.txt` |
 | Restart config semantics | operator 1.1.0 `docs/spark_custom_resources.md` |
-| ch78 study numbers | OSA Con 2026 deck `~/Documents/spark_content/decks/osa-con-2026/index.html` (slides 3, 4, 6, 8, 16, 17, 27, 28, 29, 30, 38), quoted as stated |
+| ch78 study numbers | OSA Con 2026 deck  (slides 3, 4, 6, 8, 16, 17, 27, 28, 29, 30, 38), quoted as stated |
 | ch78 ANSI, dry-run, epoch, idioms, scope, metric view outputs | `code/ch78/output/*.txt` on 4.3.0 (metric view numbers equal the deck's 4.2 numbers) |
 
 Left out of ch78 on purpose: the deck's executor-second figures ("up to about 521 executor-seconds", "about 34x", appendix "596 / 17", "~1000×"). The deck labels the appendix as "A separate 48-cell sweep on EKS", but the memory note `h3-compute-provenance` says these numbers were measured in-process, not on live EKS, and `h3-compute-waste-methodology` says the metric is under redesign. The chapter quotes no compute numbers until the study settles them.

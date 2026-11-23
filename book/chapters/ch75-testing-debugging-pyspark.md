@@ -4,7 +4,7 @@ A PySpark job is Python code in two places. The driver code builds plans. The UD
 
 **Test PySpark code with small DataFrames and one session for the whole run, and compare results with `pyspark.testing`. The traps are not in the asserts. They are in where Python code runs: a UDF that is built before the session exists, and a module that the workers cannot import. To debug a worker, use the settings that move its information to you. They give you short tracebacks, the local variables (new in 4.3) and `faulthandler` for a crash. They also give you a periodic stack dump for a hang, the worker log table, and a breakpoint that you can reach over TCP.**
 
-The scripts are in [`code/ch75`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch75). They ran on `pyspark==4.3.0` with `pytest==9.2.0`, in Classic sessions and against a Connect server (`ch64/server.sh`, on `sc://localhost:15118`). Each output block comes from `code/ch75/output/`.
+The scripts are in [`code/ch75`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch75). They ran on `pyspark==4.3.0` with `pytest==9.2.0`, in Classic sessions and against a Connect server (`ch64/server.sh`, on `sc://localhost:15118`). Each output block comes from `code/ch75/output/`.
 
 ```mermaid
 flowchart LR
