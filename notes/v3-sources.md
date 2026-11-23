@@ -19,6 +19,10 @@ Existing chapter changed:
 
 Shared files: none changed. `code/figures/ch87.py` and `ch88.py` use `svgkit.py` but set their own `FIG` path (the kit's `FIG` points at another worktree, `/home/lnc/spark-masterclass-parts/vis-d/...`; the integrator may want to fix that constant in `svgkit.py`).
 
+## Coverage
+
+No SparkTutor lesson maps to these chapters. They fill gap-audit rows 97 and 98 (JDBC read and write paths, pushdown options, `sessionInitStatement`, `queryTimeout`, Kerberos options listed in the ch88 option table but not run), 104 (cloud object stores), recommendations 5 and 6, and the Derby row (deprecated in 4.2, now noted in ch66). Kerberos for JDBC is listed (options table) but not run: it needs a KDC.
+
 ## Technical names and technical verbs (STE)
 
 Technical names: object store, bucket, key, object, prefix, directory marker, multipart upload, part, connector, committer, commit protocol, task attempt, job attempt, task commit, job commit, job abort, algorithm 1, algorithm 2, magic committer, staging committer, manifest committer, manifest, `_SUCCESS`, `.pending`, `.pendingset`, credential provider, provider chain, instance role, request, `HEAD`, `GET`, `PUT`, `LIST`, `COPY`, `DELETE`, MinIO, S3A, ABFS, GCS, Ivy, table format, transaction log, dynamic partition overwrite, listing (the noun), timing (the noun), staging (modifier), pending (modifier). JDBC: JDBC driver, dialect, data source (DSv1), DSv2, JDBC catalog, namespace, cursor, fetch, batch, save mode, transaction, isolation level, staging table, upsert, pushdown, predicate, top-N, partition column, bound, stride.
@@ -118,6 +122,12 @@ Rules broken on purpose: quotes from the Spark documentation keep their words ("
 | 87 | [Spark on object storage: S3A, ABFS, GCS and the output committers](chapters/ch87-object-storage.md) | Object stores against file systems, the `hadoop-cloud` module, S3A against MinIO, credential providers, FileOutputCommitter v1 and v2, the magic and staging committers (default since 4.1), five committers measured, a failed job, `_SUCCESS` files, the manifest committer for ABFS and GCS, read-side requests |
 | 88 | [Databases over JDBC: partitioned reads, pushdown and writes](chapters/ch88-jdbc.md) | The options of 4.3.0 from source, partitioned reads and skew, `predicates`, `fetchsize`, pushdown in DSv1 and DSv2 (filters, aggregates, limit, offset, top-N, sample, joins), `sessionInitStatement` and `query`, the write path, upserts, dialects, `JDBCTableCatalog`, against PostgreSQL in Docker |
 ```
+
+## Notes on the method
+
+- `code/ch88/jdbc.py` `Log` puts `RAISE LOG` markers into the PostgreSQL log and reads `docker logs --since <start time>`, so it reads only new lines. With `log_statement=all`, each cursor fetch is one `execute fetch from` line; `Log.fetches` counts them, and the chapter uses that count as a proxy for rows sent to Spark (up to `fetchsize` rows per fetch after the first batch).
+- `log_statement` must not be set with `-c` on the container command line: command-line options win over `ALTER SYSTEM`, and the first bulk load then logged every INSERT (a 3 GB log). `pg.sh` sets it with `ALTER SYSTEM`.
+- MinIO request counts come from `mc admin trace --json` in a side container (`book-ch87-trace`), filtered to paths under `/book`.
 
 ## Clips
 
