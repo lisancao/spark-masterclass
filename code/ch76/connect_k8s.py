@@ -15,6 +15,7 @@ import time
 import urllib.request
 
 from kube import CTX, kubectl, resource, pods
+from pyspark.sql.connect.client.retries import DefaultPolicy
 from pyspark.sql.connect.session import SparkSession
 from pyspark.sql.connect import functions as F
 from pyspark.sql.types import StringType
@@ -23,13 +24,17 @@ TOKEN, GRPC, UI = "book-token-123", 10283, 4129
 
 
 def forward(attempt):
-    """kubectl port-forward to the driver service of one attempt, tried again until the port answers."""
+    """kubectl port-forward to the driver service of one attempt, tried again until the driver answers."""
     for _ in range(30):
         p = subprocess.Popen(["kubectl", "--context", CTX, "port-forward", f"svc/connect-{attempt}-driver-svc",
                               f"{GRPC}:15002", f"{UI}:4040"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(3)
         if p.poll() is None and socket.socket().connect_ex(("127.0.0.1", GRPC)) == 0:
-            return p
+            try:   # kubectl listens before the pod answers; the driver's REST API shows the tunnel works
+                urllib.request.urlopen(f"http://localhost:{UI}/api/v1/applications", timeout=5)
+                return p
+            except OSError:
+                pass
         p.terminate()
         time.sleep(2)
     raise RuntimeError(f"no port forward to connect-{attempt}-driver-svc")
@@ -94,6 +99,8 @@ while time.time() - t0 < 180:
     time.sleep(1)
 pf.terminate()
 pf = forward(start + 1)
+# Few, short retries: with the defaults, a client whose server went away can retry for minutes.
+spark.client.set_retry_policies([DefaultPolicy(max_retries=4, initial_backoff=500, max_backoff=2000)])
 try:
     spark.range(3).count()
 except Exception as e:
@@ -101,7 +108,7 @@ except Exception as e:
 spark2 = SparkSession.builder.remote(url).create()
 print(f"a new session on attempt {start + 1}:", spark2.range(3).count(), "rows")
 print("pods:", sorted(l.split()[0] for l in pods()[1:] if l.startswith("connect")))
-spark2.client.close()
 pf.terminate()
 sys.stdout.flush()
-os._exit(0)   # the session that lost its server keeps a retry thread alive
+# No close(): the session that lost its server keeps a retry thread alive, and close() can wait on it.
+os._exit(0)
