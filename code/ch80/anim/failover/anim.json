@@ -1,0 +1,6 @@
+{
+ "backend": "hf",
+ "themes": ["paper"],
+ "formats": ["landscape"],
+ "title": "failover"
+}

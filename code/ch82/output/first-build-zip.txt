@@ -1,0 +1,4 @@
++ '[' -f $SPARK_SRC/dist/jars/datasketches-memory-3.0.2.jar ']'
++ zip -d $SPARK_SRC/dist/jars/datasketches-memory-3.0.2.jar org/apache/datasketches/memory/internal/ResourceImpl.class
+./dev/make-distribution.sh: line 223: zip: command not found
+[INFO] Total time:  27:21 min

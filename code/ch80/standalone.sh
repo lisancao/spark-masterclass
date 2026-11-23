@@ -20,7 +20,7 @@ ENV
   "$SPARK_HOME/sbin/start-master.sh" >/dev/null
   until curl -sf "http://127.0.0.1:$SPARK_MASTER_WEBUI_PORT/json/" >/dev/null; do sleep 1; done
   "$SPARK_HOME/sbin/start-worker.sh" "$MASTER" >/dev/null
-  until [ "$(curl -s "http://127.0.0.1:$SPARK_MASTER_WEBUI_PORT/json/" | python3 -c 'import json,sys;print(json.load(sys.stdin)["aliveworkers"])')" = 2 ]; do sleep 1; done
+  until [ "$(curl -s "http://127.0.0.1:$SPARK_MASTER_WEBUI_PORT/json/" | python3 -c 'import json,sys;print(json.load(sys.stdin)["aliveworkers"])')" = "$SPARK_WORKER_INSTANCES" ]; do sleep 1; done
   ;;
 down)
   "$SPARK_HOME/sbin/stop-worker.sh" >/dev/null 2>&1 || true

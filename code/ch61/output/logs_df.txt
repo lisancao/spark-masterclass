@@ -1,0 +1,45 @@
+driver.log: 205 lines; a WARN line as written:
+{"ts":"2026-11-22T23:59:51.603Z","level":"WARN","msg":"Unable to load native-hadoop library for your platform... using builtin-java classes where applicable","logger":"NativeCodeLoader"}
+SPARK_LOG_SCHEMA = ts TIMESTAMP, level STRING, msg STRING, context map<STRING, STRING>, exception STRUCT<class STRING, msg STRING, stacktrace ARRAY<STRUCT<class STRING, method STRING, file STRING, line STRING>>>, logger STRING
+rows 205, rows that are not JSON (all fields null) 2
+
+levels and the loggers with the most lines:
++-----+-----+
+|level|count|
++-----+-----+
+| INFO|  200|
+| WARN|    2|
+|ERROR|    1|
++-----+-----+
+
++---------------+-----+
+|logger         |count|
++---------------+-----+
+|DAGScheduler   |47   |
+|Executor       |28   |
+|TaskSetManager |22   |
+|SecurityManager|15   |
+|SparkContext   |12   |
++---------------+-----+
+
+MDC keys in context, and how many lines carry each:
++--------------------+-----+
+|key                 |count|
++--------------------+-----+
+|task_name           |68   |
+|host                |25   |
+|executor_id         |23   |
+|size                |19   |
+|num_tasks           |18   |
+|stage               |18   |
+|total_time          |14   |
+|call_site_short_form|12   |
++--------------------+-----+
+
+the failed task, with its MDC context and the exception struct:
++------------+-----+--------+-----------------------------+----------------------------------------+------+
+|          ts|level|  logger|                    task_name|                         exception_class|frames|
++------------+-----+--------+-----------------------------+----------------------------------------+------+
+|23:59:55.558|ERROR|Executor|task 1.0 in stage 6.0 (TID 7)|org.apache.spark.api.python.PythonExc...|    24|
++------------+-----+--------+-----------------------------+----------------------------------------+------+
+

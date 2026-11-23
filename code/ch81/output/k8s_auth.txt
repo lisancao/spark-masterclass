@@ -1,0 +1,9 @@
+mode: env
+executor pod env, as anyone with 'get pods' in the namespace reads it:
+  _SPARK_AUTH_SECRET = e21815... (64 chars, in clear text in the pod spec)
+executor volumes: spark-conf-volume-exec taxi spark-local-dir-1 kube-api-access-2knx4 
+driver: trips by payment_type: 0=1,013,500, 1=2,432,871, 2=357,804, 3=11,205, 4=21,866, 5=2   (pod Succeeded)
+mode: file
+executor pod env, as anyone with 'get pods' in the namespace reads it:
+executor volumes: spark-conf-volume-exec spark-auth-volume taxi spark-local-dir-1 kube-api-access-x7r6n 
+driver:    (pod Failed)

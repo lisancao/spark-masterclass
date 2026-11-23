@@ -1,0 +1,13 @@
+pyspark 4.3.0   Requires-Python >=3.11   this Python 3.12.3
+java on PATH: openjdk version "17.0.21.1" 2026-11-17
+
+package                   pyspark asks for      installed here  extras
+googleapis-common-protos  >=1.71.0              1.76.0          connect, pipelines
+grpcio                    >=1.76.0              1.85.3          connect, pipelines
+grpcio-status             >=1.76.0              1.85.3          connect, pipelines
+numpy                     >=1.23.2              2.5.5           ml, mllib, sql, pandas-on-spark, connect, pipelines
+pandas                    >=2.2.0               2.3.3           sql, pandas-on-spark, connect, pipelines
+py4j                      <0.10.9.10,>=0.10.9.7 0.10.9.9        (always)
+pyarrow                   >=18.0.0              26.0.1          sql, pandas-on-spark, connect, pipelines
+pyyaml                    >=3.11                -               pipelines
+zstandard                 >=0.25.0              0.25.0          connect, pipelines
