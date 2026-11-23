@@ -1,0 +1,61 @@
+=== 1. join hints in SQL (trips JOIN zones; zones is 6 KB, so the default is a broadcast)
+  (no hint)                  BroadcastHashJoin BuildRight
+  BROADCAST(t)               BroadcastHashJoin BuildLeft
+  MERGE(z)                   SortMergeJoin
+  SHUFFLE_MERGE(z)           SortMergeJoin
+  SHUFFLE_HASH(z)            ShuffledHashJoin BuildRight
+  SHUFFLE_REPLICATE_NL(z)    CartesianProduct
+  MAPJOIN(z)                 BroadcastHashJoin BuildRight
+
+=== 2. the same hints on a DataFrame
+  z.hint('broadcast')        BroadcastHashJoin BuildRight
+  z.hint('merge')            SortMergeJoin
+  z.hint('shuffle_hash')     ShuffledHashJoin BuildRight
+  z.hint('shuffle_replicate_nl') CartesianProduct
+  F.broadcast(t)             BroadcastHashJoin BuildRight
+
+=== 3. two hints in one query: which one wins
+  BROADCAST(t), MERGE(z)                     BroadcastHashJoin BuildLeft
+  MERGE(t), SHUFFLE_HASH(z)                  SortMergeJoin
+  SHUFFLE_HASH(t), SHUFFLE_REPLICATE_NL(z)   ShuffledHashJoin BuildLeft
+  BROADCAST(t), BROADCAST(z)                 BroadcastHashJoin BuildRight
+  SHUFFLE_HASH(t), SHUFFLE_HASH(z)           ShuffledHashJoin BuildRight
+
+=== 4. hints that the planner cannot use (it ignores them and logs a warning)
+  BROADCAST(t) on a full outer join:   SortMergeJoin
+  SHUFFLE_HASH(z) on a non-equi join:  BroadcastNestedLoopJoin BuildRight
+  BROADCAST(x), no table x:            BroadcastHashJoin BuildRight
+  BROADKAST(z), a misspelled name:     BroadcastHashJoin BuildRight
+
+=== 5. partitioning hints: the Exchange that each one adds, and the files of a write
+  (no hint)                                  files   5  MB min   0.0 max  13.1
+                                             (no Exchange)
+  COALESCE(2)                                files   2  MB min  12.9 max  34.4
+                                             Coalesce 2
+  REPARTITION(4)                             files   4  MB min  14.2 max  14.2
+                                             Exchange RoundRobinPartitioning(4), REPARTITION_BY_NUM
+  REPARTITION(4, PULocationID)               files   4  MB min   8.2 max  16.7
+                                             Exchange hashpartitioning(PULocationID, 4), REPARTITION_BY_NUM
+  REPARTITION(PULocationID)                  files  21  MB min   0.8 max   3.0
+                                             Exchange hashpartitioning(PULocationID, 200), REPARTITION_BY_COL
+  REPARTITION_BY_RANGE(4, trip_distance)     files   4  MB min  10.9 max  13.9
+                                             Exchange rangepartitioning(trip_distance ASC NULLS FIRST, 4), REPARTITION_BY_NUM
+  REBALANCE                                  files  17  MB min   2.3 max   3.4
+                                             Exchange RoundRobinPartitioning(200), REBALANCE_PARTITIONS_BY_NONE
+  REBALANCE(PULocationID)                    files  21  MB min   0.8 max   3.0
+                                             Exchange hashpartitioning(PULocationID, 200), REBALANCE_PARTITIONS_BY_COL
+  REBALANCE, parallelismFirst off            files   2  MB min  21.0 max  36.0
+                                             Exchange RoundRobinPartitioning(200), REBALANCE_PARTITIONS_BY_NONE
+  REBALANCE, parallelismFirst off, 16 MB     files   7  MB min   4.0 max   8.8
+                                             Exchange RoundRobinPartitioning(200), REBALANCE_PARTITIONS_BY_NONE
+
+=== 6. the DataFrame forms
+  t.coalesce(2)                              Coalesce 2
+  t.repartition(4, 'PULocationID')           Exchange hashpartitioning(PULocationID, 4), REPARTITION_BY_NUM
+  t.repartitionByRange(4, 'trip_distance')   Exchange rangepartitioning(trip_distance ASC NULLS FIRST, 4), REPARTITION_BY_NUM
+  t.hint('rebalance', 'PULocationID')        Exchange hashpartitioning(PULocationID, 200), REBALANCE_PARTITIONS_BY_COL
+--- warnings in the log (stderr):
+WARN HintErrorLogger: Hint (strategy=broadcast) is not supported in the query: build left for full outer join.
+WARN HintErrorLogger: Hint (strategy=shuffle_hash) is not supported in the query: no equi-join keys.
+WARN HintErrorLogger: Count not find relation 'x' specified in hint 'BROADCAST(x)'.
+WARN HintErrorLogger: Unrecognized hint: BROADKAST(z)

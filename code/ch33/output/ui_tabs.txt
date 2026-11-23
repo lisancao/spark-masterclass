@@ -1,0 +1,8 @@
+connect: 499999500000 3837248
+UI on port 4154 (default 1g heap, so that the sort spills)
+  jobs 23, stages 37
+  storage: *(1) Project [PULocationID#7, tip_amount#13, fare_amount#10], 16/16 partitions, 64.5 MiB
+  executors: 1 (driver), cores 16, max memory 434.4 MiB
+  environment: 21 Spark properties, Java 17.0.21.1 (U
+  SQL executions: 26
+  streaming query: rate_windows, id d6d98093-4ae0-4d58-ad7c-ea5c1a016d7f, batches so far 9

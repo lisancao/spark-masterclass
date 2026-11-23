@@ -1,0 +1,25 @@
+Spark 4.3.0, Iceberg jar iceberg-spark-runtime-4.3_2.13-b1eab64.jar
+  lake.db.trips    data files 16
+  lake.db.zstats   data files 16
+  lake.db.zstats8  data files 8
+
+=== the same join, with each set of settings (broadcast off)
+  defaults                                 SortMergeJoin  Exchange nodes 2  0.53 s
+      +- Project (8)
+         +- SortMergeJoin Inner (7)
+            :- Sort (3)
+            :  +- Exchange (2)
+            :     +- BatchScan lake.db.trips (1)
+            +- Sort (6)
+               +- Exchange (5)
+                  +- BatchScan lake.db.zstats (4)
+  preserve-data-grouping                   SortMergeJoin  Exchange nodes 0  0.28 s
+      +- Project (6)
+         +- SortMergeJoin Inner (5)
+            :- Sort (2)
+            :  +- BatchScan lake.db.trips (1)
+            +- Sort (4)
+               +- BatchScan lake.db.zstats (3)
+  16 x 8 buckets, preserve-data-grouping   SortMergeJoin  Exchange nodes 2  0.46 s
+  16 x 8, + allowCompatibleTransforms      SortMergeJoin  Exchange nodes 0  0.32 s
+  v2 bucketing off                         SortMergeJoin  Exchange nodes 2  0.42 s

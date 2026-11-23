@@ -1,0 +1,51 @@
+=== 1. the bytes at the two ends of an ORC file (the 265 zones)
+  part-00000-f75bba8c-5835...: 3,328 bytes
+  the first 16 bytes:
+  00000000  4f 52 43 13 00 00 0a 07 12 05 08 89 02 50 00 33  ORC..........P.3
+  the last 32 bytes:
+  00000ce0  0c 55 5e 85 aa 28 08 cd 02 10 05 18 80 80 10 22  .U^..(........."
+  00000cf0  02 00 0c 28 9e 01 30 09 82 f4 03 03 4f 52 43 19  ...(..0.....ORC.
+  last byte: postscript length 25; postscript is bytes 3,302 to 3,326
+  the postscript, decoded by hand (protobuf field: value): {1: 333, 2: 5, 3: 262144, 4: [0, 12], 5: 158, 6: 9, 8000: 'ORC'}
+  the layout: 'ORC' 0-2 | stripe 3-2810 | metadata 158 B | footer 333 B | postscript 25 B | 1 length byte -> 3,328 bytes
+  orc-tools meta -j: fileVersion 0.12, writerVersion ORC_14, softwareVersion ORC Java 2.3.0, compression ZSTD, calendar Julian/Gregorian
+    schema struct<LocationID:int,Borough:string,Zone:string,service_zone:string>
+    userMetadata {'org.apache.spark.version': '4.3.0'}
+    stripe 1: offset 3, index 188, data 2508, footer 112, rows 265
+      stream column 0 ROW_INDEX        start     3 length 12
+      stream column 1 ROW_INDEX        start    15 length 28
+      stream column 2 ROW_INDEX        start    43 length 38
+      stream column 3 ROW_INDEX        start    81 length 65
+      stream column 4 ROW_INDEX        start   146 length 45
+      stream column 1 DATA             start   191 length 7
+      stream column 2 DATA             start   198 length 159
+      stream column 2 LENGTH           start   357 length 9
+      stream column 2 DICTIONARY_DATA  start   366 length 57
+      stream column 3 DATA             start   423 length 1902
+      stream column 3 LENGTH           start  2325 length 213
+      stream column 4 DATA             start  2538 length 116
+      stream column 4 LENGTH           start  2654 length 8
+      stream column 4 DICTIONARY_DATA  start  2662 length 37
+      encodings: col 0 DIRECT, col 1 DIRECT_V2, col 2 DICTIONARY_V2[8], col 3 DIRECT_V2, col 4 DICTIONARY_V2[5]
+    file statistics column 0: count 265 hasNull False
+    file statistics column 1: count 265 hasNull False min 1 max 265
+    file statistics column 2: count 265 hasNull False min 'Bronx' max 'Unknown'
+    file statistics column 3: count 265 hasNull False min 'Allerton/Pelham Gardens' max 'Yorkville West'
+    file statistics column 4: count 265 hasNull False min 'Airports' max 'Yellow Zone'
+
+=== 2. the June trips as ORC: stripes and the row index
+  72.6 MB, rows 3,837,248, compression ZSTD, 2 stripes
+    stripe  1: rows 2,032,640  index  59,359 B  data  40,633,589 B  footer   361 B
+    stripe  2: rows 1,804,608  index  51,727 B  data  35,387,422 B  footer   363 B
+    stripe  2: rows 1,804,608  index  51,727 B  data  35,387,422 B  footer   363 B
+  row index of PULocationID (column 8), stripe 0, first entries:
+    Entry 0: count: 10000 hasNull: false min: 1 max: 4 sum: 38171 positions: 0,0,0
+    Entry 1: count: 10000 hasNull: false min: 4 max: 7 sum: 50186 positions: 0,87,94
+    Entry 2: count: 10000 hasNull: false min: 7 max: 13 sum: 97932 positions: 0,174,289
+    Entry 3: count: 10000 hasNull: false min: 13 max: 13 sum: 130000 positions: 0,270,363
+
+=== 3. two ORC readers: spark.sql.orc.impl
+  impl=native vectorized=true  -> org.apache.spark.sql.execution.datasources.orc.OrcFileFormat  Batched: true  PushedFilters: [IsNotNull(PULocationID), EqualTo(PULocationID,132)]
+  impl=native vectorized=false -> org.apache.spark.sql.execution.datasources.orc.OrcFileFormat  Batched: false  PushedFilters: [IsNotNull(PULocationID), EqualTo(PULocationID,132)]
+  impl=hive   vectorized=true  -> org.apache.spark.sql.hive.orc.OrcFileFormat  Batched: false  PushedFilters: [IsNotNull(PULocationID), EqualTo(PULocationID,132)]
+  impl=hive   vectorized=false -> org.apache.spark.sql.hive.orc.OrcFileFormat  Batched: false  PushedFilters: [IsNotNull(PULocationID), EqualTo(PULocationID,132)]

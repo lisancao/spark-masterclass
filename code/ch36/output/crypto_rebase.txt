@@ -1,0 +1,37 @@
+=== 1. columnar encryption: two columns with keyA, the footer with keyB
+  encrypted_footer    545,242 bytes  first 4 bytes b'PARE'  last 4 bytes b'PARE'  footer length 3,616
+  plaintext_footer    544,134 bytes  first 4 bytes b'PAR1'  last 4 bytes b'PAR1'  footer length 2,508
+  not encrypted       540,700 bytes  first 4 bytes b'PAR1'  last 4 bytes b'PAR1'  footer length 1,080
+
+=== 2. read with the keys (the crypto factory and the KMS are set)
+  encrypted_footer  rows 100,000, sum(tip_amount) 406374.91
+  plaintext_footer  rows 100,000, sum(tip_amount) 406374.91
+
+=== 3. read without the keys
+  encrypted_footer  PULocationID, trip_distance  Py4JJavaError: org.apache.parquet.crypto.ParquetCryptoRuntimeException: Trying to read file with encrypted footer. No keys av
+  encrypted_footer  tip_amount                   Py4JJavaError: org.apache.parquet.crypto.ParquetCryptoRuntimeException: Trying to read file with encrypted footer. No keys av
+  plaintext_footer  PULocationID, trip_distance  max: 265, 112.82
+  plaintext_footer  tip_amount                   Py4JJavaError: org.apache.parquet.crypto.ParquetCryptoRuntimeException: [tip_amount]. Null File Decryptor at org.apache.parqu
+  pyarrow, encrypted_footer  OSError: Could not read encrypted metadata, no decryption found in reader's properties
+  pyarrow, plaintext_footer  footer: 100,000 rows, 4 columns, created_by parquet-mr version 1.17.0 (build fac0c746532e133beb928a7f6a7e57b510b477a1)
+  pyarrow, plaintext_footer  trip_distance: 100,000 rows
+  pyarrow, plaintext_footer  OSError: Cannot decrypt ColumnMetadata. FileDecryption is not setup correctly
+
+=== 4. dates before 1582: the hybrid calendar and the proleptic Gregorian calendar
+  defaults in 4.3.0: datetimeRebaseModeInRead=CORRECTED, datetimeRebaseModeInWrite=CORRECTED, int96RebaseModeInRead=CORRECTED, int96RebaseModeInWrite=CORRECTED
+  Spark writes with CORRECTED: stored day number  -354285, pyarrow reads d=1000-01-01, legacyDateTime key: False
+  Spark writes with LEGACY   : stored day number  -354280, pyarrow reads d=1000-01-06, legacyDateTime key: True
+
+  Spark reads its own files back (the key in the footer decides, not the read mode):
+    file CORRECTED read mode CORRECTED -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file CORRECTED read mode LEGACY    -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file CORRECTED read mode EXCEPTION -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file LEGACY    read mode CORRECTED -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file LEGACY    read mode LEGACY    -> d=1000-01-01  ts=1000-01-01 12:00:00
+    file LEGACY    read mode EXCEPTION -> d=1000-01-01  ts=1000-01-01 12:00:00
+
+  a file from another writer (pyarrow, no Spark keys in the footer), with the same day number
+    read mode CORRECTED -> d=1000-01-06
+    read mode LEGACY    -> d=1000-01-01
+    read mode EXCEPTION -> SparkUpgradeException: [INCONSISTENT_BEHAVIOR_CROSS_VERSION.READ_ANCIENT_DATETIME] You may get a different result due to the upgrading to Spark
+    read option datetimeRebaseMode=LEGACY -> d=1000-01-01

@@ -1,0 +1,39 @@
+=== 1. one filter on the small side: the strategy follows the estimate
+  spark.sql.cbo.enabled=false
+    estimate of the filtered fares: Statistics(sizeInBytes=30.6 MiB)
+    planned join: ['SortMergeJoin'], hash exchanges planned: 2
+    final plan after AQE: ['BroadcastHashJoin'], hash exchanges that ran: 2; median 0.45 s
+  spark.sql.cbo.enabled=true
+    estimate of the filtered fares: Statistics(sizeInBytes=647.7 KiB, rowCount=1.38E+4)
+    planned join: ['BroadcastHashJoin'], hash exchanges planned: 0
+    final plan after AQE: ['BroadcastHashJoin'], hash exchanges that ran: 0; median 0.16 s
+  rows: 82
+
+=== 2. join reorder: three tables, broadcast off so that order decides the shuffle size
+  spark.sql.cbo.joinReorder.enabled=false: optimized join tree
+    Join Inner
+          Join Inner
+                   Relation trips
+                   Relation fares
+             Relation zones
+    rows out of the two SortMergeJoin nodes: 3,709,141 and 210
+    median 1.17 s
+  spark.sql.cbo.joinReorder.enabled=true: optimized join tree
+    Join Inner
+          Join Inner
+                   Relation trips
+                   Relation zones
+             Relation fares
+    rows out of the two SortMergeJoin nodes: 210 and 210
+    median 0.52 s
+  result rows: 16
+  speed-up from reorder: 2.2x
+
+=== 3. the same query after histograms on the join keys
+    Join Inner
+          Join Inner
+                   Relation trips
+                   Relation fares
+             Relation zones
+    estimate of the zones join: Statistics(sizeInBytes=378.3 MiB, rowCount=7.63E+6)
+    real rows of trips JOIN zones (Staten Island): 210
