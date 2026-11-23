@@ -1,0 +1,14 @@
+local[*] on 16 cores, x86_64, Spark 4.3.0, Python 3.12.3
+
+A. is_png over 20,000,000 cached values (filter, count)
+  native is_png_fast (StaticInvoke)             0.215 s   1.0x  [0.192 to 0.277]  (6,666,667 rows)
+  built-in substring(b, 1, 8) = X'89504E47...'  0.186 s   0.9x  [0.161 to 0.195]  (6,666,667 rows)
+  Java UDF1 (registerJavaFunction)              0.160 s   0.7x  [0.134 to 0.241]  (6,666,667 rows)
+  Hive GenericUDF                               0.173 s   0.8x  [0.157 to 0.234]  (6,666,667 rows)
+
+B. mean fare per pickup zone over 3,837,248 cached trips (group by, collect)
+  built-in avg                                  0.134 s   1.0x  [0.090 to 0.147]  (258 rows)
+  Aggregator with functions.udaf                0.327 s   2.4x  [0.311 to 0.421]  (258 rows)
+  UserDefinedAggregateFunction (deprecated)     0.156 s   1.2x  [0.137 to 0.165]  (258 rows)
+  Hive GenericUDAFAverage                       0.333 s   2.5x  [0.303 to 0.369]  (258 rows)
+  pandas UDF (grouped aggregate)                0.388 s   2.9x  [0.357 to 0.445]  (258 rows)

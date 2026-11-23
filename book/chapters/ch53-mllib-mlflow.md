@@ -6,7 +6,9 @@ A taxi dispatcher wants to show the fare before the trip starts. When the trip s
 
 **MLflow then records which model came from which data and which settings.**
 
-This chapter builds a fare model from the taxi data with MLlib. It shows what `fit()` runs, how categorical features become vectors, and how to read a model's feature importances. Then it runs the same pipeline over Spark Connect and tracks the runs in open source MLflow. The scripts are in [`code/ch53`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch53). They ran on `pyspark==4.3.0`, and MLflow is `mlflow==3.18.0`. Each output block comes from `code/ch53/output/`.
+This chapter builds a fare model from the taxi data with MLlib. It shows what `fit()` runs, how categorical features become vectors, and how to read a model's feature importances. Then it runs the same pipeline over Spark Connect and tracks the runs in open source MLflow.
+
+The last two steps leave MLlib: barrier execution mode, and distributed PyTorch training with `TorchDistributor`. The scripts are in [`code/ch53`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch53). They ran on `pyspark==4.3.0`, and MLflow is `mlflow==3.18.0`. Each output block comes from `code/ch53/output/`.
 
 ## Step 1: The training table
 
@@ -513,6 +515,166 @@ With `mlflow==3.18.0` and `pyspark==4.3.0`, `log_model` fails for a model that a
 
 This works only if the client and the server can both read the path, for example a shared file system or object storage. The logged folder is a plain Spark model, not an MLflow model with flavors. Thus, `mlflow.spark.load_model` cannot load it, but `PipelineModel.load` on a cluster can.
 
+## Step 12: Barrier execution mode
+
+MLlib trains its models with Spark tasks that do not know about each other. Each task calculates over its partition, and the driver merges the results.
+
+A deep learning framework works in another way. Its processes start together, they open connections to each other, and they exchange gradients after each batch. If one process stops, the others wait for it. Spark tasks start when a slot is free, and Spark runs a failed task again by itself. These two models do not fit together.
+
+**Barrier execution mode** (since 2.4) closes the gap. In a barrier stage, Spark starts all tasks at the same time or none of them. A task can wait for all the other tasks of the stage, and it can exchange a message with them. `barrier.py` uses `RDD.barrier()` with four partitions on `local[4]`. Each task sleeps for a different time before it calls `allGather`:
+
+```python
+def rendezvous(it):
+    ctx = BarrierTaskContext.get()
+    start = time.time()
+    time.sleep(0.2 * ctx.partitionId())                  # tasks reach the barrier at different times
+    arrived = time.time()
+    msgs = ctx.allGather(f"{ctx.partitionId()}@{os.getpid()}")   # waits for every task of the stage
+    left = time.time()
+    peers = [i.address for i in ctx.getTaskInfos()]
+    yield (ctx.partitionId(), start, arrived, left, msgs, len(peers))
+```
+
+```text
+== RDD.barrier().mapPartitions with allGather, 4 partitions on local[4]
+  task 0: started 0.00 s, at the barrier 0.00 s, left 1.01 s, 4 peers, allGather -> 4 messages
+  task 1: started 0.00 s, at the barrier 0.20 s, left 1.20 s, 4 peers, allGather -> 4 messages
+  task 2: started 0.00 s, at the barrier 0.40 s, left 1.41 s, 4 peers, allGather -> 4 messages
+  task 3: started 0.01 s, at the barrier 0.61 s, left 1.61 s, 4 peers, allGather -> 4 messages
+```
+
+<figure markdown>
+  ![A timeline of the four barrier tasks: start, arrival at the barrier, and exit](../media/figures/ch53-barrier-light.svg#only-light)
+
+  ![A timeline of the four barrier tasks: start, arrival at the barrier, and exit](../media/figures/ch53-barrier-dark.svg#only-dark)
+
+  <figcaption>The four tasks of the barrier stage, from the output above. All tasks started together. No task left the barrier before task 3 arrived at 0.61 s. Each task left at its first one-second check after that.</figcaption>
+</figure>
+
+All four tasks started within 0.01 s. No task left the barrier before the last task arrived at 0.61 s, and each task received the four messages. `getTaskInfos()` gives the address of each task. A framework uses these addresses to find its peers.
+
+The exit times show a detail of `runBarrier` in `core/.../BarrierTaskContext.scala` at the `v4.3.0` tag. A task that waits does not wake up when the barrier opens. It examines the result of its request in a loop with `Thread.sleep(1000)`, so it can also see if Spark killed the task. Thus, each task left one second after its own arrival, at its first check after 0.61 s. A barrier costs up to one second for each call. Do not call `barrier()` or `allGather()` once for each batch.
+
+`mapInPandas` and `mapInArrow` have a `barrier=True` parameter (since 3.5). It gives the same mode to the DataFrame API, and the plan marks it:
+
+```text
+== the same DataFrame API: mapInPandas(..., barrier=True)
+  rows per task: [(0, 2), (1, 2), (2, 2), (3, 2)]
+  the plan: MapInPandas tag(id#0L)#1, [id#2L, task#3], true
+```
+
+A barrier stage has two rules that a normal stage does not have:
+
+```text
+== more barrier tasks than task slots: 6 partitions on local[4]
+  failed after 3.0 s: Py4JJavaError
+  Barrier execution mode does not allow run a barrier stage that requires more slots than the total number of slots in the cluster currently. Please init a new cluster with more resources(e.g. CPU, GPU)
+
+== a failed barrier task (task 1 fails once)
+  barrier stage as the ResultStage:   job failed: Could not recover from a failed barrier ResultStage. Most rece
+  barrier stage as a ShuffleMapStage: (partition, attemptNumber, taskAttemptId) [(0, 0, 17), (1, 0, 18), (2, 0, 19), (3, 0, 20)]
+    stage 5 attempt 0: FAILED   0 complete, 1 failed, 3 killed
+    stage 5 attempt 1: COMPLETE 4 complete, 0 failed, 0 killed
+    stage 6 attempt 0: COMPLETE 1 complete, 0 failed, 0 killed
+```
+
+- **All tasks need a slot at the same time.** Six barrier tasks on four slots cannot start. Spark examines the number of slots when you submit the job. The job failed after 3.0 s because the script set `spark.scheduler.barrier.maxConcurrentTasksCheck.interval` to 1 s and `.maxFailures` to 3. With the defaults (15 s and 40, in `core/.../config/package.scala`), the same job waits about 10 minutes before it fails. The wait is for a cluster that adds executors slowly.
+- **One failed task fails the whole stage.** Spark kills the other tasks of the stage and runs all of them again as a new stage attempt. In the run above, stage 5 attempt 0 had 1 failed and 3 killed tasks, and attempt 1 ran all four tasks again. `DAGScheduler.scala` makes one exception: a failed barrier **result** stage stops the job, because some tasks of a result stage possibly wrote their output already. Thus, the first run failed. The second run put a `repartition(1)` after the barrier stage, which made the barrier stage a `ShuffleMapStage`.
+
+The `local[4,2]` master gives each task two attempts. That setting does not change the barrier rules. It only lets the first failure through.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch53-barrier.webp">
+    <source src="../../media/clips/ch53-barrier.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>barrier.py</code>: the tasks wait for each other, a stage with too few slots fails, and a failed task runs the whole stage again. The times in the clip come from the film's own run.</figcaption>
+</figure>
+
+## Step 13: TorchDistributor on a CPU
+
+`TorchDistributor` (in `pyspark.ml.torch.distributor`, since 3.4) runs a PyTorch training function in `num_processes` processes. It starts them with `torchrun`, and `torchrun` sets the environment variables that `torch.distributed` reads (`RANK`, `WORLD_SIZE`, `MASTER_ADDR`, `MASTER_PORT`). It has two modes:
+
+- **`local_mode=True`** starts all processes on the driver host. Spark runs no job.
+- **`local_mode=False`** starts one Spark task for each process, in one barrier stage. In `distributor.py` at the `v4.3.0` tag, the stage is `mapInArrow(..., barrier=True)` over a range of `num_processes` rows. Each task uses `allGather` to agree on the address and the port of rank 0, and then it starts the training.
+
+This machine has no GPU. `torch_dist.py` sets `use_gpu=False` and uses the CPU backend of `torch.distributed`, `gloo`. Its training function fits `fare = w * miles + b` with `DistributedDataParallel`. Each rank reads the June trips from the Parquet file and takes every second row:
+
+```python
+def train(path, epochs=3):
+    """Runs in each of the num_processes processes. torchrun sets RANK, WORLD_SIZE, MASTER_ADDR/PORT."""
+    ...
+    dist.init_process_group("gloo")                                 # CPU backend
+    rank, world = dist.get_rank(), dist.get_world_size()
+    ...
+    model = DDP(torch.nn.Linear(1, 1))
+    ...
+            loss.backward()                                         # DDP averages the gradients here
+```
+
+```python
+r = TorchDistributor(num_processes=2, local_mode=local, use_gpu=False).run(train, PATH)
+```
+
+```text
+torch 2.15.0+cpu, pyspark 4.3.0, driver pid 855594, Classic session
+== local_mode=True: 7.5 s in all, the value came from rank 0
+   fare = 3.556 * miles + 8.588   (last batch mse 91.3, training loop 1.4 s)
+   rank 0: pid 857225, torch 2.15.0+cpu, 1,829,548 rows
+   rank 1: pid 857226, torch 2.15.0+cpu, 1,829,547 rows
+== local_mode=False: 11.6 s in all, the value came from rank 0
+   fare = 3.556 * miles + 8.588   (last batch mse 91.3, training loop 0.4 s)
+   rank 0: pid 859482, torch 2.15.0+cpu, 1,829,548 rows
+   rank 1: pid 859483, torch 2.15.0+cpu, 1,829,547 rows
+Spark jobs: 'TorchDistributor local_mode=False' -> job 0, 2 tasks, stages [0]
+   stage 0: run, 2 tasks, COMPLETE
+```
+
+The two modes fitted the same model: fare = 3.556 times the miles plus 8.588. The two ranks had half of the rows each, and `DistributedDataParallel` averaged their gradients after each batch. Thus, both ranks have the same weights. With `local_mode=False`, the REST API shows one Spark job with one stage of two tasks. The times are single runs on a machine that other jobs also used. They are not measurements.
+
+The function returns its result on each rank, not only on rank 0. The reason is a trap in local mode. `torch_rank.py` runs a function that returns its own rank, eight times in each mode:
+
+```text
+local_mode=True   8 runs, the returned value came from: rank 0 x5, rank 1 x3
+local_mode=False  8 runs, the returned value came from: rank 0 x8
+```
+
+The doc of `run()` says that it returns the output of rank 0. In local mode, it returned the value of rank 1 in three of eight runs.
+
+In `dl_util.py` at the `v4.3.0` tag, the script that `torchrun` starts writes the output of the function to one file, `output.pickle`, in each process. The last process to write wins. A function that returns a value only on rank 0 (`if rank == 0: return ...`) then returns `None` from `run()` in some runs. The part notes record this as an open problem. Until then, return the same value from each rank.
+
+Over Spark Connect, `TorchDistributor` works too, but the processes run in a different place in each mode:
+
+```text
+torch 2.15.0+cpu, pyspark 4.3.0, driver pid 860336, Connect session
+== local_mode=True: 5.3 s in all, the value came from rank 0
+   ...
+   rank 0: pid 860713, torch 2.15.0+cpu, 1,829,548 rows
+   rank 1: pid 860714, torch 2.15.0+cpu, 1,829,547 rows
+== local_mode=False: 14.1 s in all, the value came from rank 0
+   ...
+   rank 0: pid 862287, torch 2.11.0+cu130, 1,829,548 rows
+   rank 1: pid 862288, torch 2.11.0+cu130, 1,829,547 rows
+```
+
+With `local_mode=True`, the processes ran on the **client**, with the torch of the client (2.15.0). With `local_mode=False`, they ran as tasks on the Connect server's executors, with the Python of the server. That Python had another torch (2.11.0, a CUDA build that ran on the CPU here). The code comment in `distributor.py` says it: in Connect mode, local training can use only the GPUs of the client. Install the same torch on the client and on the executors, and use `local_mode=False` for work that must run on the cluster.
+
+```mermaid
+flowchart LR
+  classDef c fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
+  classDef s fill:#c0661a,fill-opacity:0.72,stroke:#c0661a,color:#ffffff
+  td["TorchDistributor(num_processes=2).run(train)"]:::c
+  td -->|"local_mode=True"| l["torchrun on the driver host<br/>(over Connect: on the client)"]:::c
+  l --> l0["rank 0"]:::c
+  l --> l1["rank 1"]:::c
+  td -->|"local_mode=False"| b["one barrier stage:<br/>mapInArrow(barrier=True)"]:::s
+  b --> t0["task 0: allGather address,<br/>torchrun rank 0"]:::s
+  b --> t1["task 1: allGather address,<br/>torchrun rank 1"]:::s
+  t0 <-->|"gloo: gradients"| t1
+  l0 <-->|"gloo: gradients"| l1
+```
+
+Some parts of `TorchDistributor` did not run for this chapter, because the machine has no GPU and no cluster. They are `use_gpu=True` with `spark.task.resource.gpu.amount`, more than one host, `train_on_dataframe`, and the training of a file with `run("train.py", ...)`. The GPU scheduling of Spark (resource profiles and discovery scripts) is also not run in this book.
+
 ## The whole chapter, on one page
 
 - **Estimators fit, transformers transform.** `Pipeline.fit()` returns a `PipelineModel` of transformers.
@@ -523,6 +685,8 @@ This works only if the client and the server can both read the path, for example
 - **Build parameter grids from the estimator instance.** Keys from another object have no effect and give no error.
 - **Over Connect, models stay on the server.** The client holds references, attributes are round trips, and `save()` writes on the server.
 - **Track runs in MLflow** with a SQLite store. From a Connect session in 4.3.0, save on the server and use `log_artifacts`.
+- **Barrier mode starts all tasks of a stage together.** It needs a slot for each task, and one failed task runs the whole stage again. A failed barrier result stage stops the job.
+- **`TorchDistributor` runs `torchrun` on the driver (`local_mode=True`) or in a barrier stage (`local_mode=False`).** Return the same value from each rank. Over Connect, local mode runs on the client.
 
 ```python
 from pyspark.ml import Pipeline
@@ -550,3 +714,5 @@ with mlflow.start_run():
 - [Spark Connect overview](https://spark.apache.org/docs/4.3.0/spark-connect-overview.html), and SPARK-49907 for MLlib over Connect.
 - [MLflow tracking](https://mlflow.org/docs/latest/ml/tracking/) and the [Spark flavor](https://mlflow.org/docs/latest/api_reference/python_api/mlflow.spark.html).
 - [SPARK-34591](https://issues.apache.org/jira/browse/SPARK-34591), the `pruneTree` parameter.
+- [The `TorchDistributor` API](https://spark.apache.org/docs/4.3.0/api/python/reference/api/pyspark.ml.torch.distributor.TorchDistributor.html), and [`distributor.py` at v4.3.0](https://github.com/apache/spark/blob/v4.3.0/python/pyspark/ml/torch/distributor.py).
+- [Barrier execution mode](https://issues.apache.org/jira/browse/SPARK-24374) (SPARK-24374, Project Hydrogen).
