@@ -278,13 +278,13 @@ def tip_pct_hinted(pdf) -> ps.DataFrame[COLS[0]: int, "pct": float]:   # (1)!
 
 ```text
 == 3. functions: apply_batch and transform_batch, with and without type hints
-  no return hint:   defined in 2.26 s (runs the function on a sample to infer the schema)
-  with return hint: defined in 0.08 s, schema struct<PULocationID:bigint,pct:double>
+  no return hint:   defined in 0.72 s (runs the function on a sample to infer the schema)
+  with return hint: defined in 0.03 s, schema struct<PULocationID:bigint,pct:double>
   mean pct, both: 0.1738 0.1738
   plan of the hinted version: ['MapInPandas <lambda>(__index_level_0__#21L, PULocationID#7, ']
 ```
 
-Without a hint, the call took 2.26 s before any action ran. The pandas API took `compute.shortcut_limit + 1` rows (1,001) to the driver, and it ran the function on them to see the result schema (`accessors.py`). A schema from a sample can also be wrong: a column that is all NULL in the first 1,001 rows gets the wrong type. With the hint, the definition took 0.08 s and ran no job. In the two cases, the plan runs the function as a `MapInPandas`, the same operator as the PySpark `mapInPandas` ([Chapter 34](ch34-python-udfs-arrow.md)). The two times above come from one run, not under the benchmark lock.
+Without a hint, the call took 0.72 s before any action ran. The pandas API took `compute.shortcut_limit + 1` rows (1,001) to the driver, and it ran the function on them to see the result schema (`accessors.py`). A schema from a sample can also be wrong: a column that is all NULL in the first 1,001 rows gets the wrong type. With the hint, the definition took 0.03 s and ran no job. In the two cases, the plan runs the function as a `MapInPandas`, the same operator as the PySpark `mapInPandas` ([Chapter 34](ch34-python-udfs-arrow.md)). The script times the second of two rounds, so the Python workers are already up. It ran under the benchmark lock.
 
 ## Step 7: Operations between two DataFrames
 
@@ -358,8 +358,8 @@ The PySpark migration guide gives the replacements: `ps.concat` for `append`, `i
 ```text
 session: pyspark.sql.connect.session
 ...
-  no return hint:   defined in 1.63 s (runs the function on a sample to infer the schema)
-  with return hint: defined in 0.08 s, schema struct<PULocationID:bigint,pct:double>
+  no return hint:   defined in 0.54 s (runs the function on a sample to infer the schema)
+  with return hint: defined in 0.01 s, schema struct<PULocationID:bigint,pct:double>
   ...
   RatecodeID 2 (JFK) trips: 92,624, most common fare: [70.0]
 ```

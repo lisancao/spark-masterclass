@@ -284,7 +284,7 @@ This table gives each module, the layer that it runs on, and the chapters that t
 | MLlib (`spark.mllib`, RDD-based) | `pyspark.mllib` | RDDs | not covered: the 4.3 docs say that it "is now in maintenance mode" |
 | GraphX | none (Scala and Java) | RDDs | Step 6 of this chapter |
 | GraphFrames | `graphframes` (separate package) | DataFrames | Step 6 of this chapter, label propagation in [Chapter 56](ch56-entity-resolution.md) |
-| pandas API on Spark | `pyspark.pandas` | DataFrames | not covered in this edition |
+| pandas API on Spark | `pyspark.pandas` | DataFrames | [Chapter 91](ch91-pandas-api-on-spark.md) |
 | PySpark | `pyspark` | the driver JVM through Py4J, or Spark Connect | Part II ([Chapter 5](ch05-how-spark-runs.md) to [Chapter 8](ch08-setting-configurations.md)), Python workers in [Chapter 34](ch34-python-udfs-arrow.md) and [Chapter 75](ch75-python-worker-protocol.md) |
 | Spark Connect | `pyspark.sql.connect` | a gRPC server in the driver | Part V ([Chapter 18](ch18-spark-connect.md) to [Chapter 24](ch24-connect-in-production.md)), plugins in [Chapter 72](ch72-connect-plugins.md) |
 | Declarative Pipelines | `pyspark.pipelines` | DataFrame queries in a dataflow graph | Part X ([Chapter 46](ch46-first-etl-pipeline.md) to [Chapter 52](ch52-pipeline-end-to-end.md)) |

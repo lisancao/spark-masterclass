@@ -20,8 +20,8 @@ session: pyspark.sql.session
   ps.sql(... {t} ...):            [[237, 177610], [161, 161198], [236, 157113]]
 
 == 3. functions: apply_batch and transform_batch, with and without type hints
-  no return hint:   defined in 2.26 s (runs the function on a sample to infer the schema)
-  with return hint: defined in 0.08 s, schema struct<PULocationID:bigint,pct:double>
+  no return hint:   defined in 0.72 s (runs the function on a sample to infer the schema)
+  with return hint: defined in 0.03 s, schema struct<PULocationID:bigint,pct:double>
   mean pct, both: 0.1738 0.1738
   plan of the hinted version: ['MapInPandas <lambda>(__index_level_0__#21L, PULocationID#7, ']
 

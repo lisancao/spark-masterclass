@@ -70,8 +70,9 @@ def tip_pct_hinted(pdf) -> ps.DataFrame[COLS[0]: int, "pct": float]:   # noqa: F
                          "pct": pdf.tip_amount / pdf.fare_amount.where(pdf.fare_amount > 0)})
 
 
-t = time.perf_counter(); r1 = psdf.pandas_on_spark.apply_batch(tip_pct); d1 = time.perf_counter() - t
-t = time.perf_counter(); r2 = psdf.pandas_on_spark.apply_batch(tip_pct_hinted); d2 = time.perf_counter() - t
+for _ in range(2):                                             # the second round: Python workers already up
+    t = time.perf_counter(); r1 = psdf.pandas_on_spark.apply_batch(tip_pct); d1 = time.perf_counter() - t
+    t = time.perf_counter(); r2 = psdf.pandas_on_spark.apply_batch(tip_pct_hinted); d2 = time.perf_counter() - t
 print(f"  no return hint:   defined in {d1:.2f} s (runs the function on a sample to infer the schema)")
 print(f"  with return hint: defined in {d2:.2f} s, schema {r2.spark.frame().schema.simpleString()[:60]}")
 print("  mean pct, both:", round(r1["pct"].mean(), 4), round(r2["pct"].mean(), 4))

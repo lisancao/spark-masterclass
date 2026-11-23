@@ -20,10 +20,10 @@ session: pyspark.sql.connect.session
   ps.sql(... {t} ...):            [[237, 177610], [161, 161198], [236, 157113]]
 
 == 3. functions: apply_batch and transform_batch, with and without type hints
-  no return hint:   defined in 1.63 s (runs the function on a sample to infer the schema)
-  with return hint: defined in 0.08 s, schema struct<PULocationID:bigint,pct:double>
+  no return hint:   defined in 0.54 s (runs the function on a sample to infer the schema)
+  with return hint: defined in 0.01 s, schema struct<PULocationID:bigint,pct:double>
   mean pct, both: 0.1738 0.1738
-  plan of the hinted version: ['MapInPandas <lambda>(__index_level_0__#2341L, PULocationID#2']
+  plan of the hinted version: ['MapInPandas <lambda>(__index_level_0__#4440L, PULocationID#4']
 
 == 4. operations on two different DataFrames
   a.fare_amount + b.tip_amount: ok, the plan joins on the index: True
