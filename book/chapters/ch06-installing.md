@@ -173,6 +173,43 @@ The figure shows what each install puts on your machine, from your code down to 
 </figure>
 
 
+## The version minimums of Spark 4.3
+
+Each install has a floor for Java, Python and the Python libraries. The floors come from three places in 4.3.0: the docs, the metadata of the pip package and the checks in the PySpark code. `minimums.py` reads the metadata of the installed `pyspark` and compares each floor with what this machine has:
+
+```text
+pyspark 4.3.0   Requires-Python >=3.11   this Python 3.12.3
+java on PATH: openjdk version "17.0.21.1" 2026-11-17
+
+package                   pyspark asks for      installed here  extras
+googleapis-common-protos  >=1.71.0              1.76.0          connect, pipelines
+grpcio                    >=1.76.0              1.85.3          connect, pipelines
+grpcio-status             >=1.76.0              1.85.3          connect, pipelines
+numpy                     >=1.23.2              2.5.5           ml, mllib, sql, pandas-on-spark, connect, pipelines
+pandas                    >=2.2.0               2.3.3           sql, pandas-on-spark, connect, pipelines
+py4j                      <0.10.9.10,>=0.10.9.7 0.10.9.9        (always)
+pyarrow                   >=18.0.0              26.0.1          sql, pandas-on-spark, connect, pipelines
+pyyaml                    >=3.11                -               pipelines
+zstandard                 >=0.25.0              0.25.0          connect, pipelines
+```
+
+Py4J is the only package that `pip install pyspark` always installs. The other packages come with an extra, for example `pip install "pyspark[sql]"` or `pip install "pyspark[connect]"`. The full table of floors in 4.3.0:
+
+| Part | Minimum in 4.3.0 | Source |
+|---|---|---|
+| Java | 17. Spark runs on Java 17, 21 and 25. Java 25 before 25.0.3 is deprecated since 4.2.0 | `docs/index.md`, `<java.version>17</java.version>` in `pom.xml` |
+| Scala | 2.13 only (since 4.0) | `docs/index.md` |
+| Python | 3.11 (`python_requires=">=3.11"`) | `python/packaging/classic/setup.py` |
+| PyArrow | 18.0.0 | `setup.py`, and `require_minimum_pyarrow_version` in `pyspark/sql/pandas/utils.py` |
+| pandas | 2.2.0 | `setup.py`, and `require_minimum_pandas_version` |
+| NumPy | 1.23.2 | `setup.py`, and `require_minimum_numpy_version` |
+| gRPC (`grpcio`, `grpcio-status`) | 1.76.0, for Spark Connect | `setup.py` |
+| R | 4.0, and SparkR is deprecated | `docs/index.md` |
+
+The PySpark install page of 4.3.0 lists pandas as `>=2.2.0,<3.0.0`. The package metadata above has no upper limit for pandas. Thus pip can install a pandas 3 that the docs do not list as supported. Pin pandas below 3 if you want to stay inside the documented range.
+
+The official Docker image of Option 3 is an exception to the Python floor. Its Python is 3.10.12, and the PySpark in the image runs on it.
+
 ## Get the data
 
 Each chapter in the first half of the book uses the yellow-cab trip records of the NYC Taxi and Limousine Commission (TLC). The TLC publishes these records as one Parquet file for each month. The book also uses a 265-row CSV file that maps location IDs to zones and boroughs. The book pins June 2026, so that you get the same numbers when you run the code again:
@@ -230,6 +267,7 @@ Spark did not cause these problems. But each problem changes the answer to almos
 - **pip is the default for study and tests:** `pip install "pyspark[connect]==4.3.0"`, Python 3.11+, Java 17, 21 or 25.
 - **The tarball is for Spark that you operate yourself.** Do a check of the tarball with the checksum from `downloads.apache.org`.
 - **The Docker image runs Python 3.10**, and it does not put PySpark on the system path. Use `spark-submit`.
+- **The floors of 4.3.0** are Java 17, Python 3.11, PyArrow 18.0.0, pandas 2.2.0 and NumPy 1.23.2. `minimums.py` compares them with your machine.
 - **The thin client is 11 MB and needs no Java**, but you cannot use the APIs at the JVM level. Do not test it with `python -c`.
 - **The data of the book is one pinned month of NYC taxi trips**, and this data has problems on purpose.
 

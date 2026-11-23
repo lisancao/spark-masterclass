@@ -505,6 +505,68 @@ The two loggers write JSON, but the JSON is not the same:
 
 Make the two formats the same in your log pipeline before you join them. The time zone is the important difference.
 
+### Read a JSON log as a DataFrame
+
+If `spark.log.structuredLogging.enabled` is `true`, the JVM writes each line through the log4j `JsonTemplateLayout`, with the template `org/apache/spark/SparkLayout.json`. The template `conf/log4j2-json-layout.properties.template` of the tarball shows the layout. Copy it to `conf/log4j2.properties` to change the levels or the target. The configuration is not used by the shells (`spark-shell`, `spark-sql`, the PySpark shell), as its description in `package.scala` says.
+
+Each line has the fields `ts`, `level`, `msg` and `logger`. It also has `context` with the MDC values, and `exception` with the stack trace if there is one. Spark ships the schema of these lines, so that Spark can read its own logs: `SPARK_LOG_SCHEMA` in `pyspark.logger`, and `org.apache.spark.util.LogUtils.SPARK_LOG_SCHEMA` for Scala. `logs_df.sh` runs `logs_df_app.py` at INFO level with `spark.log.structuredLogging.enabled=true`. The application runs one shuffle and one task that fails one time, then works. The script keeps the driver log, then `logs_df.py` reads it:
+
+```text
+driver.log: 205 lines; a WARN line as written:
+{"ts":"2026-11-22T23:59:51.603Z","level":"WARN","msg":"Unable to load native-hadoop library for your platform... using builtin-java classes where applicable","logger":"NativeCodeLoader"}
+SPARK_LOG_SCHEMA = ts TIMESTAMP, level STRING, msg STRING, context map<STRING, STRING>, exception STRUCT<class STRING, msg STRING, stacktrace ARRAY<STRUCT<class STRING, method STRING, file STRING, line STRING>>>, logger STRING
+rows 205, rows that are not JSON (all fields null) 2
+
+levels and the loggers with the most lines:
++-----+-----+
+|level|count|
++-----+-----+
+| INFO|  200|
+| WARN|    2|
+|ERROR|    1|
++-----+-----+
+
++---------------+-----+
+|logger         |count|
++---------------+-----+
+|DAGScheduler   |47   |
+|Executor       |28   |
+|TaskSetManager |22   |
+|SecurityManager|15   |
+|SparkContext   |12   |
++---------------+-----+
+
+MDC keys in context, and how many lines carry each:
++--------------------+-----+
+|key                 |count|
++--------------------+-----+
+|task_name           |68   |
+|host                |25   |
+|executor_id         |23   |
+|size                |19   |
+|num_tasks           |18   |
+|stage               |18   |
+|total_time          |14   |
+|call_site_short_form|12   |
++--------------------+-----+
+
+the failed task, with its MDC context and the exception struct:
++------------+-----+--------+-----------------------------+----------------------------------------+------+
+|          ts|level|  logger|                    task_name|                         exception_class|frames|
++------------+-----+--------+-----------------------------+----------------------------------------+------+
+|23:59:55.558|ERROR|Executor|task 1.0 in stage 6.0 (TID 7)|org.apache.spark.api.python.PythonExc...|    24|
++------------+-----+--------+-----------------------------+----------------------------------------+------+
+```
+
+The log answers questions that a text log answers only with `grep` and regular expressions:
+
+- **Two lines are not JSON.** They are the `WARNING: Using incubator modules` line of the JVM and the line `Using Spark's default log4j profile: org/apache/spark/log4j2-json-layout.properties`. With an explicit schema, the JSON reader keeps them as rows with all fields `null` (mode `PERMISSIVE`). Filter on `ts IS NOT NULL`.
+- **The MDC keys are columns of the map.** `task_name` is on 68 lines, so you can collect every line of one task with `context['task_name']`.
+- **The failure is one row.** It has the task, the class of the exception and the 24 frames of its stack trace as an array of structs.
+- **The time is UTC.** The file has `Z` times. `logs_df.py` sets `spark.sql.session.timeZone=UTC`, so that the shown times match the file.
+
+On a cluster, the logs of each executor go to the work folder of its worker or to the log of its pod. Collect them in one place, then read them all with the same schema.
+
 ## The whole chapter, on one page
 
 ```mermaid
@@ -525,7 +587,7 @@ flowchart TB
 - **Spark 4.3 adds Connect sessions and operations** to the REST API, live and in the History Server. The job tag joins an operation to its jobs.
 - **Python streaming listeners run in the driver Python**, and on Connect in the client.
 - **The row UDF profiler costs more than a cheap UDF.** Profile on a sample, or use py-spy.
-- **JVM and Python JSON logs are different** in level names and time zones.
+- **JVM and Python JSON logs are different** in level names and time zones. `spark.read.schema(SPARK_LOG_SCHEMA).json(...)` reads the JVM log as a DataFrame, with the MDC values in a map.
 
 [Chapter 24](ch24-connect-in-production.md) takes the Connect server from this chapter into production. It examines one server or many, sessions and isolation, authentication, and a sandbox for each agent.
 
