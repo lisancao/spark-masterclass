@@ -1,6 +1,6 @@
 # v3 notes: external storage and databases (object stores, JDBC)
 
-Branch `v3-sources`. Writer scope: a new chapter on object storage and the output committers, a new chapter on the JDBC source, and a Derby note in ch66.
+Branch `v3-sources`. Writer scope: a new chapter on object storage and the output committers, a new chapter on the JDBC source, and a Derby note in ch80.
 
 ## Scope and what changed
 
@@ -8,20 +8,20 @@ New chapters (provisional numbers):
 
 | File | Title | Code | Media |
 |---|---|---|---|
-| `book/chapters/ch87-object-storage.md` | Spark on object storage: S3A, ABFS, GCS and the output committers | `code/ch87/` (`minio.sh`, `s3.py`, `connect.py`, `committers.py`, `failure.py`, `dpo.py`, `magic_log.py`, `success.py`, `manifest.py`, `listing.py`, `ranges.py`, `anim/commit/`) | figures `ch87-commit-paths.svg`, `ch87-requests.svg`, `ch87-failure.svg`; clips `ch87-failure`, `ch87-success`, `ch87-dpo`; animation `ch87-anim-commit` |
-| `book/chapters/ch88-jdbc.md` | Databases over JDBC: partitioned reads, pushdown and writes | `code/ch88/` (`pg.sh`, `jdbc.py`, `load.py`, `partitions.py`, `fetch.py`, `pushdown.py`, `show_sql.py`, `options.py`, `writes.py`, `batch.py`, `catalog.py`, `anim/ranges/`) | figures `ch88-ranges.svg`, `ch88-pushdown.svg`, `ch88-batch.svg`; clips `ch88-pushdown`, `ch88-append`, `ch88-catalog`; animation `ch88-anim-ranges` |
+| `book/chapters/ch38-object-storage.md` | Spark on object storage: S3A, ABFS, GCS and the output committers | `code/ch38/` (`minio.sh`, `s3.py`, `connect.py`, `committers.py`, `failure.py`, `dpo.py`, `magic_log.py`, `success.py`, `manifest.py`, `listing.py`, `ranges.py`, `anim/commit/`) | figures `ch38-commit-paths.svg`, `ch38-requests.svg`, `ch38-failure.svg`; clips `ch38-failure`, `ch38-success`, `ch38-dpo`; animation `ch38-anim-commit` |
+| `book/chapters/ch39-jdbc.md` | Databases over JDBC: partitioned reads, pushdown and writes | `code/ch39/` (`pg.sh`, `jdbc.py`, `load.py`, `partitions.py`, `fetch.py`, `pushdown.py`, `show_sql.py`, `options.py`, `writes.py`, `batch.py`, `catalog.py`, `anim/ranges/`) | figures `ch39-ranges.svg`, `ch39-pushdown.svg`, `ch39-batch.svg`; clips `ch39-pushdown`, `ch39-append`, `ch39-catalog`; animation `ch39-anim-ranges` |
 
-Placement: both chapters go in Part VI (Files, formats and messy data), after ch31 (Documents, images, audio and tables for blobs). ch87 first, then ch88.
+Placement: both chapters go in Part VI (Files, formats and messy data), after ch37 (Documents, images, audio and tables for blobs). ch38 first, then ch39.
 
 Existing chapter changed:
 
-- **ch66** (Python data sources II): a warning admonition at the start of the Derby run in Step 11 ("Spark 4.2 deprecated the Derby JDBC data source", from `docs/sql-migration-guide.md` line 63 at `v4.3.0`, and the dialect list "Derby (deprecated)" in `docs/sql-data-sources-jdbc.md`). The "New in 4.3" note now ends with "Spark 4.2 deprecated the Derby dialect (Step 11)." Further reading links Chapter 88. Nothing else changed. ch66 still uses Derby for its range demo, because its JAR ships with PySpark; the warning says so.
+- **ch80** (Python data sources II): a warning admonition at the start of the Derby run in Step 11 ("Spark 4.2 deprecated the Derby JDBC data source", from `docs/sql-migration-guide.md` line 63 at `v4.3.0`, and the dialect list "Derby (deprecated)" in `docs/sql-data-sources-jdbc.md`). The "New in 4.3" note now ends with "Spark 4.2 deprecated the Derby dialect (Step 11)." Further reading links Chapter 39. Nothing else changed. ch80 still uses Derby for its range demo, because its JAR ships with PySpark; the warning says so.
 
-Shared files: none changed. `code/figures/ch87.py` and `ch88.py` use `svgkit.py` but set their own `FIG` path (the kit's `FIG` points at another worktree, `/home/lnc/spark-masterclass-parts/vis-d/...`; the integrator may want to fix that constant in `svgkit.py`).
+Shared files: none changed. `code/figures/ch38.py` and `ch39.py` use `svgkit.py` but set their own `FIG` path (the kit's `FIG` points at another worktree, `/home/lnc/spark-masterclass-parts/vis-d/...`; the integrator may want to fix that constant in `svgkit.py`).
 
 ## Coverage
 
-No SparkTutor lesson maps to these chapters. They fill gap-audit rows 97 and 98 (JDBC read and write paths, pushdown options, `sessionInitStatement`, `queryTimeout`, Kerberos options listed in the ch88 option table but not run), 104 (cloud object stores), recommendations 5 and 6, and the Derby row (deprecated in 4.2, now noted in ch66). Kerberos for JDBC is listed (options table) but not run: it needs a KDC.
+No SparkTutor lesson maps to these chapters. They fill gap-audit rows 97 and 98 (JDBC read and write paths, pushdown options, `sessionInitStatement`, `queryTimeout`, Kerberos options listed in the ch39 option table but not run), 104 (cloud object stores), recommendations 5 and 6, and the Derby row (deprecated in 4.2, now noted in ch80). Kerberos for JDBC is listed (options table) but not run: it needs a KDC.
 
 ## Technical names and technical verbs (STE)
 
@@ -33,9 +33,9 @@ Technical verbs: commit, abort, upload, complete (an upload), copy, rename, list
 
 | Chapter | Findings | `--allow` |
 |---|---|---|
-| ch87 | 0 | `listing staging pending timing Committing attempt` |
-| ch88 | 0 | `staging timing` |
-| ch66 | 0 (9 before my edit, all pre-existing: `planning`, `attempt`) | `planning attempt` |
+| ch38 | 0 | `listing staging pending timing Committing attempt` |
+| ch39 | 0 | `staging timing` |
+| ch80 | 0 (9 before my edit, all pre-existing: `planning`, `attempt`) | `planning attempt` |
 
 Rules broken on purpose: quotes from the Spark documentation keep their words ("for performance", "not critical for job correctness", "uses Apache Hadoop Magic Committer for all S3 buckets by default"). `attempt` is the Spark and Hadoop term "task attempt".
 
@@ -44,13 +44,13 @@ Rules broken on purpose: quotes from the Spark documentation keep their words ("
 - `pyspark==4.3.0` (uv project in `code/`), OpenJDK 17.0.21.1, local mode, 16-core laptop.
 - Hadoop client in Spark 4.3.0: 3.5.0 (`hadoop.version` in `pom.xml` at `v4.3.0`).
 - `org.apache.spark:spark-hadoop-cloud_2.13:4.3.0` from Maven Central, with `hadoop-aws-3.5.0`, `software.amazon.awssdk:bundle:2.35.4` (686 MB), `hadoop-azure-3.5.0`, `hadoop-gcp-3.5.0`, `analyticsaccelerator-s3-1.3.1` and others (Ivy resolution in `~/.ivy2.5.2/jars`).
-- MinIO `minio/minio:RELEASE.2025-04-08T15-41-24Z`, client `minio/mc:RELEASE.2025-04-08T15-39-49Z`, container `book-ch87-minio`, ports 19055 (S3) and 19056 (console). Test keys `bookadmin` / `bookadmin-secret`, local only.
-- PostgreSQL `postgres:16` (16.15), container `book-ch88-pg`, port 15515, user `book`, password `book-secret` (local only). `log_statement=all` is set with `ALTER SYSTEM` (not `-c`), so that scripts can lower it during bulk loads.
+- MinIO `minio/minio:RELEASE.2025-04-08T15-41-24Z`, client `minio/mc:RELEASE.2025-04-08T15-39-49Z`, container `book-ch38-minio`, ports 19055 (S3) and 19056 (console). Test keys `bookadmin` / `bookadmin-secret`, local only.
+- PostgreSQL `postgres:16` (16.15), container `book-ch39-pg`, port 15515, user `book`, password `book-secret` (local only). `log_statement=all` is set with `ALTER SYSTEM` (not `-c`), so that scripts can lower it during bulk loads.
 - PostgreSQL JDBC driver `org.postgresql:postgresql:42.7.11` from Maven Central.
 - Spark UI port 4155 (4156 for one side run).
-- No cloud account, no cloud credentials, no spend. ABFS and GCS are from docs and jar contents only; ch87 says which parts.
+- No cloud account, no cloud credentials, no spend. ABFS and GCS are from docs and jar contents only; ch38 says which parts.
 
-## Claim-to-source table (ch87)
+## Claim-to-source table (ch38)
 
 | Claim | Source |
 |---|---|
@@ -75,7 +75,7 @@ Rules broken on purpose: quotes from the Spark documentation keep their words ("
 | Manifest committer refuses s3a; its `_SUCCESS` and task manifest | `output/manifest.txt` |
 | Read-side request counts and bytes | `output/listing.txt`; whole-file `Range` in `output/ranges.txt` |
 
-## Claim-to-source table (ch88)
+## Claim-to-source table (ch39)
 
 | Claim | Source |
 |---|---|
@@ -104,30 +104,30 @@ Rules broken on purpose: quotes from the Spark documentation keep their words ("
 
 1. **Docs gap: the magic committer default is not in `cloud-integration.md`.** The page (at `v4.3.0`) still tells users to "switch to the S3A committers" with three configurations, although Spark 4.1+ sets them itself when `hadoop-cloud` is present (`SparkContext.enableMagicCommitterIfNeeded`). It also still says the v2 algorithm is recommended "for performance". Only the core migration guide mentions the change. Candidate doc fix.
 2. **Docs gap: the page does not mention `hadoop-gcp`.** Hadoop 3.5.0 ships its own `gs://` connector in `hadoop-gcp`, and `spark-hadoop-cloud_2.13:4.3.0` pulls it in. The page still links only Google's connector. Not tested against GCS.
-3. **Docs gap (JDBC page): `truncate` says that `PostgresDialect` does not support it.** Spark 4.3.0 sent `TRUNCATE TABLE ONLY zone_copy` (and `... CASCADE` with `cascadeTruncate=true`) to PostgreSQL 16 (`code/ch88/output/writes.txt`). Source: `PostgresDialect.isCascadingTruncateTable` returns `Some(false)`, so `JdbcRelationProvider` truncates. Repro: write any DataFrame with `mode("overwrite").option("truncate", "true")` to a PostgreSQL table that exists, with `log_statement=all`.
+3. **Docs gap (JDBC page): `truncate` says that `PostgresDialect` does not support it.** Spark 4.3.0 sent `TRUNCATE TABLE ONLY zone_copy` (and `... CASCADE` with `cascadeTruncate=true`) to PostgreSQL 16 (`code/ch39/output/writes.txt`). Source: `PostgresDialect.isCascadingTruncateTable` returns `Some(false)`, so `JdbcRelationProvider` truncates. Repro: write any DataFrame with `mode("overwrite").option("truncate", "true")` to a PostgreSQL table that exists, with `log_statement=all`.
 4. **Docs gap (JDBC page): `pushDownJoin` and `tableComment` are options in `JDBCOptions.scala` at `v4.3.0`, but the page does not list them.** Join pushdown also needs the internal `spark.sql.optimizer.datasourceV2JoinPushdown=true`; it worked against PostgreSQL in `pushdown.txt`.
 5. **Docs gap (JDBC page): `fetchsize` default is shown as 0.** The PostgreSQL dialect uses 1000 when the option is unset (since 4.2.0). Users who read the page would think PostgreSQL reads load all rows.
 6. **Observation, not a bug: with algorithm 2, a failed job leaves committed task output and no `_SUCCESS`** (`output/failure.txt`). This is documented Hadoop behaviour; the chapter puts it in a caution.
 
-## Nav entries (Part VI, after ch31)
+## Nav entries (Part VI, after ch37)
 
 ```yaml
-      - "Spark on object storage": chapters/ch87-object-storage.md
-      - "Databases over JDBC": chapters/ch88-jdbc.md
+      - "Spark on object storage": chapters/ch38-object-storage.md
+      - "Databases over JDBC": chapters/ch39-jdbc.md
 ```
 
 ## Roadmap rows (Part VI)
 
 ```markdown
-| 87 | [Spark on object storage: S3A, ABFS, GCS and the output committers](chapters/ch87-object-storage.md) | Object stores against file systems, the `hadoop-cloud` module, S3A against MinIO, credential providers, FileOutputCommitter v1 and v2, the magic and staging committers (default since 4.1), five committers measured, a failed job, `_SUCCESS` files, the manifest committer for ABFS and GCS, read-side requests |
-| 88 | [Databases over JDBC: partitioned reads, pushdown and writes](chapters/ch88-jdbc.md) | The options of 4.3.0 from source, partitioned reads and skew, `predicates`, `fetchsize`, pushdown in DSv1 and DSv2 (filters, aggregates, limit, offset, top-N, sample, joins), `sessionInitStatement` and `query`, the write path, upserts, dialects, `JDBCTableCatalog`, against PostgreSQL in Docker |
+| 87 | [Spark on object storage: S3A, ABFS, GCS and the output committers](chapters/ch38-object-storage.md) | Object stores against file systems, the `hadoop-cloud` module, S3A against MinIO, credential providers, FileOutputCommitter v1 and v2, the magic and staging committers (default since 4.1), five committers measured, a failed job, `_SUCCESS` files, the manifest committer for ABFS and GCS, read-side requests |
+| 88 | [Databases over JDBC: partitioned reads, pushdown and writes](chapters/ch39-jdbc.md) | The options of 4.3.0 from source, partitioned reads and skew, `predicates`, `fetchsize`, pushdown in DSv1 and DSv2 (filters, aggregates, limit, offset, top-N, sample, joins), `sessionInitStatement` and `query`, the write path, upserts, dialects, `JDBCTableCatalog`, against PostgreSQL in Docker |
 ```
 
 ## Notes on the method
 
-- `code/ch88/jdbc.py` `Log` puts `RAISE LOG` markers into the PostgreSQL log and reads `docker logs --since <start time>`, so it reads only new lines. With `log_statement=all`, each cursor fetch is one `execute fetch from` line; `Log.fetches` counts them, and the chapter uses that count as a proxy for rows sent to Spark (up to `fetchsize` rows per fetch after the first batch).
+- `code/ch39/jdbc.py` `Log` puts `RAISE LOG` markers into the PostgreSQL log and reads `docker logs --since <start time>`, so it reads only new lines. With `log_statement=all`, each cursor fetch is one `execute fetch from` line; `Log.fetches` counts them, and the chapter uses that count as a proxy for rows sent to Spark (up to `fetchsize` rows per fetch after the first batch).
 - `log_statement` must not be set with `-c` on the container command line: command-line options win over `ALTER SYSTEM`, and the first bulk load then logged every INSERT (a 3 GB log). `pg.sh` sets it with `ALTER SYSTEM`.
-- MinIO request counts come from `mc admin trace --json` in a side container (`book-ch87-trace`), filtered to paths under `/book`.
+- MinIO request counts come from `mc admin trace --json` in a side container (`book-ch38-trace`), filtered to paths under `/book`.
 
 ## Clips
 

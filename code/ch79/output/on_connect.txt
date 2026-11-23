@@ -1,0 +1,24 @@
+client: pyspark.sql.connect.session | server: Spark 4.3.0 | client pid 608421
+--- after load()
+(nothing ran)
+df.columns: ['name']
+--- after df.columns
+DataSource.schema          pid 608654  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+count: 2
+--- after count()
+DataSourceReader.__init__  pid 608788  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+read                       pid 608997  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+
+c.txt added.
+same DataFrame, count: 2
+fresh load(), same options, count: 3
+--- planning calls for those two counts
+read                       pid 608997  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+DataSource.schema          pid 608654  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+DataSourceReader.__init__  pid 608788  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+read                       pid 608997  cwd /tmp/spark-<id>/userFiles-<id>/<id>
+fresh load(), one more option, count: 3
+
+A relative path, from the client's folder /tmp/ch79-connect-33bl8qv1
+path='inbox': ValueError: no folder /tmp/spark-<id>/userFiles-<id>/<id>/inbox
+absolute path, count: 3

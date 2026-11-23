@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // The query, the pushed filter, Spark's Filter and the counts from files_pushdown.txt.
+      const D = {"source": "code/ch81/output/files_pushdown.txt (query table, explain formatted, Filter column)", "where": "WHERE kind = 'image' AND width > 12", "filters": [{"f": "IsNotNull(kind)", "keep": false}, {"f": "EqualTo(kind, 'image')", "keep": true}, {"f": "IsNotNull(width)", "keep": false}, {"f": "GreaterThan(width, 12)", "keep": false}], "files": 26, "opened": 5, "rows": 3, "sparkFilter": "isnotnull(kind) AND isnotnull(width) AND width > 12"}; // data.json
+      A.mount();
+      A.title("A filter pushed into a Python source", "the files source, filter pushdown on");
+      const w = A.code(D.where, { x: 0.5, y: 0.22, w: 900, size: 30 });
+      A.in(w, 0.2);
+      const src = A.box({ x: 0.80, y: 0.47, w: 440, h: 330, kind: "ghost", title: "", radius: 16 });
+      const srcl = A.text("reader.pushFilters()", { x: 0.80, y: 0.47 - A.dy(135), size: 28, weight: 700, mono: true });
+      const spk = A.box({ x: 0.20, y: 0.47, w: 440, h: 330, kind: "ghost", title: "", radius: 16 });
+      const spkl = A.text("Filter above the scan", { x: 0.20, y: 0.47 - A.dy(135), size: 28, weight: 700, color: "var(--a-acc)" });
+      A.in([src, srcl, spk, spkl], 1.0);
+      const chips = D.filters.map((f, i) => A.box({ x: 0.5, y: 0.36 + i * 0.075, w: 400, h: 58, kind: "paper", title: f.f, size: 22, radius: 29 }));
+      A.in(chips, 2.0, { stagger: 0.15 });
+      // all chips go into the source
+      chips.forEach((c, i) => A.tl.to(c, { x: A.X(0.30), y: A.Y((0.395 + i * 0.053) - (0.36 + i * 0.075)), scale: 0.85, duration: 0.7, ease: "power2.inOut" }, 3.4 + i * 0.08));
+      // the source keeps EqualTo, yields the others back to Spark
+      chips.forEach((c, i) => {
+        if (D.filters[i].keep) A.tl.to(c, { backgroundColor: "#13241A", borderColor: "#7BC496", duration: 0.3 }, 4.6);
+        else A.tl.to(c, { x: A.X(-0.30), duration: 0.8, ease: "power2.inOut" }, 5.0 + i * 0.1);
+      });
+      const kept = A.text("applied in partitions()", { x: 0.80, y: 0.47 + A.dy(135), size: 22, color: "var(--a-ok)" });
+      A.in(kept, 4.8);
+      const back = A.text("yielded back: Spark checks them", { x: 0.20, y: 0.47 + A.dy(135), size: 22, color: "var(--a-acc)" });
+      A.in(back, 6.2);
+      // files: 26 squares, 5 opened
+      const fl = [];
+      for (let i = 0; i < D.files; i++) {
+        const opened = i < D.opened;
+        fl.push(A.box({ x: 0.17 + (i % 13) * 0.052, y: 0.725 + Math.floor(i / 13) * 0.065, w: 70, h: 52, kind: opened ? "ok" : "ghost", radius: 6 }));
+      }
+      A.in(fl, 7.6, { stagger: 0.02, rise: 6 });
+      const cnt = A.text(`opened ${D.opened} of ${D.files} files, ${D.rows} rows after Spark's Filter`, { x: 0.5, y: 0.725 + A.dy(128), size: 28, weight: 700 });
+      A.in(cnt, 8.6);
+      const caps = [
+        [0.4, "The optimizer splits the WHERE clause at each AND."],
+        [2.0, "Spark offers four filter objects to pushFilters()."],
+        [4.4, "The source keeps the kind filter and yields the other three."],
+        [6.4, "Spark keeps a Filter for each filter that comes back."],
+        [8.4, "The tasks open only the images. Spark removes two more rows."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.92, size: 34, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.finish(13);
+    </script>
+  </body>
+</html>

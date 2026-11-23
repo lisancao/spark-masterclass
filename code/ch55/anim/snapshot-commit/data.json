@@ -1,0 +1,3 @@
+{"source": "code/ch55/output/tables.txt (CREATE TABLE and INSERT of the June trips into lake.nyc.trips)",
+ "v1_metadata_bytes": 1474, "data_files": 30, "manifest_bytes": 12528, "manifest_list_bytes": 4499, "v2_metadata_bytes": 2696,
+ "rows": 3837231, "version_hint": [1, 2], "timing": "schematic"}

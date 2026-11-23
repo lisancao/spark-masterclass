@@ -1,37 +1,36 @@
-# Spark Masterclass, Chapter 86: statistics, the cost-based optimizer and partition pruning.
-#   film render code/film/ch86.tape --format chapter --demo code
+# Spark Masterclass, Chapter 86: Spark Connect plugins. Storyboard: storyboard.md.
+#   film render code/film/ch86.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
+# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4154 BOOK_DATA=$HOME/spark-masterclass/data BOOK_NO_LOCK=1 BOOK_RUNS=1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4030 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: estimates | ANALYZE TABLE, then the estimates with and without a histogram
-Type "# what the optimizer believes about a filter, before and after ANALYZE TABLE" Enter
+# beat: plugins | A relation plugin returns the plan as rows
+Hide
+Type "ch86/server.sh start >/dev/null; clear" Enter
+Wait@180s
+Show
+Type "# a Connect client has no JVM: a server plugin sends the plan back as rows" Enter
 Sleep 500ms
-Type "python ch86/stats.py 2>/dev/null | sed -n '/=== 3/,/histogram of/p' | cut -c1-92" Enter
-Wait@300s
+Type "python ch86/plugins.py 2>/dev/null | sed -n '/== 4\./,/== 5\./p' | grep -v '== 5' | cut -c1-92" Enter
+Wait@180s
 Sleep 12s
 
-# beat: dpp | dynamic partition pruning: partitions read with and without it
+# beat: artifacts | An artifact jar becomes a plugin for every session
 Hide
-Type "clear" Enter
+Type "ch86/server.sh bare >/dev/null; clear" Enter
+Wait@180s
 Show
-Type "# Sundays only: how many day partitions does the fact scan open?" Enter
+Type "# a server with the plugin configured, but without its jar" Enter
 Sleep 500ms
-Type "python ch86/dpp.py 2>/dev/null | sed -n '3,15p' | cut -c1-92" Enter
-Wait@600s
-Sleep 12s
-
-# beat: hints | partitioning hints and the files that a write makes
+Type "python ch86/artifacts.py 2>/dev/null | cut -c1-92" Enter
+Wait@180s
+Sleep 10s
 Hide
-Type "clear" Enter
-Show
-Type "# one query, nine partitioning hints: the Exchange and the files written" Enter
-Sleep 500ms
-Type "python ch86/hints.py 2>/dev/null | sed -n '/=== 5/,/=== 6/p' | grep -v '^$' | cut -c1-92" Enter
-Wait@600s
-Sleep 12s
+Type "ch86/server.sh stop; clear" Enter
+Wait@60s

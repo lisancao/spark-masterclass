@@ -46,9 +46,9 @@ Exception in thread "main" org.apache.spark.SparkException: Master must either b
 	at org.apache.spark.deploy.SparkSubmit.prepareSubmitEnvironment(SparkSubmit.scala:263)
 ```
 
-[Chapter 80](ch80-submitting-applications.md) submits applications to the other cluster managers.
+[Chapter 70](ch70-submitting-applications.md) submits applications to the other cluster managers.
 
-YARN and Kubernetes are not in the list of patterns. They are **external cluster managers**. Spark finds them with the Java `ServiceLoader`, and each one has a `canCreate(masterURL)` method (`YarnClusterManager.scala:28`, `KubernetesClusterManager.scala:38`). The pip package of Spark 4.3 ships both, as `spark-yarn_2.13-4.3.0.jar` and `spark-kubernetes_2.13-4.3.0.jar`. [Chapter 62](ch62-kubernetes-operator.md) runs Spark on Kubernetes.
+YARN and Kubernetes are not in the list of patterns. They are **external cluster managers**. Spark finds them with the Java `ServiceLoader`, and each one has a `canCreate(masterURL)` method (`YarnClusterManager.scala:28`, `KubernetesClusterManager.scala:38`). The pip package of Spark 4.3 ships both, as `spark-yarn_2.13-4.3.0.jar` and `spark-kubernetes_2.13-4.3.0.jar`. [Chapter 76](ch76-kubernetes-operator.md) runs Spark on Kubernetes.
 
 All the backends except local mode use the same protocol. The driver runs a `CoarseGrainedSchedulerBackend` with a `DriverEndpoint`. Each executor runs a `CoarseGrainedExecutorBackend`, which registers with the driver over Spark's RPC layer. After the registration, the cluster manager has no part in the work. The driver sends `LaunchTask` messages to the executors, and the executors send `StatusUpdate` messages back.
 
@@ -136,7 +136,7 @@ sequenceDiagram
 
     If the parent stage connects through a `PipelinedShuffleDependency` (SPARK-58185), the `DAGScheduler` can schedule the parent and the child at the same time. The child reads the shuffle output while the parent still writes it.
 
-    Real-time Mode uses this path for stateful queries. [Chapter 42](ch42-real-time-mode.md) measures it.
+    Real-time Mode uses this path for stateful queries. [Chapter 51](ch51-real-time-mode.md) measures it.
 
 ## Step 3: The TaskScheduler places tasks
 
@@ -305,7 +305,7 @@ The executor that wrote a shuffle file also serves it. If that executor stops, i
 - **The external shuffle service** (`spark.shuffle.service.enabled`, false by default) is a separate process on each node that serves the files. YARN runs it as an auxiliary service.
 - **Push-based shuffle** (`spark.shuffle.push.enabled`, false by default, from Spark 3.2) pushes and merges map output on remote shuffle services. It needs the external shuffle service.
 
-[Chapter 63](ch63-orchestration.md) shows a third way, a remote shuffle service with Apache Celeborn.
+[Chapter 77](ch77-orchestration.md) shows a third way, a remote shuffle service with Apache Celeborn.
 
 ## Step 6: The event log is the record of all of this
 
@@ -359,7 +359,7 @@ The log is a folder, not a single file, and Spark compresses it with zstd. These
 }
 ```
 
-Each reduce task fetched two local blocks and two remote blocks: one block from each of the four map outputs. The History Server rebuilds the whole UI from these events after the application stops. [Chapter 61](ch61-observability.md) reads event logs in depth.
+Each reduce task fetched two local blocks and two remote blocks: one block from each of the four map outputs. The History Server rebuilds the whole UI from these events after the application stops. [Chapter 74](ch74-observability.md) reads event logs in depth.
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch02-tasks.webp">
@@ -370,7 +370,7 @@ Each reduce task fetched two local blocks and two remote blocks: one block from 
 
 ## Step 7: The unified memory model
 
-Each executor divides its heap with a `UnifiedMemoryManager`. [Chapter 33](ch33-partitions-caching-memory.md) measures the pool sizes for several heap sizes and shows spill. This step reads the rule that moves memory between the two halves of the pool, and it shows the rule at work.
+Each executor divides its heap with a `UnifiedMemoryManager`. [Chapter 42](ch42-partitions-caching-memory.md) measures the pool sizes for several heap sizes and shows spill. This step reads the rule that moves memory between the two halves of the pool, and it shows the rule at work.
 
 The pool size comes from `getMaxMemory` (`UnifiedMemoryManager.scala:466`). The source subtracts `RESERVED_SYSTEM_MEMORY_BYTES = 300 * 1024 * 1024` (line 264) from the heap, and it multiplies the rest by `spark.memory.fraction` (0.6). For a 1 GiB heap, the result is the 434.4 MiB that the executors endpoint showed in Step 1.
 

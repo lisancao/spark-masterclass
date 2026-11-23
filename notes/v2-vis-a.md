@@ -19,22 +19,22 @@ Visual aids added to existing chapters. The prose substance is not changed. Chan
 | 3 | `ch07-cleaning-rules`, `ch07-when-sum` (schematic rows), `ch07-top-zones` | `ch07-anim-plans` (analyzed plans become one optimized plan) | warning admonition for named parameters; annotation on the conditional sum | `code/ch07/output/what_cleaning_drops.txt`, `quickstart.txt` |
 | 5 | `ch09-chain-cost`, `ch09-timezones`, `ch09-drift-days` | `ch09-anim-projects` (withColumn loop vs withColumns, CollapseProject) | drift-kind list as a table; TIME warning as an admonition | `code/ch09/output/plans.txt`, `type_system.txt`, `drift.txt` |
 | 6 | `ch10-collations`, `ch10-bytes`, `ch10-reject-reasons` | `ch10-anim-ansi` (ANSI stops the job; try_divide gives NULL) | error-method list and collation-name list as tables | `code/ch10/output/ansi.txt`, `strings.txt`, `values.txt` |
-| 7 | `ch13-groupby-window`, `ch13-rows-range` | `ch13-anim-window` (Exchange, Sort, Window with running sums) | window-part list, ranking list and window-cost list as tables | `code/ch13/output/windows.txt` |
-| 8 | `ch14-script-executions`, `ch14-udf-cost`, `ch14-zone-chain` | `ch14-anim-recursion` (UnionLoop passes on the zone chain) | recursion-limit list as a table | `code/ch14/output/scripting.txt`, `functions.txt` |
+| 7 | `ch18-groupby-window`, `ch18-rows-range` | `ch18-anim-window` (Exchange, Sort, Window with running sums) | window-part list, ranking list and window-cost list as tables | `code/ch18/output/windows.txt` |
+| 8 | `ch20-script-executions`, `ch20-udf-cost`, `ch20-zone-chain` | `ch20-anim-recursion` (UnionLoop passes on the zone chain) | recursion-limit list as a table | `code/ch20/output/scripting.txt`, `functions.txt` |
 | 9 | `ch11-join-types`, `ch11-strategy-times`, `ch11-skew-tasks` | `ch11-anim-movement` (broadcast against sort-merge data movement) | none (the strategy table was already there) | `code/ch11/output/strategies.txt`, `skew.txt` |
-| 11 | `ch25-png-header`, `ch25-formats` | `ch25-anim-packing` (2000 small files packed into 63 or 16 tasks) | none | `code/ch25/output/bytes.txt`, `formats.txt` |
-| 12 | `ch26-multiline-events`, `ch26-dropmalformed` | `ch26-anim-positions` (one header, columns by position, then unionByName) | none (the option table was already there) | `code/data/messy/logs/app.log`, `code/ch26/output/csv_drift.txt` |
-| 13 | `ch27-infer-cost`, `ch27-type-merge`, `ch27-balance` | `ch27-anim-inference` (two passes without a schema, one with) | none (the mode table was already there) | `code/ch27/output/infer_cost.txt`, `infer.txt`, `drift.txt` |
-| 14 | `ch28-explode`, `ch28-three-valued` | `ch28-anim-tracing` (a Python lambda traced into a Catalyst expression) | aggregate-trap list and codegen list as tables | `code/ch28/output/nested.txt`, `lambdas.txt` |
-| 15 | `ch29-key-profile`, `ch29-shredding`, `ch29-extraction-cost` | `ch29-anim-shredding` (fields into typed columns, one-column read) | none (the comparison table was already there) | `code/ch29/output/land.txt`, `shred.txt`, `speed.txt`, `code/data/messy/events` |
-| 16 | `ch30-confluent`, `ch30-record-bytes` | `ch30-anim-wrongschema` (Avro bytes decoded with the right and a wrong schema) | none (the format table was already there) | `code/ch30/output/avro.txt`, `protobuf.txt` |
-| 17 | `ch31-bgr`, `ch31-parquet-blobs` | `ch31-anim-forget` (delete, rewrite, expire on snapshots and files) | the delete-sequence list as a table | `code/ch31/output/media.txt`, `blobs.txt` |
+| 11 | `ch31-png-header`, `ch31-formats` | `ch31-anim-packing` (2000 small files packed into 63 or 16 tasks) | none | `code/ch31/output/bytes.txt`, `formats.txt` |
+| 12 | `ch32-multiline-events`, `ch32-dropmalformed` | `ch32-anim-positions` (one header, columns by position, then unionByName) | none (the option table was already there) | `code/data/messy/logs/app.log`, `code/ch32/output/csv_drift.txt` |
+| 13 | `ch33-infer-cost`, `ch33-type-merge`, `ch33-balance` | `ch33-anim-inference` (two passes without a schema, one with) | none (the mode table was already there) | `code/ch33/output/infer_cost.txt`, `infer.txt`, `drift.txt` |
+| 14 | `ch34-explode`, `ch34-three-valued` | `ch34-anim-tracing` (a Python lambda traced into a Catalyst expression) | aggregate-trap list and codegen list as tables | `code/ch34/output/nested.txt`, `lambdas.txt` |
+| 15 | `ch35-key-profile`, `ch35-shredding`, `ch35-extraction-cost` | `ch35-anim-shredding` (fields into typed columns, one-column read) | none (the comparison table was already there) | `code/ch35/output/land.txt`, `shred.txt`, `speed.txt`, `code/data/messy/events` |
+| 16 | `ch36-confluent`, `ch36-record-bytes` | `ch36-anim-wrongschema` (Avro bytes decoded with the right and a wrong schema) | none (the format table was already there) | `code/ch36/output/avro.txt`, `protobuf.txt` |
+| 17 | `ch37-bgr`, `ch37-parquet-blobs` | `ch37-anim-forget` (delete, rewrite, expire on snapshots and files) | the delete-sequence list as a table | `code/ch37/output/media.txt`, `blobs.txt` |
 
 Totals: 36 figures (72 SVG files, light and dark, 0.50 MB), 14 animations (mp4 plus webp poster, 3.49 MB; the largest mp4 is about 280 KB). Media added: about 4.0 MB.
 
 ## Claims and sources
 
-Every number in a figure or an animation comes from the chapter's saved output (`code/chNN/output/`) or from the chapter's own tables, as listed in the "Numbers from" column above and in each `code/chNN/anim/<name>/storyboard.md`. Anything illustrative is labelled on the figure or on screen as schematic: example rows (ch07 conditional sums), dot positions and partitions (ch11, ch27), the squares that stand for files (ch25), the six drawn `withColumn` calls (ch09) and the row values of the ANSI animation (ch10). Two derived values: the PNG chunk length `00 00 00 0D` and the width bytes `00 00 00 20` in `ch25-png-header` follow from the PNG format and the decoded width 32; the four unread bytes in `ch30-anim-wrongschema` follow from the Avro byte layout and the decoded row.
+Every number in a figure or an animation comes from the chapter's saved output (`code/chNN/output/`) or from the chapter's own tables, as listed in the "Numbers from" column above and in each `code/chNN/anim/<name>/storyboard.md`. Anything illustrative is labelled on the figure or on screen as schematic: example rows (ch07 conditional sums), dot positions and partitions (ch11, ch33), the squares that stand for files (ch31), the six drawn `withColumn` calls (ch09) and the row values of the ANSI animation (ch10). Two derived values: the PNG chunk length `00 00 00 0D` and the width bytes `00 00 00 20` in `ch31-png-header` follow from the PNG format and the decoded width 32; the four unread bytes in `ch36-anim-wrongschema` follow from the Avro byte layout and the decoded row.
 
 ## Environment
 
@@ -50,7 +50,7 @@ Every number in a figure or an animation comes from the chapter's saved output (
 
 ## STE
 
-`scripts/ste-check` on each changed chapter, with the part allow lists (`notes/part02.md` words for ch06 to ch11, `notes/.ste-allow-part03` plus the part03 words for ch25 to ch31). No chapter has a new finding:
+`scripts/ste-check` on each changed chapter, with the part allow lists (`notes/part02.md` words for ch06 to ch11, `notes/.ste-allow-part03` plus the part03 words for ch31 to ch37). No chapter has a new finding:
 
 | Chapter | Findings before | Findings after |
 |---|---|---|

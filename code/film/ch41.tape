@@ -1,33 +1,37 @@
-# Spark Masterclass, Chapter 41. Storyboard: storyboard-part05.md.
-#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch41.tape --format chapter
+# Spark Masterclass, Chapter 41: statistics, the cost-based optimizer and partition pruning.
+#   film render code/film/ch41.tape --format chapter --demo code
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4025 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4154 BOOK_DATA=$HOME/spark-masterclass/data BOOK_NO_LOCK=1 BOOK_RUNS=1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-
-# beat: sessions | Sessions closed by gaps and by timers
-Type "# sessions per user: closed by a 30-minute gap or by an event-time timer" Enter
+# beat: estimates | ANALYZE TABLE, then the estimates with and without a histogram
+Type "# what the optimizer believes about a filter, before and after ANALYZE TABLE" Enter
 Sleep 500ms
-Type "python ch41/t2_sessions.py 2>/dev/null | head -21" Enter
-Wait@240s
+Type "python ch41/stats.py 2>/dev/null | sed -n '/=== 3/,/histogram of/p' | cut -c1-92" Enter
+Wait@300s
 Sleep 12s
 
-# beat: clock | Processing-time timers and TTL
-Type "# a timer 5 s after each click; the last page kept 8 s (TTL)" Enter
+# beat: dpp | dynamic partition pruning: partitions read with and without it
+Hide
+Type "clear" Enter
+Show
+Type "# Sundays only: how many day partitions does the fact scan open?" Enter
 Sleep 500ms
-Type "python ch41/t3_time.py 2>/dev/null | head -11" Enter
-Wait@240s
-Sleep 10s
+Type "python ch41/dpp.py 2>/dev/null | sed -n '3,15p' | cut -c1-92" Enter
+Wait@600s
+Sleep 12s
 
-# beat: legacy | applyInPandasWithState, then its open sessions move to transformWithState
-Type "# the old API keeps one state value per user; then its open sessions move to TWS" Enter
+# beat: hints | partitioning hints and the files that a write makes
+Hide
+Type "clear" Enter
+Show
+Type "# one query, nine partitioning hints: the Exchange and the files written" Enter
 Sleep 500ms
-Type "python ch41/t6_legacy.py 2>/dev/null | sed -n '1,11p;42,52p'" Enter
-Wait@300s
+Type "python ch41/hints.py 2>/dev/null | sed -n '/=== 5/,/=== 6/p' | grep -v '^$' | cut -c1-92" Enter
+Wait@600s
 Sleep 12s

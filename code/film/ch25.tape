@@ -1,49 +1,32 @@
-# Spark Masterclass, Chapter 25. Clips for the book page.
+# Spark Masterclass, Chapter 25: Inside the Spark Connect protocol. Storyboard: notes/v2-connect-core.md.
 #   film render code/film/ch25.tape --format chapter
-Set TypingSpeed 35ms
+Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data CONNECT_PORT=15105 CONNECT_UI_PORT=4145 PROXY_PORT=25105 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: ch25-bytes | Metadata without content, then magic bytes
+# beat: proxy | Every RPC of a short session, through a logging proxy
 Hide
-Type "nvim +/'content is read only when' ch25/bytes.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
+Type "ch24/server.sh start >/dev/null; clear" Enter
+Wait@120s
 Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
-Type "clear" Enter
+Type "# a gRPC proxy logs each RPC between the client and the server" Enter
 Sleep 500ms
-Show
-Type "# a metadata query reads no content; a content read checks maxLength" Enter
-Sleep 500ms
-Type "python ch25/bytes.py 2>/dev/null | sed -n '/content is read only/,/magic bytes, not/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+Type "python ch25/protocol.py 2>/dev/null | sed -n '/client call/,/stop()/p' | cut -c1-94" Enter
+Wait@180s
+Sleep 12s
 
-# beat: ch25-archives | The archive reader, off and on
+# beat: arrow | The Arrow IPC stream inside one response
 Hide
-Type "nvim +/'archive.reader.enabled' ch25/archives.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
 Type "clear" Enter
-Sleep 500ms
 Show
-Type "# new in 4.3: read the files inside a zip, entry by entry" Enter
+Type "# the rows came back as an Arrow IPC stream inside a protobuf message" Enter
 Sleep 500ms
-Type "python ch25/archives.py 2>/dev/null | sed -n '/before 4.3/,/archivePathFilter picks/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+Type "python ch25/wire.py 2>/dev/null | sed -n '/== 6/,$p'" Enter
+Wait@120s
+Sleep 12s

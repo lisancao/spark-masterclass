@@ -1,27 +1,42 @@
-# Spark Masterclass, Chapter 81: what Spark redacts, and what local disk encryption writes.
+# Spark Masterclass, Chapter 81: Python data sources III. Storyboard: storyboard-part09a.md.
 #   film render code/film/ch81.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
+# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4151 && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4029 BOOK_DATA=$HOME/spark-masterclass/data CH51_VENVS=/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/part09a/venvs && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: redaction | Secrets in the UI, the event log, SQL and the application
-Type "# three secrets in the configuration: what the UI, the event log and the app see" Enter
-Sleep 300ms
-Type "python ch81/redaction.py 2>/dev/null | cut -c1-92" Enter
-Wait@120s
-Sleep 10s
 
-# beat: disk | The first bytes of a shuffle file and a cached block, encryption off and on
+# beat: offered | What Spark offers to pushFilters()
 Hide
 Type "clear" Enter
 Show
-Type "# spark.io.encryption.enabled: the first bytes of files in spark.local.dir" Enter
-Sleep 300ms
-Type "for v in false true; do python ch81/io_encryption.py $v 2>/dev/null | cut -c1-92; done" Enter
-Wait@200s
-Sleep 10s
+Type "# which filter objects does Spark offer for each WHERE condition?" Enter
+Sleep 500ms
+Type "python ch81/what_arrives.py 2>/dev/null | sed -n '/^WHERE/,/^id > 1 AND/p' | cut -c1-92" Enter
+Wait@300s
+Sleep 12s
+
+# beat: opened | Rows, files opened, and Spark's Filter
+Hide
+Type "clear" Enter
+Show
+Type "# the audit counts the files that the tasks opened" Enter
+Sleep 500ms
+Type "python ch81/files_pushdown.py 2>/dev/null | sed -n '1,/^lower/p' | cut -c1-92" Enter
+Wait@300s
+Sleep 12s
+
+# beat: shared | The shared planned read
+Hide
+Type "clear" Enter
+Show
+Type "# 4.3.0: one DataFrame, a pushed filter first, then other queries" Enter
+Sleep 500ms
+Type "python ch81/files_pushdown.py 2>/dev/null | sed -n '/^One DataFrame/,$p'" Enter
+Wait@300s
+Sleep 12s

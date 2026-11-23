@@ -1,2 +1,0 @@
-{"source": "LiveListenerBus.scala and AsyncEventQueue (v4.3.0) as Chapter 61 describes them: named queues, one thread each, default capacity 10000, numDroppedEvents. Event counts, slots and speed are schematic.",
- "capacity_default": 10000, "slots_schematic": 8, "events_schematic": 18}

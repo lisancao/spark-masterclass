@@ -1,6 +1,0 @@
-# Helm values for the Apache Spark Kubernetes Operator 1.1.0 (chart 1.9.0) in Chapter 63's kind cluster.
-# The operator watches one namespace, spark-apps. The chart makes the namespace and its "spark" service account.
-image: {pullPolicy: IfNotPresent}
-workloadResources:
-  namespaces:
-    data: [spark-apps]

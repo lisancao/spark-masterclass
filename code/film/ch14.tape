@@ -1,31 +1,35 @@
-# Spark Masterclass, Chapter 14: Procedural SQL. VO lines: notes/part02.md.
+# Spark Masterclass, Chapter 14: Datasets and Encoders in Scala
 #   film render code/film/ch14.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4122 BOOK_NO_LOCK=1 PYTHONUNBUFFERED=1 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4157 SPARK_LOCAL_IP=127.0.0.1 PYTHONHASHSEED=0 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: loop | One script, many queries
-Hide
-Type "clear" Enter
-Show
-Type "# a 5-pass loop in one SQL script: how many queries and jobs?" Enter
-Sleep 500ms
-Type "python ch14/scripting.py 2>/dev/null | sed -n '/== 4/,/== 6/{/== 6/q;p}' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
 
-# beat: udf | A SQL UDF is inlined
+# beat: encoders | Encoders and as[T]
 Hide
 Type "clear" Enter
 Show
-Type "# the same function in SQL and in Python: what is in the plan?" Enter
+Type "# an Encoder is a schema plus a converter; as[T] checks the columns" Enter
 Sleep 500ms
-Type "python ch14/functions.py 2>/dev/null | sed -n '/analyzed plan/,/== 3/{/== 3/q;p}' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+Type "uv run spark-shell --master 'local[*]' --conf spark.ui.port=4157 -I ch14/Datasets.scala 2>/dev/null > ../data/work/ch14.txt; sed -n '/== 1/,/== 3/p' ../data/work/ch14.txt | cut -c1-94" Enter
+Hide
+Wait@600s
+Show
+Sleep 12s
+
+# beat: plans | Typed and untyped plans, measured
+Hide
+Type "clear" Enter
+Show
+Type "# the typed plan converts each row to a Trip and back; the untyped plan does not" Enter
+Sleep 500ms
+Type "sed -n '/== Physical/,/== 6/p' ../data/work/ch14.txt | sed 's/[$]line[0-9]*[.][$]read[$][$]iw[$]//g' | cut -c1-94" Enter
+Hide
+Wait@600s
+Show
+Sleep 12s

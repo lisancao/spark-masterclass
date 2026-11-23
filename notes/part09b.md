@@ -1,6 +1,6 @@
 # Part IX, second half (chapters 52 to 55): writer notes
 
-Chapter numbers here are the old numbers of `notes/assignments.md`. At integration, `notes/renumber.md` maps 52-55 to 55-58, and the cross-references "Chapter 65" to "Chapter 69" (the Python data source chapters) to 50-54. Chapter 29 (VARIANT) keeps its number. "Chapter 74" (the upstream case study, cited in ch73) becomes 62.
+Chapter numbers here are the old numbers of `notes/assignments.md`. At integration, `notes/renumber.md` maps 52-55 to 55-58, and the cross-references "Chapter 79" to "Chapter 83" (the Python data source chapters) to 50-54. Chapter 35 (VARIANT) keeps its number. "Chapter 88" (the upstream case study, cited in ch87) becomes 62.
 
 ## Technical names and verbs (STE)
 
@@ -17,13 +17,13 @@ Technical names used with one meaning in all four chapters: DSv2, `ScanBuilder`,
 | 54 | 0 | none |
 | 55 | 0 | `decreasing`, `testing` (in the technical names "first fit decreasing" and "mutation testing") |
 
-`scripts/ste-check FILE description --allow WORDS` replaces the shared allowlist instead of adding to it (the second `--allow` wins in argparse). For ch73 I ran `scripts/ste_prep.py FILE | stecheck - --mode description --allow $(cat scripts/ste-allow.txt) decreasing testing`. Worth a fix in `scripts/ste-check` (not my file).
+`scripts/ste-check FILE description --allow WORDS` replaces the shared allowlist instead of adding to it (the second `--allow` wins in argparse). For ch87 I ran `scripts/ste_prep.py FILE | stecheck - --mode description --allow $(cat scripts/ste-allow.txt) decreasing testing`. Worth a fix in `scripts/ste-check` (not my file).
 
-Rules broken on purpose: none flagged. Quotes from Spark docs that broke STE (ch71 javadoc of `SparkSessionExtensions`, the doc of `transpilePyUDFs`, ch70 javadoc of `SupportsPushDownV2Filters`) are paraphrased in STE instead of quoted. Literal log text (`Data source write support ... is aborting`) is in code format.
+Rules broken on purpose: none flagged. Quotes from Spark docs that broke STE (ch85 javadoc of `SparkSessionExtensions`, the doc of `transpilePyUDFs`, ch84 javadoc of `SupportsPushDownV2Filters`) are paraphrased in STE instead of quoted. Literal log text (`Data source write support ... is aborting`) is in code format.
 
 ## Coverage
 
-### MD42 java_dsv2_connector -> Chapter 70
+### MD42 java_dsv2_connector -> Chapter 84
 
 Written by the earlier writer (commit 0225fc2); I fixed its STE findings (14 to 0) and made its clips. Coverage checked against the inventory:
 
@@ -46,7 +46,7 @@ Written by the earlier writer (commit 0225fc2); I fixed its STE findings (14 to 
 | Rest of the API (TopN, Offset, TableSample, PushDownJoin, VariantExtractions, columnar, V1 filters, iterative pushdown) | Step 13 |
 | `explain("cost")` | left out (statistics are shown through the plan's `Statistics(...)` instead) |
 
-### MD43 session_extensions -> Chapter 71
+### MD43 session_extensions -> Chapter 85
 
 | Topic | Section |
 |---|---|
@@ -64,7 +64,7 @@ Written by the earlier writer (commit 0225fc2); I fixed its STE findings (14 to 
 | Check rules, eager in Classic | Step 10 |
 | Benchmark table and the reused-DataFrame trap | Step 11 |
 
-### MD44 connect_plugins -> Chapter 72
+### MD44 connect_plugins -> Chapter 86
 
 | Topic | Section |
 |---|---|
@@ -83,10 +83,10 @@ Written by the earlier writer (commit 0225fc2); I fixed its STE findings (14 to 
 | **4.3:** operations REST endpoint records each plugin call | Step 11 |
 | Artifacts, session class loader, the artifact-installs-a-plugin experiment and the registry source | Step 12 (+ sequence diagram) |
 | Maven with `spark-connect_2.13` provided, protobuf relocation | Step 13 |
-| Operation IDs: reattach, interrupt | left out here; Chapter 18 covers operation IDs and REST, Step 11 links the plugin calls to it |
+| Operation IDs: reattach, interrupt | left out here; Chapter 24 covers operation IDs and REST, Step 11 links the plugin calls to it |
 | Built-in structured plans in 4.3 that would replace `plan_nodes` | checked: none found in `python/pyspark/sql/connect/` at v4.3.0 |
 
-### MD56 final_project -> Chapter 73
+### MD56 final_project -> Chapter 87
 
 | Topic | Section |
 |---|---|
@@ -108,8 +108,8 @@ Written by the earlier writer (commit 0225fc2); I fixed its STE findings (14 to 
 | Offline tests and mutation testing | Step 12 |
 | Staged grader with `ONLY` | Step 12 |
 | Design review template and answers | Step 13 |
-| Java path mapping table (mapped to the `jdocs` classes of Chapter 70); why DSv2 scan builders do not share state | Step 14 |
-| `CasesScanBuilder` Java sketch | left out: the table maps each part to the working `jdocs` class of Chapter 70 instead of an uncompiled sketch |
+| Java path mapping table (mapped to the `jdocs` classes of Chapter 84); why DSv2 scan builders do not share state | Step 14 |
+| `CasesScanBuilder` Java sketch | left out: the table maps each part to the working `jdocs` class of Chapter 84 instead of an uncompiled sketch |
 | Taking it further | Taking it further |
 | Course closing ("what you can do now", SparkTutor courses) | left out: tutor framing; the book continues into Part X |
 | 4.3: reading archives, RTM for Python sources | left out: not verified for Python data sources |
@@ -118,72 +118,72 @@ Written by the earlier writer (commit 0225fc2); I fixed its STE findings (14 to 
 
 | Ch | Claim | Source |
 |---|---|---|
-| 52 | 26 files; filter + two columns, limit, count(*) plans; 8.0 EiB vs 3.0 KiB statistics | `ch70/output/capability.txt` |
-| 52 | timing range over four runs (pydocs vs jdocs) | `ch70/output/capability_runs.txt` (rerun this session, see below) |
-| 52 | Maven 3.8.7, javac 17.0.21.1; compiler plugin 3.1 fails without the pin | `ch70/output/build.txt`, `nopin.txt` |
-| 52 | rows equal Python vs Java (26/26/0), predicates as received, pushdown plans, COUNT(*) LocalTableScan, partitioning, DPP, metric | `ch70/output/jdocs.txt` |
-| 53 | all extension, trap, rule, NULL and check-rule outputs | `ch71/output/extensions.txt`, `traps.txt`, `planchange.txt` |
+| 52 | 26 files; filter + two columns, limit, count(*) plans; 8.0 EiB vs 3.0 KiB statistics | `ch84/output/capability.txt` |
+| 52 | timing range over four runs (pydocs vs jdocs) | `ch84/output/capability_runs.txt` (rerun this session, see below) |
+| 52 | Maven 3.8.7, javac 17.0.21.1; compiler plugin 3.1 fails without the pin | `ch84/output/build.txt`, `nopin.txt` |
+| 52 | rows equal Python vs Java (26/26/0), predicates as received, pushdown plans, COUNT(*) LocalTableScan, partitioning, DPP, metric | `ch84/output/jdocs.txt` |
+| 53 | all extension, trap, rule, NULL and check-rule outputs | `ch85/output/extensions.txt`, `traps.txt`, `planchange.txt` |
 | 53 | `injectPreOperatorOptimizationRule` exists in v4.3.0, not in v4.2.0 | `git grep` on both tags |
-| 53 | transpiler: eval type 100 only, refusals, ANSI warning, same counts (2192451/16815/777470/850512) | `ch71/output/transpile.txt`; `python/pyspark/sql/udf.py` v4.3.0 |
-| 53 | flag read twice (UDF build and `ConvertToCatalyst`) | `ch71/output/transpile.txt` section 4; `Optimizer.scala` v4.3.0 lines 1304-1320 |
-| 53 | benchmark: 20,000,000 values, part A 0.309-0.384 s native, 2.062 s pandas, 3.356 s Arrow UDF; part B 0.451 s transpiled, 0.633 s built-in, 1.052 s Arrow, 1.133 s pickled | `ch71/output/bench.txt`, medians of 5 after 1 warm-up, under the bench lock, 16 cores, `local[*]` |
-| 54 | `Any` bytes, `JVM_ATTRIBUTE_NOT_SUPPORTED`, plan tables, pushed filters, `NO_HANDLER_FOR_EXTENSION`, `has_magic`, `jplug.note`, operations record | `ch72/output/plugins.txt` |
+| 53 | transpiler: eval type 100 only, refusals, ANSI warning, same counts (2192451/16815/777470/850512) | `ch85/output/transpile.txt`; `python/pyspark/sql/udf.py` v4.3.0 |
+| 53 | flag read twice (UDF build and `ConvertToCatalyst`) | `ch85/output/transpile.txt` section 4; `Optimizer.scala` v4.3.0 lines 1304-1320 |
+| 53 | benchmark: 20,000,000 values, part A 0.309-0.384 s native, 2.062 s pandas, 3.356 s Arrow UDF; part B 0.451 s transpiled, 0.633 s built-in, 1.052 s Arrow, 1.133 s pickled | `ch85/output/bench.txt`, medians of 5 after 1 warm-up, under the bench lock, 16 cores, `local[*]` |
+| 54 | `Any` bytes, `JVM_ATTRIBUTE_NOT_SUPPORTED`, plan tables, pushed filters, `NO_HANDLER_FOR_EXTENSION`, `has_magic`, `jplug.note`, operations record | `ch86/output/plugins.txt` |
 | 54 | proto fields 998/999, plugin interfaces, registry code, error classes, settings static since 3.4.0, getStatus since 4.1.0 | v4.3.0 source: `relations.proto`, `expressions.proto`, `commands.proto`, `SparkConnectPluginRegistry.scala`, `Connect.scala`, `error-conditions.json` |
 | 54 | `org/sparkproject/connect/protobuf/Any.class` in `spark-connect_2.13-4.3.0.jar` | `unzip -l` of the jar in the venv |
 | 54 | 3.4.0 Scala traits, 4.0.0 Java interfaces | `git ls-tree` at v3.4.0 and v4.0.0 |
-| 54 | in-process server warnings, port check | `ch72/output/local_server.txt` |
-| 54 | reuse: first run starts a server, second connects in well under a second, discovery keys | `ch72/output/reuse.txt`; `python/pyspark/sql/connect/local_server.py` v4.3.0 |
-| 54 | artifact experiment: session B uses the plugin from session A's artifact | `ch72/output/artifacts.txt`; `SparkConnectPluginRegistry.withInitialize` |
-| 55 | all tables, plans, manifest, stream batches, warnings | `ch73/output/demo.txt` |
-| 55 | `NotImplementedError` fallback, Logger pickling, `raise_error` vs abort | `ch73/output/gotchas.txt`; `plan_data_source_read.py` v4.3.0 lines 241-246 |
+| 54 | in-process server warnings, port check | `ch86/output/local_server.txt` |
+| 54 | reuse: first run starts a server, second connects in well under a second, discovery keys | `ch86/output/reuse.txt`; `python/pyspark/sql/connect/local_server.py` v4.3.0 |
+| 54 | artifact experiment: session B uses the plugin from session A's artifact | `ch86/output/artifacts.txt`; `SparkConnectPluginRegistry.withInitialize` |
+| 55 | all tables, plans, manifest, stream batches, warnings | `ch87/output/demo.txt` |
+| 55 | `NotImplementedError` fallback, Logger pickling, `raise_error` vs abort | `ch87/output/gotchas.txt`; `plan_data_source_read.py` v4.3.0 lines 241-246 |
 | 55 | `DATA_SOURCE_PUSHDOWN_DISABLED` check examines the reader object | `plan_data_source_read.py` v4.3.0 lines 363-370 |
-| 55 | grader 10 of 10, 8 tests, 9 mutants caught, 6+1+1 batches, 48 rows | `ch73/output/grade.txt` |
+| 55 | grader 10 of 10, 8 tests, 9 mutants caught, 6+1+1 batches, 48 rows | `ch87/output/grade.txt` |
 | 55 | `call.wav` 40,044 bytes | `stat` on the sample |
 
 ## Environment
 
 - Linux 7.0.0, 16 cores, `local[*]`; OpenJDK 17.0.21.1 (javac 17.0.21.1); Apache Maven 3.8.7
 - Python 3.12.3, `pyspark[connect]==4.3.0` (the uv project in `code/`)
-- Maven coordinates (all `provided`): `org.apache.spark:spark-sql_2.13:4.3.0` (ch70, ch71, ch72), `org.apache.spark:spark-connect_2.13:4.3.0` (ch72); `maven-compiler-plugin` 3.13.0 pinned
-- Connect server for ch72: `sbin/start-connect-server.sh` from the pip package, gRPC 10300, UI 4130; reuse experiment on 10301 / UI 4131; in-process server on the default 15002 (the script checks the port first)
+- Maven coordinates (all `provided`): `org.apache.spark:spark-sql_2.13:4.3.0` (ch84, ch85, ch86), `org.apache.spark:spark-connect_2.13:4.3.0` (ch86); `maven-compiler-plugin` 3.13.0 pinned
+- Connect server for ch86: `sbin/start-connect-server.sh` from the pip package, gRPC 10300, UI 4130; reuse experiment on 10301 / UI 4131; in-process server on the default 15002 (the script checks the port first)
 - `SPARK_UI_PORT=4030` for Classic runs
-- Timings (ch71 bench, ch72 reuse, ch70 capability runs) ran under `flock $HOME/spark-masterclass/data/.bench.lock`. The ch71 film also ran under it; the ch70, ch72 and ch73 films ran without it, after the integrator changed the lock rule (films take no lock)
+- Timings (ch85 bench, ch86 reuse, ch84 capability runs) ran under `flock $HOME/spark-masterclass/data/.bench.lock`. The ch85 film also ran under it; the ch84, ch86 and ch87 films ran without it, after the integrator changed the lock rule (films take no lock)
 
 ## Open findings (not yet checked with the spark-bug routine)
 
-1. **A Connect artifact jar installs a plugin for every session.** Server started with `spark.connect.extensions.relation.classes=jplug.PlanNodesPlugin` but without the jar. Session A's first plugin call fails (`ClassNotFoundException`), the registry stays uninitialized; after `spark.addArtifacts(jar)`, the next call loads the class through session A's class loader and caches it in the process-wide `SparkConnectPluginRegistry`; a new session B that never uploaded the jar then uses it. Repro: `ch72/server.sh bare && uv run python ch72/artifacts.py`. Possibly a security concern on shared servers (one user's code runs for all sessions). Check master and 4.2, and whether artifacts are meant to be able to reach the registry at all.
-2. **Python data source pushdown leaks into a reused DataFrame on 4.3.0.** With `spark.sql.python.filterPushdown.enabled=true` and a reader that implements `pushFilters`, `df.count(), df.filter("status = 'open'").count(), df.count()` gives `[10, 5, 5]`. Not yet run through the spark-bug routine and not filed; the chapter describes it as observed behavior, not as a Spark bug. (The Part X case study uses SPARK-60206, not this.) Repro: `ch73/demo.py` section 7.
+1. **A Connect artifact jar installs a plugin for every session.** Server started with `spark.connect.extensions.relation.classes=jplug.PlanNodesPlugin` but without the jar. Session A's first plugin call fails (`ClassNotFoundException`), the registry stays uninitialized; after `spark.addArtifacts(jar)`, the next call loads the class through session A's class loader and caches it in the process-wide `SparkConnectPluginRegistry`; a new session B that never uploaded the jar then uses it. Repro: `ch86/server.sh bare && uv run python ch86/artifacts.py`. Possibly a security concern on shared servers (one user's code runs for all sessions). Check master and 4.2, and whether artifacts are meant to be able to reach the registry at all.
+2. **Python data source pushdown leaks into a reused DataFrame on 4.3.0.** With `spark.sql.python.filterPushdown.enabled=true` and a reader that implements `pushFilters`, `df.count(), df.filter("status = 'open'").count(), df.count()` gives `[10, 5, 5]`. Not yet run through the spark-bug routine and not filed; the chapter describes it as observed behavior, not as a Spark bug. (The Part X case study uses SPARK-60206, not this.) Repro: `ch87/demo.py` section 7.
 3. **`transpilePyUDFs` is read at UDF build time and again in `ConvertToCatalyst`.** Not a bug, but the config doc does not say it. A UDF built with the flag on and planned with it off logs "is disabled but we still got TranspiledPythonUDFs in our plan" and runs in Python. Doc gap candidate.
 4. **`scripts/ste-check --allow` replaces the shared allowlist** (book tooling, not Spark).
 
 ## Not verified
 
-- ch70's earlier timing sentence ("in four runs, 74 to 131 ms ...") came from the earlier writer's runs, which were not saved. I reran four runs into `ch70/output/capability_runs.txt` (pydocs 194-278 ms, jdocs 59-120 ms; under the lock, but other writers' unlocked jobs used the machine) and updated the sentence to those numbers. `capability.txt` itself (74.2 / 15.1 ms) is from the earlier, quieter run.
-- ch71 part B: the built-in `when` chain (0.633 s) measured slower than the transpiled UDF (0.451 s). It ran first in its table; I did not measure run-to-run variation, and the chapter says so instead of reading a result into it.
-- The ch72 operations table shows execution times from one run while other writers used the machine; the chapter says they are not a measurement.
+- ch84's earlier timing sentence ("in four runs, 74 to 131 ms ...") came from the earlier writer's runs, which were not saved. I reran four runs into `ch84/output/capability_runs.txt` (pydocs 194-278 ms, jdocs 59-120 ms; under the lock, but other writers' unlocked jobs used the machine) and updated the sentence to those numbers. `capability.txt` itself (74.2 / 15.1 ms) is from the earlier, quieter run.
+- ch85 part B: the built-in `when` chain (0.633 s) measured slower than the transpiled UDF (0.451 s). It ran first in its table; I did not measure run-to-run variation, and the chapter says so instead of reading a result into it.
+- The ch86 operations table shows execution times from one run while other writers used the machine; the chapter says they are not a measurement.
 - Clips: rendered with VHS in the chapter format; pacing not reviewed at 1x by a person.
 
 ## Film storyboard (VO drafts)
 
 | Tape | Beat | On screen | VO (draft) |
 |---|---|---|---|
-| ch70 | capability | `capability.py`: three plans per source | The same three queries go to a Python source and a Java source. Only the Java scan reads two columns, takes the limit, and answers the count with no scan. |
-| ch70 | pushdown | `jdocs.py`: pruning, a pushed filter, COUNT(*) | The Java source opens no file for a pruned scan, five files for the pushed filter, and none for a count. |
-| ch71 | rule | `extensions.py` sections 7 and 8 | The same Python UDF under two names. The rule replaces only is_png, and the NULL row keeps the Python answer. |
-| ch71 | transpile | `transpile.py` sections 1 to 3 | With the 4.3 flag on, only the non-Arrow UDF loses its Python node, and the transpiler says why it refuses the others. |
-| ch72 | plugins | `plugins.py` section 4 | A Connect client has no JVM. A server plugin sends the plan of any DataFrame back as rows. |
-| ch72 | artifacts | `artifacts.py` | One session uploads the plugin jar as an artifact. A second session, which never uploaded it, can use the plugin too. |
-| ch73 | stream | `demo.py` section 9 | The change logs stream at 400 bytes per batch, and the line with no newline waits. |
-| ch73 | grade | `grade.py` | Ten stages: parsers and tests with no Spark, then batch, pushdown, writer, stream and logs. |
+| ch84 | capability | `capability.py`: three plans per source | The same three queries go to a Python source and a Java source. Only the Java scan reads two columns, takes the limit, and answers the count with no scan. |
+| ch84 | pushdown | `jdocs.py`: pruning, a pushed filter, COUNT(*) | The Java source opens no file for a pruned scan, five files for the pushed filter, and none for a count. |
+| ch85 | rule | `extensions.py` sections 7 and 8 | The same Python UDF under two names. The rule replaces only is_png, and the NULL row keeps the Python answer. |
+| ch85 | transpile | `transpile.py` sections 1 to 3 | With the 4.3 flag on, only the non-Arrow UDF loses its Python node, and the transpiler says why it refuses the others. |
+| ch86 | plugins | `plugins.py` section 4 | A Connect client has no JVM. A server plugin sends the plan of any DataFrame back as rows. |
+| ch86 | artifacts | `artifacts.py` | One session uploads the plugin jar as an artifact. A second session, which never uploaded it, can use the plugin too. |
+| ch87 | stream | `demo.py` section 9 | The change logs stream at 400 bytes per batch, and the line with no newline waits. |
+| ch87 | grade | `grade.py` | Ten stages: parsers and tests with no Spark, then batch, pushdown, writer, stream and logs. |
 
 ## Nav entries
 
 ```yaml
   - "Part IX: Extending Spark":
-      - chapters/ch70-dsv2-connector-java.md
-      - chapters/ch71-catalyst-extensions.md
-      - chapters/ch72-connect-plugins.md
-      - chapters/ch73-capstone-connector.md
+      - chapters/ch84-dsv2-connector-java.md
+      - chapters/ch85-catalyst-extensions.md
+      - chapters/ch86-connect-plugins.md
+      - chapters/ch87-capstone-connector.md
 ```
 
-(After renumbering: ch73-dsv2-connector-java.md, ch71-catalyst-extensions.md, ch72-connect-plugins.md, ch73-capstone-connector.md.)
+(After renumbering: ch87-dsv2-connector-java.md, ch85-catalyst-extensions.md, ch86-connect-plugins.md, ch87-capstone-connector.md.)

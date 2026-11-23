@@ -1,42 +1,26 @@
-# Spark Masterclass, Chapter 67: Python data sources III. Storyboard: storyboard-part09a.md.
+# Spark Masterclass, Chapter 67: entity resolution and connected components. Storyboard: notes/part07.md.
 #   film render code/film/ch67.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4029 BOOK_DATA=$HOME/spark-masterclass/data CH51_VENVS=/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/part09a/venvs && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4227 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-
-# beat: offered | What Spark offers to pushFilters()
-Hide
-Type "clear" Enter
-Show
-Type "# which filter objects does Spark offer for each WHERE condition?" Enter
+# beat: plan-growth | Label propagation without a cut, then with localCheckpoint()
+Type "# label propagation: the analyzed plan after each round, without and with a cut" Enter
 Sleep 500ms
-Type "python ch67/what_arrives.py 2>/dev/null | sed -n '/^WHERE/,/^id > 1 AND/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 12s
+Type "python ch67/resolve.py 2>/dev/null | sed -n '/without a cut/,/answer key has/p' | cut -c1-92" Enter
+Wait@900s
+Sleep 10s
 
-# beat: opened | Rows, files opened, and Spark's Filter
-Hide
+# beat: cache-plan | Four ways to keep each round
 Type "clear" Enter
-Show
-Type "# the audit counts the files that the tasks opened" Enter
+Type "# the same loop kept four ways: nothing, cache(), localCheckpoint(), checkpoint()" Enter
 Sleep 500ms
-Type "python ch67/files_pushdown.py 2>/dev/null | sed -n '1,/^lower/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 12s
-
-# beat: shared | The shared planned read
-Hide
-Type "clear" Enter
-Show
-Type "# 4.3.0: one DataFrame, a pushed filter first, then other queries" Enter
-Sleep 500ms
-Type "python ch67/files_pushdown.py 2>/dev/null | sed -n '/^One DataFrame/,$p'" Enter
-Wait@300s
-Sleep 12s
+Type "rm -rf $BOOK_DATA/ch67; python ch67/components.py loop 2>/dev/null | sed -n '/^   nothing/,/^   localCheckpoint/p'" Enter
+Wait@900s
+Sleep 10s

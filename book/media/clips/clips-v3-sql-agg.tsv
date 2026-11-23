@@ -1,4 +1,4 @@
 clip	source	start	end	poster_at	chapter
-ch83-rollup	ch83-chapter.mp4	0	40.0	19.6	ch83
-ch83-combine	ch83-chapter.mp4	40.0	82.4	17.6	ch83
-ch28-unnest	ch28u-chapter.mp4 (beat ch28-unnest of ch28.tape)	0	41.4	17.2	ch28
+ch19-rollup	ch19-chapter.mp4	0	40.0	19.6	ch19
+ch19-combine	ch19-chapter.mp4	40.0	82.4	17.6	ch19
+ch34-unnest	ch28u-chapter.mp4 (beat ch34-unnest of ch34.tape)	0	41.4	17.2	ch34

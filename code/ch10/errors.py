@@ -2,7 +2,7 @@
 
 Run from code/:
   uv run python ch10/errors.py
-  SPARK_REMOTE=sc://localhost:15117 uv run python ch10/errors.py    (server: ch90/connect_server.sh start)
+  SPARK_REMOTE=sc://localhost:15117 uv run python ch10/errors.py    (server: ch12/connect_server.sh start)
 """
 import glob
 import json

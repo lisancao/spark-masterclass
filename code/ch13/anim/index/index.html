@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 13: the three default index types. Numbers: code/ch13/output/internals.txt (noop write, all rows).
+      const D = { sequence: "1.57 s", dseq: "0.96 s", dist: "0.15 s" };
+      A.mount();
+      // beat open (0.0)
+      A.title("How pandas on Spark numbers the rows");
+      const LANES = [{ y: 0.27, name: "sequence" }, { y: 0.52, name: "distributed-sequence" }, { y: 0.77, name: "distributed" }];
+      const PX = [0.10, 0.21, 0.32, 0.43], BW = 180, BH = 84;
+      const lanes = LANES.map((L) => {
+        const lab = A.text(L.name, { x: 0.05, y: L.y - A.dy(92), size: 28, weight: 700, mono: true, anchor: "left" });
+        const parts = PX.map((x, p) => A.box({ x, y: L.y, w: BW, h: BH, kind: "paper", radius: 10 }));
+        const plabs = PX.map((x, p) => A.text("p" + p, { x: x, y: L.y + A.dy(58), size: 20, color: "var(--a-mute)" }));
+        const dots = [];
+        PX.forEach((x, p) => { for (let i = 0; i < 3; i++) dots.push({ d: A.dot({ x: x - A.dx(50) + i * A.dx(50), y: L.y, r: 15, color: "var(--a-fg)" }), x: x - A.dx(50) + i * A.dx(50), y: L.y, p, i }); });
+        A.in([lab, ...parts, ...plabs], 0.2, { stagger: 0.01 });
+        A.in(dots.map((o) => o.d), 0.5, { stagger: 0.01 });
+        return { L, dots, parts };
+      });
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.93, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      cap("pandas needs a number for every row", 0.3, 1.3);
+      const num = (s, x, y, t, color = "var(--a-acc)", size = 22) => { const n = A.text(s, { x, y, size, weight: 700, mono: true, color }); A.in(n, t, { dur: 0.25, rise: 6 }); return n; };
+      // beat sequence (1.4): every row moves into one partition, then gets 0..11 one after another
+      cap("sequence moves every row into one partition", 1.4, 4.5);
+      const S = lanes[0], ONE = 0.70;
+      const one = A.box({ x: ONE, y: S.L.y, w: 560, h: BH, kind: "soft", radius: 10 });
+      const onel = A.text("1 partition", { x: ONE, y: S.L.y + A.dy(58), size: 20, color: "var(--a-mute)" });
+      A.in([one, onel], 1.5);
+      gsap.set(S.dots.map((o) => o.d), { zIndex: 5 });
+      S.dots.forEach((o, k) => {
+        const tx = ONE - A.dx(242) + k * A.dx(44);
+        A.tl.to(o.d, { x: A.X(tx) - A.X(o.x), duration: 0.9, ease: "power2.inOut" }, 1.8 + k * 0.03);
+        num(String(k), tx, S.L.y - A.dy(30), 2.9 + k * 0.12, "var(--a-acc)", 20);
+      });
+      // beat dseq (4.6): count each partition, offsets, then number all partitions at once
+      cap("distributed-sequence counts each partition, then numbers in parallel", 4.6, 7.7);
+      const Q = lanes[1];
+      PX.forEach((x, p) => {
+        const c = num("3 rows", x, Q.L.y + A.dy(84), 4.9, "var(--a-mute)", 20);
+        A.out(c, 5.6, { dur: 0.2 });
+        num("start " + 3 * p, x, Q.L.y + A.dy(84), 5.8, "var(--a-fg)", 20);
+      });
+      Q.dots.forEach((o) => num(String(3 * o.p + o.i), o.x, Q.L.y - A.dy(30), 6.6, "var(--a-acc)", 20));
+      // beat dist (7.8): each partition numbers at once, from partition id << 33
+      cap("distributed is fastest, but its numbers have gaps", 7.8, 10.1);
+      const R = lanes[2];
+      const starts = ["0", "2^33", "2·2^33", "3·2^33"];
+      PX.forEach((x, p) => num("from " + starts[p], x, R.L.y + A.dy(84), 8.1, "var(--a-fg)", 20));
+      R.dots.forEach((o) => num(o.p ? "+" + o.i : String(o.i), o.x, R.L.y - A.dy(30), 8.1, "var(--a-acc)", 20));
+      // beat cost (10.2): measured time to write all rows with each index
+      const t1 = A.text(D.sequence, { x: 0.93, y: S.L.y, size: 46, weight: 700, color: "var(--a-acc)" });
+      const t2 = A.text(D.dseq, { x: 0.93, y: Q.L.y, size: 46, weight: 700 });
+      const t3 = A.text(D.dist, { x: 0.93, y: R.L.y, size: 46, weight: 700, color: "var(--a-ok, var(--a-fg))" });
+      A.in([t1, t2, t3], 10.3, { stagger: 0.15 });
+      cap("Time to number all 3.8 million rows", 10.4);
+      A.in(A.note("Four partitions of three rows are schematic. The times are measured."), 0.5);
+      A.finish(14);
+    </script>
+  </body>
+</html>

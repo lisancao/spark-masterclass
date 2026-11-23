@@ -1,28 +1,32 @@
-# Spark Masterclass, Chapter 83: Aggregation: GROUP BY, grouping sets, ROLLUP, CUBE and pivots.
+# Spark Masterclass, Chapter 83: Shipping a source. Storyboard: storyboard-part09a.md.
 #   film render code/film/ch83.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4152 SPARK_LOCAL_IP=127.0.0.1 PYTHONUNBUFFERED=1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4029 BOOK_DATA=$HOME/spark-masterclass/data CH51_VENVS=/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/part09a/venvs && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: rollup | ROLLUP: one Expand, and grouping_id for each level
-Type "# ROLLUP(Borough, pay): which rows are totals, and what does the plan do?" Enter
-Sleep 500ms
-Type "python ch83/sets.py 2>/dev/null | sed -n '/== 1/,/== 3/{/== 3/q;p}' | grep -v Broadcast | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
 
-# beat: combine | New in 4.3: adjacent aggregates combine, and a sorted child gets SortAggregate
+# beat: workers | Which Python do the workers use?
 Hide
 Type "clear" Enter
 Show
-Type "# GROUP BY after a sort-merge join on the same key: 4.3.0 against the old rules" Enter
+Type "# the package is in 'with': first PYSPARK_PYTHON unset, then the workers use 'bare'" Enter
 Sleep 500ms
-Type "python ch83/groupby.py 2>/dev/null | sed -n '/== 3\./,/== 3b/{/== 3b/q;p}' | cut -c1-92" Enter
+Type "$CH51_VENVS/with/bin/python ch83/registration.py lookup 2>/dev/null; PYSPARK_PYTHON=$CH51_VENVS/bare/bin/python $CH51_VENVS/with/bin/python ch83/registration.py lookup 2>/dev/null" Enter
 Wait@300s
-Sleep 10s
+Sleep 12s
+
+# beat: logs | Worker logs in a table
+Hide
+Type "clear" Enter
+Show
+Type "# logging and print() inside read(), read back from python_worker_logs()" Enter
+Sleep 500ms
+Type "PYSPARK_PYTHON=$CH51_VENVS/with/bin/python $CH51_VENVS/with/bin/python ch83/registration.py classic 2>/dev/null | sed -n '/^python_worker_logs/,$p'" Enter
+Wait@300s
+Sleep 12s

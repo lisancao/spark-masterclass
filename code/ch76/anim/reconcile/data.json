@@ -1,0 +1,8 @@
+{"source": "code/ch76/output/zones-app.txt",
+ "states": [
+  {"t": 0.1, "state": "DriverRequested", "at": 2.0},
+  {"t": 1.3, "state": "DriverReady", "at": 3.6},
+  {"t": 15.2, "state": "RunningHealthy", "at": 6.4},
+  {"t": 27.5, "state": "Succeeded", "at": 8.4},
+  {"t": 31.2, "state": "TerminatedWithoutReleaseResources", "at": 10.0}],
+ "pods": {"driver": "zones-0-driver", "exec": ["zones-exec-1", "zones-exec-2"]}}

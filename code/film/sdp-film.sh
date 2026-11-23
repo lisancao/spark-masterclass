@@ -8,9 +8,9 @@ export R="--remote sc://localhost:$PORT"
 sdp_film_prepare() {
   local d="$BOOK_DATA/work/sdp/film-$1"
   rm -rf "$d"; mkdir -p "$d/data" "$d/transformations"
-  cp "$FILM_DEMO/ch46/project/transformations/"* "$d/transformations/"
+  cp "$FILM_DEMO/ch56/project/transformations/"* "$d/transformations/"
   cp "$BOOK_DATA/nyc-taxi/taxi_zone_lookup.csv" "$d/data/"
-  cp "$FILM_DEMO/ch46/make_days.py" "$FILM_DEMO/ch46/look.py" "$d/"
+  cp "$FILM_DEMO/ch56/make_days.py" "$FILM_DEMO/ch56/look.py" "$d/"
   python "$d/make_days.py" "$d/data/trips" 2026-06-01 >/dev/null
   printf 'name: taxi_etl\nstorage: file://%s/pipeline-storage\nlibraries:\n  - glob:\n      include: transformations/**\n' "$d" > "$d/spark-pipeline.yml"
   sdp_server "$d" --conf spark.sql.catalogImplementation=hive >/dev/null 2>&1
@@ -22,7 +22,7 @@ ev() { grep --line-buffered -E 'Flow .*(RUNNING|COMPLETED|FAILED)|Run is|Excepti
 counts() { python look.py "sc://localhost:$PORT" 2>/dev/null | grep rows; }
 short() { sed -u "s#$HOME#~#g; s#$BOOK_DATA/work/sdp/##g" | cut -c1-88; }
 sdp_film_ch79_setup() {
-  cp "$FILM_DEMO/ch48/probe/probe.py" transformations/
+  cp "$FILM_DEMO/ch58/probe/probe.py" transformations/
   mkdir -p envs
   for e in dev prod; do
     printf 'name: taxi_etl\nstorage: file://%s/storage/%s\ndatabase: taxi_%s\nlibraries:\n  - glob:\n      include: ../transformations/**\n' "$PWD" $e $e > envs/$e.yml

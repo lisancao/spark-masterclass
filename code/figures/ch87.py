@@ -1,94 +1,64 @@
-"""Figures for Chapter 87. Numbers from code/ch87/output/committers.json and failure.txt."""
+"""Figures for Chapter 87.
+1. The problems of the sample, from the Step 1 table and demo.txt.
+2. The micro-batches of the stream over each change log. The byte ranges come from the
+   connector's own ChangesStreamReader run on the sample with no Spark
+   (code/ch87/anim/stream_plan.json); they agree with demo.txt: batches 7, 7, 8, 7, 7, 7,
+   43 rows, and the end offset of batch 0.
+"""
 import json
-from pathlib import Path
-
 from svgkit import *
 
-HERE = Path(__file__).resolve().parent
-FIG = str(HERE.parents[1] / "book" / "media" / "figures") + "/"
-data = {r["committer"]: r for r in json.loads((HERE.parent / "ch87" / "output" / "committers.json").read_text())}
+# 1. problems map
+cases = [("CASE-0001", [], "none"), ("CASE-0002", [], "call.wav: 40,044 bytes"),
+         ("CASE-0003", [("other", "no final newline")], ""),
+         ("CASE-0004", [("cases", "missing_attachment"), ("attachments", "scan.png missing"), ("changes", "unparsed line")], ""),
+         ("CASE-0005", [("cases", "unlisted_attachment"), ("attachments", "stray.tmp unlisted")], ""),
+         ("CASE-0006", [("attachments", "receipt.pdf sha_mismatch"), ("other", "out of sequence: review")], ""),
+         ("CASE-0007", [("ok", "version 1 index")], ""),
+         ("CASE-0008", [("cases", "bad_index"), ("attachments", "note.txt unlisted")], ""),
+         ("case-0009", [("ok", "BOM, CRLF, +02:00")], ""),
+         ("CASE-0010", [("cases", "bad_priority"), ("changes", "unparsed line")], "")]
+COL = {"cases": BLUE, "attachments": ORANGE, "changes": GREEN, "ok": TEAL, "other": GRAY}
+s = Svg(780, 330, "The problems of the casefile sample and where each one appears")
+for i, (cid, probs, note) in enumerate(cases):
+    col, row = i % 5, i // 5
+    x, y = 12 + col * 153, 20 + row * 140
+    s.frame(x, y, 145, 128, "", MUTE, r=8, dash=False)
+    s.text(x + 72, y + 20, cid, 13, MUTE, "middle", 700, mono=True)
+    if not probs:
+        s.text(x + 72, y + 60, note, 11, MUTE, "middle", italic=True)
+    for k, (where, what) in enumerate(probs):
+        s.box(x + 6, y + 30 + k * 31, 133, 26, what, COL[where], 10)
+ly = 312
+for i, (lab, c) in enumerate([("cases.problems", BLUE), ("attachments.status", ORANGE), ("changes.problem", GREEN), ("parsed, no problem", TEAL), ("stream or review only", GRAY)]):
+    s.rect(12 + i * 152, ly - 10, 14, 12, c, 1, 2)
+    s.text(32 + i * 152, ly, lab, 11, MUTE, "start")
+s.save(FIG + "ch87-problems.svg")
 
-# 1. Where one task's file goes, committer by committer (schematic paths, real request counts)
-s = Svg(1000, 510, "The path of one output file for each committer")
-rows = [
-    ("file-v1", ["task attempt dir\n_temporary/.../attempt_*/", "job attempt dir\n_temporary/0/task_*/", "final key\npart-00000-*.parquet"],
-     ["COPY + DELETE", "COPY + DELETE"], ["at task commit", "at job commit"], RED),
-    ("file-v2", ["task attempt dir\n_temporary/.../attempt_*/", "final key\npart-00000-*.parquet"],
-     ["COPY + DELETE"], ["at task commit"], ORANGE),
-    ("magic", ["upload, not completed\n__magic_job-*/.../", "final key\npart-00000-*.parquet"],
-     ["Complete upload"], ["at job commit"], GREEN),
-    ("directory", ["local disk of the task\nfs.s3a.buffer.dir", "final key\npart-00000-*.parquet"],
-     ["parts at task commit"], ["Complete at job commit"], TEAL),
-]
-y = 30
-for name, boxes, a1, a2, col in rows:
-    s.text(20, y + 48, name, 16, col, "start", 700, mono=True)
-    x = 125
-    for i, b in enumerate(boxes):
-        last = i == len(boxes) - 1
-        s.box(x, y + 12, 200, 64, b, col if last else GRAY, 12, mono=True)
-        if not last:
-            s.line(x + 202, y + 44, x + 268, y + 44, MUTE, 2)
-            s.text(x + 235, y + 4, a1[i], 11, MUTE, "middle", 700)
-            s.text(x + 235, y + 92, a2[i], 11, MUTE, "middle")
-        x += 270
-    r = data[name]["requests"]
-    s.text(985, y + 40, f"COPY {r.get('CopyObject', 0)}", 13, col, "end", 700, mono=True)
-    s.text(985, y + 58, f"MPU {r.get('NewMultipartUpload', 0)}", 13, col, "end", 700, mono=True)
-    y += 115
-s.text(20, 498, "Request counts for one write of 32 files (committers.txt). The folder names are shortened. "
-       "partitioned works like directory.", 11, MUTE, "start", italic=True)
-s.save(FIG + "ch87-commit-paths.svg")
-
-# 2. Requests by S3 API and the job commit time, for each committer
-s = Svg(900, 400, "S3 requests and job commit time for one write of 32 files")
-names = ["file-v1", "file-v2", "magic", "directory", "partitioned"]
-groups = [("HEAD", ["HeadObject"], GRAY), ("LIST", ["ListObjectsV2", "ListMultipartUploads"], BLUE),
-          ("PUT and parts", ["PutObject", "PutObjectPart", "NewMultipartUpload", "CompleteMultipartUpload"], GREEN),
-          ("GET", ["GetObject"], PURPLE), ("COPY", ["CopyObject"], RED),
-          ("DELETE", ["DeleteObject", "DeleteMultipleObjects"], ORANGE)]
-X0, SC, BH = 120, 0.42, 34
-for t in range(0, 1301, 250):
-    s.line(X0 + t * SC, 40, X0 + t * SC, 300, MUTE, 0.6, dash=True, arrow=False)
-    s.text(X0 + t * SC, 316, str(t), 11, MUTE)
-s.text(X0 + 650 * SC, 334, "requests that MinIO received (mc admin trace)", 12, MUTE)
-for i, n in enumerate(names):
-    yy = 50 + i * 50
-    s.text(X0 - 10, yy + 22, n, 14, MUTE, "end", 700, mono=True)
-    x = X0
-    req = data[n]["requests"]
-    for lab, keys, col in groups:
-        v = sum(req.get(k, 0) for k in keys)
-        if v:
-            s.rect(x, yy + 4, v * SC, BH - 8, col, 1)
-            x += v * SC
-    total = sum(req.values())
-    s.text(x + 8, yy + 22, f"{total}", 13, MUTE, "start", 700)
-    s.text(860, yy + 22, f"{data[n]['job commit s']:.2f} s", 13, ACC, "end", 700)
-s.text(860, 34, "job commit", 12, ACC, "end", 700)
-lx = X0
-for lab, keys, col in groups:
-    s.rect(lx, 352, 14, 14, col, 1)
-    s.text(lx + 20, 364, lab, 12, MUTE, "start")
-    lx += 115
-s.text(20, 392, "Median job commit time of three writes after a warm-up, local[4], MinIO in Docker on the same machine.",
-       11, MUTE, "start", italic=True)
-s.save(FIG + "ch87-requests.svg")
-
-# 3. After a failed job: what a reader finds (failure.txt)
-s = Svg(960, 250, "What each committer leaves after task 7 fails")
-cases = [("file-v1", 0, "nothing: the task output stayed under _temporary, and the job abort removed it", GRAY),
-         ("file-v2", 7, "7 part files in the final folder, no _SUCCESS: a reader sees 70,000 rows", RED),
-         ("magic", 0, "nothing: uploads were never completed, and the job abort cancelled them", GREEN)]
-for i, (n, parts, txt, col) in enumerate(cases):
-    yy = 30 + i * 70
-    s.text(20, yy + 30, n, 16, col, "start", 700, mono=True)
-    for k in range(8):
-        filled = k < parts
-        s.box(130 + k * 46, yy + 8, 40, 36, f"{k}", col if filled else GRAY, 12, opacity=1.0 if filled else 0.25,
-              dash=not filled, stroke=None if filled else MUTE)
-    s.text(510, yy + 30, txt, 12, MUTE, "start")
-s.text(20, 238, "8 tasks of 10,000 rows. Task 7 fails after tasks 0 to 6 commit. Boxes: part files left in the destination.",
-       11, MUTE, "start", italic=True)
-s.save(FIG + "ch87-failure.svg")
-print("ok")
+# 2. micro-batches over the logs
+d = json.load(open("../ch87/anim/stream_plan.json"))
+order = list(d["sizes"])   # the order of list_case_folders, which the stream follows
+BC = [BLUE, ORANGE, GREEN, PURPLE, TEAL, GRAY]
+s = Svg(780, 400, "Which micro-batch read each byte range of each change log")
+X0, SC = 120, 1.6
+for i, f in enumerate(order):
+    y = 30 + i * 30
+    s.text(X0 - 8, y + 15, f, 11, MUTE, "end", 600, mono=True)
+    s.frame(X0, y + 2, d["sizes"][f] * SC, 18, "", MUTE, r=2, dash=False)
+for b, batch in enumerate(d["batches"]):
+    for folder, a, e, n in batch["ranges"]:
+        y = 30 + order.index(folder) * 30
+        s.rect(X0 + a * SC, y + 2, (e - a) * SC - 1, 18, BC[b], 1, 2)
+        if (e - a) * SC > 24:
+            s.text(X0 + (a + e) / 2 * SC, y + 15, str(b), 11, "#ffffff", "middle", 700)
+held = d["held"]["CASE-0003"]; size = d["sizes"]["CASE-0003"]
+y = 30 + order.index("CASE-0003") * 30
+s.rect(X0 + (size - held) * SC, y + 2, held * SC, 18, RED, 0.25, 2, stroke=RED)
+s.text(X0 + size * SC + 6, y + 15, f"{held} bytes held: no newline yet", 11, ACC, "start", 600)
+ly = 340
+for b, batch in enumerate(d["batches"]):
+    s.rect(X0 + b * 100, ly - 10, 14, 12, BC[b], 1, 2)
+    s.text(X0 + 20 + b * 100, ly, f"batch {b}: {batch['rows']} rows", 11, MUTE, "start")
+s.text(X0, 370, "maxBytesPerTrigger 400, availableNow. 43 rows in 6 batches. The batch reader gives 44 rows.", 11, MUTE, "start", italic=True)
+s.text(X0, 388, "Byte ranges from the connector's own stream reader, run on the sample with no Spark.", 11, MUTE, "start", italic=True)
+s.save(FIG + "ch87-stream-batches.svg")

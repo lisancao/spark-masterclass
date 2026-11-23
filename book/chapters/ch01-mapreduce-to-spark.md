@@ -256,7 +256,7 @@ The next steps of Spark's history removed this limit:
 | Spark cannot see inside a function | DataFrames and Catalyst: queries as expressions that Spark can optimize | [Chapter 3](ch03-rdds-to-a-sql-engine.md) |
 | Records are JVM or Python objects | Tungsten: binary rows, managed memory, generated code | [Chapter 3](ch03-rdds-to-a-sql-engine.md) |
 | A batch API with a separate streaming API (DStreams) | Structured Streaming: one DataFrame API for batch and streaming | [Chapter 4](ch04-one-engine-batch-and-streaming.md) |
-| The driver and your code share one process | Spark Connect: a thin client that sends plans | [Chapter 18](ch18-spark-connect.md) |
+| The driver and your code share one process | Spark Connect: a thin client that sends plans | [Chapter 24](ch24-spark-connect.md) |
 
 The RDD did not go away. Each DataFrame query still runs as RDDs of binary rows, as the `SQLExecutionRDD` in [Chapter 3](ch03-rdds-to-a-sql-engine.md) shows. But the RDD API is now a low-level tool. Spark Connect does not include it, and most new code uses DataFrames or SQL.
 

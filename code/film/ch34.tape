@@ -1,28 +1,59 @@
-# Spark Masterclass, Chapter 34: Python on Spark.
+# Spark Masterclass, Chapter 34. Clips for the book page.
 #   film render code/film/ch34.tape --format chapter
-Set TypingSpeed 40ms
+Set TypingSpeed 35ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4139 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: transpile | Which UDFs the 4.3 transpiler lowers
-Type "# 4.3 transpiler: which Python UDFs lose their Python node?" Enter
+# beat: ch34-lambda | A lambda is traced once
+Hide
+Type "nvim +/'^def double' ch34/lambdas.py" Enter
+Sleep 2.5s
+Type ":noh" Enter
+Type "zt" Ctrl+L
+Show
+Sleep 7s
+Hide
+Type ":qa!" Enter
+Type "clear" Enter
 Sleep 500ms
-Type "python ch34/transpile.py 2>/dev/null | sed -n '3,15p' | cut -c1-94" Enter
-Wait@180s
+Show
+Type "# the Python lambda runs once, on the driver, with a placeholder" Enter
+Sleep 500ms
+Type "python ch34/lambdas.py 2>/dev/null | sed -n '/the lambda runs once/,/errors that show/p' | cut -c1-92" Enter
+Wait@300s
 Sleep 10s
 
-# beat: calls | How often Spark calls a Python UDF
+# beat: ch34-codegen | Higher-order functions in codegen
+Hide
+Type "nvim +/'which higher-order functions take' ch34/lambdas.py" Enter
+Sleep 2.5s
+Type ":noh" Enter
+Type "zt" Ctrl+L
+Show
+Sleep 7s
+Hide
+Type ":qa!" Enter
+Type "clear" Enter
+Sleep 500ms
+Show
+Type "# new in 4.3: which higher-order functions are compiled" Enter
+Sleep 500ms
+Type "python ch34/lambdas.py 2>/dev/null | sed -n '/which higher-order/,/nested schema/p' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s
+
+# beat: ch34-unnest | New in 4.3: UNNEST, WITH ORDINALITY and LEFT JOIN LATERAL
 Hide
 Type "clear" Enter
 Show
-Type "# count the calls of a UDF on 1,000 rows with an accumulator" Enter
+Type "# UNNEST (4.3): several arrays in parallel, and the plan of LEFT JOIN LATERAL" Enter
 Sleep 500ms
-Type "python ch34/calls.py 2>/dev/null | sed -n '1,8p'" Enter
-Wait@240s
-Sleep 9s
+Type "SPARK_UI_PORT=4152 python ch34/unnest.py 2>/dev/null | sed -n '/several arrays/,/NULL array/p;/the plans/,/LATERAL VIEW/p' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s

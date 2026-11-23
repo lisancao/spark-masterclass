@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Row counts: data.json (writes.txt). Timing: schematic.
+      const D = {"source": "code/ch72/output/writes.txt: the task attempt directories, and 'append run twice: 20 rows (10 expected)', 'overwrite run twice: 10 rows'. Timing is schematic.", "expected": 10, "append_after_rerun": 20, "overwrite_after_rerun": 10};
+      A.mount();
+      // beat open (0.0)
+      A.title("A retry is safe. A rerun is not");
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.875, size: 36 }); A.in(c, t0); if (t1) A.out(c, t1); };
+      // the task attempt part (0.6 to 4.4)
+      const a0 = A.box({ x: 0.25, y: 0.3, w: 440, h: 70, kind: "paper", title: "partition 1, attempt 0", size: 26 });
+      const x0 = A.text("fails: its attempt directory is deleted", { x: 0.25, y: 0.37 + A.dy(20), size: 24, color: "var(--a-acc)" });
+      const a1 = A.box({ x: 0.75, y: 0.3, w: 440, h: 70, kind: "ok", title: "partition 1, attempt 1", size: 26 });
+      const c1 = A.text("task commit, then job commit", { x: 0.75, y: 0.37 + A.dy(20), size: 24, color: "var(--a-ok)" });
+      gsap.set([x0, a1, c1], { opacity: 0 });
+      A.tl.to(a0, { opacity: 0.35, duration: 0.4 }, 1.4);
+      A.tl.to(x0, { opacity: 1, duration: 0.3 }, 1.4);
+      A.tl.to([a1, c1], { opacity: 1, duration: 0.4 }, 2.4);
+      cap("A failed attempt leaves no file in the output", 0.6, 4.4);
+      // the output folders
+      const L = [{ name: "mode append", y: 0.56 }, { name: "mode overwrite", y: 0.72 }];
+      const W = A.dx(36);
+      const bars = L.map((l) => {
+        A.text(l.name, { x: 0.06, y: l.y, size: 30, weight: 700, anchor: "left" });
+        A.box({ x: 0.3 + 10 * W, y: l.y, w: 20 * 36 + 20, h: 64, kind: "ghost", title: "", radius: 8 });
+        const cells = [];
+        for (let i = 0; i < 20; i++) {
+          const e = A.box({ x: 0.3 + (i + 0.5) * W, y: l.y, w: 30, h: 48, kind: i < 10 ? "ok" : "accent", title: "", radius: 4 });
+          gsap.set(e, { opacity: 0 }); cells.push(e);
+        }
+        const n = A.text("0 rows", { x: 0.92, y: l.y, size: 32, weight: 700, mono: true });
+        return { cells, n, l };
+      });
+      const count = (b, s, t, col) => { const e = A.text(s, { x: 0.92, y: b.l.y, size: 32, weight: 700, mono: true, color: col || "var(--a-fg)" });
+        gsap.set(e, { opacity: 0 }); A.tl.to(b.n, { opacity: 0, duration: 0.2 }, t); A.tl.to(e, { opacity: 1, duration: 0.2 }, t); b.n = e; };
+      // beat run1 (3.0): both write 10 rows
+      bars.forEach((b) => { A.tl.to(b.cells.slice(0, 10), { opacity: 1, duration: 0.2, stagger: 0.05 }, 3.0); count(b, D.expected + " rows", 3.6); });
+      // beat rerun (5.0): a later step failed; the orchestrator runs the job again
+      const fail = A.box({ x: 0.5, y: 0.3, w: 760, h: 70, kind: "accent", title: "a later step fails: the job runs again", size: 28 });
+      gsap.set(fail, { opacity: 0 });
+      A.tl.to([a0, x0, a1, c1], { opacity: 0, duration: 0.3 }, 4.6);
+      A.tl.to(fail, { opacity: 1, duration: 0.3 }, 4.8);
+      cap("The commit makes one job atomic, not a second run", 4.8, 9.0);
+      A.tl.to(bars[0].cells.slice(10, 20), { opacity: 1, duration: 0.2, stagger: 0.05 }, 6.2);
+      count(bars[0], D.append_after_rerun + " rows", 6.9, "var(--a-acc)");
+      A.tl.to(bars[1].cells.slice(0, 10), { opacity: 0.15, duration: 0.3 }, 6.2);
+      A.tl.to(bars[1].cells.slice(0, 10), { opacity: 1, duration: 0.2, stagger: 0.05 }, 6.8);
+      count(bars[1], D.overwrite_after_rerun + " rows", 7.4, "var(--a-ok)");
+      // beat result (9.2)
+      cap("append: " + D.append_after_rerun + " rows, " + D.expected + " expected. overwrite: " + D.overwrite_after_rerun + " rows.", 9.2);
+      A.in(A.note("one row = one cell; timing schematic; row counts from the run"), 0.3);
+      A.finish(14);
+    </script>
+  </body>
+</html>

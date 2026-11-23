@@ -1,0 +1,8 @@
+{"source": "code/ch78/output/dryrun.txt",
+ "gates": ["register flows", "resolve graph", "run", "trusted number"],
+ "flows": [
+  {"f": "gold_typo.py", "stop": 1, "msg": "TABLE_OR_VIEW_NOT_FOUND"},
+  {"f": "gold_column.py", "stop": 1, "msg": "UNRESOLVED_COLUMN"},
+  {"f": "gold_conf.py", "stop": 0, "msg": "SESSION_MUTATION"},
+  {"f": "gold_epoch.py", "stop": 3, "msg": "561 days in year 58384", "run": "COMPLETED, 561 rows"},
+  {"f": "gold_ok.py", "stop": 4, "msg": "5 days in June 2026", "run": "COMPLETED, 5 rows"}]}

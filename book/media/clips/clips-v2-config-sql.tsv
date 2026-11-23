@@ -2,6 +2,6 @@ clip	source	start	end	poster_at	chapter
 ch08-layers	ch08-chapter.mp4 (01-layers)	0-6, 40-92 at 4x, 92-105.7		last frame	ch08
 ch08-static	ch08-chapter.mp4 (02-static)	4.4	20.4	last frame	ch08
 ch08-connect	ch08-chapter.mp4 (03-connect)	3.0	19.0	last frame	ch08
-ch12-cli	ch12-chapter.mp4 (01-cli)	0-5, 90.1-104.1		last frame	ch12
-ch12-thrift	ch12-chapter.mp4 (02-thrift)	0-5, 44.9-58.9		last frame	ch12
-ch12-catalogs	ch12-chapter.mp4 (03-catalogs)	13.2	29.2	last frame	ch12
+ch15-cli	ch15-chapter.mp4 (01-cli)	0-5, 90.1-104.1		last frame	ch15
+ch15-thrift	ch15-chapter.mp4 (02-thrift)	0-5, 44.9-58.9		last frame	ch15
+ch15-catalogs	ch15-chapter.mp4 (03-catalogs)	13.2	29.2	last frame	ch15

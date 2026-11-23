@@ -1,58 +1,56 @@
-"""Chapter 19: a large result, collected over Classic (with and without Arrow) and over Connect.
-
-Each mode runs in its own process. The Connect server needs the same driver memory as Classic:
-  ch18/server.sh start --conf spark.driver.memory=4g
+"""Chapter 19: timings. Run under the bench lock:
   flock $BOOK_DATA/.bench.lock uv run python ch19/bench.py
+Each case: one warmup, then 5 timed runs; the median is reported. Writes to the noop sink.
 """
-import json, os, statistics, subprocess, sys, time
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from common.book import TRIPS
+import os
+import platform
+import statistics
+import time
+from aggbook import start
 
-COLS = ["PULocationID", "DOLocationID", "trip_distance", "fare_amount", "tpep_pickup_datetime"]
-ROWS = 1_000_000            # for collect(), which makes one Python Row per row
-REPS = 5                     # after one warmup run
-
-
-def run(mode):
-    """One mode, in this process: time toPandas() of the whole month and collect() of ROWS rows."""
-    from pyspark.sql import SparkSession
-    if mode == "connect":
-        spark = SparkSession.builder.remote(f"sc://localhost:{os.environ.get('CONNECT_PORT', '15002')}").create()
-    else:
-        spark = (SparkSession.builder.master("local[*]").config("spark.driver.memory", "4g")
-                 .config("spark.ui.enabled", "false")
-                 .config("spark.sql.execution.arrow.pyspark.enabled", str(mode == "classic").lower())
-                 .getOrCreate())
-        spark.sparkContext.setLogLevel("ERROR")
-    df = spark.read.parquet(str(TRIPS)).select(*COLS)
-    out = {}
-    for name, action in [("toPandas", lambda: df.toPandas()),
-                         ("collect", lambda: df.limit(ROWS).collect())]:
-        times = []
-        for i in range(REPS + 1):
-            t = time.perf_counter()
-            result = action()
-            if i:                                   # the first run is the warmup
-                times.append(time.perf_counter() - t)
-        out[name] = {"rows": len(result), "median_s": round(statistics.median(times), 2),
-                     "min_s": round(min(times), 2), "max_s": round(max(times), 2)}
-    spark.stop()
-    print(json.dumps(out))
+spark = start("ch19-bench", spark_driver_memory="4g")
+spark.sql("CACHE TABLE j AS SELECT * FROM june")   # read the file one time, then time only the aggregates
+spark.table("j").count()
 
 
-if len(sys.argv) > 1:
-    run(sys.argv[1])
-    sys.exit()
+def timed(sql, conf=None, n=5):
+    for k, v in (conf or {}).items():
+        spark.conf.set(k, v)
+    df = spark.sql(sql)
+    df.write.format("noop").mode("overwrite").save()          # warmup
+    ts = []
+    for _ in range(n):
+        t = time.perf_counter()
+        spark.sql(sql).write.format("noop").mode("overwrite").save()
+        ts.append(time.perf_counter() - t)
+    for k in (conf or {}):
+        spark.conf.unset(k)
+    return statistics.median(ts), min(ts), max(ts)
 
-results = {}
-for mode in ["classic-no-arrow", "classic", "connect"]:
-    p = subprocess.run([sys.executable, __file__, mode], capture_output=True, text=True)
-    results[mode] = json.loads(p.stdout.strip().splitlines()[-1])
 
-print(f"{REPS} runs per cell after a warmup, median seconds (min-max)\n")
-print(f"{'mode':18} {'toPandas, all rows':>26} {'collect, 1,000,000 rows':>26}")
-for mode, r in results.items():
-    cells = [f"{r[k]['median_s']:.2f} ({r[k]['min_s']:.2f}-{r[k]['max_s']:.2f})" for k in ("toPandas", "collect")]
-    print(f"{mode:18} {cells[0]:>26} {cells[1]:>26}")
-print(f"\nrows: toPandas {results['connect']['toPandas']['rows']:,}, collect {results['connect']['collect']['rows']:,}")
+print(f"== conditions: local[*] on {os.cpu_count()} cores, {platform.python_version()}, driver 4g, "
+      f"3,663,191 cached rows, shuffle partitions 200, median of 5 after 1 warmup")
+CASES = [
+    ("high-card key, partial + final", "SELECT tpep_pickup_datetime, count(*) FROM j GROUP BY 1", {}),
+    ("high-card key, bypass partial", "SELECT tpep_pickup_datetime, count(*) FROM j GROUP BY 1",
+     {"spark.sql.execution.bypassPartialAggregation": "true"}),
+    ("low-card key, partial + final", "SELECT Borough, count(*) FROM j GROUP BY 1", {}),
+    ("low-card key, bypass partial", "SELECT Borough, count(*) FROM j GROUP BY 1",
+     {"spark.sql.execution.bypassPartialAggregation": "true"}),
+    ("count(DISTINCT ts) by Borough", "SELECT Borough, count(DISTINCT tpep_pickup_datetime) FROM j GROUP BY 1", {}),
+    ("approx_count_distinct(ts)", "SELECT Borough, approx_count_distinct(tpep_pickup_datetime) FROM j GROUP BY 1", {}),
+    ("percentile(fare, 0.5)", "SELECT Borough, percentile(fare_amount, 0.5) FROM j GROUP BY 1", {}),
+    ("percentile_approx(fare, 0.5)", "SELECT Borough, percentile_approx(fare_amount, 0.5) FROM j GROUP BY 1", {}),
+    ("ROLLUP(Borough, payment_type)", "SELECT Borough, payment_type, count(*) FROM j GROUP BY ROLLUP(1, 2)", {}),
+    ("UNION ALL of the 3 levels", """SELECT Borough, payment_type, count(*) FROM j GROUP BY 1, 2
+       UNION ALL SELECT Borough, NULL, count(*) FROM j GROUP BY 1 UNION ALL SELECT NULL, NULL, count(*) FROM j""", {}),
+    ("ROLLUP, from the Parquet file", "SELECT VendorID, payment_type, count(*) FROM trips GROUP BY ROLLUP(1, 2)", {}),
+    ("UNION ALL, from the Parquet file", """SELECT VendorID, payment_type, count(*) FROM trips GROUP BY 1, 2
+       UNION ALL SELECT VendorID, NULL, count(*) FROM trips GROUP BY 1
+       UNION ALL SELECT NULL, NULL, count(*) FROM trips""", {}),
+]
+print("  distinct fare values:", spark.sql("SELECT count(DISTINCT fare_amount) FROM j").first()[0],
+      "| distinct pickup times:", spark.sql("SELECT count(DISTINCT tpep_pickup_datetime) FROM j").first()[0])
+for label, sql, conf in CASES:
+    med, lo, hi = timed(sql, conf)
+    print(f"  {label:<34} median {med:6.3f} s   (min {lo:.3f}, max {hi:.3f})")

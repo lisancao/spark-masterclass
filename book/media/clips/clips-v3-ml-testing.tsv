@@ -1,6 +1,6 @@
 clip	source	start	end	poster_at	chapter
-ch93-rules	ch93-chapter.mp4	0.00	34.80	34.3	ch93
-ch93-connect	ch93-chapter.mp4	34.80	117.64	117.1	ch93
-ch94-pytest	ch94-chapter.mp4	0.00	37.76	37.3	ch94
-ch94-debugger	ch94-chapter.mp4	37.76	60.88	60.4	ch94
-ch53-barrier	ch53-barrier-chapter.mp4	0.00	31.24	30.7	ch53
+ch64-rules	ch64-chapter.mp4	0.00	34.80	34.3	ch64
+ch64-connect	ch64-chapter.mp4	34.80	117.64	117.1	ch64
+ch75-pytest	ch75-chapter.mp4	0.00	37.76	37.3	ch75
+ch75-debugger	ch75-chapter.mp4	37.76	60.88	60.4	ch75
+ch63-barrier	ch63-barrier-chapter.mp4	0.00	31.24	30.7	ch63

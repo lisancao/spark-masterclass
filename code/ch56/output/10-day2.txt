@@ -1,0 +1,43 @@
+$ python make_days.py data/trips 2026-06-02
+trips_2026-06-02.parquet: 126,260 trips
+$ spark-pipelines run --remote $SPARK_REMOTE | grep -E "Flow .*(RUNNING|COMPLETED)|Run is"
+2026-11-22 18:10:34: Flow spark_catalog.default.raw_trips is RUNNING.
+2026-11-22 18:10:34: Flow spark_catalog.default.zones is RUNNING.
+2026-11-22 18:10:35: Flow spark_catalog.default.zones has COMPLETED.
+2026-11-22 18:10:36: Flow spark_catalog.default.raw_trips has COMPLETED.
+2026-11-22 18:10:37: Flow spark_catalog.default.clean_trips is RUNNING.
+2026-11-22 18:10:37: Flow spark_catalog.default.clean_trips has COMPLETED.
+2026-11-22 18:10:38: Flow spark_catalog.default.borough_daily is RUNNING.
+2026-11-22 18:10:38: Flow spark_catalog.default.borough_daily has COMPLETED.
+2026-11-22 18:10:40: Run is COMPLETED.
+$ python look.py $SPARK_REMOTE
++-------------+
+|    tableName|
++-------------+
+|borough_daily|
+|  clean_trips|
+|    raw_trips|
+|        zones|
++-------------+
+raw_trips        237,806 rows
+clean_trips      223,444 rows
+zones                265 rows
+borough_daily         14 rows
++-----------+---------+------+--------+
+|pickup_date|  borough| trips|avg_fare|
++-----------+---------+------+--------+
+| 2026-06-01|Manhattan| 91226|   17.25|
+| 2026-06-01|   Queens| 11189|   52.88|
+| 2026-06-01| Brooklyn|  1984|   32.85|
+| 2026-06-02|Manhattan|106387|   17.73|
+| 2026-06-02|   Queens|  9727|    52.5|
+| 2026-06-02| Brooklyn|  1923|    32.2|
++-----------+---------+------+--------+
+$ ls pipeline-storage/_checkpoints/spark_catalog/default/raw_trips/raw_trips/0/commits
+0
+1
+$ cat pipeline-storage/_checkpoints/spark_catalog/default/raw_trips/raw_trips/0/sources/0/1
+v1
+{"path":"file://~/spark-masterclass/data/work/sdp/ch56/taxi_etl/data/trips/trips_2026-06-02.parquet","timestamp":1795371029553,"batchId":1}
+$ ls spark-warehouse/raw_trips | grep -c parquet
+2

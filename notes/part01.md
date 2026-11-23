@@ -1,6 +1,6 @@
 # Part I notes: STE rewrite
 
-Part I prose (`book/index.md`, `ch05` to `ch18`, and the prose of `book/roadmap.md` and `book/coverage.md`) is now in ASD-STE100 Simplified Technical English, following the "Language" section of `notes/chapter-brief.md`. Code blocks, output blocks, plans, commands, mermaid diagrams, video embeds, links and numbers did not change (checked by comparing every fence, `<video>`/`<source>` line, link target and number token against the previous commit). Tables in `roadmap.md` and `coverage.md` did not change.
+Part I prose (`book/index.md`, `ch05` to `ch24`, and the prose of `book/roadmap.md` and `book/coverage.md`) is now in ASD-STE100 Simplified Technical English, following the "Language" section of `notes/chapter-brief.md`. Code blocks, output blocks, plans, commands, mermaid diagrams, video embeds, links and numbers did not change (checked by comparing every fence, `<video>`/`<source>` line, link target and number token against the previous commit). Tables in `roadmap.md` and `coverage.md` did not change.
 
 ## Technical names (TN)
 
@@ -23,7 +23,7 @@ compile, deploy, install, download, parse, analyze, optimize, schedule, shuffle,
 | `book/chapters/ch05-how-spark-runs.md` | 120 | 28 | 0 |
 | `book/chapters/ch06-installing.md` | 53 | 10 | 0 |
 | `book/chapters/ch07-quick-start.md` | 72 | 7 | 0 |
-| `book/chapters/ch18-spark-connect.md` | 80 | 23 | 0 |
+| `book/chapters/ch24-spark-connect.md` | 80 | 23 | 0 |
 | `book/roadmap.md` | 5 | 0 | 0 |
 | `book/coverage.md` | 2 | 2 | 0 |
 
@@ -34,9 +34,9 @@ Every raw finding left after the rewrite is a false positive of the lint:
 - **Bold ends.** A sentence that ends in `.**` is joined to the next sentence (the thesis paragraphs).
 - **Words in link targets.** URLs such as `data-engineering-ai`, `sql-programming-guide` and `ch06-installing.md` give `-ing` findings.
 
-"Prepared" means the file went through a small filter before stecheck: link targets removed (link text kept), HTML tags removed (caption text kept), `**` removed, and a blank line put before each list item. The allowlist is `partitioning pruning coalescing monitoring tuning warning streaming` for all files, plus `installing learning extending` (titles) in `index.md`, `learning` (course name) in `coverage.md`, and `unresolved building` (TN adjective, post title) in `ch18`.
+"Prepared" means the file went through a small filter before stecheck: link targets removed (link text kept), HTML tags removed (caption text kept), `**` removed, and a blank line put before each list item. The allowlist is `partitioning pruning coalescing monitoring tuning warning streaming` for all files, plus `installing learning extending` (titles) in `index.md`, `learning` (course name) in `coverage.md`, and `unresolved building` (TN adjective, post title) in `ch24`.
 
-Procedure text (install and run steps in ch06, ch18 and the "How to choose" list) was also read against `--mode procedure`. All procedure sentences are imperative, 20 words or fewer, one instruction each, with the condition first. The `--mode procedure` length findings in ch06 are all description sentences.
+Procedure text (install and run steps in ch06, ch24 and the "How to choose" list) was also read against `--mode procedure`. All procedure sentences are imperative, 20 words or fewer, one instruction each, with the condition first. The `--mode procedure` length findings in ch06 are all description sentences.
 
 ## Deliberate rule breaks
 
@@ -54,13 +54,13 @@ Procedure text (install and run steps in ch06, ch18 and the "How to choose" list
 - ch06: "a checksum served next to a tampered file proves nothing" became "If a mirror serves a changed file, a checksum from the same mirror proves nothing".
 - ch06: the thin-client admonition now starts with the command "Do not paste thin-client code into `python -c`", and its title is "Do not use `python -c` with the thin client". The facts (status 255, the message, the doctest check, the cases that work) are all kept.
 - ch06: "uv refused to resolve the project until I raised `requires-python` from 3.10" became "uv did not resolve the project until the book increased `requires-python` from 3.10".
-- ch18: "Before 4.3" added twice to replace "used to", so the version number 4.3 appears two more times. No other number was added or removed.
-- Several long sentences became vertical lists (ch05 Part IV rules, ch06 tarball contents and data problems, ch18 Classic problems, `sparkContext` replacements, operation record, Connect use cases, coverage abbreviations). The items are the same as in the original sentences.
+- ch24: "Before 4.3" added twice to replace "used to", so the version number 4.3 appears two more times. No other number was added or removed.
+- Several long sentences became vertical lists (ch05 Part IV rules, ch06 tarball contents and data problems, ch24 Classic problems, `sparkContext` replacements, operation record, Connect use cases, coverage abbreviations). The items are the same as in the original sentences.
 
 ## Words not confirmed as approved
 
 The official dictionary is not available here, so these words were used without confirmation. Some are probably unapproved and need a TN/TV decision or a replacement:
 
-lazily, explicitly, automatically, immediately, locally, directly, clearly, adjacent (removed), sensible, reasonable, reliable, reproducible, dense, residential, flat (fare), surprise, wraps, communicates, arrangement, opinions, noise, practice(s), habit (removed), purpose, suggestion, quantities, overhead, workloads, boundary, midpoint, horizontal, interactive, intermediate, commutative, operands, numerator, denominator, ratio, weight, allocation, estimate, rite of passage (removed), "deep in the server", "front door" (ch18 recap, a metaphor kept from the original).
+lazily, explicitly, automatically, immediately, locally, directly, clearly, adjacent (removed), sensible, reasonable, reliable, reproducible, dense, residential, flat (fare), surprise, wraps, communicates, arrangement, opinions, noise, practice(s), habit (removed), purpose, suggestion, quantities, overhead, workloads, boundary, midpoint, horizontal, interactive, intermediate, commutative, operands, numerator, denominator, ratio, weight, allocation, estimate, rite of passage (removed), "deep in the server", "front door" (ch24 recap, a metaphor kept from the original).
 
 "Thus" is used as the connecting word for results. "Possibly", "probably" and "most likely" carry the original hedges.

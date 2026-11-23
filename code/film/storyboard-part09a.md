@@ -2,7 +2,7 @@
 
 Chapter format (1280x720, about 95x24 cells), embedded in the book's pages. The VO lines are drafts, checked against the scripts' output. The clips are muted in the book.
 
-## ch65.tape
+## ch79.tape
 
 | Beat | On screen | VO (draft) | Has to be readable |
 |---|---|---|---|
@@ -10,7 +10,7 @@ Chapter format (1280x720, about 95x24 cells), embedded in the book's pages. The 
 | balance | round robin against largest-first planning | Round robin gives each task the same number of files. Largest-first gives each task the same number of bytes. | both lists of (files, bytes), the bytes per task table |
 | errors | when each error appears | Planning errors appear at the first action as PYTHON_DATA_SOURCE_ERROR. Errors in read() appear in a task as PYTHON_EXCEPTION. | each label, `fails at build` or `fails at action`, the condition |
 
-## ch66.tape
+## ch80.tape
 
 | Beat | On screen | VO (draft) | Has to be readable |
 |---|---|---|---|
@@ -18,7 +18,7 @@ Chapter format (1280x720, about 95x24 cells), embedded in the book's pages. The 
 | ranges | JDBC stride ranges and quantile ranges | JDBC splits the key space evenly. Two late keys put almost all rows in one task. Quantiles split the rows evenly. | the four WHERE clauses, both rows-per-partition lists |
 | timezone | one naive datetime under three worker time zones | A naive datetime takes the time zone of the worker. An aware one stays correct. | the three naive values, the aware value |
 
-## ch67.tape
+## ch81.tape
 
 | Beat | On screen | VO (draft) | Has to be readable |
 |---|---|---|---|
@@ -26,14 +26,14 @@ Chapter format (1280x720, about 95x24 cells), embedded in the book's pages. The 
 | opened | rows, files opened and Spark's Filter for each query | The audit proves the pushdown: five files opened, not twenty-six. | the opened column, the Filter column |
 | shared | the shared planned read | After a filtered query, a plain count on the same DataFrame returns five, not twenty-six. | 5 vs 26, 10 vs 31 |
 
-## ch68.tape
+## ch82.tape
 
 | Beat | On screen | VO (draft) | Has to be readable |
 |---|---|---|---|
 | commit | the writer trace, append, overwrite and a failed append | The tasks stage files, the commit publishes them. A failed job calls abort with None for each task, and the manifest does not change. | pids, the manifest lines, abort([None, None, None]) |
 | stream | the stream calls, the checkpoint, restart and replay | Offsets go to the checkpoint before a batch, commits after it. A replayed batch is skipped by the sink. | the batch lists, the offset JSON, "replay skipped" |
 
-## ch69.tape
+## ch83.tape
 
 | Beat | On screen | VO (draft) | Has to be readable |
 |---|---|---|---|

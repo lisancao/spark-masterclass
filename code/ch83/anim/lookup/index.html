@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13.5" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Outcomes from packaging.txt, runs 2 and 4. The module list is the top-level modules of the 'with' venv that matter here.
+      const D = {"source": "code/ch83/output/packaging.txt (runs 2 and 4); lookup_data_sources.py at v4.3.0", "run2": {"modules": ["py4j", "pyspark", "pyspark_mailbox"], "result": "format('mailbox'): 4 rows"}, "run4": {"modules": ["py4j", "pyspark", "pyspark_broken", "pyspark_mailbox"], "error": "ModuleNotFoundError: a_module_that_is_not_installed", "warn": "Skipping the lookup of Python Data Sources due to the failure.", "result": "format('mailbox'): DATA_SOURCE_NOT_FOUND"}}; // data.json
+      A.mount();
+      A.title("How Spark finds a packaged source", "the lookup worker imports every pyspark_* module");
+      const X = 0.22, RX = 0.74;
+      const reg = A.box({ x: RX, y: 0.42, w: 600, h: 300, kind: "ghost", radius: 16 });
+      const regl = A.text("registered sources", { x: RX, y: 0.42 - A.dy(125), size: 26, color: "var(--a-mute)" });
+      A.in([reg, regl], 0.2);
+      function scan(mods, t0, broken) {
+        const head = A.text(broken ? "run 4: with pyspark_broken" : "run 2: one package", { x: X, y: 0.24, size: 30, weight: 700, color: broken ? "var(--a-acc)" : "var(--a-fg)" });
+        A.in(head, t0 - 0.3);
+        const els = [head];
+        mods.forEach((m, i) => {
+          const y = 0.33 + i * (broken ? 0.095 : 0.085);
+          const b = A.box({ x: X, y, w: 380, h: 60, kind: "paper", title: m, size: 26 });
+          A.in(b, t0 + i * 0.1, { rise: 6 }); els.push(b);
+          const tt = t0 + 1.0 + i * 0.7;
+          const starts = m.startsWith("pyspark_");
+          const after = broken && mods.indexOf("pyspark_broken") < i;
+          const tag = A.text(after ? "not registered" : (starts ? "import" : "skip: no pyspark_ prefix"), { x: X + A.dx(210), y, size: 22, anchor: "left", color: (starts && !after) ? "var(--a-fg)" : "var(--a-mute)" });
+          A.in(tag, tt, { rise: 0 }); els.push(tag);
+          if (m === "pyspark_mailbox" && !broken) {
+            const r = A.box({ x: RX, y: 0.40, w: 440, h: 70, kind: "ok", title: "mailbox → MailboxDataSource", size: 24 });
+            A.in(r, tt + 0.5); els.push(r);
+          }
+          if (m === "pyspark_broken") {
+            A.tl.to(b, { borderColor: "#E25A1C", duration: 0.2 }, tt + 0.3);
+            const e = A.text(D.run4.error, { x: X, y: y + A.dy(42), size: 18, mono: true, color: "var(--a-acc)" });
+            A.in(e, tt + 0.3, { rise: 0 }); els.push(e);
+          }
+        });
+        return els;
+      }
+      const a = scan(D.run2.modules, 1.0, false);
+      const r2 = A.text(D.run2.result, { x: RX, y: 0.42 + A.dy(95), size: 24, mono: true, color: "var(--a-ok)" });
+      A.in(r2, 4.0); a.push(r2);
+      A.out(a, 5.6);
+      const b = scan(D.run4.modules, 6.4, true);
+      const w = A.text(D.run4.warn, { x: RX, y: 0.40, size: 20, color: "var(--a-acc)", maxw: 460 });
+      A.in(w, 9.6);
+      const r4 = A.text(D.run4.result, { x: RX, y: 0.42 + A.dy(95), size: 20, mono: true, color: "var(--a-acc)" });
+      A.in(r4, 10.4);
+      const caps = [
+        [0.4, "A worker imports each top-level module named pyspark_*."],
+        [3.4, "It registers the DefaultSource of each module under its name."],
+        [6.0, "Now a second package fails to import."],
+        [9.4, "Spark skips the whole lookup. No packaged source is registered."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.88, size: 34, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.in(A.note("outcomes from runs 2 and 4 of packaging.sh"), 0.5);
+      A.finish(13.5);
+    </script>
+  </body>
+</html>

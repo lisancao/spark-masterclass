@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13.5" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Bytes from layout.txt. A reader walks the value of one event.
+      const D = {"source": "code/ch90/output/layout.txt (first event of day 1: metadata 27 bytes, value 44 bytes)", "meta": ["01", "04", "00", "05", "0c", "12", "14"], "names": ["event", "user_id", "amount", "ts"], "head": ["02", "04"], "ids": ["02", "00", "03", "01"], "offs": ["07", "00", "0d", "05", "21"], "data": [["11 view", 0, "'view'"], ["0c 00", 5, "0"], ["20 02 65 02 00 00", 7, "6.13"], ["4d 2026-10-01T10:00:00", 13, "'2026-10-01T10:00:00'"]], "fields": [[2, 7], [0, 0], [3, 13], [1, 5]]}; // data.json
+      A.mount();
+      A.title("Decode a VARIANT value", "a reader walks 44 bytes with a 27-byte dictionary");
+      const PX = (px) => px / A.W * A.s;      // px at 1080 to a fraction of the width
+      const chip = (txt, x, y, w, kind) => A.box({ x, y, w, h: 58, kind, title: txt, size: 24, radius: 6 });
+      // metadata row
+      const ml = A.text("metadata", { x: 0.06, y: 0.24, size: 24, anchor: "left", color: "var(--a-mute)" });
+      const mc = D.meta.map((b, i) => chip(b, 0.10 + PX(40) + i * PX(70), 0.30, 64, "paper"));
+      const nx0 = 0.10 + PX(40) + 7 * PX(70) + PX(30);
+      let nx = nx0; const nc = D.names.map((n) => { const w = 40 + n.length * 18; const c = chip(n, nx + PX(w / 2), 0.30, w, "paper"); nx += PX(w + 8); return c; });
+      // value row
+      const vl = A.text("value", { x: 0.06, y: 0.42, size: 24, anchor: "left", color: "var(--a-mute)" });
+      const vb = [...D.head, ...D.ids, ...D.offs];
+      const vc = vb.map((b, i) => chip(b, 0.10 + PX(40) + i * PX(70), 0.48, 64, "paper"));
+      // data row
+      const dl = A.text("data", { x: 0.06, y: 0.60, size: 24, anchor: "left", color: "var(--a-mute)" });
+      let dx = 0.10 + PX(10); const ws = [170, 130, 330, 470];
+      const dc = D.data.map(([t], i) => { const c = chip(t, dx + PX(ws[i] / 2), 0.66, ws[i], "paper"); dx += PX(ws[i] + 10); return c; });
+      A.in([ml, ...mc, ...nc, vl, ...vc, dl, ...dc], 0.3, { stagger: 0.015 });
+      // a highlight helper: change border and fill of a chip
+      const hi = (els, t, col) => A.tl.to(els, { borderColor: col, backgroundColor: col === "#E25A1C" ? "#3A1A0C" : "#13241A", duration: 0.2 }, t);
+      const lo = (els, t) => A.tl.to(els, { borderColor: "#5A5F68", backgroundColor: "#1C1E22", duration: 0.2 }, t);
+      const note = (s, t, t1) => { const e = A.text(s, { x: 0.80, y: 0.47, size: 24, color: "var(--a-acc)", maxw: 420 }); A.in(e, t, { rise: 0, dur: 0.2 }); A.out(e, t1, { dur: 0.15 }); };
+      hi(vc[0], 1.6, "#E25A1C"); note("0x02: OBJECT, 1-byte size, ids and offsets", 1.6, 2.8); lo(vc[0], 2.8);
+      hi(vc[1], 2.9, "#E25A1C"); note("0x04: four fields", 2.9, 4.0); lo(vc[1], 4.0);
+      // fields
+      const out = [];
+      D.fields.forEach(([id, off], k) => {
+        const t = 4.2 + k * 1.5;
+        hi(vc[2 + k], t, "#E25A1C"); hi(nc[id], t + 0.3, "#7BC496");
+        hi(vc[6 + k], t + 0.6, "#E25A1C");
+        const di = D.data.findIndex((d) => d[1] === off);
+        hi(dc[di], t + 0.9, "#7BC496");
+        const line = A.text(`${D.names[id]}: ${D.data[di][2]}`, { x: 0.68, y: 0.38 + k * 0.05, size: 24, mono: true, anchor: "left", color: "var(--a-ok)" });
+        A.in(line, t + 1.0, { rise: 0, dur: 0.2 }); out.push(line);
+        lo([vc[2 + k], nc[id], vc[6 + k], dc[di]], t + 1.4);
+      });
+      const caps = [
+        [0.4, "The metadata holds each field name one time."],
+        [1.6, "The value starts with a header byte and a size."],
+        [4.2, "Field k: id k names it, offset k points to its data."],
+        [10.4, "The ids follow the sort of the names. The data keeps the JSON order."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.93, size: 32, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.finish(13.5);
+    </script>
+  </body>
+</html>

@@ -1,59 +1,38 @@
-# Spark Masterclass, Chapter 28. Clips for the book page.
-#   film render code/film/ch28.tape --format chapter
+# Spark Masterclass, Chapter 28: building an application on a Connect client.
+#   SCRATCH=<build dir> film render code/film/ch28.tape --format chapter
+# Needs: ch27/server.sh start and ch28/run.sh build.
 Set TypingSpeed 35ms
 Set WaitPattern /❯$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && setopt interactivecomments" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: ch28-lambda | A lambda is traced once
-Hide
-Type "nvim +/'^def double' ch28/lambdas.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
-Type "clear" Enter
-Sleep 500ms
-Show
-Type "# the Python lambda runs once, on the driver, with a placeholder" Enter
-Sleep 500ms
-Type "python ch28/lambdas.py 2>/dev/null | sed -n '/the lambda runs once/,/errors that show/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+# beat: heavy | Six months aggregated by Spark, back as Arrow, into Polars
+Type "# the app: Spark does six months of trips; the answer comes back as Arrow" Enter
+Sleep 400ms
+Type "ch28/run.sh show | sed -n '/== 1/,/^schema/p'" Enter
+Wait@60s
+Sleep 6s
 
-# beat: ch28-codegen | Higher-order functions in codegen
+# beat: local | Follow-up questions in Polars and DuckDB, no round trip
 Hide
-Type "nvim +/'which higher-order functions take' ch28/lambdas.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
 Type "clear" Enter
-Sleep 500ms
 Show
-Type "# new in 4.3: which higher-order functions are compiled" Enter
-Sleep 500ms
-Type "python ch28/lambdas.py 2>/dev/null | sed -n '/which higher-order/,/nested schema/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+Type "# follow-up questions: Polars and DuckDB on the same Arrow data" Enter
+Sleep 400ms
+Type "ch28/run.sh show | sed -n '/== 4/,/question 1/p;/busiest/,/^$/p' | grep -v '^shape\|---\|^==\|^$'" Enter
+Wait@60s
+Sleep 8s
 
-# beat: ch28-unnest | New in 4.3: UNNEST, WITH ORDINALITY and LEFT JOIN LATERAL
+# beat: retry | The server is down when the app starts; retries carry it through
 Hide
 Type "clear" Enter
 Show
-Type "# UNNEST (4.3): several arrays in parallel, and the plan of LEFT JOIN LATERAL" Enter
-Sleep 500ms
-Type "SPARK_UI_PORT=4152 python ch28/unnest.py 2>/dev/null | sed -n '/several arrays/,/NULL array/p;/the plans/,/LATERAL VIEW/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+Type "# the server is down when the app starts; it comes back after 8 s" Enter
+Sleep 400ms
+Type "ch28/resilience.sh wait" Enter
+Wait@120s
+Sleep 6s

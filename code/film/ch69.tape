@@ -1,32 +1,26 @@
-# Spark Masterclass, Chapter 69: Shipping a source. Storyboard: storyboard-part09a.md.
+# Spark Masterclass, Chapter 69: calling models and services. Storyboard: notes/part07.md.
 #   film render code/film/ch69.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4029 BOOK_DATA=$HOME/spark-masterclass/data CH51_VENVS=/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/part09a/venvs && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4227 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-
-# beat: workers | Which Python do the workers use?
-Hide
-Type "clear" Enter
-Show
-Type "# the package is in 'with': first PYSPARK_PYTHON unset, then the workers use 'bare'" Enter
+# beat: runs | How many rows go into the model for each action
+Type "# one labelled DataFrame, five actions: how many rows reach the model?" Enter
 Sleep 500ms
-Type "$CH51_VENVS/with/bin/python ch69/registration.py lookup 2>/dev/null; PYSPARK_PYTHON=$CH51_VENVS/bare/bin/python $CH51_VENVS/with/bin/python ch69/registration.py lookup 2>/dev/null" Enter
-Wait@300s
-Sleep 12s
+Type "python ch69/inference.py 2>/dev/null | sed -n '/how many times/,/cache()/p' | grep -v 'filter plan' | cut -c1-92" Enter
+Wait@900s
+Sleep 10s
 
-# beat: logs | Worker logs in a table
-Hide
+# beat: requests | One request per row, then a client per partition
 Type "clear" Enter
-Show
-Type "# logging and print() inside read(), read back from python_worker_logs()" Enter
+Type "# the same 232 texts: a UDF per row, then mapInPandas with batches and a rate limit" Enter
 Sleep 500ms
-Type "PYSPARK_PYTHON=$CH51_VENVS/with/bin/python $CH51_VENVS/with/bin/python ch69/registration.py classic 2>/dev/null | sed -n '/^python_worker_logs/,$p'" Enter
-Wait@300s
-Sleep 12s
+Type "python ch69/calling.py 2>/dev/null | sed -n '/once per row/,/largest request 10/p' | cut -c1-92" Enter
+Wait@900s
+Sleep 10s

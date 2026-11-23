@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="12.5" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Schedule is schematic (data.json); the end numbers are measured (contention.txt).
+      const D = {"FIFO": [{"slot": 0, "start": 0.0, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 0.0, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 1.25, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 1.25, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 2.5, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 2.5, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 3.75, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 3.75, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 5.0, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 5.0, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 6.25, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 6.25, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 7.5, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 7.5, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 8.75, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 8.75, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 10.0, "dur": 0.4, "job": "B"}, {"slot": 1, "start": 10.0, "dur": 0.4, "job": "B"}], "FAIR": [{"slot": 0, "start": 0.0, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 0.0, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 1.25, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 1.25, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 2.5, "dur": 0.4, "job": "B"}, {"slot": 1, "start": 2.5, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 2.9, "dur": 0.4, "job": "B"}, {"slot": 0, "start": 3.3, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 3.75, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 4.55, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 5.0, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 5.8, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 6.25, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 7.05, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 7.5, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 8.3, "dur": 1.25, "job": "A"}, {"slot": 1, "start": 8.75, "dur": 1.25, "job": "A"}, {"slot": 0, "start": 9.55, "dur": 1.25, "job": "A"}], "arriveB": 2.0, "measured": {"FIFO_B": "8.1 to 9.6 s", "FAIR_B": "1.7 to 3.3 s", "source": "code/ch30/output/contention.txt"}}; // data.json
+      A.mount();
+      // beat open (0.0)
+      A.title("FIFO and FAIR on one Connect server", "two task slots, two sessions");
+      const X0 = 0.16, X1 = 0.92, SPAN = 11, T0 = 1.6, K = 0.5;     // schedule seconds to clip seconds
+      const xs = (t) => X0 + (X1 - X0) * t / SPAN;
+      const lanes = { FIFO: [0.30, 0.38], FAIR: [0.56, 0.64] };
+      const lab = [];
+      for (const [m, ys] of Object.entries(lanes)) {
+        lab.push(A.text(m, { x: 0.07, y: (ys[0] + ys[1]) / 2, size: 44, weight: 700, color: m === "FAIR" ? "var(--a-ok)" : "var(--a-fg)" }));
+        ys.forEach((y, i) => { lab.push(A.text("slot " + (i + 1), { x: X0 - 0.015, y, size: 24, color: "var(--a-mute)", anchor: "right" }));
+          lab.push(A.line({ x1: X0, y1: y + A.dy(30), x2: X1, y2: y + A.dy(30), width: 2 })); });
+      }
+      for (let t = 0; t <= 10; t += 2) lab.push(A.text(t + " s", { x: xs(t), y: 0.72, size: 22, color: "var(--a-mute)" }));
+      A.in(lab, 0.3, { stagger: 0.02 });
+      const W = (X1 - X0) / SPAN * A.W / A.s;      // px per schedule second
+      for (const [m, ys] of Object.entries(lanes)) {
+        for (const o of D[m]) {
+          const b = A.box({ x: xs(o.start + o.dur / 2), y: ys[o.slot], w: o.dur * W - 6, h: 52, radius: 6,
+            kind: o.job === "A" ? "paper" : (m === "FAIR" ? "ok" : "accent"), title: o.job, size: 26 });
+          gsap.set(b, { opacity: 0 });
+          A.tl.fromTo(b, { scaleX: 0, opacity: 1, transformOrigin: "0% 50%" }, { scaleX: 1, duration: o.dur * K, ease: "none" }, T0 + o.start * K);
+        }
+        const q = A.box({ x: xs(D.arriveB), y: ys[0] - A.dy(62), w: 150, h: 40, radius: 20, kind: "accent", title: "B arrives", size: 20 });
+        A.in(q, T0 + D.arriveB * K, { rise: 10 });
+      }
+      const cur = A.line({ x1: X0, y1: 0.24, x2: X0, y2: 0.69, color: "var(--a-acc)", width: 3 });
+      A.tl.fromTo(cur, { x: 0 }, { x: A.X(X1 - X0) * 10.8 / SPAN, duration: 10.8 * K, ease: "none" }, T0);
+      const caps = [
+        [0.4, "Session A starts a long job: sixteen tasks on two slots."],
+        [T0 + 1.9 * K, "Session B sends a small query two seconds later."],
+        [T0 + 3.4 * K, "FIFO keeps every slot for A. FAIR gives B the next free slot."],
+        [T0 + 10.9 * K, "Measured: B took " + D.measured.FIFO_B + " under FIFO, " + D.measured.FAIR_B + " under FAIR."],
+      ];
+      caps.forEach(([t, s], i) => {
+        const c = A.text(s, { y: 0.84, size: 38, weight: 600 });
+        A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3);
+      });
+      A.in(A.note("schematic task timing; the measured times come from three runs of each mode"), 0.5);
+      A.finish(12.5);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 31: FilePartition packs 2000 small files into tasks. Task counts from code/ch31/output/listing.txt
+      // (63 tasks at openCostInBytes=4MB, 16 at 64KB). Each square stands for about 16 files.
+      const D = {"files": 2000, "tasks_4mb": 63, "tasks_64kb": 16, "squares": 126};
+      A.mount();
+      // beat open (0.0)
+      A.title("How Spark packs 2000 small files into tasks");
+      const COLS = 21, S = 34, GX = 0.06, GY = 0.26;
+      const sq = [];
+      for (let i = 0; i < D.squares; i++) {
+        const x = GX + (i % COLS) * A.dx(S + 8) + A.dx(S / 2), y = GY + Math.floor(i / COLS) * A.dy(S + 8);
+        const e = A.box({ x, y, w: S, h: S, kind: "accent", radius: 5 });
+        sq.push({ e, x, y });
+      }
+      A.in(sq.map(o => o.e), 0.2, { stagger: 0.004, dur: 0.3 });
+      const leg = A.text("each square: about 16 files of 1.6 KB", { x: 0.21, y: GY + 6 * A.dy(S + 8) + A.dy(20), size: 26, weight: 500, color: "var(--a-mute)" });
+      A.in(leg, 0.6);
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.915, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      function bins(n, t, y0, label, h) {
+        const x0 = 0.47, x1 = 0.97, w = (x1 - x0) / n;
+        const bx = [];
+        for (let b = 0; b < n; b++) {
+          const e = A.el("", { x: x0 + w * (b + 0.5), y: y0, anchor: "top", css: { width: (A.X(w) - A.px(4)) + "px", height: A.px(h) + "px", border: `${A.px(2)}px solid var(--a-line)`, borderRadius: A.px(4) + "px" } });
+          A.tl.set(e, { opacity: 0 }, 0); A.tl.to(e, { opacity: 1, duration: 0.3 }, t + b * 0.005);
+          bx.push(x0 + w * (b + 0.5));
+        }
+        const lb = A.text(label, { x: (x0 + x1) / 2, y: y0 - A.dy(30), size: 30, weight: 700 });
+        A.in(lb, t);
+        return { bx, w, y0, lb, h };
+      }
+      // beat cost (0.9)
+      cap("Each file counts as its size plus a 4 MB open cost", 0.9, 3.4);
+      // beat pack (3.6): split size 128 MB, about 31 files per task
+      const b1 = bins(D.tasks_4mb, 3.4, 0.30, "openCostInBytes = 4 MB: 63 tasks", 70);
+      cap("A 128 MB split holds about 31 files, so 2000 files make 63 tasks", 3.6, 7.8);
+      sq.forEach((o, i) => {
+        const b = Math.floor(i / 2), k = i % 2;
+        const tx = b1.bx[b], ty = b1.y0 + A.dy(52) - k * A.dy(28);
+        A.tl.to(o.e, { x: A.X(tx - o.x), y: A.Y(ty - o.y), scaleX: Math.min(1, (A.X(b1.w) - A.px(8)) / A.px(S)), duration: 0.8, ease: "power2.inOut" }, 4.0 + i * 0.012);
+      });
+      // beat small (8.0): a smaller open cost, one task for each core
+      const b2 = bins(D.tasks_64kb, 8.0, 0.60, "openCostInBytes = 64 KB: 16 tasks", 220);
+      cap("With a 64 KB open cost, one task for each of the 16 cores", 8.0, 11.8);
+      sq.forEach((o, i) => {
+        const b = Math.floor(i / 8), k = i % 8;
+        const tx = b2.bx[Math.min(b, 15)], ty = b2.y0 + A.dy(200) - k * A.dy(26);
+        A.tl.to(o.e, { x: A.X(tx - o.x), y: A.Y(ty - o.y), scaleX: 1, duration: 0.9, ease: "power2.inOut" }, 8.4 + i * 0.01);
+      });
+      // beat note (12.0)
+      cap("On an object store, each file open is a network request", 12.0);
+      A.in(A.note("16 cores, maxPartitionBytes 128 MB; the squares are schematic"), 0.5);
+      A.finish(14);
+    </script>
+  </body>
+</html>

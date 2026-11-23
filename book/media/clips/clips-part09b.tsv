@@ -1,9 +1,9 @@
 clip	source	start	end	poster_at	chapter
-ch71-rule	ch71-chapter.mp4	0.00	47.04	37.6	ch71
-ch71-transpile	ch71-chapter.mp4	47.04	90.52	34.8	ch71
-ch70-capability	ch70-chapter.mp4	0.00	62.80	50.2	ch70
-ch70-pushdown	ch70-chapter.mp4	62.80	125.80	50.4	ch70
-ch73-stream	ch73-chapter.mp4	0.00	84.24	67.4	ch73
-ch73-grade	ch73-chapter.mp4	84.24	166.92	66.1	ch73
-ch72-plugins	ch72-chapter.mp4	0.00	29.64	23.7	ch72
-ch72-artifacts	ch72-chapter.mp4	29.64	47.96	14.7	ch72
+ch85-rule	ch85-chapter.mp4	0.00	47.04	37.6	ch85
+ch85-transpile	ch85-chapter.mp4	47.04	90.52	34.8	ch85
+ch84-capability	ch84-chapter.mp4	0.00	62.80	50.2	ch84
+ch84-pushdown	ch84-chapter.mp4	62.80	125.80	50.4	ch84
+ch87-stream	ch87-chapter.mp4	0.00	84.24	67.4	ch87
+ch87-grade	ch87-chapter.mp4	84.24	166.92	66.1	ch87
+ch86-plugins	ch86-chapter.mp4	0.00	29.64	23.7	ch86
+ch86-artifacts	ch86-chapter.mp4	29.64	47.96	14.7	ch86

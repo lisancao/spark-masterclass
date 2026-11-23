@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Edges: data.json (components.txt). Positions: schematic.
+      const D = {"source": "code/ch67/output/components.txt: large-star and small-star on a path of 6 nodes, and the rounds for a path of 200. Node positions are schematic.", "start": [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6]], "rounds": [[[2, 1], [3, 1], [4, 2], [5, 3], [6, 4]], [[2, 1], [3, 1], [4, 1], [5, 1], [6, 2]], [[2, 1], [3, 1], [4, 1], [5, 1], [6, 1]]], "path200": {"propagation": 200, "stars": 8}};
+      A.mount();
+      // beat open (0.0)
+      A.title("Large-star and small-star: a path becomes a star");
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.875, size: 36 }); A.in(c, t0); if (t1) A.out(c, t1); };
+      const P = { 1: [0.2, 0.52], 2: [0.36, 0.3], 3: [0.52, 0.24], 4: [0.66, 0.36], 5: [0.68, 0.6], 6: [0.5, 0.72] };
+      const edges = (list, t0, t1, col) => {
+        const els = list.map(([a, b]) => { const [x1, y1] = P[a], [x2, y2] = P[b];
+          const l = A.line({ x1, y1, x2, y2, color: col, width: 5 }); gsap.set(l, { opacity: 0 }); return l; });
+        A.tl.to(els, { opacity: 1, duration: 0.4 }, t0);
+        if (t1) A.tl.to(els, { opacity: 0, duration: 0.4 }, t1);
+      };
+      edges(D.start, 0, 2.2, "var(--a-mute)");
+      Object.entries(P).forEach(([n, [x, y]]) => { const b = A.box({ x, y, w: 84, h: 84, kind: n === "1" ? "accent" : "paper", title: n, size: 34, radius: 42 }); b.style.zIndex = 10; });
+      const lst = (s, t0, t1) => { const e = A.text(s, { x: 0.86, y: 0.45, size: 28, mono: true, maxw: 380, align: "left" }); gsap.set(e, { opacity: 0 }); A.tl.to(e, { opacity: 1, duration: 0.3 }, t0); if (t1) A.tl.to(e, { opacity: 0, duration: 0.3 }, t1); };
+      const rnd = (s, t0, t1) => { const e = A.text(s, { x: 0.86, y: 0.28, size: 40, weight: 700, color: "var(--a-acc)" }); gsap.set(e, { opacity: 0 }); A.tl.to(e, { opacity: 1, duration: 0.3 }, t0); if (t1) A.tl.to(e, { opacity: 0, duration: 0.3 }, t1); };
+      rnd("start: a path", 0, 2.2);
+      lst(D.start.map(([a, b]) => `(${a}, ${b})`).join(" "), 0, 2.2);
+      cap("Each round rewires edges toward the smallest node", 0.6, 7.6);
+      D.rounds.forEach((r, i) => {
+        const t0 = 2.4 + i * 2.6, t1 = i < 2 ? t0 + 2.4 : null;
+        edges(r, t0, t1, "var(--a-acc)");
+        rnd("round " + (i + 1), t0, t1);
+        lst(r.map(([a, b]) => `(${a}, ${b})`).join(" "), t0, t1);
+      });
+      // beat result (8.0)
+      cap("Path of 200 nodes: " + D.path200.stars + " rounds. Label propagation: " + D.path200.propagation + ".", 7.8);
+      A.in(A.note("node positions: schematic; edges after each round from the run"), 0.3);
+      A.finish(13);
+    </script>
+  </body>
+</html>

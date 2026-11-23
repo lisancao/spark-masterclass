@@ -1,26 +1,38 @@
-# Spark Masterclass, Chapter 40. Storyboard: storyboard-part05.md.
-#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch40.tape --format chapter
+# Spark Masterclass, Chapter 40: reading query plans. 
+#   film render code/film/ch40.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4025 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4139 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-
-# beat: dead-letters | Dead letters, safe for a replay
-Type "# four drops through try_ parsing; bad lines go to dead letters with a reason" Enter
+# beat: rules | Which optimizer rules changed the plan
+Type "# 272 rules run on one query; which of them changed the plan?" Enter
 Sleep 500ms
-Type "python ch40/m3_dead_letters.py 2>/dev/null | head -17" Enter
-Wait@240s
+Type "python ch40/optimizer.py 2>/dev/null | sed -n '/rules ran/,$p'" Enter
+Wait@120s
+Sleep 9s
+
+# beat: join | AQE changes a sort-merge join to a broadcast join
+Hide
+Type "clear" Enter
+Show
+Type "# the same join twice: AQE keeps sort-merge, then switches to broadcast" Enter
+Sleep 500ms
+Type "python ch40/aqe.py joinbrief 2>/dev/null" Enter
+Wait@180s
 Sleep 12s
 
-# beat: future | One event from tomorrow
-Type "# the naive query: one event dated the next day moves the watermark a full day" Enter
+# beat: skew | AQE splits the skewed pickup zones
+Hide
+Type "clear" Enter
+Show
+Type "# a sort-merge join on pickup zone: the busiest zones are 300x the median" Enter
 Sleep 500ms
-Type "python ch40/m4_watermark.py naive 2>/dev/null | head -9" Enter
-Wait@240s
-Sleep 12s
+Type "python ch40/aqe.py skew 2>/dev/null | sed -n '/^rows/,$p' | cut -c1-94" Enter
+Wait@180s
+Sleep 10s

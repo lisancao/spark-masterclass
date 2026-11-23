@@ -1,38 +1,18 @@
-# Spark Masterclass, Chapter 65: Python data sources I. Storyboard: storyboard-part09a.md.
+# Spark Masterclass, Chapter 65: text analytics without an LLM. Storyboard: notes/part07.md.
 #   film render code/film/ch65.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4029 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4227 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: where | Which process runs each method
-Type "# a traced Python data source: each method logs its process id" Enter
+# beat: search | TF-IDF search, then every inbox ticket against the labelled tickets
+Type "# TF-IDF search over four policies, then 240 tickets scored in the JVM" Enter
 Sleep 500ms
-Type "python ch65/where_it_runs.py 2>/dev/null | sed -n '/^driver/,/^The plan/p'" Enter
-Wait@120s
-Sleep 12s
-
-# beat: balance | Partitions balanced by bytes
-Hide
-Type "clear" Enter
-Show
-Type "# 26 files to 3 tasks: dealt in turn, or largest file first" Enter
-Sleep 500ms
-Type "python ch65/docs_source.py 2>/dev/null | sed -n '1,3p;/^Bytes per task/,/^$/p'" Enter
-Wait@120s
-Sleep 12s
-
-# beat: errors | When each error appears
-Hide
-Type "clear" Enter
-Show
-Type "# planning errors fail at the first action, read() errors fail in a task" Enter
-Sleep 500ms
-Type "python ch65/counter.py 2>/dev/null | sed -n '/^schema()/,$p' | grep -v '^    [FA][an]'" Enter
-Wait@120s
-Sleep 12s
+Type "python ch65/text_search.py 2>/dev/null | sed -n '/search the policies/,$p' | cut -c1-92" Enter
+Wait@900s
+Sleep 10s

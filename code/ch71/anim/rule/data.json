@@ -1,3 +1,0 @@
-{"source": "code/ch71/output/planchange.txt and extensions.txt",
- "before": "Project [is_png(content#3)#4 AS png#5]", "after": "Project [coalesce(is_png(content#3), false) AS png#5]",
- "python": "[False, False, True, True, True, True, True]", "rewritten": "[False, False, True, True, True, True, True]", "native": "[False, None, True, True, True, True, True]"}

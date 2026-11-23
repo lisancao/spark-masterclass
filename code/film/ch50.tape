@@ -1,27 +1,33 @@
-# Spark Masterclass, Chapter 50: medallion. Storyboard: notes/part06.md (film section).
-#   film render code/film/ch50.tape --format chapter (after ch50/two_runs.sh and ch50/gate.sh)
+# Spark Masterclass, Chapter 50. Storyboard: storyboard-part05.md.
+#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch50.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} SPARK_UI_PORT=4026 W=${BOOK_DATA:-$HOME/spark-masterclass/data}/work/part06 && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4025 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: incremental | The second run read only the new file
-Type "# each pipeline run is one Spark event log: read the streaming progress of bronze" Enter
+
+# beat: sessions | Sessions closed by gaps and by timers
+Type "# sessions per user: closed by a 30-minute gap or by an event-time timer" Enter
 Sleep 500ms
-Type "python ch50/progress.py $W/ch50-shop | cut -c1-92" Enter
+Type "python ch50/t2_sessions.py 2>/dev/null | head -21" Enter
+Wait@240s
 Sleep 12s
 
-# beat: gate | The gate stopped silver, and silver is empty
-Hide
-Type "clear" Enter
-Show
-Type "# day 3 broke the gate: what is left in each table?" Enter
+# beat: clock | Processing-time timers and TTL
+Type "# a timer 5 s after each click; the last page kept 8 s (TTL)" Enter
 Sleep 500ms
-Type "SHOW=1 python ch49/show_tables.py $W/ch50-quality quality_report silver_orders 2>/dev/null | grep -v tables" Enter
-Wait@120s
+Type "python ch50/t3_time.py 2>/dev/null | head -11" Enter
+Wait@240s
 Sleep 10s
+
+# beat: legacy | applyInPandasWithState, then its open sessions move to transformWithState
+Type "# the old API keeps one state value per user; then its open sessions move to TWS" Enter
+Sleep 500ms
+Type "python ch50/t6_legacy.py 2>/dev/null | sed -n '1,11p;42,52p'" Enter
+Wait@300s
+Sleep 12s

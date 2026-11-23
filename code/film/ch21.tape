@@ -1,42 +1,31 @@
-# Spark Masterclass, Chapter 21: Spark Connect clients beyond Python.
-#   SCRATCH=<build dir> film render code/film/ch21.tape --format chapter
-# Needs: ch21/server.sh start, and ch21/run_probes.sh once (it builds the Rust, Go and Swift programs).
-Set TypingSpeed 35ms
+# Spark Masterclass, Chapter 21: Time series and geospatial. VO lines: notes/part02.md.
+#   film render code/film/ch21.tape --format chapter
+Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
+# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 && setopt interactivecomments" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4122 BOOK_NO_LOCK=1 PYTHONUNBUFFERED=1 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: rust | The taxi query from the Rust client
-Type "# Rust: the client builds the plan; the 4.3.0 server runs it" Enter
-Sleep 400ms
-Type "sed -n '16,23p' ch21/rust/src/main.rs" Enter
-Sleep 2500ms
-Type "ch21/client.sh rust taxi" Enter
-Wait@60s
-Sleep 6s
-
-# beat: swift | The same query from the Swift client
+# beat: gaps | Buckets with no rows
 Hide
 Type "clear" Enter
 Show
-Type "# Swift 0.8.0: the same plan, with Swift operators" Enter
-Sleep 400ms
-Type "sed -n '11,18p' ch21/swift/Sources/Taxi/main.swift" Enter
-Sleep 2500ms
-Type "ch21/client.sh swift taxi" Enter
-Wait@60s
-Sleep 6s
+Type "# trips per hour in a quiet zone: 3 rows for 24 hours" Enter
+Sleep 500ms
+Type "python ch21/timeseries.py 2>/dev/null | sed -n '/== 5/,/== 6/{/== 6/q;p}' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s
 
-# beat: probe | The capability probe from the Go client
+# beat: nearest | The nearest store, three ways
 Hide
 Type "clear" Enter
 Show
-Type "# Go v0.1.0: the same checks; zip has no API in this client" Enter
-Sleep 400ms
-Type "ch21/client.sh go probe" Enter
-Wait@60s
-Sleep 7s
+Type "# the nearest store: all pairs, a grid and NEAREST BY" Enter
+Sleep 500ms
+Type "python ch22/geo_points.py 2>/dev/null | sed -n '/== 8/,/== 9/{/== 9/q;p}' | grep -v only | cut -c1-92" Enter
+Wait@300s
+Sleep 10s

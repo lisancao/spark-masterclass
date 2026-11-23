@@ -1,0 +1,20 @@
+1. A file stream with no schema:
+  IllegalArgumentException: Schema must be specified when creating a streaming source
+  DataFrame. If some files already exist in the directory, then depending on the file
+  format you may be able to create a static DataFrame on that directory with ...
+
+2. With a schema: isStreaming = True
+== Parsed Logical Plan ==
+'Aggregate ['PULocationID], ['PULocationID, 'count(1) AS count#8]
++- StreamingRelation FileSource[~/spark-masterclass-parts/part05/data/work/ch48/s1/inbox], [trip_id#0, pickup_ts#1, dropoff_ts#2, PULocationID#3, DOLocationID#4, trip_distance#5, fare_amount#6, total_amount#7], name=<Unassigned>
+
+
+3. An action on a streaming DataFrame:
+  AnalysisException: Queries with streaming sources must be executed with
+  writeStream.start(), or from a streaming table or flow definition within a Spark
+  Declarative Pipeline.;
+
+4. The same files as a batch read: 487 rows
+
+5. spark.sql.streaming.schemaInference=true infers once, at start:
+   DOLocationID bigint, PULocationID bigint, dropoff_ts string, fare_amount double, pickup_ts string, total_amount double, trip_distance double, trip_id string

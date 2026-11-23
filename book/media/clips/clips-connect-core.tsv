@@ -1,8 +1,8 @@
 clip	source	start	end	poster_at	chapter
-ch18-connect	ch18-chapter/01-connect.mp4	0	25.0	23.0	ch18
-ch18-rest	ch18-chapter/02-rest.mp4	0	19.4	17.4	ch18
-ch18-thin	ch18-chapter/03-thin.mp4	0	17.6	15.6	ch18
-ch19-proxy	ch19-chapter/01-proxy.mp4	0	29.5	27	ch19
-ch19-arrow	ch19-chapter/02-arrow.mp4	0	18.0	16	ch19
-ch20-stop	ch20-chapter/01-stop.mp4	0	37.6	35	ch20
-ch19-anim-round-trip	code/ch19/anim/round-trip (anim render, landscape, paper)	0	32.0	30	ch19
+ch24-connect	ch24-chapter/01-connect.mp4	0	25.0	23.0	ch24
+ch24-rest	ch24-chapter/02-rest.mp4	0	19.4	17.4	ch24
+ch24-thin	ch24-chapter/03-thin.mp4	0	17.6	15.6	ch24
+ch25-proxy	ch25-chapter/01-proxy.mp4	0	29.5	27	ch25
+ch25-arrow	ch25-chapter/02-arrow.mp4	0	18.0	16	ch25
+ch26-stop	ch26-chapter/01-stop.mp4	0	37.6	35	ch26
+ch25-anim-round-trip	code/ch25/anim/round-trip (anim render, landscape, paper)	0	32.0	30	ch25

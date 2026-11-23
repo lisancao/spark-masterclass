@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="12.5" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Module names and seconds from code/ch92/output/reactor.txt; jar count and size from inspect.txt.
+      const M = [["Parent POM", 46], ["Tags", 20], ["Sketch", 10], ["Config", 11], ["Common Java Utils", 9], ["Common Utils", 24], ["Local DB", 11], ["Networking", 18], ["Shuffle Streaming Service", 11], ["Variant", 8], ["Unsafe", 15], ["Connect Shims", 3], ["UDF Worker Proto", 14], ["UDF Worker Core", 16], ["Launcher", 10], ["Core", 181], ["ML Local Library", 32], ["GraphX", 34], ["Streaming", 49], ["SQL API", 43], ["Catalyst", 143], ["SQL", 249], ["ML Library", 109], ["Tools", 5], ["Declarative Pipelines Library", 45], ["Hive", 66], ["Connect Common", 54], ["Spark Avro", 27], ["Spark Protobuf", 30], ["REPL", 11], ["Connect Server", 48], ["Connect Client", 43], ["Connect JDBC Driver", 12], ["Kubernetes", 39], ["Assembly", 4], ["Kafka 0.10+ Token Provider for Streaming", 19], ["Spark Integration for Kafka 0.10", 28], ["Kafka 0.10+ Source for Structured Streaming", 55], ["Examples", 35], ["Spark Integration for Kafka 0.10 Assembly", 4], ["UDF Worker gRPC", 10]];
+      const total = M.reduce((a, m) => a + m[1], 0), T0 = 0.6, SPAN = 8.0;
+      A.mount();
+      A.title("Building Spark 4.3.0 from source", "dev/make-distribution.sh --tgz -Phadoop-provided -Pkubernetes, JDK 17");
+      const clock = A.text("0:00", { x: 0.88, y: 0.2, size: 56, weight: 700, mono: true });
+      const cl = A.text("sum of module times", { x: 0.88, y: 0.2 + A.dy(50), size: 24, color: "var(--a-mute)" });
+      A.in([clock, cl], 0.3);
+      let acc = 0;
+      M.forEach((m, i) => {
+        const col = i % 7, row = Math.floor(i / 7);
+        const x = 0.09 + col * 0.118, y = 0.30 + row * 0.095;
+        const big = m[1] >= 140;
+        const g = A.box({ x, y, w: 210, h: 82, kind: "ghost", title: m[0].slice(0, 22), sub: m[1] + " s", size: 18 });
+        const f = A.box({ x, y, w: 210, h: 82, kind: big ? "accent" : "ok", title: m[0].slice(0, 22), sub: m[1] + " s", size: 18 });
+        gsap.set(f, { opacity: 0 });
+        A.in(g, 0.2 + i * 0.01, { rise: 0, dur: 0.2 });
+        const t = T0 + SPAN * acc / total;
+        acc += m[1];
+        A.tl.to(f, { opacity: 1, duration: Math.max(0.08, SPAN * m[1] / total * 0.8) }, t);
+      });
+      const st = { v: 0 };
+      A.tl.to(st, { v: total, duration: SPAN, ease: "none", onUpdate: () => {
+        const s = Math.round(st.v); clock.textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); } }, T0);
+      const dist = A.box({ x: 0.5, y: 0.875, w: 760, h: 70, kind: "soft", title: "dist/  225 jars  ->  spark-4.3.0-bin-book.tgz (361M)", size: 26 });
+      A.in(dist, 9.0);
+      const caps = [
+        [0.5, "Maven builds 41 modules in order. Each tile is one module."],
+        [4.0, "SQL, Core and Catalyst take the most time."],
+        [9.0, "make-distribution.sh copies 225 jars into dist/ and packs a 361M tgz."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.955, size: 32, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.finish(12.5);
+    </script>
+  </body>
+</html>

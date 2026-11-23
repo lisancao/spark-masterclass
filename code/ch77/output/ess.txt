@@ -1,0 +1,20 @@
+--- two workers on one host, each with a shuffle service
+requirement failed: Starting multiple workers on one host is failed because we may launch 
+no more than one external shuffle service on each host, please set 
+spark.shuffle.service.enabled to false or set SPARK_WORKER_INSTANCES to 1 to resolve the 
+conflict.
+--- one worker with 4 cores and the shuffle service on port 7351
+worker shuffle service: Starting shuffle service on port 7351 (auth enabled = false)
+--- dynamic allocation with the external shuffle service
+  6.0s  action 1: 258 zones   executors ['0']
+ 22.8s  idle timeout passed            executors []
+ 22.8s  action 2: 258 zones   executors ['1', '2']
+        stage 0  COMPLETE  tasks  1  shuffle read       0 B  write       0 B
+        stage 1  COMPLETE  tasks  2  shuffle read       0 B  write   4,703 B
+        stage 2  COMPLETE  tasks  8  shuffle read   4,703 B  write       0 B
+        stage 3  SKIPPED   tasks  2  shuffle read       0 B  write       0 B
+        stage 4  COMPLETE  tasks  8  shuffle read   4,703 B  write       0 B
+        executors removed during the run: 1, reasons: ['Executor killed by driver.']
+--- push-based shuffle requested on standalone (Step 13)
+(4 times) WARN Utils: Push-based shuffle can only be enabled when the application is submitted to run in YARN mode, with external shuffle service enabled, IO encryption disabled, and relocation of serialized objects supported.
+ch77-push: ok, 10 groups, executors 2
