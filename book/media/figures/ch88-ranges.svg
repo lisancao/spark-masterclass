@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 382" width="900" height="382" role="img"><title>Rows that each task read, for five partition plans of the trips table</title><defs></defs><text x="20" y="38.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#8a919e" text-anchor="start" font-weight="700">trip_id, bounds 1 to 3,837,248, 8 tasks</text>
+<rect x="20" y="48" width="103.62544041980085" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="72.81272020990042" y="68.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">479,658</text>
+<rect x="125.62544041980085" y="48" width="103.62477979009957" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<text x="178.43783031485063" y="68.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">479,655</text>
+<rect x="231.25022020990042" y="48" width="103.62477979009957" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="284.0626101049502" y="68.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">479,655</text>
+<rect x="336.875" y="48" width="103.62477979009957" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<text x="389.68738989504976" y="68.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">479,655</text>
+<rect x="442.4997797900996" y="48" width="103.62477979009957" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="495.31216968514934" y="68.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">479,655</text>
+<rect x="548.1245595801992" y="48" width="103.62477979009957" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<text x="600.936949475249" y="68.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">479,655</text>
+<rect x="653.7493393702987" y="48" width="103.62477979009957" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="706.5617292653485" y="68.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">479,655</text>
+<rect x="759.3741191603982" y="48" width="103.62588083960172" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<text x="812.187059580199" y="68.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">479,660</text>
+<text x="20" y="116.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#8a919e" text-anchor="start" font-weight="700">pickup time, bounds from min and max, 6 tasks</text>
+<rect x="20" y="126" width="3" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<rect x="23" y="126" width="3" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<rect x="26" y="126" width="3" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<rect x="29" y="126" width="3" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<rect x="32" y="126" width="3" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<rect x="35" y="126" width="842.9997797900995" height="30" rx="3" fill="#a8323a" fill-opacity="1"/>
+<text x="457.49988989504976" y="146.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">3,837,247</text>
+<text x="880" y="116.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#a8323a" text-anchor="end" font-weight="700">tasks with 1, 0, 0, 0, 0 rows</text>
+<text x="20" y="194.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#8a919e" text-anchor="start" font-weight="700">pickup time, bounds June 1 to July 1, 6 tasks</text>
+<rect x="20" y="204" width="145.23013732758477" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="93.61506866379239" y="224.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">668,590</text>
+<rect x="167.23013732758477" y="204" width="145.15614680104073" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<text x="240.80821072810514" y="224.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">668,254</text>
+<rect x="314.3862841286255" y="204" width="148.6048540516537" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="389.68871115445233" y="224.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">683,915</text>
+<rect x="464.9911381802792" y="204" width="139.38796866921294" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<text x="535.6851225148857" y="224.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">642,060</text>
+<rect x="606.3791068494921" y="204" width="130.029708530697" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="672.3939611148406" y="224.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">599,563</text>
+<rect x="738.4088153801891" y="204" width="124.59118461981086" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<text x="801.7044076900945" y="224.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">574,866</text>
+<text x="20" y="272.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#8a919e" text-anchor="start" font-weight="700">predicates: four week ranges</text>
+<rect x="20" y="282" width="207.95340410627617" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="124.97670205313808" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">953,424</text>
+<rect x="229.95340410627617" y="282" width="208.9216670384609" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<text x="335.41423762550664" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">957,821</text>
+<rect x="440.87507114473703" y="282" width="187.7191971954901" height="30" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="535.7346697424821" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">861,538</text>
+<rect x="630.5942683402271" y="282" width="232.40573165977284" height="30" rx="3" fill="#1f7a80" fill-opacity="1"/>
+<text x="747.7971341701135" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">1,064,465</text>
+<text x="20" y="342.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">Bar width = rows that the task read, out of 3,837,248 (partitions.txt). One stray trip from 2008 stretched the time range.</text></svg>

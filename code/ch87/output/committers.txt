@@ -1,0 +1,23 @@
+32 files of the taxi month (3,837,248 rows), MinIO in Docker, local[4]
+median of 3 writes after a warm-up; requests from the last write
+
+committer     wall s  task commit  job commit   PUT  COPY  DELETE  LIST  HEAD   MPU  _SUCCESS
+file-v1         7.28        2.50s       2.00s    67    64      66   431   488     0       0 B
+file-v2         3.25        2.30s       0.04s    66    32      34   270   328     0       0 B
+magic           4.37        2.00s       0.21s   131     0      68   175   168    32   14739 B
+directory       3.91        2.70s       0.31s     2     0       2    11     8    32   13235 B
+partitioned     3.58        2.50s       0.26s     2     0       2    10     7    32   13301 B
+
+all requests of the last write, by S3 API:
+  file-v1      HeadObject 488, ListObjectsV2 431, PutObject 67, CopyObject 64, DeleteObject 64, DeleteMultipleObjects 2
+  file-v2      HeadObject 328, ListObjectsV2 270, PutObject 66, CopyObject 32, DeleteObject 32, DeleteMultipleObjects 2
+  magic        ListObjectsV2 175, HeadObject 168, PutObject 131, GetObject 64, DeleteMultipleObjects 34, DeleteObject 34, NewMultipartUpload 32, PutObjectPart 32, CompleteMultipartUpload 32, ListMultipartUploads 2
+  directory    NewMultipartUpload 32, PutObjectPart 32, CompleteMultipartUpload 32, ListObjectsV2 11, HeadObject 8, PutObject 2, ListMultipartUploads 2, DeleteMultipleObjects 1, DeleteObject 1
+  partitioned  NewMultipartUpload 32, PutObjectPart 32, CompleteMultipartUpload 32, ListObjectsV2 10, HeadObject 7, PutObject 2, ListMultipartUploads 2, DeleteMultipleObjects 1, DeleteObject 1
+
+what _SUCCESS says:
+  file-v1      empty marker (0 B)
+  file-v2      empty marker (0 B)
+  magic        org.apache.hadoop.fs.s3a.commit.files.SuccessData/1, committer=magic, 32 files listed
+  directory    org.apache.hadoop.fs.s3a.commit.files.SuccessData/1, committer=directory, 32 files listed
+  partitioned  org.apache.hadoop.fs.s3a.commit.files.SuccessData/1, committer=partitioned, 32 files listed

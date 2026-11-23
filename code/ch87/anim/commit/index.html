@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="18" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      A.mount();
+      // Numbers from data.json (committers.txt). Four files stand for 32. Timing is schematic.
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      A.title("Two ways to commit 32 files to S3", "FileOutputCommitter algorithm 1 against the S3A magic committer");
+
+      const ZX = [0.30, 0.56, 0.82];           // zones: temporary, job attempt, final
+      const TOP = 0.36, BOT = 0.66;
+      // lane labels
+      A.text("algorithm 1", { x: 0.02, anchor: "left", y: TOP, size: 34, weight: 700, mono: true });
+      A.text("magic", { x: 0.02, anchor: "left", y: BOT, size: 34, weight: 700, mono: true, color: "var(--a-acc)" });
+      // zone frames (ghost boxes) and their names
+      const zone = (x, y, label) => {
+        A.box({ x, y, w: 380, h: 150, kind: "ghost" });
+        A.text(label, { x, y: y - A.dy(100), size: 24, color: "var(--a-mute)", mono: true });
+      };
+      zone(ZX[0], TOP, "_temporary/.../attempt_*/");
+      zone(ZX[1], TOP, "_temporary/0/task_*/");
+      zone(ZX[2], TOP, "final folder");
+      zone(ZX[0], BOT, "__magic_job-*/ (.pending)");
+      zone(ZX[2], BOT, "final keys");
+
+      const off = (i) => (i - 1.5) * A.dx(80);
+      const mk = (x, y, i, kind) => A.box({ x: x + off(i), y, w: 64, h: 84, kind, radius: 6 });
+      const shift = (from, to) => A.X(ZX[to]) - A.X(ZX[from]);
+
+      // beat write (0.0): four tasks write four files
+      const v1f = [0, 1, 2, 3].map((i) => mk(ZX[0], TOP, i, "soft"));
+      const pend = [0, 1, 2, 3].map((i) => mk(ZX[0], BOT, i, "soft"));
+      const ghost = [0, 1, 2, 3].map((i) => mk(ZX[2], BOT, i, "ghost"));
+      A.in(v1f, 0.3, { stagger: 0.15 });
+      A.in(pend, 0.3, { stagger: 0.15 });
+      A.in(ghost, 1.2, { stagger: 0.15 });
+      const up = A.text("uploads started, not completed", { x: ZX[2], y: BOT + A.dy(100), size: 24, color: "var(--a-mute)" });
+      A.in(up, 1.8);
+      cap("Each task writes its files. Nothing is visible yet", 0.2, 3.9);
+
+      // beat task (4.0): algorithm 1 copies to the job attempt folder; magic saves a list
+      const copy1 = A.text("COPY + DELETE", { x: (ZX[0] + ZX[1]) / 2, y: TOP + A.dy(105), size: 26, weight: 700, color: "var(--a-acc)" });
+      A.in(copy1, 4.1); A.out(copy1, 7.6);
+      v1f.forEach((b, i) => A.tl.to(b, { x: shift(0, 1), duration: 0.7, ease: "power2.inOut" }, 4.4 + i * 0.35));
+      const set = A.box({ x: ZX[0], y: BOT + A.dy(115), w: 260, h: 54, kind: "accent", title: "task_*.pendingset", size: 22 });
+      gsap.set(set, { opacity: 0 }); A.in(set, 5.2);
+      cap("At task commit, algorithm 1 copies each file. Magic saves a list", 4.0, 8.4);
+
+      // beat job (8.5): algorithm 1 copies again in the driver; magic completes the uploads
+      const copy2 = A.text("COPY + DELETE (driver, one by one)", { x: (ZX[1] + ZX[2]) / 2, y: TOP + A.dy(105), size: 26, weight: 700, color: "var(--a-acc)" });
+      A.in(copy2, 8.6); A.out(copy2, 12.6);
+      v1f.forEach((b, i) => A.tl.to(b, { x: shift(0, 2), duration: 0.7, ease: "power2.inOut" }, 8.9 + i * 0.7));
+      const done = [0, 1, 2, 3].map((i) => mk(ZX[2], BOT, i, "ok"));
+      gsap.set(done, { opacity: 0 });
+      done.forEach((b, i) => A.tl.to(b, { opacity: 1, duration: 0.3 }, 9.2 + i * 0.12));
+      A.tl.to(pend, { opacity: 0.25, duration: 0.4 }, 9.2);
+      A.out(up, 9.0);
+      const comp = A.text("CompleteMultipartUpload", { x: ZX[2], y: BOT + A.dy(100), size: 24, weight: 700, color: "var(--a-acc)" });
+      A.in(comp, 9.3);
+      cap("At job commit, algorithm 1 copies again. Magic completes the uploads", 8.5, 12.9);
+
+      // beat count (13.0): measured numbers for 32 files
+      const D = { v1copy: 64, v1job: "2.00 s", mcopy: 0, mjob: "0.21 s" };   // data.json
+      const r1 = A.text(`${D.v1copy} copies, job commit ${D.v1job}`, { x: 0.82, y: TOP + A.dy(150), size: 30, weight: 700, mono: true });
+      const r2 = A.text(`${D.mcopy} copies, job commit ${D.mjob}`, { x: 0.56, y: BOT, size: 30, weight: 700, mono: true, color: "var(--a-acc)" });
+      A.in([r1, r2], 13.2, { stagger: 0.3 });
+      cap("For 32 files: 64 copies and 2.00 s, against no copies and 0.21 s", 13.0);
+      A.in(A.note("32 files of the taxi month on MinIO, medians from committers.txt, four files shown, timing schematic"), 0.4);
+
+      A.finish(18);
+    </script>
+  </body>
+</html>

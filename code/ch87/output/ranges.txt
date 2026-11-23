@@ -1,0 +1,5 @@
+rows on 2026-06-15: 109514
+GET /book/trips_by_day/pickup_day%3D2026-06-15/part-00003-196a703f-b994-41a2-ab2e-36643c5379be.c000.snappy.parquet
+Range: bytes=0-2320441
+Content-Range: bytes 0-2320441/2320442
+fs.s3a.readahead.range = 64K

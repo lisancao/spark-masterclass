@@ -1,0 +1,8 @@
+one task reads all 3,837,248 rows of trips (22 columns) and drops them (noop sink)
+driver memory 6g, local[4], G1; time of the second read; peak of the G1 old generation
+
+     fetchsize  seconds  old gen peak MiB
+             0     9.21             2,592
+           100    11.80                73
+1000 (default)     7.34                73
+         10000     8.86                73

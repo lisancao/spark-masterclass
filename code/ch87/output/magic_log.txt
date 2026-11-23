@@ -1,0 +1,8 @@
+INFO AbstractS3ACommitterFactory: Using committer magic to output data to s3a://book/magic-log
+INFO MagicCommitTracker: File __magic_job-.../00/tasks/attempt_..._0000_m_000000_0/__base/part-00000-......parquet is written as magic file to path magic-log/pa
+INFO MagicCommitTracker: Uncommitted data pending to file __magic_job-.../00/tasks/attempt_..._0000_m_000000_0/__base/part-00000-......parquet; commit metadata 
+INFO MagicS3GuardCommitter: Saving work of attempt_..._0000_m_000000_0 to __magic_job-.../00/task_..._0000_m_000000.pendingset
+INFO MagicS3GuardCommitter: Task attempt_..._0000_m_000000_0 committed 1 files
+INFO AbstractS3ACommitter: Starting: Task committer attempt_..._0000_m_000000_0: commitJob((no job ID))
+INFO CommitOperations: Starting: Writing success file _SUCCESS
+INFO CommitOperations: Writing success file _SUCCESS: duration 0:00.033s

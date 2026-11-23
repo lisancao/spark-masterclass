@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      A.mount();
+      // Numbers from data.json (partitions.txt). Timing is schematic.
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      A.title("JDBC ranges are equal in key space", "partitionColumn = tpep_pickup_datetime, numPartitions = 6");
+      const X0 = 0.08, X1 = 0.92, AY = 0.40;
+      const fmt = (n) => n.toLocaleString("en-US");
+
+      // beat axis (0.0): the data on a time axis
+      const ax = A.line({ x1: X0, y1: AY, x2: X1, y2: AY, color: "var(--a-mute)", width: 3 });
+      const l0 = A.text("2008-12-31", { x: X0, y: AY + A.dy(40), size: 26, mono: true, color: "var(--a-mute)" });
+      const l1 = A.text("2026-06-30", { x: X1, y: AY + A.dy(40), size: 26, mono: true, color: "var(--a-mute)" });
+      const stray = A.dot({ x: X0 + 0.003, y: AY - A.dy(30), r: 12, color: "var(--a-acc)" });
+      const block = A.box({ x: X1 - 0.004, y: AY - A.dy(30), w: 22, h: 48, kind: "accent", radius: 3 });
+      const sl = A.text("1 trip", { x: X0 + 0.01, y: AY - A.dy(80), size: 26, color: "var(--a-acc)" });
+      const bl = A.text("3,837,247 trips in June 2026", { x: X1 - 0.12, y: AY - A.dy(80), size: 26, color: "var(--a-acc)" });
+      A.in([stray, sl], 0.6); A.in([block, bl], 1.2);
+      cap("One trip is from 2008. All others are from June 2026", 0.2, 3.9);
+
+      // beat strides (4.0): six equal strides from min to max
+      const minmax = [1, 0, 0, 0, 0, 3837247];
+      const june = [668590, 668254, 683915, 642060, 599563, 574866];
+      const step = (X1 - X0) / 6;
+      const ticks = [], counts = [];
+      for (let i = 1; i < 6; i++) ticks.push(A.line({ x1: X0 + i * step, y1: AY - A.dy(60), x2: X0 + i * step, y2: AY + A.dy(20), color: "var(--a-fg)", width: 3 }));
+      for (let i = 0; i < 6; i++) {
+        const big = minmax[i] > 1000;
+        counts.push(A.box({ x: X0 + (i + 0.5) * step, y: AY + A.dy(140), w: 230, h: 80, kind: big ? "accent" : "ghost", title: `task ${i}`, sub: `${fmt(minmax[i])} ${minmax[i] === 1 ? "row" : "rows"}`, size: 24 }));
+      }
+      A.in(ticks, 4.2, { stagger: 0.1 });
+      A.in(counts, 5.0, { stagger: 0.12 });
+      cap("Bounds from min and max: six strides of almost three years", 4.0, 8.8);
+
+      // beat june (9.0): bounds of the month, six strides of five days
+      const old = [ax, l0, l1, stray, sl, block, bl, ...ticks, ...counts];
+      A.out(old, 9.0);
+      const ax2 = A.line({ x1: X0, y1: AY, x2: X1, y2: AY, color: "var(--a-mute)", width: 3 });
+      gsap.set(ax2, { opacity: 0 }); A.tl.to(ax2, { opacity: 1, duration: 0.3 }, 9.4);
+      const m0 = A.text("2026-06-01", { x: X0, y: AY + A.dy(40), size: 26, mono: true, color: "var(--a-mute)" });
+      const m1 = A.text("2026-07-01", { x: X1, y: AY + A.dy(40), size: 26, mono: true, color: "var(--a-mute)" });
+      A.in([m0, m1], 9.4);
+      const blk2 = A.box({ x: (X0 + X1) / 2, y: AY - A.dy(30), w: 1500, h: 48, kind: "accent", radius: 3 });
+      gsap.set(blk2, { opacity: 0 }); A.tl.fromTo(blk2, { scaleX: 0.02, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 9.6);
+      const t2 = [], c2 = [];
+      for (let i = 1; i < 6; i++) t2.push(A.line({ x1: X0 + i * step, y1: AY - A.dy(60), x2: X0 + i * step, y2: AY + A.dy(20), color: "var(--a-fg)", width: 3 }));
+      for (let i = 0; i < 6; i++) c2.push(A.box({ x: X0 + (i + 0.5) * step, y: AY + A.dy(140), w: 230, h: 80, kind: "ok", title: `task ${i}`, sub: `${fmt(june[i])} rows`, size: 24 }));
+      A.in(t2, 10.4, { stagger: 0.08 });
+      A.in(c2, 10.8, { stagger: 0.1 });
+      cap("Bounds of the month: each task reads about 640,000 rows", 9.0);
+      A.in(A.note("rows per task from partitions.txt, PostgreSQL 16, Spark 4.3.0, timing schematic"), 0.4);
+
+      A.finish(15);
+    </script>
+  </body>
+</html>

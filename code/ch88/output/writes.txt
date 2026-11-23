@@ -1,0 +1,146 @@
+== mode=overwrite (the default way: DROP and CREATE)
+   SELECT 1 FROM zone_copy WHERE 1=0
+   DROP TABLE zone_copy
+   CREATE TABLE zone_copy ("locationid" INTEGER , "borough" TEXT , "zone" TEXT )
+   BEGIN
+   SELECT "locationid","borough","zone" FROM "public"."zones"  WHERE ("locationid" IS NOT NULL) AND ("locationid" <= 6)
+   SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+   COMMIT
+   BEGIN
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   COMMIT
+   SELECT * FROM zone_copy WHERE 1=0
+   ... (6 INSERT executions in all)
+
+== mode=overwrite, truncate=true
+   SELECT 1 FROM zone_copy WHERE 1=0
+   TRUNCATE TABLE ONLY zone_copy
+   SELECT * FROM zone_copy WHERE 1=0
+   BEGIN
+   SELECT "locationid","borough","zone" FROM "public"."zones"  WHERE ("locationid" IS NOT NULL) AND ("locationid" <= 6)
+   SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+   COMMIT
+   BEGIN
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   COMMIT
+   SELECT * FROM zone_copy WHERE 1=0
+   ... (6 INSERT executions in all)
+
+== mode=overwrite, truncate=true, cascadeTruncate=true
+   SELECT 1 FROM zone_copy WHERE 1=0
+   TRUNCATE TABLE ONLY zone_copy CASCADE
+   SELECT * FROM zone_copy WHERE 1=0
+   BEGIN
+   SELECT "locationid","borough","zone" FROM "public"."zones"  WHERE ("locationid" IS NOT NULL) AND ("locationid" <= 6)
+   SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+   COMMIT
+   BEGIN
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   COMMIT
+   SELECT * FROM zone_copy WHERE 1=0
+   ... (6 INSERT executions in all)
+
+== createTableColumnTypes and createTableOptions
+   CREATE TABLE zone_copy ("locationid" INTEGER , "borough" VARCHAR(20) , "zone" VARCHAR(60) ) WITH (fillfactor = 70)
+   BEGIN
+   SELECT "locationid","borough","zone" FROM "public"."zones"  WHERE ("locationid" IS NOT NULL) AND ("locationid" <= 6)
+   SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+   COMMIT
+   BEGIN
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   COMMIT
+   SELECT * FROM zone_copy WHERE 1=0
+   ... (6 INSERT executions in all)
+
+== mode=append, batchsize=4, isolationLevel=READ_COMMITTED
+   SELECT 1 FROM zone_copy WHERE 1=0
+   SELECT * FROM zone_copy WHERE 1=0
+   BEGIN
+   SELECT "locationid","borough","zone" FROM "public"."zones"  WHERE ("locationid" IS NOT NULL) AND ("locationid" <= 6)
+   SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED
+   BEGIN
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   COMMIT
+   COMMIT
+   SELECT * FROM zone_copy WHERE 1=0
+   ... (6 INSERT executions in all)
+
+== mode=append, isolationLevel=NONE (no transaction)
+   SELECT 1 FROM zone_copy WHERE 1=0
+   SELECT * FROM zone_copy WHERE 1=0
+   BEGIN
+   SELECT "locationid","borough","zone" FROM "public"."zones"  WHERE ("locationid" IS NOT NULL) AND ("locationid" <= 6)
+   COMMIT
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   SELECT * FROM zone_copy WHERE 1=0
+   ... (6 INSERT executions in all)
+
+== sessionInitStatement on a write (a read option)
+   SELECT 1 FROM zone_copy WHERE 1=0
+   SELECT * FROM zone_copy WHERE 1=0
+   BEGIN
+   SELECT "locationid","borough","zone" FROM "public"."zones"  WHERE ("locationid" IS NOT NULL) AND ("locationid" <= 6)
+   SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+   COMMIT
+   BEGIN
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   INSERT INTO zone_copy ("locationid","borough","zone") VALUES ($1,$2,$3)
+   COMMIT
+   SELECT * FROM zone_copy WHERE 1=0
+   ... (6 INSERT executions in all)
+
+== mode=errorifexists on a table that exists
+   Table or view 'zone_copy' already exists. SaveMode: ErrorIfExists.
+
+== append 800 rows in 8 tasks to a table that has id 700 (in task 7)
+   the job failed: Task 7 in stage 7.0 failed 1 times: duplicate key value violates unique constraint "keyed_pkey"
+   rows in keyed after the failed job, by task range:
+    task | count 
+   ------+-------
+       0 |   100
+       1 |   100
+       2 |   100
+       3 |   100
+       4 |   100
+       5 |   100
+       6 |   100
+       7 |     1
+   (8 rows)
+   
+== upsert through a staging table
+   SELECT 1 FROM fares_stage WHERE 1=0
+   DROP TABLE fares_stage
+   CREATE TABLE fares_stage ("payment_type" BIGINT , "avg_fare" FLOAT8 , "n" BIGINT NOT NULL)
+   SELECT "payment_type",AVG("fare_amount"),COUNT(*) FROM "public"."trips" WHERE 1=0 GROUP BY "payment_type"
+   BEGIN
+   SELECT "payment_type",AVG("fare_amount"),COUNT(*) FROM "public"."trips"   GROUP BY "payment_type"
+   SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+   COMMIT
+   BEGIN
+   INSERT INTO fares_stage ("payment_type","avg_fare","n") VALUES ($1,$2,$3)
+   INSERT INTO fares_stage ("payment_type","avg_fare","n") VALUES ($1,$2,$3)
+   COMMIT
+   SELECT * FROM fares_stage WHERE 1=0
+   INSERT INTO fares SELECT * FROM fares_stage ON CONFLICT (payment_type) DO UPDATE SET avg_fare = EXCLUDED.avg_fare, n = EXCLUDED.n
+   ... (6 INSERT executions in all)
+   rows inserted or updated: 6
+    payment_type |      avg_fare      |    n    
+   --------------+--------------------+---------
+               0 | 26.216517020239827 | 1013500
+               1 |  19.82245494315191 | 2432871
+               2 | 20.306480559188447 |  357804
+               3 | 10.770689870593417 |   11205
+               4 |  3.987851916216927 |   21866
+               5 |                  0 |       2
+              99 |                 -1 |      -1
+   (7 rows)
+   
+
+== MERGE INTO a table of the JDBC catalog
+   [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported: Table `pg`.`public`.`fares` does not support MERGE INTO TABLE. Please check the current catalog and namespace to make sure the quali

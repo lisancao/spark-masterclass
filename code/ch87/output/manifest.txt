@@ -1,0 +1,35 @@
+== the manifest committer on s3a://
+  : org.apache.hadoop.fs.PathIOException: `s3a://book/manifest': This committer does not work with the filesystem of type s3a
+
+== the manifest committer on file://
+  _SUCCESS: 20978 bytes, name=org.apache.hadoop.fs.s3a.commit.files.SuccessData/1
+  committer: org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitter
+  files listed: 8, success=True
+    counter committer_bytes_committed = 95,122,684
+    counter committer_files_committed = 8
+    counter committer_task_manifest_file_size = 155,517
+    counter job_stage_rename_files = 1
+    counter op_create_directories = 1
+    counter op_load_all_manifests = 1
+    maximum committer_task_manifest_file_size = 19,443
+    maximum job_stage_rename_files.max = 59
+    maximum op_create_directories.max = 1
+    maximum op_load_all_manifests.max = 72
+  job commit stages that ran (counters in _SUCCESS):
+    job_stage_create_target_dirs = 1
+    job_stage_load_manifests = 1
+    job_stage_rename_files = 1
+    job_stage_setup = 1
+
+== one task manifest (a copy from the diagnostics directory)
+  manifests saved: 8
+  task_202611221520152641591826080396864_0004_m_000000-manifest.json
+    type: org.apache.hadoop.mapreduce.lib.output.committer.manifest.files.TaskManifest/1
+    taskID: task_202611221520152641591826080396864_0004_m_000000
+    files: 1
+      source: manifest-out/_temporary/6cb0454a-39d6-438e-ae4e-51c51f413a44/00/tasks/attempt_202611221520152641591826080396864_0004_m_000000_9/part-00000-bdbd9148-a912-4cc7-ae02-df7f3e53c4cc-c000.snappy.parquet
+      dest:   manifest-out/part-00000-bdbd9148-a912-4cc7-ae02-df7f3e53c4cc-c000.snappy.parquet
+      size:   11894468
+    directories: 0
+
+  summary reports: .summary-6cb0454a-39d6-438e-ae4e-51c51f4, summary-6cb0454a-39d6-438e-ae4e-51c51f41

@@ -1,0 +1,47 @@
+== sessionInitStatement runs before the read, on each connection
+   postgres> BEGIN
+   postgres> BEGIN
+   postgres> SET work_mem = '64MB'
+   postgres> SET work_mem = '64MB'
+   postgres> SELECT "trip_id" FROM trips  WHERE (("fare_amount" IS NOT NULL) AND ("fare_amount" > 400.0)) AND ("trip_id" >= 1918624)
+   postgres> SELECT "trip_id" FROM trips  WHERE (("fare_amount" IS NOT NULL) AND ("fare_amount" > 400.0)) AND ("trip_id" < 1918624 or "trip_id" is null)
+   postgres> COMMIT
+   postgres> COMMIT
+   rows: 202
+
+== query: Spark wraps your SELECT as a subquery
+   postgres> BEGIN
+   postgres> SELECT "payment_type","n" FROM (SELECT payment_type, count(*) AS n FROM trips GROUP BY payment_type) SPARK_GEN_SUBQ_0  WHERE ("n" IS NOT NULL) AND ("n" > 1000)
+   postgres> COMMIT
+   rows: [(0, 1013500), (1, 2432871), (2, 357804), (3, 11205), (4, 21866)]
+
+== prepareQuery and query: a WITH clause in front of the subquery
+   postgres> BEGIN
+   postgres> WITH big AS (SELECT * FROM trips WHERE total_amount > 500) SELECT "n" FROM (SELECT count(*) AS n FROM big) SPARK_GEN_SUBQ_22
+   postgres> COMMIT
+   rows: [114]
+
+== queryTimeout=1 on a query that takes 3 seconds
+   org.postgresql.util.PSQLException: ERROR: canceling statement due to user request
+
+== customSchema: read the fare as DECIMAL(10,2) and the id as STRING
+   locationid: string, borough: string, zone: string, service_zone: string
+   fare_amount: decimal(10,2)
+
+== hint on PostgreSQL
+   [HINT_UNSUPPORTED_FOR_JDBC_DIALECT] The option `hint` is not supported for PostgresDialect in JDBC data source. Supported dialects are `MySQLDialect`, `OracleDialect` and `Databric
+
+== the dialect for each URL (JdbcDialects.get)
+   jdbc:postgresql://db/x       PostgresDialect
+   jdbc:mysql://db/x            MySQLDialect
+   jdbc:sqlserver://db          MsSqlServerDialect
+   jdbc:oracle:thin:@db         OracleDialect
+   jdbc:derby:memory:x          DerbyDialect
+   jdbc:h2:mem:x                H2Dialect
+   jdbc:databricks://host       DatabricksDialect
+   jdbc:snowflake://acct        SnowflakeDialect
+   jdbc:sqlite:x.db             NoopDialect$
+   jdbc:duckdb:                 NoopDialect$
+
+== JdbcDialects.getBuiltInDialect with a name that does not exist (new in 4.3.0)
+   [UNSUPPORTED_BUILT_IN_JDBC_DIALECT] `sqlite` is not a supported built-in JDBC dialect. Supported dialects are: databricks, db2, derby, h2, mysql, oracle, postgresql, snowflake, sqlserver, teradata. SQLSTATE: 22023

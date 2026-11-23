@@ -1,0 +1,3 @@
+== INSERT OVERWRITE of one partition (partitionOverwriteMode=dynamic)
+  magic    : java.io.IOException: PathOutputCommitter does not support dynamicPartitionOverwrite: MagicCommitter{AbstractS3ACommitter{role=Task committer attempt
+  file-v1  overwrite of day=2 worked: day=1 v=a, day=2 v=B, day=3 v=c

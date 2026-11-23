@@ -1,0 +1,146 @@
+[
+ {
+  "committer": "file-v1",
+  "commit protocol": "SQLHadoopMapReduceCommitProtocol",
+  "wall s": 7.28,
+  "task commit s (sum)": 2.5,
+  "job commit s": 2.0,
+  "requests": {
+   "HeadObject": 488,
+   "ListObjectsV2": 431,
+   "PutObject": 67,
+   "CopyObject": 64,
+   "DeleteObject": 64,
+   "DeleteMultipleObjects": 2
+  },
+  "algorithm.version": "1",
+  "objects": 33,
+  "part files": 32,
+  "_SUCCESS bytes": 0
+ },
+ {
+  "committer": "file-v2",
+  "commit protocol": "SQLHadoopMapReduceCommitProtocol",
+  "wall s": 3.25,
+  "task commit s (sum)": 2.3,
+  "job commit s": 0.04,
+  "requests": {
+   "HeadObject": 328,
+   "ListObjectsV2": 270,
+   "PutObject": 66,
+   "CopyObject": 32,
+   "DeleteObject": 32,
+   "DeleteMultipleObjects": 2
+  },
+  "algorithm.version": "2",
+  "objects": 33,
+  "part files": 32,
+  "_SUCCESS bytes": 0
+ },
+ {
+  "committer": "magic",
+  "commit protocol": "PathOutputCommitProtocol",
+  "wall s": 4.37,
+  "task commit s (sum)": 2.0,
+  "job commit s": 0.21,
+  "requests": {
+   "ListObjectsV2": 175,
+   "HeadObject": 168,
+   "PutObject": 131,
+   "GetObject": 64,
+   "DeleteMultipleObjects": 34,
+   "DeleteObject": 34,
+   "NewMultipartUpload": 32,
+   "PutObjectPart": 32,
+   "CompleteMultipartUpload": 32,
+   "ListMultipartUploads": 2
+  },
+  "algorithm.version": "1",
+  "objects": 34,
+  "part files": 32,
+  "_SUCCESS bytes": 14739,
+  "_SUCCESS name": "org.apache.hadoop.fs.s3a.commit.files.SuccessData/1",
+  "_SUCCESS committer": "magic",
+  "_SUCCESS files listed": 32,
+  "_SUCCESS metrics": {
+   "committer_bytes_committed": 384352544,
+   "committer_commits_completed": 128,
+   "object_copy_requests": 0,
+   "object_delete_request": 135,
+   "object_list_request": 695,
+   "object_multipart_initiated": 128,
+   "object_put_request": 392,
+   "op_rename": 0
+  }
+ },
+ {
+  "committer": "directory",
+  "commit protocol": "PathOutputCommitProtocol",
+  "wall s": 3.91,
+  "task commit s (sum)": 2.7,
+  "job commit s": 0.31,
+  "requests": {
+   "NewMultipartUpload": 32,
+   "PutObjectPart": 32,
+   "CompleteMultipartUpload": 32,
+   "ListObjectsV2": 11,
+   "HeadObject": 8,
+   "PutObject": 2,
+   "ListMultipartUploads": 2,
+   "DeleteMultipleObjects": 1,
+   "DeleteObject": 1
+  },
+  "algorithm.version": "1",
+  "objects": 34,
+  "part files": 32,
+  "_SUCCESS bytes": 13235,
+  "_SUCCESS name": "org.apache.hadoop.fs.s3a.commit.files.SuccessData/1",
+  "_SUCCESS committer": "directory",
+  "_SUCCESS files listed": 32,
+  "_SUCCESS metrics": {
+   "committer_bytes_committed": 384352544,
+   "committer_commits_completed": 128,
+   "object_copy_requests": 0,
+   "object_delete_request": 4,
+   "object_list_request": 42,
+   "object_multipart_initiated": 128,
+   "object_put_request": 4,
+   "op_rename": 0
+  }
+ },
+ {
+  "committer": "partitioned",
+  "commit protocol": "PathOutputCommitProtocol",
+  "wall s": 3.58,
+  "task commit s (sum)": 2.5,
+  "job commit s": 0.26,
+  "requests": {
+   "NewMultipartUpload": 32,
+   "PutObjectPart": 32,
+   "CompleteMultipartUpload": 32,
+   "ListObjectsV2": 10,
+   "HeadObject": 7,
+   "PutObject": 2,
+   "ListMultipartUploads": 2,
+   "DeleteMultipleObjects": 1,
+   "DeleteObject": 1
+  },
+  "algorithm.version": "1",
+  "objects": 34,
+  "part files": 32,
+  "_SUCCESS bytes": 13301,
+  "_SUCCESS name": "org.apache.hadoop.fs.s3a.commit.files.SuccessData/1",
+  "_SUCCESS committer": "partitioned",
+  "_SUCCESS files listed": 32,
+  "_SUCCESS metrics": {
+   "committer_bytes_committed": 384352544,
+   "committer_commits_completed": 128,
+   "object_copy_requests": 0,
+   "object_delete_request": 4,
+   "object_list_request": 38,
+   "object_multipart_initiated": 128,
+   "object_put_request": 4,
+   "op_rename": 0
+  }
+ }
+]

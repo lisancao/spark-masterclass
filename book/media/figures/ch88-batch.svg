@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 324" width="900" height="324" role="img"><title>Rows per second into PostgreSQL by batchsize</title><defs><marker id="m8a919e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a919e"/></marker><marker id="m8a919es" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#8a919e"/></marker></defs><line x1="360.0" y1="20" x2="360.0" y2="288" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="360.0" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">0k</text>
+<line x1="417.14285714285717" y1="20" x2="417.14285714285717" y2="288" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="417.14285714285717" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">100k</text>
+<line x1="474.2857142857143" y1="20" x2="474.2857142857143" y2="288" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="474.2857142857143" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">200k</text>
+<line x1="531.4285714285714" y1="20" x2="531.4285714285714" y2="288" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="531.4285714285714" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">300k</text>
+<line x1="588.5714285714286" y1="20" x2="588.5714285714286" y2="288" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="588.5714285714286" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">400k</text>
+<line x1="645.7142857142858" y1="20" x2="645.7142857142858" y2="288" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="645.7142857142858" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">500k</text>
+<line x1="702.8571428571429" y1="20" x2="702.8571428571429" y2="288" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="702.8571428571429" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">600k</text>
+<line x1="760.0" y1="20" x2="760.0" y2="288" stroke="#8a919e" stroke-width="0.6" stroke-dasharray="6 5"/>
+<text x="760.0" y="302.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">700k</text>
+<text x="350" y="46.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="end" font-weight="700">batchsize=10</text>
+<rect x="360" y="30" width="118.08342857142858" height="26" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="486.0834285714286" y="48.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">206,646/s (4.84 s)</text>
+<text x="350" y="90.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="end" font-weight="700">batchsize=100</text>
+<rect x="360" y="74" width="208.6434285714286" height="26" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="576.6434285714286" y="92.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">365,126/s (2.74 s)</text>
+<text x="350" y="134.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="end" font-weight="700">batchsize=1000 (default)</text>
+<rect x="360" y="118" width="257.4051428571429" height="26" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="625.4051428571429" y="136.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">450,459/s (2.22 s)</text>
+<text x="350" y="178.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="end" font-weight="700">batchsize=10000</text>
+<rect x="360" y="162" width="182.94228571428573" height="26" rx="3" fill="#3a5f96" fill-opacity="1"/>
+<text x="550.9422857142857" y="180.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">320,149/s (3.12 s)</text>
+<text x="350" y="222.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="end" font-weight="700">batchsize=1000 + rewrite</text>
+<rect x="360" y="206" width="312.14457142857145" height="26" rx="3" fill="#2f7d5b" fill-opacity="1"/>
+<text x="680.1445714285715" y="224.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">546,253/s (1.83 s)</text>
+<text x="350" y="266.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="end" font-weight="700">batchsize=10000 + rewrite</text>
+<rect x="360" y="250" width="386.7988571428572" height="26" rx="3" fill="#2f7d5b" fill-opacity="1"/>
+<text x="754.7988571428572" y="268.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="700">676,898/s (1.48 s)</text>
+<text x="20" y="320.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">1,000,000 rows, 4 tasks, PostgreSQL 16 in Docker on the same machine, median of 3 writes. rewrite = reWriteBatchedInserts=true.</text></svg>

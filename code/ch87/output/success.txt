@@ -1,0 +1,10 @@
+== file-v1: _SUCCESS is 0 bytes
+== magic: _SUCCESS is 14739 bytes
+  name: org.apache.hadoop.fs.s3a.commit.files.SuccessData/1
+  committer: magic
+  jobId: 16e990f1-ff0e-487f-a0b1-7d82ffa20d91
+  jobIdSource: spark.sql.sources.writeJobUUID
+  description: Task committer attempt_202611221510434481329383131574812_0000_m_000000
+  filenames: 32, the first: /commit/magic/run3/part-00000-0bfe0609-fecf-4980-b9f7-e6685d3c
+  metrics: 211 counters, for example object_copy_requests=0, committer_magic_files_created=128
+  diagnostics: ['fs.s3a.committer.threads', 'fs.s3a.connection.maximum', 'fs.s3a.max.total.tasks']

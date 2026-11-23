@@ -1,0 +1,18 @@
+8 tasks of 10,000 rows. Task 7 fails after tasks 0 to 6 commit.
+
+committer   objects  part files  temp objects  pending uploads  _SUCCESS  rows a reader sees
+file-v1           1           0             0                0     False       no data files
+file-v2           7           7             0                0     False               70000
+magic             1           0             0                0     False       no data files
+
+what is left under each destination (first keys):
+  file-v1:
+    /
+  file-v2:
+    part-00000-e022d416-ac2f-4214-bd48-e342afc0b96c-c000.snappy.parquet
+    part-00001-e022d416-ac2f-4214-bd48-e342afc0b96c-c000.snappy.parquet
+    part-00002-e022d416-ac2f-4214-bd48-e342afc0b96c-c000.snappy.parquet
+    part-00003-e022d416-ac2f-4214-bd48-e342afc0b96c-c000.snappy.parquet
+    part-00004-e022d416-ac2f-4214-bd48-e342afc0b96c-c000.snappy.parquet
+  magic:
+    /

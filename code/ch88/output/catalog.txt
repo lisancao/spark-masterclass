@@ -1,0 +1,68 @@
+spark-sql> SHOW NAMESPACES IN pg
+  information_schema
+  pg_catalog
+  public
+
+spark-sql> SHOW TABLES IN pg.public
+  public | fares | False
+  public | fares_stage | False
+  public | keyed | False
+  public | trips | False
+  public | zone_copy | False
+  public | zones | False
+
+spark-sql> DESCRIBE TABLE pg.public.trips
+  vendorid | int | None
+  tpep_pickup_datetime | timestamp | None
+  tpep_dropoff_datetime | timestamp | None
+  passenger_count | bigint | None
+  trip_distance | double | None
+  ratecodeid | bigint | None
+  ... (22 rows)
+  postgres> SELECT * FROM "public"."trips" WHERE 1=0
+
+spark-sql> CREATE NAMESPACE pg.reports
+  postgres> CREATE SCHEMA "reports"
+
+spark-sql> CREATE TABLE pg.reports.daily (day DATE, trips BIGINT, revenue DOUBLE)
+  postgres> CREATE TABLE "reports"."daily" ("day" DATE , "trips" BIGINT , "revenue" FLOAT8 ) 
+
+spark-sql> INSERT INTO pg.reports.daily SELECT to_date(tpep_pickup_datetime) AS day, count(*), round(sum(total_amount), 2) FROM pg.public.trips WHERE tpep_pickup_datetime >= '2026-06-01' AND tpep_pickup_datetime < '2026-06-04' GROUP BY 1
+  postgres> SELECT * FROM "public"."trips" WHERE 1=0
+  postgres> SELECT * FROM "reports"."daily" WHERE 1=0
+  postgres> SELECT CAST("tpep_pickup_datetime" AS date),COUNT(*),SUM("total_amount") FROM "public"."trips" WHERE 1=0 GROUP BY CAST("tpep_pickup_datetime" AS date)
+  postgres> SELECT CAST("tpep_pickup_datetime" AS date),COUNT(*),SUM("total_amount") FROM "public"."trips" WHERE 1=0 GROUP BY CAST("tpep_pickup_datetime" AS date)
+  postgres> SELECT CAST("tpep_pickup_datetime" AS date),COUNT(*),SUM("total_amount") FROM "public"."trips"  WHERE ("tpep_pickup_datetime" IS NOT NULL) AND ("tpep_pickup_datetime" >= '2026-06-01 00:00:00.0') AND (
+  postgres> INSERT INTO "reports"."daily" ("day","trips","revenue") VALUES ($1,$2,$3)
+  postgres> INSERT INTO "reports"."daily" ("day","trips","revenue") VALUES ($1,$2,$3)
+  postgres> INSERT INTO "reports"."daily" ("day","trips","revenue") VALUES ($1,$2,$3)
+
+spark-sql> SELECT * FROM pg.reports.daily ORDER BY day
+  2026-06-01 | 111546 | 3480153.25
+  2026-06-02 | 126260 | 3848786.9
+  2026-06-03 | 140184 | 4279253.92
+  postgres> SELECT * FROM "reports"."daily" WHERE 1=0
+  postgres> SELECT "day","trips","revenue" FROM "reports"."daily"      
+  postgres> SELECT "day","trips","revenue" FROM "reports"."daily"      
+
+spark-sql> ALTER TABLE pg.reports.daily ADD COLUMN note STRING
+  postgres> SELECT * FROM "reports"."daily" WHERE 1=0
+  postgres> ALTER TABLE "reports"."daily" ADD COLUMN "note" TEXT
+  postgres> SELECT * FROM "reports"."daily" WHERE 1=0
+
+spark-sql> SHOW CREATE TABLE pg.reports.daily
+  CREATE TABLE pg.reports.daily (
+  day DATE,
+  trips BIGINT,
+  revenue DOUBLE,
+  note STRING COLLATE UTF8_BINARY)
+
+  postgres> SELECT * FROM "reports"."daily" WHERE 1=0
+
+spark-sql> DROP TABLE pg.reports.daily
+  postgres> SELECT 1 FROM "reports"."daily" WHERE 1=0
+  postgres> DROP TABLE "reports"."daily"
+
+spark-sql> DROP NAMESPACE pg.reports
+  postgres> DROP SCHEMA "reports"
+
