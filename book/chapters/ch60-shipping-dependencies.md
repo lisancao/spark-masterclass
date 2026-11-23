@@ -476,6 +476,49 @@ The image has these properties:
 
 For production, build your own image from the official image. Install the interpreter version of your driver, PyArrow, pandas and your packages. Use the same image for the driver and the executors (`spark.kubernetes.container.image`). [Chapter 62](ch62-kubernetes-operator.md) builds and runs such an image on a local Kubernetes cluster. Dependencies that are in the image need no py-files and no archives. A file that is already in the image uses the `local://` scheme, so that Spark does not upload it.
 
+## Step 11: ADD FILE, ADD ARCHIVE, ADD JAR and LIST in SQL
+
+The Python methods of the steps above have SQL forms. They are useful from `spark-sql`, from the Thrift server and from SQL files. Each statement calls the same `SparkContext` method as its API partner (`resources.scala` in 4.3.0):
+
+| Statement | Calls | The executors get |
+|---|---|---|
+| `ADD FILE path` (also `ADD FILES`) | `sparkContext.addFile` | the file in the `SparkFiles` root. `SparkFiles.get(name)` gives its path |
+| `ADD ARCHIVE path` (`.zip`, `.tar`, `.tar.gz`, `.tgz`, `.jar`) | `sparkContext.addArchive` | the archive unpacked into a folder with the name of the archive, in the working folder of the task |
+| `ADD JAR path` | `sessionState.resourceLoader.addJar` | the jar on the class path of the driver and the executors. An `ivy://group:artifact:version` path resolves Maven coordinates |
+| `LIST FILES`, `LIST ARCHIVES`, `LIST JARS` | `listFiles`, `listArchives`, `listJars` | nothing. They return the URLs that the driver serves |
+
+`sql_resources.py` makes a small CSV file, a zip with one text file and a jar with one Java UDF (`book.Shout`, compiled with `javac`). It runs on `local-cluster[2,1,1024]`, so that the executors are separate JVMs:
+
+```text
+spark-sql> ADD FILE $W/rates.csv
+spark-sql> ADD ARCHIVE $W/lookup.zip
+spark-sql> ADD JAR $W/shout.jar
+spark-sql> LIST FILES
+  spark://localhost:36227/files/rates.csv
+spark-sql> LIST ARCHIVES
+  spark://localhost:36227/files/lookup.zip
+spark-sql> LIST JARS
+  spark://localhost:36227/jars/shout.jar
+
+on the executors:
+  pid 452954  SparkFiles.get -> 2,JFK  ./lookup.zip/zones -> Manhattan
+  pid 452959  SparkFiles.get -> 2,JFK  ./lookup.zip/zones -> Manhattan
+spark-sql> SELECT shout(borough) FROM VALUES ('queens') AS t(borough)
+  QUEENS!
+
+new session: LIST JARS -> 1 jar(s), LIST FILES -> 1 file(s)
+driver: SparkFiles root /tmp/..., rates.csv there: True
+```
+
+The output shows four facts:
+
+- **The driver serves each resource over its own RPC file server.** The `LIST` statements give `spark://` URLs, not the local paths. The executors download from these URLs.
+- **Both executor processes got the file and the unpacked archive.** The UDF read `rates.csv` through `SparkFiles.get`, and `zones/boroughs.txt` from the folder `./lookup.zip`.
+- **`ADD JAR` put the class on the class path,** so `spark.udf.registerJavaFunction` found `book.Shout` without a restart.
+- **The resources belong to the application, not to the session.** A new session from `spark.newSession()` lists the same jar and the same file.
+
+Thus, on a Connect server, `ADD JAR` and `ADD FILE` change the `SparkContext` that all sessions share. For one session only, use the artifacts of Step 9. SQL has no statement that removes a resource.
+
 ## Choose a method
 
 | You need | Use | Limits |
@@ -483,6 +526,7 @@ For production, build your own image from the official image. Install the interp
 | Pure Python modules of your own project | A zip with `--py-files`, `spark.submit.pyFiles` or `addPyFile` | Add before you make UDFs. No native code. A changed file needs a new name. |
 | Packages with native code, one application | A site folder from `pip install --target` for the executor platform, shipped as an archive, put on `sys.path` in the task | Build for the Python version and the platform of the executors. |
 | A full environment on YARN or Kubernetes | `venv-pack` or `conda-pack` with `spark.archives` and `PYSPARK_PYTHON=./environment/bin/python` | The same interpreter path on each executor. Does not work in local mode. |
+| A file, an archive or a jar from SQL | `ADD FILE`, `ADD ARCHIVE`, `ADD JAR` | For the whole application, not one session. No removal. |
 | Dependencies for each Connect session | `spark.addArtifacts(..., pyfile=True)` or `archive=True` | Local files only, no `.whl`, no change of interpreter. |
 | The same dependencies for each application | A custom container image | A new image for each change. The most reliable method. |
 
@@ -503,6 +547,7 @@ When an import fails on the workers, do these checks in this sequence:
 - **py-files are zips on `sys.path`.** The package folder must be at the top level. A UDF records the include list one time. A reused worker never loads a module again. A zip cannot load native code.
 - **Archives unpack into real folders**, so native code works. The packed venv recipe uses a relative interpreter path that works only on a cluster.
 - **Connect artifacts belong to one session**, with their own folder and their own workers. They cannot change, and they cannot change the interpreter.
+- **`ADD FILE`, `ADD ARCHIVE` and `ADD JAR` are the SQL forms** of `addFile`, `addArchive` and `addJar`. `LIST` shows what the driver serves. They apply to the whole application.
 - **The official 4.3.0 Python image has Python 3.10 and no PyArrow.** Build your own image for production.
 
 The next chapter looks at what these workers and executors report while they run: listeners, event logs, metrics and profilers.

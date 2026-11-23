@@ -1,0 +1,14 @@
+--- pods while the driver pod runs
+NAME                               ROLE       OWNER                STATUS
+ch80-app-2faef1a2058bd693-exec-1   executor   ch80-client-driver   Running
+ch80-app-2faef1a2058bd693-exec-2   executor   ch80-client-driver   Running
+ch80-client-driver                 <none>     <none>               Running
+--- driver pod Succeeded; its stdout
+driver host   ch80-client-driver  pid 79
+master        k8s://https://kubernetes.default.svc
+deploy mode   client
+app id        spark-3f0806d8aef240d08ebc781ac6ada5b1
+executor driver  ch80-client-driver.spark-apps.svc.cluster.local:7079 cores 0
+executor      2  10.244.1.22:42341      cores 1
+executor      1  10.244.2.31:43655      cores 1
+trips by payment_type: 0=1,013,500, 1=2,432,871, 2=357,804, 3=11,205, 4=21,866, 5=2

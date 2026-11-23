@@ -36,6 +36,17 @@ The master URL selects the cluster manager. `SparkContext.createTaskScheduler` (
 | `spark://host:7077` | Spark standalone | `StandaloneSchedulerBackend` | JVMs that workers start |
 | `yarn` | Hadoop YARN | `YarnClientSchedulerBackend` or `YarnClusterSchedulerBackend` | YARN containers |
 | `k8s://https://...` | Kubernetes | `KubernetesClusterSchedulerBackend` | pods |
+| `mesos://...` | Apache Mesos, removed in 4.0 | none | none: `spark-submit` refuses the URL |
+
+Spark 3.2 deprecated Mesos, and Spark 4.0 removed it. The [core migration guide](https://spark.apache.org/docs/4.3.0/core-migration-guide.html) records the removal in the section for 3.5 to 4.0. `mesos.sh` gives a Mesos URL to `spark-submit` 4.3.0:
+
+```text
+Exception in thread "main" org.apache.spark.SparkException: Master must either be yarn or start with spark, k8s, or local
+	at org.apache.spark.deploy.SparkSubmit.error(SparkSubmit.scala:1068)
+	at org.apache.spark.deploy.SparkSubmit.prepareSubmitEnvironment(SparkSubmit.scala:263)
+```
+
+[Chapter 80](ch80-submitting-applications.md) submits applications to the other cluster managers.
 
 YARN and Kubernetes are not in the list of patterns. They are **external cluster managers**. Spark finds them with the Java `ServiceLoader`, and each one has a `canCreate(masterURL)` method (`YarnClusterManager.scala:28`, `KubernetesClusterManager.scala:38`). The pip package of Spark 4.3 ships both, as `spark-yarn_2.13-4.3.0.jar` and `spark-kubernetes_2.13-4.3.0.jar`. [Chapter 62](ch62-kubernetes-operator.md) runs Spark on Kubernetes.
 

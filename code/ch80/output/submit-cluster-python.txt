@@ -1,0 +1,3 @@
+Exception in thread "main" org.apache.spark.SparkException: Cluster deploy mode is currently not supported for python applications on standalone clusters.
+	at org.apache.spark.deploy.SparkSubmit.error(SparkSubmit.scala:1068)
+	at org.apache.spark.deploy.SparkSubmit.prepareSubmitEnvironment(SparkSubmit.scala:300)

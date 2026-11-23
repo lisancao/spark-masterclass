@@ -1,0 +1,6 @@
+KIND   NAME                               ROLE     STATUS      NODE
+Pod    ch80-k8s-8c12a3a2057e1a81-driver   driver   Succeeded   ops80-worker
+--- : fields from the template
+error: the server doesn't have a resource type ""
+--- : fields that Spark set
+error: the server doesn't have a resource type ""

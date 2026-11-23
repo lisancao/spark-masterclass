@@ -1,0 +1,7 @@
+driver host   laptop  pid 333140
+master        k8s://https://127.0.0.1:40845
+deploy mode   client
+app id        spark-3943dacc41674a03bcb136a7b759c954
+executor driver  172.30.0.1:7179        cores 0
+--- pod/ch80-app-b4e35ba2058cba1e-exec-1 log
+23:19:30 WARN NettyRpcEnv: Ignored failure: java.io.IOException: Connecting to /172.30.0.1:7178 timed out (120000 ms)

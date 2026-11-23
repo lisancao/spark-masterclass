@@ -1,0 +1,8 @@
+--- --principal without --keytab
+k: ok, 10 groups, executors 0
+--- a keytab file that does not exist
+java.lang.IllegalArgumentException: requirement failed: Keytab file: /nonexistent.keytab does not exist
+--- --proxy-user together with --principal
+org.apache.spark.SparkException: Only one of --proxy-user or --principal can be provided.
+--- no Kerberos at all: Hadoop security is off, no tokens
+ch81-krb: ok, 10 groups, executors 0

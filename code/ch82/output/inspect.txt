@@ -1,0 +1,25 @@
+                           official (-bin-hadoop3)            this build (-bin-book)
+tgz size                   536M                               361M
+jars/                      280 jars                           225 jars
+hadoop-* jars              2                                  0
+RELEASE, first line        Spark 4.3.0 (git revision 98bc0212c94) built for Hadoop 3.5.0 Spark 4.3.0 built for Hadoop 3.5.0
+RELEASE, build flags       Build flags: -B -Pyarn -Pkubernete Build flags: -Phadoop-provided -Pkubernetes -DskipTests -Dmaven.repo.local=/work/.m2/repository
+--- jars in the official tarball and not in this build: 55
+  Spark modules (no -Phive -Phive-thriftserver -Pyarn in this build):
+    spark-hive_2.13-4.3.0.jar
+    spark-hive-thriftserver_2.13-4.3.0.jar
+    spark-yarn_2.13-4.3.0.jar
+  Hadoop and the libraries that a Hadoop install provides (hadoop-provided), for example:
+    commons-cli-1.11.0.jar
+    curator-client-5.9.0.jar
+    guava-33.6.0-jre.jar
+    hadoop-client-api-3.5.0.jar
+    hadoop-client-runtime-3.5.0.jar
+    slf4j-api-2.0.17.jar
+    zookeeper-3.9.5.jar
+  Hive and its dependencies: 39 jars
+--- jars in this build and not in the official tarball
+--- run it without Hadoop on the class path
+Caused by: java.lang.NoClassDefFoundError: org/apache/hadoop/fs/FSDataInputStream
+--- run it with SPARK_DIST_CLASSPATH set to a Hadoop client and slf4j (here, jars of the official tarball)
+count: 10  version: 4.3.0

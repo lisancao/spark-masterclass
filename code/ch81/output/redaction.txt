@@ -1,0 +1,19 @@
+1. REST /environment (the Environment tab reads the same store)
+   spark.hadoop.fs.s3a.secret.key   *********(redacted)
+   spark.book.api.token             *********(redacted)
+   spark.book.endpoint              *********(redacted)
+   spark.book.region                ca-central-1
+2. the event log, SparkListenerEnvironmentUpdate
+   spark.hadoop.fs.s3a.secret.key   *********(redacted)
+   spark.book.api.token             *********(redacted)
+   spark.book.endpoint              *********(redacted)
+   spark.book.region                ca-central-1
+3. the application itself still reads the real values
+   spark.conf.get('spark.hadoop.fs.s3a.secret.key') = s3-SECRET-1234
+   spark.conf.get('spark.book.api.token') = tok-SECRET-5678
+4. table options in DESCRIBE TABLE EXTENDED (spark.sql.redaction.options.regex)
+   Location: file:$TAXI/taxi_zone_lookup.csv
+   Storage Properties: [header=true, password=*********(redacted), url=*********(redacted)]
+5. plan strings with spark.sql.redaction.string.regex (a runtime SQL config)
+   before: *(1) Filter (isnotnull(Zone#49) AND (Zone#49 = acct-SECRET-42))
+   after:  *(1) Filter (isnotnull(Zone#49) AND (Zone#49 = *********(redacted)))

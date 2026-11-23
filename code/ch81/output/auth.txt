@@ -1,0 +1,27 @@
+cluster: master and workers read spark.authenticate=true and the secret from spark-defaults.conf
+secret in a daemon command line? 0
+no-secret                          FAILED (driver gave up after 60 s, exit 124)
+                                   master log: Exception: Expected SaslMessage, received something else (maybe your client does not have SASL enabl
+                                   573 bytes to the master, app name visible: 0, "spark." strings: 3
+wrong-secret                       FAILED (driver gave up after 60 s, exit 124)
+                                   master log: Exception: javax.security.sasl.SaslException: DIGEST-MD5: digest response format violation. Mismatch
+                                   1617 bytes to the master, app name visible: 0, "spark." strings: 0
+secret-no-crypto                   ch81-secret-no-crypto: ok, 10 groups, executors 2
+                                   7707 bytes to the master, app name visible: 1, "spark." strings: 21
+secret-aes-gcm                     ch81-secret-aes-gcm: ok, 10 groups, executors 2
+                                   13713 bytes to the master, app name visible: 0, "spark." strings: 0
+--- what the eavesdropper read in the secret-no-crypto run (printable strings, first lines)
+=org.apache.spark.rpc.netty.RpcEndpointVerifier$CheckExistenceJ
+:org.apache.spark.deploy.DeployMessages$RegisterApplication
+.org.apache.spark.deploy.ApplicationDescription
+org.apache.spark.deploy.Commandt
+-Dspark.driver.port=41149t
+-Dspark.authenticate=truet
+*-Dspark.network.crypto.authEngineVersion=2t
+$-Dspark.network.crypto.enabled=falset
+(the shared secret itself in those bytes: 0 times)
+--- the same bytes with AES/GCM
+sparkSaslUser
++("z&8-jN
+x[1WHEJx
+(printable strings of 8+ chars: 6)

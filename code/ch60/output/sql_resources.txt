@@ -1,0 +1,18 @@
+spark-sql> ADD FILE $W/rates.csv
+spark-sql> ADD ARCHIVE $W/lookup.zip
+spark-sql> ADD JAR $W/shout.jar
+spark-sql> LIST FILES
+  spark://localhost:36227/files/rates.csv
+spark-sql> LIST ARCHIVES
+  spark://localhost:36227/files/lookup.zip
+spark-sql> LIST JARS
+  spark://localhost:36227/jars/shout.jar
+
+on the executors:
+  pid 452954  SparkFiles.get -> 2,JFK  ./lookup.zip/zones -> Manhattan
+  pid 452959  SparkFiles.get -> 2,JFK  ./lookup.zip/zones -> Manhattan
+spark-sql> SELECT shout(borough) FROM VALUES ('queens') AS t(borough)
+  QUEENS!
+
+new session: LIST JARS -> 1 jar(s), LIST FILES -> 1 file(s)
+driver: SparkFiles root /tmp/..., rates.csv there: True
