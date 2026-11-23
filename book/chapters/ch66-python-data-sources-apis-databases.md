@@ -12,7 +12,7 @@ This chapter builds two sources against local servers that the scripts start the
 Between the two sources, the chapter looks at what Spark does with the values that `read()` yields, and when to yield Arrow batches. The scripts are in [`code/ch66`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch66). All output comes from `code/ch66/output/`, from runs on `pyspark==4.3.0` in local mode on a 16-core machine.
 
 !!! note "New in 4.3"
-    The Python Data Source API did not change in 4.3.0 (see the note in [Chapter 65](ch65-python-data-sources-readers.md)). The `VARIANT` output in Step 6 needs Spark 4.1 or later. The JDBC source of Spark 4.3.0 includes ten built-in dialects (`JdbcDialects.scala` at `v4.3.0`). They are MySQL, PostgreSQL, DB2, SQL Server, Derby, Oracle, Teradata, H2, Snowflake and Databricks. It has no SQLite dialect.
+    The Python Data Source API did not change in 4.3.0 (see the note in [Chapter 65](ch65-python-data-sources-readers.md)). The `VARIANT` output in Step 6 needs Spark 4.1 or later. The JDBC source of Spark 4.3.0 includes ten built-in dialects (`JdbcDialects.scala` at `v4.3.0`). They are MySQL, PostgreSQL, DB2, SQL Server, Derby, Oracle, Teradata, H2, Snowflake and Databricks. It has no SQLite dialect. Spark 4.2 deprecated the Derby dialect (Step 11).
 
 ## Step 1: The driver loop, and why it fails
 
@@ -516,6 +516,11 @@ connection on self: TypeError: cannot pickle 'sqlite3.Connection' object
 
 ## Step 11: Key ranges, like JDBC
 
+!!! warning "Spark 4.2 deprecated the Derby JDBC data source"
+    Spark 4.2 deprecated the support for the Derby JDBC data source. The SQL migration guide of Spark 4.3.0 has this entry. The JDBC page of the 4.3.0 documentation also shows the dialect as "Derby (deprecated)". Spark 4.3.0 still includes `DerbyDialect`, and it logs no warning when you use it. This step uses Derby only because its JAR is part of PySpark, so the script needs no server.
+
+    Do not use Derby for new work with the JDBC source. For the same partition options against PostgreSQL in Docker, see [Chapter 88](ch88-jdbc.md). That chapter also covers the rest of the JDBC source.
+
 A table has no pages. The JDBC source divides a table into ranges of a numeric key: `partitionColumn`, `lowerBound`, `upperBound` and `numPartitions`. `database_source.py` writes 1,003 rows into Derby (its JAR is part of PySpark) and asks Spark for the `WHERE` clause of each partition. The IDs are 1 to 1,000, two late IDs at 1,000,000 and 1,000,001, and one `NULL`:
 
 ```text
@@ -654,6 +659,7 @@ A mark like this is the minimum. For a correct snapshot, all the tasks must read
 ## Further reading
 
 - [Python Data Source API tutorial](https://spark.apache.org/docs/4.3.0/api/python/tutorial/sql/python_data_source.html), with the type conversion rules.
+- [Chapter 88](ch88-jdbc.md), the JDBC source in depth: partitioned reads, pushdown, writes and JDBC catalogs, against PostgreSQL.
 - [JDBC to other databases](https://spark.apache.org/docs/4.3.0/sql-data-sources-jdbc.html), the options `partitionColumn`, `lowerBound`, `upperBound`, `numPartitions`, `predicates` and `customSchema`.
 - [Datatypes In SQLite](https://www.sqlite.org/datatype3.html), the affinity rules.
 - [PostgreSQL snapshot synchronization functions](https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-SNAPSHOT-SYNCHRONIZATION), `pg_export_snapshot()`.
