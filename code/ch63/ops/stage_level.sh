@@ -14,4 +14,4 @@ sed "s#/opt/getGpus.sh#$D/getGpus.sh#" stage_level.py > "$CH80_WORK/stage_level.
 "$SPARK_HOME/bin/spark-submit" --master "$MASTER" \
   --conf spark.dynamicAllocation.enabled=true --conf spark.dynamicAllocation.shuffleTracking.enabled=true \
   --conf spark.executor.cores=2 --conf spark.dynamicAllocation.executorIdleTimeout=60s \
-  "$CH80_WORK/stage_level.py" 2>&1 | grep -v -E "WARN|incubator|log4j|setLogLevel|^\s*$" | sed "s#$D#ch63/ops#g"
+  "$CH80_WORK/stage_level.py" 2>&1 | grep -v -E "WARN|INFO|ERROR|incubator|log4j|setLogLevel|StacklessClosed|^\s+at |^\s*$" | sed "s#$D#ch63/ops#g"
