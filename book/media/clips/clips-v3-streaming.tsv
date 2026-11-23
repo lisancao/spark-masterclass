@@ -1,0 +1,7 @@
+clip	source	start	end	poster_at	chapter
+ch89-dataloss	ch89-chapter.mp4	0+35.5	5+47.4	end-1.5	ch89
+ch89-sink	ch89-chapter.mp4	47.4+203.5	52.4+215.6	end-1.5	ch89
+ch89-security	ch89-chapter.mp4	215.6+261	220.6+272.6	end-1.5	ch89
+ch89-anim-replay	code/ch89/anim/replay/renders/replay-paper-landscape.mp4	0	21	19	ch89
+ch39-manager	ch39-chapter.mp4 (beat manager only)	0+21	5+36.8	end-1.5	ch39
+ch41-legacy	ch41-chapter.mp4 (beat legacy only)	0+22.5	5+35.2	end-1.5	ch41

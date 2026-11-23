@@ -1,0 +1,39 @@
+end offsets: {0: 1021, 1: 1159, 2: 898, 3: 560, 4: 146, 5: 229}
+
+1. Default range, earliest to latest:
+   p0:0-1020  p1:0-1158  p2:0-897  p3:0-559  p4:0-145  p5:0-228  (4013 rows)
+
+2. startingOffsets and endingOffsets as JSON (end offset not included):
+   p0:0-49  p1:100-149  p2:0-9  p3:0-9  p4:0-9  p5:0-228  (359 rows)
+
+3. The bytes become trips with from_json, as in a stream:
++---------+---------+-------------------+
+|partition|avg_miles|first_pickup       |
++---------+---------+-------------------+
+|0        |2.81     |2026-06-10 07:30:17|
+|1        |3.21     |2026-06-10 06:58:28|
+|2        |3.27     |2026-06-10 07:35:21|
+|3        |2.52     |2026-06-10 07:35:41|
+|4        |2.01     |2026-06-10 08:09:37|
+|5        |2.13     |2026-06-10 07:30:35|
++---------+---------+-------------------+
+
+4. Spark resolves latest (and -1) again at each action:
+   before: latest range 4013, JSON range (p5 ends at -1) 359
+   509 trips published
+   after:  latest range 4522, JSON range (p5 ends at -1) 465
+
+5. Options that one mode does not accept:
+   batch, startingOffsets=latest   IllegalArgumentException: starting offset can't be latest for batch queries on
+  Kafka
+   batch, endingOffsets=earliest   IllegalArgumentException: ending offset can't be earliest for batch queries on
+  Kafka
+   batch, end before start         IllegalArgumentException: The specified start offset 50 is greater than the end
+  offset 10 for topic trips partition 0.
+   batch, maxOffsetsPerTrigger      accepted (4522)
+   stream, endingOffsets           IllegalArgumentException: ending offset not valid in streaming queries
+   kafka.auto.offset.reset         IllegalArgumentException: Kafka option 'auto.offset.reset' is not supported.
+  Instead set the source option 'startingoffsets' to 'earliest' or 'latest' to ...
+   kafka.enable.auto.commit        IllegalArgumentException: Kafka option 'enable.auto.commit' is not supported
+   kafka.value.deserializer        IllegalArgumentException: Kafka option 'value.deserializer' is not supported as
+  values are deserialized as byte arrays with ByteArrayDeserializer. Use DataFrame ...

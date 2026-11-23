@@ -1,0 +1,34 @@
+1. Three queries on one stream of trips:
+     3.2s  listener: started    by_zone
+     4.2s  listener: started    long_trips
+     4.4s  listener: started    strict
+
+2. spark.streams.active:
+   long_trips  id=8932ebb9  active=True  status=Waiting for next trigger
+   strict      id=b10f2361  active=True  status=Waiting for next trigger
+   by_zone     id=9bf0c5bd  active=True  status=Waiting for next trigger
+   spark.streams.get(id) -> long_trips
+
+3. awaitAnyTermination(timeout=3) while all run: False
+
+4. Deliver files. The second file has two trips with a negative fare:
+    14.4s  listener: progress   long_trips batch 0 rows 2
+    14.7s  listener: progress   by_zone batch 0 rows 487
+    15.6s  listener: progress   by_zone batch 1 rows 508
+    15.7s  listener: progress   strict batch 0 rows 487
+    15.7s  listener: progress   long_trips batch 1 rows 4
+    15.8s  listener: terminated strict  exception: org.apache.spark.api.python.PythonException: [PYTHON_EXCEPTI
+    16.0s  awaitAnyTermination raised:
+    StreamingQueryException: [STREAM_FAILED] ... [PYTHON_EXCEPTION] An exception was ...
+     ... ValueError: negative fare -7.9
+
+5. After the failure:
+   active: ['by_zone', 'long_trips']
+   strict.isActive: False   strict.exception() is set: True
+   awaitAnyTermination(1) again -> raises again: StreamingQueryException
+   after resetTerminated(), awaitAnyTermination(1) -> False
+
+6. Stop the others, then remove the listener:
+    17.2s  listener: terminated long_trips  exception: None
+    17.2s  listener: terminated by_zone  exception: None
+   active: []

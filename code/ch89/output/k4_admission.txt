@@ -1,0 +1,47 @@
+1. Spark tasks for one batch of the topic (4 Kafka partitions, 2924 records):
+   default: 4 tasks
+     task  0  kafka p0  offsets    0-924  (925 records)
+     task  1  kafka p1  offsets    0-1017 (1018 records)
+     task  2  kafka p2  offsets    0-597  (598 records)
+     task  3  kafka p3  offsets    0-382  (383 records)
+   minPartitions=10: 10 tasks
+     task  0  kafka p1  offsets    0-253  (254 records)
+     task  1  kafka p1  offsets  254-507  (254 records)
+     task  2  kafka p1  offsets  508-762  (255 records)
+     task  3  kafka p1  offsets  763-1017 (255 records)
+     task  4  kafka p0  offsets    0-307  (308 records)
+     task  5  kafka p0  offsets  308-615  (308 records)
+     task  6  kafka p0  offsets  616-924  (309 records)
+     task  7  kafka p3  offsets    0-382  (383 records)
+     task  8  kafka p2  offsets    0-298  (299 records)
+     task  9  kafka p2  offsets  299-597  (299 records)
+   maxRecordsPerPartition=400, earliest to latest: 4 tasks
+   maxRecordsPerPartition=400, explicit offsets: 9 tasks
+     task  0  kafka p1  offsets    0-338  (339 records)
+     task  1  kafka p1  offsets  339-677  (339 records)
+     task  2  kafka p1  offsets  678-1017 (340 records)
+     task  3  kafka p0  offsets    0-307  (308 records)
+     task  4  kafka p0  offsets  308-615  (308 records)
+     task  5  kafka p0  offsets  616-924  (309 records)
+     task  6  kafka p3  offsets    0-382  (383 records)
+     task  7  kafka p2  offsets    0-298  (299 records)
+     task  8  kafka p2  offsets  299-597  (299 records)
+   the same option on a stream: the batch ran 9 tasks (Spark UI REST API)
+
+2. A stream that waits for 1000 records, or at most 6 seconds after the last batch:
+     0.5s  + 400 records
+     2.3s  + 400 records
+     4.0s  + 400 records
+     5.7s  batch 1  rows 1200
+     5.8s  + 400 records
+     7.5s  + 400 records
+     9.3s  + 100 records
+    11.6s  + 100 records
+    11.7s  batch 2  rows  900
+    13.8s  + 100 records
+    16.1s  + 100 records
+    18.4s  + 100 records
+    18.5s  batch 3  rows  300
+    20.7s  + 100 records
+    25.9s  batch 4  rows  200
+   stopped

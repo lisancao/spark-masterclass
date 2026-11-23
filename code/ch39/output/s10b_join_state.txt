@@ -1,0 +1,54 @@
+6259 pickups after 07:00; dropoff events lost for 626 of them (trip_id ends in 7)
+
+1. Left outer join, append mode:
+batch  matched  null rows  their pickups    watermark  state rows  state stores
+    0        0          0                    00:00          1461            16
+    1      432          0                    00:00          2400            16
+    2      452          0                    07:54          3368            16
+    3      402          0                    07:59          4311            16
+    4      412          8   07:00-07:04      08:04          4829            16
+    5      461          3   07:05-07:07      08:09          5303            16
+    6      444         10   07:10-07:14      08:14          5878            16
+    7      488         14   07:15-07:19      08:19          6424            16
+    8      482          7   07:20-07:23      08:24          6851            16
+    9      449          7   07:25-07:29      08:29          7172            16
+   10      459         12   07:30-07:34      08:34          7334            16
+   11      539         12   07:35-07:39      08:39          7423            16
+   12      557         24   07:40-07:44      08:44          7406            16
+   13        0         21   07:44-07:49      08:49          6739            16
+null rows written: 118, lost dropoffs: 626
+operator: symmetricHashJoin
+
+2. What the checkpoint says the join keeps (state-metadata):
++-----------------+-------------------------+-------------+----------+
+|operatorName     |stateStoreName           |numPartitions|maxBatchId|
++-----------------+-------------------------+-------------+----------+
+|symmetricHashJoin|left-keyToNumValues      |4            |13        |
+|symmetricHashJoin|left-keyWithIndexToValue |4            |13        |
+|symmetricHashJoin|right-keyToNumValues     |4            |13        |
+|symmetricHashJoin|right-keyWithIndexToValue|4            |13        |
++-----------------+-------------------------+-------------+----------+
+
+3. The rows that each side still keeps (statestore, joinSide):
+   left  (pickup_ts): 5624 rows, from 07:49:53 to 08:59:53
++----------+----------+------------+-------------------+
+|field0    |trip_id   |PULocationID|pickup_ts          |
++----------+----------+------------+-------------------+
+|0610-00790|0610-00790|239         |2026-06-10 07:49:53|
+|0610-01020|0610-01020|68          |2026-06-10 07:49:55|
++----------+----------+------------+-------------------+
+only showing top 2 rows
+   right (dropoff_ts): 1115 rows, from 08:49:54 to 08:59:59
+4. Join types for two streams, with and without watermarks:
+   inner      with watermarks and range: ok
+              without:                   ok
+   left       with watermarks and range: ok
+              without:                   Stream-stream LeftOuter join between two streaming D ...
+   right      with watermarks and range: ok
+              without:                   Stream-stream RightOuter join between two streaming  ...
+   full       with watermarks and range: ok
+              without:                   Stream-stream FullOuter join between two streaming D ...
+   left_semi  with watermarks and range: ok
+              without:                   Stream-stream LeftSemi join between two streaming Da ...
+   left_anti  with watermarks and range: LeftAnti joins with a streaming DataFrame/Dataset on ...
+              without:                   LeftAnti joins with a streaming DataFrame/Dataset on ...

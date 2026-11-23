@@ -1,0 +1,22 @@
+1. Write 487 trips over SASL_PLAINTEXT as alice:
+   done
+
+2. Read them back as a stream (availableNow), as alice:
+   rows per partition: {1: 242, 0: 245}
+
+3. The same read without credentials, to the SASL port (short timeouts):
+  TimeoutException: Timed out waiting for a node assignment. Call: listNodes
+
+4. A wrong password:
+  SaslAuthenticationException: Authentication failed: Invalid username or password
+
+5. The PLAINTEXT port of the same broker needs no login (this is why it must not be public):
+   rows: 487
+
+6. An option that the platform disallowed (spark.sql.kafka.disallowedOptions):
+  IllegalArgumentException: The Kafka option
+  'kafka.ssl.endpoint.identification.algorithm' is not allowed because it is listed in
+  spark.sql.kafka.disallowedOptions.
+   and the setting is static:
+  AnalysisException: [CANNOT_MODIFY_STATIC_CONFIG] Cannot modify the value of the
+  static Spark config: "spark.sql.kafka.disallowedOptions". SQLSTATE: 46110

@@ -1,0 +1,19 @@
+1. kafka-consumer-groups --list while the query ran: (no groups)
+   query progress so far: [(0, 198), (1, 198), (2, 198), (3, 199), (4, 199)]
+
+2. For contrast, a plain Kafka consumer with a group (kafka-console-consumer):
+   --list: ['cli-reader']
+    GROUP TOPIC PARTITION CURRENT-OFFSET LOG-END-OFFSET LAG
+    cli-reader trips4 1 300 1018 718
+    cli-reader trips4 0 0 925 925
+    cli-reader trips4 3 0 383 383
+    cli-reader trips4 2 0 598 598
+
+3. The lag, from Spark's own progress report (source metrics):
+    batch 10 endOffset {"trips4": {"0": 691, "1": 759, "2": 446, "3": 286}}
+    latestOffset {"trips4": {"0": 925, "1": 1018, "2": 598, "3": 383}}
+    metrics {'avgOffsetsBehindLatest': '185.5', 'maxOffsetsBehindLatest': '259', 'minOffsetsBehindLatest': '97'}
+
+4. groupIdPrefix and kafka.group.id:
+    --list while both run: ['cli-reader']
+    progress of the query with kafka.group.id: [(0, 198), (1, 198), (2, 198), (3, 199)]

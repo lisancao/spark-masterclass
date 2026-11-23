@@ -39,3 +39,10 @@ Sleep 500ms
 Type "python ch39/s7_restart.py resume 2>/dev/null" Enter
 Wait@180s
 Sleep 10s
+
+# beat: manager | Three queries, one session, one listener
+Type "# three queries share a session; one has a UDF that fails on a negative fare" Enter
+Sleep 500ms
+Type "python ch39/s13_manager.py 2>/dev/null | head -22" Enter
+Wait@240s
+Sleep 12s

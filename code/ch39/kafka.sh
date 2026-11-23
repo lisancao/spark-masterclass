@@ -2,7 +2,7 @@
 # One Kafka broker (KRaft mode) in Docker for Part V. Spark runs on the host and reaches it
 # at localhost:29055.   ch39/kafka.sh start | stop | topic <name> <partitions> [LogAppendTime]
 set -euo pipefail
-NAME=sm-part05-kafka
+NAME=${KAFKA_CONTAINER:-sm-part05-kafka}
 IMAGE=apache/kafka:4.0.0
 PORT=${KAFKA_PORT:-29055}
 case "${1:-}" in

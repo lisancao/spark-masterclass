@@ -6,7 +6,7 @@ Structured Streaming is the part of Spark that does this work. It uses the same 
 
 **A streaming query is a batch query that Spark runs again and again, each time on the input that arrived since the last run. The checkpoint makes the sequence of runs into one query. It records which input each run read, which runs completed, and the state that one run gives to the next. Output modes, triggers, watermarks and restarts are all rules about that sequence.** This chapter follows one stream of real taxi trips through each of these rules. It shows the files and the progress reports that prove each rule.
 
-All the code runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch39`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch39), and each number in the chapter comes from their saved output in `code/ch39/output/`. Most steps use the file source, because it needs no other service. Step 9 uses Kafka, with a broker in Docker.
+All the code runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch39`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch39), and each number in the chapter comes from their saved output in `code/ch39/output/`. Most steps use the file source, because it needs no other service. Steps 9 and 15 use Kafka, with a broker in Docker.
 
 ## The data: a morning of trips that arrive late
 
@@ -96,7 +96,7 @@ The inferred schema reads the timestamps as strings and the zone IDs as `bigint`
 
 ## Step 2: A first query, run three times on one checkpoint
 
-`s2_first_query.py` counts trips and revenue by pickup borough. It joins the stream with the zone lookup file, which is a batch DataFrame. This join is a **stream-static join**: each micro-batch joins its new trips with the static table.
+`s2_first_query.py` counts trips and revenue by pickup borough. It joins the stream with the zone lookup file, which is a batch DataFrame. This join is a **stream-static join**: each micro-batch joins its new trips with the static table. Step 12 shows its rules.
 
 ```python
 trips = spark.readStream.schema(SCHEMA).json(str(inbox))
@@ -743,12 +743,25 @@ This error occurs in append mode. In complete mode (Step 2), a restart works, be
 
 | Trigger | What it does |
 |---|---|
-| none (the default) | Starts the next micro-batch when the previous one completes. |
+| none (the default) | Starts the next micro-batch when the previous one completes. In the source, the default is `ProcessingTime(0)`. |
 | `processingTime="2 seconds"` | Starts a micro-batch at each interval. If a batch takes longer than the interval, the next batch starts when it completes. |
 | `availableNow=True` | Processes all the input that exists at the start, in one or more batches, then stops. |
 | `once=True` | One batch, then stops. Deprecated since 3.4. Use `availableNow`. |
 | `realTime="5 minutes"` | Real-time Mode: long-running batches, record by record. Kafka source only. See [Chapter 42](ch42-real-time-mode.md). |
 | `continuous="1 second"` | Continuous Processing, experimental since 2.3, map-like queries only. The 4.3 docs tell you to use Real-time Mode. |
+
+The same triggers, compared on the rules that this part of the book tests:
+
+| Trigger | Engine | Sources | Stops by itself | Obeys admission control | No-data batches | Async progress tracking (Step 15) | Delivery |
+|---|---|---|---|---|---|---|---|
+| default | micro-batch | all | no | yes | yes | yes | exactly once with an idempotent sink |
+| `processingTime` | micro-batch | all | no | yes | yes | yes | exactly once with an idempotent sink |
+| `availableNow` | micro-batch | all (one batch if the source has no support) | yes | yes | yes, also the last one | no | exactly once with an idempotent sink |
+| `once` | micro-batch | all | yes | no | no | no | exactly once with an idempotent sink |
+| `realTime` | Real-time Mode | Kafka | no | no (the batch duration decides) | not applicable | on by default for stateless queries (4.3) | at least once to the sink ([Chapter 42](ch42-real-time-mode.md)) |
+| `continuous` | Continuous Processing | Kafka, `rate` | no | no | not applicable | no | at least once |
+
+Sources for the table: the triggers section of the 4.3.0 programming guide, the continuous processing section of `docs/streaming/performance-tips.md`, `AsyncProgressTrackingMicroBatchExecution.validateAndGetTrigger`, and the runs in this chapter. The two continuous rows were not run in this chapter.
 
 ## Step 9: The same trips through Kafka
 
@@ -832,6 +845,8 @@ run 2 batches (id, rows): [(3, 1198), (4, 1199), (5, 948)]
 
 The progress report gives `latestOffset` too: the newest offset in Kafka when Spark planned the batch. The difference between `latestOffset` and `endOffset` is how far the query is behind. Here, the query read all the records, so the two are the same.
 
+[Chapter 89](ch89-kafka-in-depth.md) goes further into the connector: the starting and ending options, batch reads, headers, `failOnDataLoss`, the delivery of the sink, consumer groups and security.
+
 ## Step 10: A stream-stream join
 
 The joins so far had a static side. When both sides are streams, a row on one side can arrive before or after its partner on the other side. Spark must keep the rows of each side in state until the partner arrives. `s10_join.py` divides each trip into two events: a pickup event at the pickup time, and a dropoff event at the dropoff time. Each event arrives on its own stream, in five-minute files. The join pairs them again by `trip_id`:
@@ -881,6 +896,110 @@ The state grew while the watermark was behind the data. From batch 11, it stayed
 The join also ran in update mode, with the same result. Before Spark 4.2, a stream-stream join accepted only append mode. Spark 4.2 added update mode for joins that are not outer joins (SPARK-56384). An inner join never changes a row that it wrote, so the two modes give the same rows.
 
 Outer joins also exist. A left outer join writes a pickup with NULL dropoff columns when the watermark tells Spark that no partner can arrive. Thus, the NULL rows come out late, one watermark delay after the time range ends.
+
+### An outer join, and the state that a join keeps
+
+`s10b_join_state.py` makes the outer case visible. It uses the same events, with one change. The dropoff events of each trip whose `trip_id` ends in 7 are lost on the way. Thus, 626 of the 6,259 pickups have no partner. A left outer join must write those pickups with NULL dropoff columns. A `foreachBatch` function counts the matched rows and the NULL rows of each batch:
+
+```text
+6259 pickups after 07:00; dropoff events lost for 626 of them (trip_id ends in 7)
+
+1. Left outer join, append mode:
+batch  matched  null rows  their pickups    watermark  state rows  state stores
+    0        0          0                    00:00          1461            16
+    1      432          0                    00:00          2400            16
+    2      452          0                    07:54          3368            16
+    3      402          0                    07:59          4311            16
+    4      412          8   07:00-07:04      08:04          4829            16
+    5      461          3   07:05-07:07      08:09          5303            16
+    6      444         10   07:10-07:14      08:14          5878            16
+    7      488         14   07:15-07:19      08:19          6424            16
+    8      482          7   07:20-07:23      08:24          6851            16
+    9      449          7   07:25-07:29      08:29          7172            16
+   10      459         12   07:30-07:34      08:34          7334            16
+   11      539         12   07:35-07:39      08:39          7423            16
+   12      557         24   07:40-07:44      08:44          7406            16
+   13        0         21   07:44-07:49      08:49          6739            16
+null rows written: 118, lost dropoffs: 626
+operator: symmetricHashJoin
+```
+
+<figure markdown>
+  ![When the NULL rows of the outer join come out](../media/figures/ch39-outer-join-light.svg#only-light)
+  ![When the NULL rows of the outer join come out](../media/figures/ch39-outer-join-dark.svg#only-dark)
+  <figcaption markdown="span">The batches of `s10b_join_state.txt`. A pickup without a partner goes out as a NULL row when the watermark is one hour past the pickup. The pickups after 07:49 stay in state, because the stream stopped.</figcaption>
+</figure>
+
+The table shows the rule of the time range:
+
+- **A NULL row waits for the full range.** The condition lets a dropoff arrive up to one hour after its pickup. Thus, a pickup at 07:00 is final only when the watermark passes 08:00. Batch 4 used the watermark 08:04, and it wrote the lost pickups from 07:00 to 07:04.
+- **Only 118 of the 626 NULL rows came out.** The other lost pickups are after 07:49. The watermark stopped at 08:49, so Spark cannot know yet that their dropoffs will not arrive. A stream that stops leaves its last hour of NULL rows in state.
+- **The watermark is the minimum of the two inputs.** With two watermarks, the default `spark.sql.streaming.multipleWatermarkPolicy=min` uses the slower input. [Chapter 40](ch40-streaming-messy-data.md) shows the `max` policy.
+
+A join keeps four state stores for each shuffle partition, so the progress report shows 16 state stores for 4 partitions. The `state-metadata` source names them:
+
+```text
+2. What the checkpoint says the join keeps (state-metadata):
++-----------------+-------------------------+-------------+----------+
+|operatorName     |stateStoreName           |numPartitions|maxBatchId|
++-----------------+-------------------------+-------------+----------+
+|symmetricHashJoin|left-keyToNumValues      |4            |13        |
+|symmetricHashJoin|left-keyWithIndexToValue |4            |13        |
+|symmetricHashJoin|right-keyToNumValues     |4            |13        |
+|symmetricHashJoin|right-keyWithIndexToValue|4            |13        |
++-----------------+-------------------------+-------------+----------+
+```
+
+For each side, `keyToNumValues` counts the rows of each join key, and `keyWithIndexToValue` holds the rows themselves, one entry for each key and index. The state data source reads one side with the option `joinSide`:
+
+```python
+st = spark.read.format("statestore").option("joinSide", "left").load(str(w / "ck_outer"))
+```
+
+```text
+3. The rows that each side still keeps (statestore, joinSide):
+   left  (pickup_ts): 5624 rows, from 07:49:53 to 08:59:53
++----------+----------+------------+-------------------+
+|field0    |trip_id   |PULocationID|pickup_ts          |
++----------+----------+------------+-------------------+
+|0610-00790|0610-00790|239         |2026-06-10 07:49:53|
+|0610-01020|0610-01020|68          |2026-06-10 07:49:55|
++----------+----------+------------+-------------------+
+only showing top 2 rows
+   right (dropoff_ts): 1115 rows, from 08:49:54 to 08:59:59
+```
+
+The two sides keep different time spans, and the time-range condition decides each one:
+
+- **The left side keeps one hour of pickups** (07:49 to 08:59 at a watermark of 08:49). A dropoff can come up to one hour after its pickup. Thus, Spark keeps a pickup until the watermark is one hour past it.
+- **The right side keeps about ten minutes of dropoffs** (08:49 to 08:59). A new pickup has a pickup time after the watermark. The condition needs `dropoff_ts >= pickup_ts`, so a new pickup cannot match a dropoff that is older than the watermark. Thus, Spark removes a dropoff when the watermark passes it.
+
+The script also tries each join type between two streams, with and without the watermarks and the time range:
+
+```text
+4. Join types for two streams, with and without watermarks:
+   inner      with watermarks and range: ok
+              without:                   ok
+   left       with watermarks and range: ok
+              without:                   Stream-stream LeftOuter join between two streaming D ...
+   right      with watermarks and range: ok
+              without:                   Stream-stream RightOuter join between two streaming  ...
+   full       with watermarks and range: ok
+              without:                   Stream-stream FullOuter join between two streaming D ...
+   left_semi  with watermarks and range: ok
+              without:                   Stream-stream LeftSemi join between two streaming Da ...
+   left_anti  with watermarks and range: LeftAnti joins with a streaming DataFrame/Dataset on ...
+              without:                   LeftAnti joins with a streaming DataFrame/Dataset on ...
+```
+
+| Join between two streams | Without watermark and range | With watermark and range | When rows go out |
+|---|---|---|---|
+| inner | accepted, state grows without a limit | accepted | when the partner arrives |
+| left, right, full outer | refused | accepted | matched rows at once, NULL rows when the range closes |
+| left semi | refused | accepted | when the first partner arrives, one time for each left row |
+| left anti | refused | refused | not supported in 4.3.0 |
+
+An inner join without watermarks starts, because it is correct without them. Its state never gets smaller. The outer and semi joins need the watermark to decide that no partner can arrive, so Spark refuses them at `start()`.
 
 ## Step 11: Change a query and keep its checkpoint
 
@@ -949,6 +1068,316 @@ Other changes are not compatible with a checkpoint. Each of these changes fails 
 !!! caution "Do not share a checkpoint between two queries"
     Give each query its own checkpoint location. If two queries write to one checkpoint, each one reads the offsets and state of the other, and the results are wrong.
 
+## Step 12: Stream-static joins in depth
+
+Step 2 joined the trips with the zone table, which is a static DataFrame. A stream-static join keeps no state, so it needs no watermark. But it has two rules that a stream-stream join does not have. `s12_stream_static.py` tests them.
+
+The first rule is about the join type. Each micro-batch joins only its new rows with the full static table. Thus, Spark can never write a static row "with no partner", because a partner can arrive in a later batch:
+
+```text
+1. Join types between a stream (left) and a static table (right), and the reverse:
+   stream INNER static         ok
+   stream LEFT OUTER static    ok
+   stream LEFT SEMI static     ok
+   stream LEFT ANTI static     ok
+   stream RIGHT OUTER static  refused:
+  AnalysisException: RightOuter join with a streaming DataFrame/Dataset on the left and
+  a static DataFrame/DataSet on the right not supported;
+   stream FULL OUTER static   refused:
+  AnalysisException: FullOuter joins with streaming DataFrames/Datasets on the left and
+  a static DataFrame/Dataset on the right is not supported;
+   static LEFT OUTER stream   refused:
+  AnalysisException: LeftOuter join with a streaming DataFrame/Dataset on the right and
+  a static DataFrame/Dataset on the left is not supported;
+   static RIGHT OUTER stream   ok
+```
+
+The rule is the same in each direction. Spark accepts a join type only if the join never writes an unmatched row of the static side. A stream LEFT OUTER static join writes an unmatched trip at once, with NULL zone columns. A LEFT ANTI join writes the trips that have no zone, which is a good test for keys that are not in a lookup table.
+
+The plan of one micro-batch shows how Spark runs the join:
+
+```text
+2. The physical plan of one micro-batch (stream LEFT OUTER static):
+      +- StateStoreSave [Borough#26], state info [ checkpoint = file:~/spark-masterclass-parts/streaming/data/work/ch39/s
+            +- StateStoreRestore [Borough#26], state info [ checkpoint = file:~/spark-masterclass-parts/streaming/data/wo
+                  +- Exchange hashpartitioning(Borough#26, 4), REQUIRED_BY_STATEFUL_OPERATOR, [plan_id=107]
+                           +- *(2) BroadcastHashJoin [PULocationID#128], [PULocationID#29], LeftOuter, BuildRight, false,
+                              :- FileScan json [PULocationID#128] Batched: false, DataFilters: [], Format: JSON, Location
+                              +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, true] as bigint)),
+                                       +- FileScan csv [LocationID#25,Borough#26] Batched: false, DataFilters: [isnotnull
+```
+
+The join is a `BroadcastHashJoin`, as in a batch query with a small table ([Chapter 11](ch11-joins.md)). The `FileScan csv` of the zone table is in the plan of each micro-batch. Thus, Spark reads the static side again in each batch. The state stores in the plan belong to the `groupBy` after the join, not to the join.
+
+### When a change to the static side reaches the stream
+
+If Spark reads the static side in each batch, a change to that table should reach the stream. The second part of the script tests this with a folder of Parquet files that gives labels to some zones. A query runs three batches, and the script changes the folder between them:
+
+```text
+3. When does a change to the static side reach the stream?
+   a) join with the static DataFrame in the query:
+   batch 0: labels found {'-': 489, 'airport': 19}   (v1 has two airport zones)
+   batch 1: labels found {'-': 432, 'airport': 18}   (a new file v2 added)
+   StreamingQueryException: [STREAM_FAILED] ... [FAILED_READ_FILE.FILE_NOT_EXIST]
+  Encountered error while reading file file://~/spark-masterclass-parts/streamin
+  g/data/work/ch39/s12/labels/v1/part-00000-2f90ac13-3fab-4003-8e22-1245fa1886ec- ...
+   b) read the static side again in each batch, inside foreachBatch:
+   batch 0: labels found {'-': 489, 'airport': 19}   (v1 has two airport zones)
+   batch 1: labels found {'-': 399, 'airport': 18, 'midtown': 7, 'uptown': 26}   (a new file v2 added)
+   batch 2: labels found {'-': 408, 'airport': 10, 'midtown': 10, 'times-sq': 3, 'uptown': 30}   (v1 rewritten with a third zone)
+```
+
+<figure markdown>
+  ![Two ways to join with a folder that changes](../media/figures/ch39-static-refresh-light.svg#only-light)
+  ![Two ways to join with a folder that changes](../media/figures/ch39-static-refresh-dark.svg#only-dark)
+  <figcaption markdown="span">The two runs of `s12_stream_static.txt`. The static DataFrame keeps the list of files that it found when you made it. A read inside `foreachBatch` lists the folder again in each batch.</figcaption>
+</figure>
+
+- **A new file did not reach the stream (a).** Batch 1 found no `midtown` or `uptown` label. Spark reads the files again in each batch, but the list of files does not change. A file-based DataFrame lists its folder when you make it (`InMemoryFileIndex`), and the streaming plan keeps that list.
+- **A rewritten file stopped the query (a).** The overwrite removed the old file of `v1`, which was still in the list, and batch 2 failed with `FAILED_READ_FILE.FILE_NOT_EXIST`.
+- **A read inside `foreachBatch` sees each change (b).** The function makes a new static DataFrame for each batch, so each batch lists the folder again.
+
+Thus, a static DataFrame over plain files is a snapshot of a file list, not a live table. Use one of these methods when the static side changes:
+
+| Static side | What a stream-static join sees | Use when |
+|---|---|---|
+| Plain files (Parquet, CSV, JSON) | the files that existed when the DataFrame was made | the table never changes while the query runs |
+| A table format (Delta Lake, Apache Iceberg) | the newest snapshot, which the connector resolves for each batch (not tested in this chapter) | the table changes, and a transaction log records each version |
+| A read inside `foreachBatch` | the folder or table as it is at the start of each batch | plain files that change, or any source with no snapshot |
+| A broadcast that you cache | the data at the time of the cache | a small table that must not change during the query |
+
+## Step 13: Many queries in one session: the StreamingQueryManager
+
+`spark.streams` is the `StreamingQueryManager` of the session. It knows each query that the session started. `s13_manager.py` starts three queries on one stream of trips. One of them calls a Python UDF that fails on a negative fare. One listener receives the events of all three queries:
+
+```python
+spark.streams.addListener(Events())
+q1 = start("by_zone", trips.groupBy("PULocationID").count(), "complete")
+q2 = start("long_trips", trips.where("trip_distance > 20"))
+q3 = start("strict", trips.select("trip_id", strict_fare("fare_amount").alias("fare")))
+```
+
+```text
+1. Three queries on one stream of trips:
+     2.5s  listener: started    by_zone
+     3.4s  listener: started    long_trips
+     3.7s  listener: started    strict
+
+2. spark.streams.active:
+   by_zone     id=06598e77  active=True  status=Waiting for next trigger
+   long_trips  id=717898df  active=True  status=Waiting for next trigger
+   strict      id=fb3789e6  active=True  status=Waiting for next trigger
+   spark.streams.get(id) -> long_trips
+
+3. awaitAnyTermination(timeout=3) while all run: False
+
+4. Deliver files. The second file has two trips with a negative fare:
+    14.4s  listener: progress   long_trips batch 0 rows 2
+    14.7s  listener: progress   by_zone batch 0 rows 487
+    15.6s  listener: progress   by_zone batch 1 rows 508
+    15.7s  listener: progress   strict batch 0 rows 487
+    15.7s  listener: progress   long_trips batch 1 rows 4
+    15.8s  listener: terminated strict  exception: org.apache.spark.api.python.PythonException: [PYTHON_EXCEPTI
+    16.0s  awaitAnyTermination raised:
+    StreamingQueryException: [STREAM_FAILED] ... [PYTHON_EXCEPTION] An exception was ...
+     ... ValueError: negative fare -7.9
+
+5. After the failure:
+   active: ['by_zone', 'long_trips']
+   strict.isActive: False   strict.exception() is set: True
+   awaitAnyTermination(1) again -> raises again: StreamingQueryException
+   after resetTerminated(), awaitAnyTermination(1) -> False
+
+6. Stop the others, then remove the listener:
+    17.2s  listener: terminated long_trips  exception: None
+    17.2s  listener: terminated by_zone  exception: None
+   active: []
+```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch39-manager.webp">
+    <source src="../../media/clips/ch39-manager.mp4" type="video/mp4">
+  </video>
+  <figcaption><code>s13_manager.py</code> on Spark 4.3.0, a second run. Three queries share one session. One listener sees all of them, and <code>awaitAnyTermination()</code> returns when the query with the UDF that fails stops. The times differ from the saved output.</figcaption>
+</figure>
+
+The output shows how the manager works:
+
+- **Each query is independent.** Each one has its own checkpoint and its own batches. When `strict` failed, `by_zone` and `long_trips` continued.
+- **A listener on `spark.streams` sees every query.** `onQueryStarted`, `onQueryProgress`, `onQueryIdle` and `onQueryTerminated` carry the query ID, so one listener can serve a whole application. `onQueryTerminated` carries the exception text of a failed query. [Chapter 61](ch61-observability.md) sends these events to a monitoring system.
+- **`awaitAnyTermination()` returns when any query stops.** With a timeout, it returns `False` while all queries run. If the query failed, it raises the exception of that query.
+- **The manager remembers the stop.** A second `awaitAnyTermination()` raised the same exception again. `resetTerminated()` clears it, so that the next call waits for the next stop.
+
+A driver program that runs several queries uses this pattern. It starts all queries, then calls `awaitAnyTermination()` in a loop. When a query stops, the program logs the exception, starts that query again or stops the others, and calls `resetTerminated()`.
+
+| Method | What it does |
+|---|---|
+| `spark.streams.active` | the queries of this session that run now |
+| `spark.streams.get(id)` | one query by its `id` |
+| `spark.streams.awaitAnyTermination(timeout)` | wait for any query to stop, raise its exception if it failed |
+| `spark.streams.resetTerminated()` | forget the queries that stopped, for the next wait |
+| `spark.streams.addListener(l)` / `removeListener(l)` | receive the events of all queries of the session |
+
+## Step 14: foreachBatch patterns
+
+[Chapter 40](ch40-streaming-messy-data.md) wrote good rows and dead letters from one `foreachBatch`, one folder for each `batch_id`. `s14_foreach_batch.py` shows three more patterns.
+
+**One batch, two sinks, and a batch log.** The function writes a summary by borough and a list of long trips from the same batch. It uses `persist()`, so the batch is read one time (Step 8). After both writes, it writes a marker file for the `batch_id`. At the start, it looks for that marker:
+
+```python
+def fan_out(df, batch_id):
+    done = w / "out/_batches" / str(batch_id)
+    if done.exists():                                    # this batch_id was written before: a replay
+        calls.append((batch_id, "skipped (in the batch log)"))
+        return
+    df = df.persist()
+    (df.join(zones, "PULocationID").groupBy("Borough").agg(F.count("*").alias("trips"))
+       .write.mode("overwrite").parquet(str(w / f"out/by_borough/batch_id={batch_id}")))
+    (df.where("trip_distance > 15").select("trip_id", "trip_distance", "total_amount")
+       .write.mode("overwrite").json(str(w / f"out/long_trips/batch_id={batch_id}")))
+    df.unpersist()
+    done.parent.mkdir(parents=True, exist_ok=True)
+    done.touch()                                         # the last action: mark the batch as written
+```
+
+```text
+1. One batch, two sinks, and a batch log:
+   run 1 calls: [(0, 'written'), (1, 'written'), (2, 'written')]
+   commits/2 removed, run 2 calls: [(2, 'skipped (in the batch log)')]
+   files on disk:
+     by_borough/batch_id=0 1 part file(s)
+     by_borough/batch_id=1 1 part file(s)
+     by_borough/batch_id=2 1 part file(s)
+     long_trips/batch_id=0 1 part file(s)
+     long_trips/batch_id=1 1 part file(s)
+     long_trips/batch_id=2 1 part file(s)
+     _batches: ['0', '1', '2']
+```
+
+The script removed `commits/2`, as a crash before the commit does (Step 7). The restart ran batch 2 again, and the function found its marker and did nothing. The marker must be the last write. If the function stops before the marker, the replay writes both sinks again, and the overwrite by `batch_id` makes that harmless. The two methods together protect a sink that cannot overwrite, for example an API call or a message to another system. In that case, write the marker to the same system, in the same transaction, where you can.
+
+**A failure inside the function.** An exception in the function stops the query. The batch has no commit, so the restart gives the function the same `batch_id`:
+
+```text
+2. An exception inside the function fails the query. The retry gets the same batch_id:
+   attempt 1:StreamingQueryException: [STREAM_FAILED] ... [FOREACH_BATCH_USER_FUNCTION_ERROR] ...
+   attempt 2: completed
+   batch_id values the function saw: [0, 1, 1, 2]
+```
+
+Spark does not try the function again by itself. A retry inside the function (for a database that is down for a few seconds) is your decision. A retry of the query is the decision of the program that started it, for example with the loop of Step 13.
+
+**`foreach`: a writer for each row.** `foreach` takes an object with `open`, `process` and `close`. Spark calls `open(partition_id, epoch_id)` one time for each partition of each batch, `process(row)` for each row, and `close(error)` at the end:
+
+```text
+3. foreach: a writer object, called for each row in each partition:
+     epoch0-partition0: 243 rows, error=None
+     epoch0-partition1: 244 rows, error=None
+     epoch1-partition0: 254 rows, error=None
+     epoch1-partition1: 254 rows, error=None
+     epoch2-partition0: 225 rows, error=None
+     epoch2-partition1: 225 rows, error=None
+```
+
+The `epoch_id` is the batch ID, and the pair of `epoch_id` and `partition_id` identifies one piece of output. If `open` returns `False`, Spark skips the partition. A writer can use this to skip a piece that it wrote before. The writer runs in the Python worker, so this script writes its log to small files and the driver reads them.
+
+| Sink | Gets | Runs on | Use for |
+|---|---|---|---|
+| `foreachBatch` | each micro-batch as a DataFrame, plus `batch_id` | the driver (the function), the executors (its actions) | any batch writer, several sinks, `MERGE`, a batch log |
+| `foreach` | each row, with `partition_id` and `epoch_id` | the executors | a sink with no batch writer, one connection for each partition |
+
+`foreachBatch` does not run in Real-time Mode, and `foreach` does ([Chapter 42](ch42-real-time-mode.md)).
+
+## Step 15: Asynchronous progress tracking
+
+Step 2 divided the time of a batch. Two parts of it are writes to the checkpoint: `walCommit` writes `offsets/N` before the batch, and `commitOffsets` writes `commits/N` after it. For a small, fast batch, these two writes can be a large part of the time. **Asynchronous progress tracking** moves both writes to a background thread, and it writes them only once in each interval.
+
+`s15_async.py` copies a Kafka topic of 6,269 trips to a second topic in batches of 100 records (`maxOffsetsPerTrigger`). The query is stateless and uses the Kafka sink. It runs three times with the default progress tracking and three times with the option, alternated, after one warm-up run:
+
+```python
+q = (src.writeStream.format("kafka").option("kafka.bootstrap.servers", KAFKA_BOOTSTRAP).option("topic", "apt_out")
+     .option("checkpointLocation", str(w / name))
+     .option("asyncProgressTrackingEnabled", "true")     # (1)!
+     .start())
+```
+
+1. The interval is `asyncProgressTrackingCheckpointIntervalMs`, 1000 ms by default.
+
+```text
+1. The same copy, synchronous and asynchronous progress tracking (3 runs each, alternated):
+mode    batches  offsets/ files  commits/ files  walCommit  commitOffsets  batch (ms)  wall (s)
+sync         64              64              64         32             32          96       8.6
+async        64               4               4          0              0          32       4.2
+(medians over the runs; walCommit, commitOffsets and batch are medians per run of durationMs)
+```
+
+<figure markdown>
+  ![Synchronous and asynchronous progress tracking](../media/figures/ch39-async-light.svg#only-light)
+  ![Synchronous and asynchronous progress tracking](../media/figures/ch39-async-dark.svg#only-dark)
+  <figcaption markdown="span">The medians of `s15_async.txt`. With asynchronous progress tracking, the two checkpoint writes leave the batch, and the checkpoint gets 4 offset files for 64 batches.</figcaption>
+</figure>
+
+- **The checkpoint writes left the batch.** `walCommit` and `commitOffsets` went from 32 ms each to 0 ms. The median batch went from 96 ms to 32 ms, and the whole copy from 8.6 s to 4.2 s.
+- **The checkpoint has fewer entries.** 64 batches wrote 64 offset files with the default, and 4 with the option. The background thread writes one entry for each interval of one second.
+
+These times come from a run under the bench lock, on a laptop that other jobs also used. The run used Spark local mode, 4 shuffle partitions and one Kafka broker in Docker. The ratio is the result. Do not use the absolute values for a cluster with a remote checkpoint store, where each write takes longer.
+
+The cost is the guarantee. After a crash, Spark starts again from the last offsets that the background thread wrote. The batches after that entry run again, possibly with different offset ranges. The Spark guide says that exactly-once processing is not available with this option. With the Kafka sink, which writes at least once anyway ([Chapter 89](ch89-kafka-in-depth.md)), that is often an acceptable trade.
+
+```mermaid
+sequenceDiagram
+  participant B as micro-batch thread
+  participant T as async log writer
+  participant K as checkpoint
+  B->>B: batch N: plan, read, write to the sink
+  B-->>T: offsets N, commit N (queued)
+  B->>B: batch N+1 starts at once
+  T->>K: write offsets and commit, at most once per interval
+  Note over B,K: A crash loses the queue. The restart starts from the last entry in K.
+```
+
+The option has strict limits in 4.3.0:
+
+```text
+2. What async progress tracking does not accept:
+   trigger availableNow:
+  IllegalArgumentException: Async progress tracking cannot be used with AvailableNow
+  trigger
+   a stateful query:
+  StreamingQueryException: [STREAM_FAILED] ... Stateful streaming queries does not
+  support async progress tracking at this moment. SQLSTATE: XXKST
+   foreachBatch sink:
+  IllegalArgumentException: Sink ForeachBatchSink does not support async progress
+  tracking
+   Parquet sink:
+  IllegalArgumentException: Sink FileSink[file:~/spark-masterclass-
+  parts/streaming/data/work/ch39/s15/bad_Parquet_out] does not support async progress ...
+```
+
+- **Triggers:** the default and `processingTime` only. Not `availableNow` and not `once`. In Real-time Mode, 4.3.0 turns it on by default for stateless queries (the internal configuration `spark.sql.streaming.realTimeMode.asyncProgressTrackingByDefault.enabled`).
+- **Queries:** stateless only. A stateful query fails when its first batch runs, not at `start()`.
+- **Sinks:** Kafka, `foreach`, and the memory sink for tests (`validateAndGetTrigger` in `AsyncProgressTrackingMicroBatchExecution.scala`). A file sink and `foreachBatch` fail at `start()`.
+
+### Turn it off again
+
+A checkpoint that the option wrote has gaps in its logs. A restart without the option fails:
+
+```text
+3. Turn it off on a checkpoint that it wrote:
+   offsets/ of the async run: [0, 27, 45, 54]  commits/: [0, 27, 45, 54]
+   restart with async off:StreamingQueryException: [STREAM_FAILED] ... batch 53 doesn't exist SQLSTATE:
+  XXKST
+   the documented fix: async on with asyncProgressTrackingCheckpointIntervalMs=0, batches [55, 56, 57] ...
+   then async off again: batches [(69, 100), (70, 100)]
+```
+
+The synchronous engine reads the entry before the last one, and batch 53 has no entry. The Spark guide gives the procedure, and the script follows it:
+
+1. Start the query with `asyncProgressTrackingEnabled=true` and `asyncProgressTrackingCheckpointIntervalMs=0`.
+2. Let the query run at least two micro-batches. With an interval of 0, Spark writes an entry for each batch.
+3. Stop the query.
+4. Start the query without the option.
+
 ## Stateless and stateful operators
 
 The steps of this chapter used two kinds of operators, and the difference is the most important idea in Structured Streaming:
@@ -970,6 +1399,11 @@ A stateful operator keeps its state until something tells it to remove the state
 - **Admission control** (`maxFilesPerTrigger`, `maxBytesPerTrigger`, `maxOffsetsPerTrigger`) limits the size of each batch. `availableNow` obeys it. `once` does not obey it, and Spark deprecates it.
 - **A stream-stream join needs a watermark on each side and a time-range condition**, or its state never gets smaller.
 - **A checkpoint identifies sources by position.** Named sources (experimental, internal flag) remove this limit.
+- **A stream-static join reads the static side in each batch, but not its file list.** Spark accepts only the join types that never write an unmatched static row. To see new files, read the static side inside `foreachBatch`, or use a table format.
+- **An outer stream-stream join writes its NULL rows when the time range closes.** A join keeps four state stores for each partition, and `joinSide` reads each side from the checkpoint.
+- **`spark.streams` manages the queries of a session.** One listener sees all of them, and `awaitAnyTermination()` returns when one stops.
+- **Make `foreachBatch` safe for a replay** with an overwrite by `batch_id`, or a batch log written last.
+- **Asynchronous progress tracking takes the checkpoint writes out of the batch.** It works for stateless queries with the Kafka, `foreach` or memory sink, and it gives up exactly-once processing.
 
 The rest of Part VIII builds on these rules:
 

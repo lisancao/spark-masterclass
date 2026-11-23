@@ -1,0 +1,4 @@
+state schema 'n LONG': ran, batches 1
+state schema 'ids ARRAY<STRING>':
+  StreamingQueryException: [STREAM_FAILED] ... [PYTHON_EXCEPTION] An exception was thrown ...
+  ... KeyError: 'elementType'

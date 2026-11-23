@@ -1,0 +1,24 @@
+1. One batch, two sinks, and a batch log:
+   run 1 calls: [(0, 'written'), (1, 'written'), (2, 'written')]
+   commits/2 removed, run 2 calls: [(2, 'skipped (in the batch log)')]
+   files on disk:
+     by_borough/batch_id=0 1 part file(s)
+     by_borough/batch_id=1 1 part file(s)
+     by_borough/batch_id=2 1 part file(s)
+     long_trips/batch_id=0 1 part file(s)
+     long_trips/batch_id=1 1 part file(s)
+     long_trips/batch_id=2 1 part file(s)
+     _batches: ['0', '1', '2']
+
+2. An exception inside the function fails the query. The retry gets the same batch_id:
+   attempt 1:StreamingQueryException: [STREAM_FAILED] ... [FOREACH_BATCH_USER_FUNCTION_ERROR] ...
+   attempt 2: completed
+   batch_id values the function saw: [0, 1, 1, 2]
+
+3. foreach: a writer object, called for each row in each partition:
+     epoch0-partition0: 243 rows, error=None
+     epoch0-partition1: 244 rows, error=None
+     epoch1-partition0: 254 rows, error=None
+     epoch1-partition1: 254 rows, error=None
+     epoch2-partition0: 225 rows, error=None
+     epoch2-partition1: 225 rows, error=None
