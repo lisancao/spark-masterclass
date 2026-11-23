@@ -44,7 +44,7 @@ Gap-audit rows covered: "Leveraging statistics / CBO", "Partitioning hints", "St
 - TN, ORC and Parquet: stripe, stream, row index, row group, postscript, footer, metadata section, stripe footer, protobuf, varint, magic bytes, codec, dictionary, vectorized reader, SearchArgument, SerDe, modular encryption, envelope encryption, data key, master key, key management service (KMS), KMS client, plaintext footer, encrypted footer, calendar (hybrid, proleptic Gregorian), rebase, rebase mode, day number.
 - TN, tuning: serializer, serialization, registration, object header, boxed value, primitive array, garbage collector (GC), GC log, pause, young collection, full collection, young generation, old generation, region, task time, locality level, delay scheduling, locality wait, timer, executor, local-cluster mode, hardware provisioning, local disk, mount point.
 - TN, UI: tab, Jobs tab, Stages tab, Storage tab, Environment tab, Executors tab, SQL / DataFrame tab, Structured Streaming tab, Connect tab, event timeline, summary metrics, screenshot.
-- Code identifiers in code format: config keys, class names (`KryoSerializer`, `SizeEstimator`, `SizeInBytesOnlyStatsPlanVisitor`, `FilterEstimation`, `CostBasedJoinReorder`, `PartitionPruning`, `PlanAdaptiveDynamicPruningFilters`, `DemoteBroadcastHashJoin`, `UnsafeRowSerializer`, `BucketFunction`, `ReducibleFunction`, `InMemoryKMS`, `PropertiesDrivenCryptoFactory`, `OrcFileFormat`), plan nodes, error conditions, file names.
+- Code identifiers in code format: config keys, class names (`KryoSerializer`, `SizeEstimator`, `SizeInBytesOnlyStatsPlanVisitor`, `FilterEstimation`, `CostBasedJoinReorder`, `PartitionPruning`, `PlanAdaptiveDynamicPruningFilters`, `UnsafeRowSerializer`, `BucketFunction`, `ReducibleFunction`, `InMemoryKMS`, `PropertiesDrivenCryptoFactory`, `OrcFileFormat`), plan nodes, error conditions, file names.
 - TV: analyze, estimate, reorder, prune, broadcast, shuffle, bucket (only as `bucketBy`), hash, partition, coalesce, rebalance, serialize, deserialize, register, cache, spill, encrypt, decrypt, sign, rebase, decode, vectorize (not used as a verb in the end), schedule, launch, collect (GC).
 
 ## STE check
@@ -79,7 +79,7 @@ Rules broken on purpose:
 | `spark.sql.cbo.planStats.enabled` gives relations rowCount/column stats with CBO off | `catalog/interface.scala` line 1212, `LogicalRelation.scala` line 58, v4.3.0 |
 | CBO and statistics config defaults | `SQLConf.scala` v4.3.0 lines 4599-4705 |
 | ndv error 0.05 (HyperLogLog++) | `SQLConf.scala` `spark.sql.statistics.ndv.maxError` |
-| CBO picks BHJ for the 82-row side; CBO off SMJ stays after AQE | `cbo_join.txt` section 1; `DemoteBroadcastHashJoin` explained in ch32 Step 7 |
+| CBO picks BHJ for the 82-row side before any shuffle; with CBO off, AQE converts to BHJ only after both shuffles ran | `cbo_join.txt` section 1 (final plan read from the executed DataFrame) |
 | Join reorder plan and rows (3,709,141 and 210 vs 210 and 210), times | `cbo_join.txt` section 2 |
 | Histogram join estimate 7.63E+6 rows, CBO keeps written order; real 210 | `cbo_join.txt` section 3 |
 | DPP plan, 26/181 partitions, rows, task time, wall time | `dpp.txt` sections 1, 2 |

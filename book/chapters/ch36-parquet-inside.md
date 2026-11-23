@@ -378,6 +378,13 @@ ORC is the other columnar format that Spark reads and writes without a package. 
   <figcaption markdown="span">The zones file as ORC, to scale, from `orc_dump.txt`. Step 1 shows the Parquet file of the same rows.</figcaption>
 </figure>
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch36-orc.webp">
+    <source src="../../media/clips/ch36-orc.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">`orc.py dump`: the two ends of an ORC file, the postscript decoded by hand, and the layout that the offsets add up to.</figcaption>
+</figure>
+
 A reader opens an ORC file from the end, as for Parquet, but the tail has more parts:
 
 - **The last byte is the length of the postscript**: `19` is 25 bytes.
@@ -535,6 +542,13 @@ spark.read.option("datetimeRebaseMode", "LEGACY").parquet(old_files)
   pyarrow, plaintext_footer  trip_distance: 100,000 rows
   pyarrow, plaintext_footer  OSError: Cannot decrypt ColumnMetadata. FileDecryption is not setup correctly
 ```
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch36-crypto.webp">
+    <source src="../../media/clips/ch36-crypto.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">`crypto_rebase.py crypto`: two files with encrypted columns, read with the keys and without them.</figcaption>
+</figure>
 
 - **An encrypted footer changes the magic bytes** to `PARE` at both ends. A reader without keys cannot read even the schema. Spark and PyArrow both fail at the footer.
 - **A plaintext footer keeps `PAR1`.** Readers without keys can read the schema, the row count and the columns that are not encrypted: Spark read `PULocationID` and `trip_distance`. A read of `tip_amount` fails. The writer signs the footer, so a reader can detect a change to it.

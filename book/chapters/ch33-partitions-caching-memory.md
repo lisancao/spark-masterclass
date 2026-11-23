@@ -854,6 +854,13 @@ spark.locality.wait=10s: job 2 took 7.3 s; cached blocks per executor {'0': 7, '
   <figcaption markdown="span">Launch times from `locality.txt`. Executor A cached 7 partitions. Bar lengths are schematic.</figcaption>
 </figure>
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch33-locality.webp">
+    <source src="../../media/clips/ch33-locality.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">`locality.py` in a terminal, without the bench lock. The launch times differ from `locality.txt` from run to run. The pattern is the same.</figcaption>
+</figure>
+
 - **With the default 3 s**, executor B finished its own partition at about 1 s and then had no local work. It waited until the locality timer expired, and at 3.5 s it ran partition 5 at `NODE_LOCAL`: it read the cached block from executor A. Then executor A had the rest again.
 - **With 0 s**, executor B took a `NODE_LOCAL` task each time it was free. The job took 5.4 s instead of 6.7 s.
 - **With 10 s**, executor B never got a second task. Executor A ran all 7 of its partitions in sequence, and the job took 7.3 s.

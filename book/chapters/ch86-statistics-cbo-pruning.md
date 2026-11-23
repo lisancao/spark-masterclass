@@ -142,6 +142,13 @@ A histogram fixes this. `stats.py` estimates six filters without and with a hist
   <figcaption markdown="span">The rows from `stats.txt`, on a log scale. Without a histogram, the estimates are wrong by up to four orders of magnitude, in both directions. With a histogram, five of six estimates are within 15% of the real count.</figcaption>
 </figure>
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch86-estimates.webp">
+    <source src="../../media/clips/ch86-estimates.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">`stats.py` writes the tables, runs `ANALYZE TABLE`, and prints the estimates against the real rows. The film runs without the bench lock. The text quotes only the saved output.</figcaption>
+</figure>
+
 - **The histogram is equi-height.** Each of its 254 bins (`spark.sql.statistics.histogram.numBins`) holds the same number of rows, 14,603. Narrow bins are where the data is dense: bin 1 covers only $5.90 to $8.70. The last bin covers $126.87 to $7,053.50, because few trips cost more than $127.
 - **Without a histogram, the error goes in both directions.** The estimate for `BETWEEN 15 AND 25` is 4,180 rows, because $10 is a small part of a range of $8,869. The real count is 1.5 million, because most fares are in that interval.
 - **For `payment_type`, the distinct count alone gives 1/6 of the rows** for each value (618,000). The histogram knows that type 4 is rare.
@@ -171,17 +178,17 @@ flowchart LR
   spark.sql.cbo.enabled=false
     estimate of the filtered fares: Statistics(sizeInBytes=30.6 MiB)
     planned join: ['SortMergeJoin'], hash exchanges planned: 2
-    final plan after AQE: ['SortMergeJoin']; median 0.58 s
+    final plan after AQE: ['BroadcastHashJoin'], hash exchanges that ran: 2; median 0.45 s
   spark.sql.cbo.enabled=true
     estimate of the filtered fares: Statistics(sizeInBytes=647.7 KiB, rowCount=1.38E+4)
     planned join: ['BroadcastHashJoin'], hash exchanges planned: 0
-    final plan after AQE: ['BroadcastHashJoin']; median 0.27 s
+    final plan after AQE: ['BroadcastHashJoin'], hash exchanges that ran: 0; median 0.16 s
   rows: 82
 ```
 
 - **CBO off.** The filtered `fares` is 30.6 MiB to the planner, above the 10 MB threshold. It plans a sort-merge join with two hash exchanges, so it shuffles all 3.7 million trips.
-- **CBO on.** The histogram estimate is 13,800 rows, 647.7 KiB. The planner selects a broadcast hash join and plans no exchange for the join.
-- **AQE did not fix the plan without CBO.** After the shuffle, AQE knows that the filtered side is small. But the 82 rows fill only a few of the 200 shuffle partitions. For this case, the rule `DemoteBroadcastHashJoin` keeps the sort-merge join ([Chapter 32](ch32-query-plans.md), Step 6). AQE can only correct a plan after a stage ran, and here the expensive stage was the shuffle itself.
+- **CBO on.** The histogram estimate is 13,800 rows, 647.7 KiB. The planner selects a broadcast hash join and plans no exchange for the join. The query took 0.16 s against 0.45 s.
+- **AQE changed the join without CBO, but too late.** After the two shuffles, AQE knew that the filtered side was small. Then it changed the sort-merge join into a broadcast hash join ([Chapter 32](ch32-query-plans.md), Step 6). But both shuffles had already run, and the shuffle of 3.7 million trips was the expensive part. AQE can only correct a plan after a stage ran. CBO corrects it before the first stage.
 
 ## Step 5: Join reorder
 
@@ -200,7 +207,7 @@ The cost of a plan is a weighted sum of the rows and the bytes of all intermedia
                    Relation fares
              Relation zones
     rows out of the two SortMergeJoin nodes: 3,709,141 and 210
-    median 1.60 s
+    median 1.17 s
   spark.sql.cbo.joinReorder.enabled=true: optimized join tree
     Join Inner
           Join Inner
@@ -208,9 +215,9 @@ The cost of a plan is a weighted sum of the rows and the bytes of all intermedia
                    Relation zones
              Relation fares
     rows out of the two SortMergeJoin nodes: 210 and 210
-    median 1.07 s
+    median 0.52 s
   result rows: 16
-  speed-up from reorder: 1.5x
+  speed-up from reorder: 2.2x
 ```
 
 ```mermaid
@@ -225,7 +232,7 @@ flowchart TB
   end
 ```
 
-As written, the first join makes 3.7 million rows, and the second join shuffles them again. Reordered, the first join keeps only the 210 trips that start in Staten Island, and the join with `fares` gets a small left side.
+As written, the first join makes 3.7 million rows, and the second join shuffles them again. Reordered, the first join keeps only the 210 trips that start in Staten Island, and the join with `fares` gets a small left side. The query took 0.52 s against 1.17 s.
 
 The cost model is only as good as its estimates. The third block of `cbo_join.txt` adds histograms on the join keys and runs the same query:
 
@@ -322,6 +329,13 @@ The plan has two parts. The scan of `trips_by_day` has the partition filter `dyn
 - **With DPP, the scan read 26 of 181 partitions**, and 2,885,119 rows instead of 22,131,665.
 - **The work fell by a factor of three.** The task time, the sum of the run times of all tasks, was 1.7 s against 5.2 s. The wall time was 0.33 s against 0.55 s. The wall time includes the planning, the broadcast and the subquery, which DPP does not make shorter.
 - **Without a broadcast, there was no pruning.** With `spark.sql.autoBroadcastJoinThreshold=-1`, the plan still shows the dynamic filter. But by default, DPP only reuses a broadcast that the join makes (`spark.sql.optimizer.dynamicPartitionPruning.reuseBroadcastOnly`, true). When AQE finds no broadcast to reuse, it replaces the filter with `true` (`PlanAdaptiveDynamicPruningFilters`). The query read all partitions, and the sort-merge join made it the slowest of the three.
+
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch86-dpp.webp">
+    <source src="../../media/clips/ch86-dpp.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">`dpp.py` with one timed run for each setting, without the bench lock. The partitions and rows are the same as in `dpp.txt`. The times are not.</figcaption>
+</figure>
 
 ### When Spark adds DPP, and when it does not
 
@@ -660,6 +674,13 @@ Partitioning hints are the SQL form of `repartition`, `coalesce` and `repartitio
 | `REBALANCE` | round robin | coalesced to the advisory size | yes, coalesce and split skew |
 | `REBALANCE(col)` | hash on `col` | coalesced to the advisory size | yes, coalesce and split skew |
 
+<figure markdown>
+  <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch86-hints.webp">
+    <source src="../../media/clips/ch86-hints.mp4" type="video/mp4">
+  </video>
+  <figcaption markdown="span">`hints.py`: the exchange and the files that each partitioning hint gives.</figcaption>
+</figure>
+
 - **A number fixes the result.** `REPARTITION(4)` made four files of 14.2 MB each. AQE does not change a partition count that you gave.
 - **Without a number, AQE decides.** `REPARTITION(PULocationID)` and `REBALANCE(PULocationID)` both started with 200 shuffle partitions, and AQE coalesced them to 21.
 - **`REBALANCE` follows the advisory size only if parallelism comes second.** The default is `spark.sql.adaptive.coalescePartitions.parallelismFirst=true`. Then AQE keeps at least as many partitions as the default parallelism (16 here), so `REBALANCE` made 17 files of about 3 MB. With `parallelismFirst=false`, AQE coalesced to the 64 MB advisory size (`spark.sql.adaptive.advisoryPartitionSizeInBytes`), and made 2 files. With an advisory size of 16 MB, it made 7 files. The advisory size counts shuffle bytes, not Parquet bytes, so the files are smaller than the advisory size.
@@ -697,7 +718,7 @@ spark.sql("SELECT /*+ REBALANCE(PULocationID) */ * FROM trips").write.parquet(ou
 
 - **Without statistics, the optimizer knows only sizes.** A filter does not change the size estimate, so a small filtered result never looks small.
 - **`ANALYZE TABLE` stores sizes, rows and column statistics, and CBO uses them.** Without a histogram, a filter estimate assumes values spread evenly between the minimum and the maximum, and it can be wrong by orders of magnitude. A histogram fixed five of six estimates in Step 3.
-- **Better estimates change the plan before it runs.** CBO selected a broadcast for 82 rows that AQE left as a sort-merge join. It also reordered three joins, so that the first join kept 210 rows instead of 3.7 million.
+- **Better estimates change the plan before it runs.** CBO selected a broadcast for 82 rows before the shuffles. AQE made the same change only after both shuffles had run. It also reordered three joins, so that the first join kept 210 rows instead of 3.7 million.
 - **The cost model is only as good as its estimates.** With histograms on the join keys, the estimate for a join was larger than both inputs, and CBO kept the written order.
 - **DPP turns a filter on a dimension into a filter on the partitions of a fact table.** It needs a selective predicate on the dimension, or (new in 4.3) a small local relation, and a broadcast that it can reuse.
 - **Buckets and storage-partitioned joins remove the shuffle** when both sides have the same layout on the join key. Spark can group buckets when one count is a multiple of the other.

@@ -41,8 +41,11 @@ for cbo in ("false", "true"):
     print(f"    estimate of the filtered fares: {est[0] if est else '?'}")
     print(f"    planned join: {joins(q)}, hash exchanges planned: {exchanges(q)}")
     res[cbo] = median_s(lambda: noop(spark.sql(SQL1)))
-    q2 = spark.sql(SQL1); noop(q2)
-    print(f"    final plan after AQE: {joins(q2)}; median {res[cbo]:.2f} s")
+    q2 = spark.sql(SQL1); q2.collect()          # run this DataFrame, so that explain() shows its final plan
+    final = plan(q2, "simple").split("== Final Plan ==")[1].split("== Initial Plan ==")[0]
+    j = re.findall(r"(BroadcastHashJoin|SortMergeJoin|ShuffledHashJoin)", final)
+    ex = final.count("Exchange hashpartitioning")
+    print(f"    final plan after AQE: {j}, hash exchanges that ran: {ex}; median {res[cbo]:.2f} s")
 print(f"  rows: {spark.sql(SQL1).count()}")
 
 print("\n=== 2. join reorder: three tables, broadcast off so that order decides the shuffle size")

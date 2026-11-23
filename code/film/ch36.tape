@@ -27,22 +27,3 @@ Type "python ch36/skipping.py layouts 2>/dev/null | sed -n '1,15p' | cut -c1-94"
 Wait@600s
 Sleep 12s
 
-# beat: orc | The two ends of an ORC file, and its postscript decoded by hand
-Hide
-Type "clear" Enter
-Show
-Type "# ORC: the last byte, the postscript, the footer and one stripe" Enter
-Sleep 500ms
-Type "python ch36/orc.py dump 2>/dev/null | sed -n '1,14p' | cut -c1-94" Enter
-Wait@300s
-Sleep 12s
-
-# beat: crypto | Parquet modular encryption: PARE, and a read without the keys
-Hide
-Type "clear" Enter
-Show
-Type "# encrypt two columns and the footer, then read without the keys" Enter
-Sleep 500ms
-Type "python ch36/crypto_rebase.py crypto 2>/dev/null | cut -c1-94" Enter
-Wait@300s
-Sleep 12s
