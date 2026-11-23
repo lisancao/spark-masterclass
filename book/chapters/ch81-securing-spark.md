@@ -120,19 +120,29 @@ On Kubernetes, `spark.authenticate=true` needs no secret from you. `k8s_auth.sh 
 ```text
 mode: env
 executor pod env, as anyone with 'get pods' in the namespace reads it:
-  _SPARK_AUTH_SECRET = e21815... (64 chars, in clear text in the pod spec)
-executor volumes: spark-conf-volume-exec taxi spark-local-dir-1 kube-api-access-2knx4 
+  _SPARK_AUTH_SECRET = dbd076... (64 chars, in clear text in the pod spec)
+executor volumes: spark-conf-volume-exec taxi spark-local-dir-1 kube-api-access-fslhz 
 driver: trips by payment_type: 0=1,013,500, 1=2,432,871, 2=357,804, 3=11,205, 4=21,866, 5=2   (pod Succeeded)
 ```
 
 The driver put the secret of the application into the executor pod spec as the plain variable `_SPARK_AUTH_SECRET` (`BasicExecutorFeatureStep.scala:138` to `142`). Any account that can read pods in the namespace can read the secret.
 
 !!! warning "Caution: the secret is in the pod spec"
-    Do not give `get pods` in a Spark namespace to accounts that must not join the application. Anyone who can read the executor pod spec can read `_SPARK_AUTH_SECRET`. Use TLS for RPC (`spark.ssl.rpc.enabled`), or one namespace for each tenant.
+    Do not give `get pods` in a Spark namespace to accounts that must not join the application. Anyone who can read the executor pod spec can read `_SPARK_AUTH_SECRET`. Use one namespace for each tenant, and give `get pods` only to the accounts that run the application.
 
-The file variant puts the secret in a Kubernetes Secret and mounts it in both pods. `k8s_auth.sh file` tried it. The executor pod had no secret variable, but the executors could not start.
+The file variant puts the secret in a Kubernetes Secret and mounts it in both pods. `k8s_auth.sh file` tried it:
 
- Their logs said `A secret key must be specified via the spark.authenticate.secret config`. The source shows why. The executor starts with only the configurations that `SparkConf.isExecutorStartupConf` lets through, and `spark.master` is not one of them. `secretKeyFromFile` reads the file only when `spark.master` is a `k8s://` URL (`SecurityManager.scala:386` to `400`). The notes of this book record this result as an open item. The book did not find a fix that works. `spark.executor.extraJavaOptions` cannot set `spark.master`, because Spark refuses Spark options in that key.
+```text
+mode: file
+executor pod env, as anyone with 'get pods' in the namespace reads it:
+executor volumes: spark-conf-volume-exec spark-auth-volume taxi spark-local-dir-1 kube-api-access-g4rk6 
+driver:    (pod Failed)
+executor log: IllegalArgumentException: A secret key must be specified via the spark.authenticate.secret config
+```
+
+The executor pod had no secret variable, but the executors could not start.
+
+ The source shows why. The executor starts with only the configurations that `SparkConf.isExecutorStartupConf` lets through, and `spark.master` is not one of them. `secretKeyFromFile` reads the file only when `spark.master` is a `k8s://` URL (`SecurityManager.scala:386` to `400`). The notes of this book record this result as an open item. The book did not find a fix that works. `spark.executor.extraJavaOptions` cannot set `spark.master`, because Spark refuses Spark options in that key.
 
 ## Step 3: TLS for the UI
 

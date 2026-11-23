@@ -10,6 +10,7 @@ source ./env.sh
 case ${1:-up} in
 up)
   mkdir -p "$SPARK_CONF_DIR" "$SPARK_LOG_DIR" "$SPARK_PID_DIR" "$SPARK_WORKER_DIR" "$CH80_WORK/recovery"
+  rm -rf "$CH80_WORK/recovery"/*        # a new cluster: forget the workers and apps of the last one
   cp conf/spark-defaults.conf "$SPARK_CONF_DIR/"
   [[ -n ${CH80_EXTRA_DEFAULTS:-} ]] && cat "$CH80_EXTRA_DEFAULTS" >> "$SPARK_CONF_DIR/spark-defaults.conf"
   chmod 600 "$SPARK_CONF_DIR/spark-defaults.conf"
