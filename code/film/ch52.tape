@@ -1,42 +1,26 @@
-# Spark Masterclass, Chapter 52: Python data sources III. Storyboard: storyboard-part09a.md.
-#   film render code/film/ch52.tape --format chapter
+# Spark Masterclass, Chapter 52: end to end. Storyboard: notes/part06.md (film section).
+#   film render code/film/ch52.tape --format chapter (after ch52/end_to_end.sh)
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4029 BOOK_DATA=$HOME/spark-masterclass/data CH51_VENVS=/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/part09a/venvs && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} SPARK_UI_PORT=4026 W=${BOOK_DATA:-$HOME/spark-masterclass/data}/work/part06 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
+# beat: trace | What the CLI sent to the server
+Type "# the dry run, command by command, as the CLI sent it" Enter
+Sleep 500ms
+Type "grep -E 'create_|start_run|SINK|_feed' ch52/output/trace.txt | cut -c1-92" Enter
+Sleep 9s
 
-# beat: offered | What Spark offers to pushFilters()
+# beat: server | What the server did in run 2
 Hide
 Type "clear" Enter
 Show
-Type "# which filter objects does Spark offer for each WHERE condition?" Enter
+Type "# the server log of run 2: tables first, then flows in topological order" Enter
 Sleep 500ms
-Type "python ch52/what_arrives.py 2>/dev/null | sed -n '/^WHERE/,/^id > 1 AND/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 12s
-
-# beat: opened | Rows, files opened, and Spark's Filter
-Hide
-Type "clear" Enter
-Show
-Type "# the audit counts the files that the tasks opened" Enter
-Sleep 500ms
-Type "python ch52/files_pushdown.py 2>/dev/null | sed -n '1,/^lower/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 12s
-
-# beat: shared | The shared planned read
-Hide
-Type "clear" Enter
-Show
-Type "# 4.3.0: one DataFrame, a pushed filter first, then other queries" Enter
-Sleep 500ms
-Type "python ch52/files_pushdown.py 2>/dev/null | sed -n '/^One DataFrame/,$p'" Enter
-Wait@300s
-Sleep 12s
+Type "grep -v checkpoint ch52/output/server_log_short.txt | sed -E 's/^INFO //' | head -18 | cut -c1-90" Enter
+Sleep 10s

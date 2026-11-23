@@ -1,31 +1,50 @@
-# Spark Masterclass, Chapter 5: DataFrames, columns and schemas. VO lines: notes/part02.md.
+# Spark Masterclass, Chapter 5: how Spark runs your code. Storyboard: storyboard.md.
 #   film render code/film/ch05.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4122 BOOK_NO_LOCK=1 PYTHONUNBUFFERED=1 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: drift | Schema drift against a contract
+# beat: query | The query, before anything runs
 Hide
-Type "clear" Enter
+Type "nvim +/'^by_hour' ch05/anatomy.py" Enter
+Sleep 2.5s
+Type ":noh" Enter
+Type "zt" Ctrl+L
 Show
-Type "# three days of events: what changed against the schema contract?" Enter
+Sleep 9s
+Hide
+Type ":qa!" Enter
+Type "clear" Enter
 Sleep 500ms
-Type "python ch05/drift.py 2>/dev/null | sed -n '/== 5/,/== 6/{/== 6/q;p}' | cut -c1-92" Enter
-Wait@300s
+
+# beat: jobs | One collect(), four jobs
+Show
+Type "# one collect(): how many jobs, stages and tasks did it become?" Enter
+Sleep 500ms
+Type "python ch05/anatomy.py 2>/dev/null | sed -n '/rows back/,/^Inside/p'" Enter
+Wait@120s
 Sleep 10s
 
-# beat: zones | Two timestamp types, two time zones
+# beat: tasks | Sixteen tasks, four row groups
 Hide
 Type "clear" Enter
 Show
-Type "# TIMESTAMP is an instant, TIMESTAMP_NTZ is a wall-clock time" Enter
-Sleep 500ms
-Type "python ch05/type_system.py 2>/dev/null | sed -n '/== 3/,/== 4/{/== 4/q;p}' | cut -c1-92" Enter
-Wait@300s
+Type "python ch05/anatomy.py 2>/dev/null | sed -n '/^Inside/,$p'   # the scan, task by task" Enter
+Wait@120s
 Sleep 10s
+
+# beat: feather | A small query, with and without single-task execution
+Hide
+Type "clear" Enter
+Show
+Type "# new in 4.3: plan a small query as one task, with no shuffles" Enter
+Sleep 500ms
+Type "python ch05/feather.py 2>/dev/null | head -2" Enter
+Wait@120s
+Sleep 8s

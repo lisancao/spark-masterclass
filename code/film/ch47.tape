@@ -1,30 +1,35 @@
-# Spark Masterclass, Chapter 47: the Spark Kubernetes Operator. Storyboard: notes/part08.md.
-#   needs the kind cluster from ch47/cluster.sh up
+# Spark Masterclass, Chapter 47: the spark-pipelines CLI and the project.
 #   film render code/film/ch47.tape --format chapter
-Set TypingSpeed 40ms
-Set WaitPattern /❯$/
+Set TypingSpeed 35ms
+Set WaitPattern /❯ ?$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4028 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
-Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
+Type "bash --norc" Enter
+Sleep 500ms
+Type "export BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} CONNECT_PORT=15104 SPARK_UI_PORT=4144; . $FILM_DEMO/film/sdp-film.sh" Enter
+Sleep 2s
+Type "sdp_film_prepare ch47; mkdir -p transformations/sub; PS1=$'\e[35m❯\e[0m '; clear" Enter
+Wait@240s
 Sleep 1s
 Show
 
-# beat: app | A SparkApplication through the operator's states
-Type "# a PySpark SparkApplication on kind, followed through the operator's states" Enter
-Sleep 500ms
-Type "python ch47/run_app.py zones-app.yaml 2>/dev/null | cut -c1-94" Enter
-Wait@300s
-Sleep 12s
-
-# beat: connect | A Connect server in the cluster, a client on the laptop, a driver restart
+# beat: cli | The spec from a subfolder, a refused glob, a README in transformations
+Type "cd transformations/sub   # the CLI looks for the spec in each parent folder" Enter
+Sleep 1s
+Type "spark-pipelines dry-run $R 2>&1 | grep -E 'Loading|Run is' | short" Enter
+Wait@120s
+Sleep 3s
+Type "cd ../.. && sed -i 's#transformations/\*\*#transformations/**/*.sql#' spark-pipeline.yml" Enter
+Sleep 1s
+Type "spark-pipelines dry-run $R 2>&1 | grep -o 'PIPELINE_SPEC_INVALID_GLOB.*' | short" Enter
+Wait@120s
+Sleep 4s
+Type "sed -i 's#/\*\*/\*.sql#/**#' spark-pipeline.yml" Enter
+Type "echo '# notes' > transformations/README.md   # not .py or .sql" Enter
+Sleep 1s
+Type "spark-pipelines dry-run $R 2>&1 | grep -o 'PIPELINE_UNSUPPORTED.*' | short" Enter
+Wait@120s
+Sleep 8s
 Hide
-Type "kubectl --context kind-part08 delete sparkapp connect --wait=true >/dev/null; kubectl --context kind-part08 apply -f ch47/connect-server.yaml >/dev/null; until kubectl --context kind-part08 get sparkapp connect -o jsonpath='{.status.currentState.currentStateSummary}' | grep -q RunningHealthy; do sleep 2; done; sleep 5; clear" Enter
-Wait@300s
-Show
-Type "# a laptop client, a Connect server in the cluster, then the driver pod dies" Enter
-Sleep 500ms
-Type "python ch47/connect_k8s.py 2>/dev/null | cut -c1-94" Enter
-Wait@400s
-Sleep 12s
+Type "sdp_film_end" Enter
+Wait@60s

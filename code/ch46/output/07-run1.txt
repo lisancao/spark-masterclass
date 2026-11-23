@@ -1,0 +1,31 @@
+$ spark-pipelines run --remote $SPARK_REMOTE; echo "exit code: $?"
+2026-11-22 10:10:18: Loading pipeline spec from ~/spark-masterclass/data/work/sdp/ch46/taxi_etl/spark-pipeline.yml...
+2026-11-22 10:10:18: Creating Spark session...
+2026-11-22 10:10:18: Creating dataflow graph...
+2026-11-22 10:10:19: Registering graph elements...
+2026-11-22 10:10:19: Loading definitions. Root directory: '~/spark-masterclass/data/work/sdp/ch46/taxi_etl'.
+2026-11-22 10:10:19: Found 3 files matching glob 'transformations/**/*'
+2026-11-22 10:10:19: Registering SQL file ~/spark-masterclass/data/work/sdp/ch46/taxi_etl/transformations/borough_daily.sql...
+2026-11-22 10:10:19: Registering SQL file ~/spark-masterclass/data/work/sdp/ch46/taxi_etl/transformations/clean_trips.sql...
+2026-11-22 10:10:19: Importing ~/spark-masterclass/data/work/sdp/ch46/taxi_etl/transformations/raw.py...
+2026-11-22 10:10:19: Starting run...
+2026-11-22 18:10:19: Flow spark_catalog.default.raw_trips is QUEUED.
+2026-11-22 18:10:19: Flow spark_catalog.default.zones is QUEUED.
+2026-11-22 18:10:19: Flow spark_catalog.default.clean_trips is QUEUED.
+2026-11-22 18:10:19: Flow spark_catalog.default.borough_daily is QUEUED.
+2026-11-22 18:10:19: Flow spark_catalog.default.raw_trips is STARTING.
+2026-11-22 18:10:19: Flow spark_catalog.default.raw_trips is RUNNING.
+2026-11-22 18:10:19: Flow spark_catalog.default.zones is PLANNING.
+2026-11-22 18:10:19: Flow spark_catalog.default.zones is STARTING.
+2026-11-22 18:10:19: Flow spark_catalog.default.zones is RUNNING.
+2026-11-22 18:10:21: Flow spark_catalog.default.zones has COMPLETED.
+2026-11-22 18:10:21: Flow spark_catalog.default.raw_trips has COMPLETED.
+2026-11-22 18:10:21: Flow spark_catalog.default.clean_trips is STARTING.
+2026-11-22 18:10:21: Flow spark_catalog.default.clean_trips is RUNNING.
+2026-11-22 18:10:22: Flow spark_catalog.default.clean_trips has COMPLETED.
+2026-11-22 18:10:23: Flow spark_catalog.default.borough_daily is PLANNING.
+2026-11-22 18:10:23: Flow spark_catalog.default.borough_daily is STARTING.
+2026-11-22 18:10:23: Flow spark_catalog.default.borough_daily is RUNNING.
+2026-11-22 18:10:24: Flow spark_catalog.default.borough_daily has COMPLETED.
+2026-11-22 18:10:26: Run is COMPLETED.
+exit code: 0

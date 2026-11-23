@@ -1,0 +1,2 @@
+{"source": "code/ch59/output/writes.txt: the task attempt directories, and 'append run twice: 20 rows (10 expected)', 'overwrite run twice: 10 rows'. Timing is schematic.",
+ "expected": 10, "append_after_rerun": 20, "overwrite_after_rerun": 10}

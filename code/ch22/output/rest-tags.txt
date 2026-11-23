@@ -1,0 +1,4 @@
+operations with the tag taxi-app: 4
+{"userId": "taxi-app", "sparkSessionTags": ["taxi-app"], "state": "CLOSED", "statement": "common {\n  plan_id: 5\n}\naggregate {\n  input {\n    commo
+{"userId": "taxi-app", "sparkSessionTags": ["taxi-app"], "state": "CLOSED", "statement": "common {\n  plan_id: 3\n}\naggregate {\n  input {\n    commo
+{"userId": "taxi-app", "sparkSessionTags": ["taxi-app"], "state": "CLOSED", "statement": "common {\n  plan_id: 3\n}\naggregate {\n  input {\n    commo

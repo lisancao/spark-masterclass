@@ -1,0 +1,4 @@
+scala rdd (all 21 columns)           1.27 s
+scala rdd (select 2 columns first)   0.49 s
+scala dataframe                      0.44 s    1.1x faster than rdd,  2.9x faster than rdd over all columns
+rdd hour 18: (18,(262898,20.29))   dataframe hour 18: [18,262898,20.29]

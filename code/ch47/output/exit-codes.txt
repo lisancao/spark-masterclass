@@ -1,0 +1,6 @@
+$ spark-pipelines run --remote sc://localhost:15104 > /dev/null 2>&1; echo "run ok: $?"
+run ok: 0
+$ printf 'name: x\n' > /tmp/bad.yml; spark-pipelines run --remote sc://localhost:15104 --spec /tmp/bad.yml > /dev/null 2>&1; echo "spec error: $?"; rm /tmp/bad.yml
+spec error: 1
+$ spark-pipelines run --remote sc://localhost:1 > /dev/null 2>&1 & p=$!; sleep 20; kill -0 $p 2>/dev/null && echo 'no server: still waiting after 20 s' && pkill -P $p; kill $p 2>/dev/null; wait $p 2>/dev/null
+no server: still waiting after 20 s

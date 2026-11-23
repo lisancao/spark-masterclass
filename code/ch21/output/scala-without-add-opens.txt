@@ -1,0 +1,4 @@
+spark-connect-client-jvm 4.3.0 -> server 4.3.0 at sc://localhost:15106
+Exception in thread "main" java.lang.UnsupportedOperationException: sun.misc.Unsafe or java.nio.DirectByteBuffer.<init>(long, int) not available
+	at org.sparkproject.org.apache.arrow.memory.util.MemoryUtil.directBuffer(MemoryUtil.java:193)
+	at org.sparkproject.org.apache.arrow.memory.ArrowBuf.getDirectBuffer(ArrowBuf.java:211)

@@ -1,0 +1,6 @@
+client   big_result             reattachable   not reattachable ReattachExecute calls
+python   works 200000 rows      13             0               16
+scala    works 200000 rows      12             0               16
+rust     works 200000 rows      13             0               16
+go       works 200000 rows      0              16              0
+swift    works 200000 rows      8              0               16

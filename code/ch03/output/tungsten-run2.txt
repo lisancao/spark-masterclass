@@ -1,0 +1,19 @@
+Row(VendorID=1, trip_distance=2.9, store_and_fwd_flag='N', fare_amount=16.3)
+class: org.apache.spark.sql.catalyst.expressions.UnsafeRow
+numFields=4  sizeInBytes=48
+8-byte words, as UnsafeRow.toString() prints them (hex):
+  word 0:                  0   null bitset
+  word 1:                  1   field 0
+  word 2:   4007333333333333   field 1
+  word 3:         2800000001   field 2
+  word 4:   40304ccccccccccd   field 3
+  word 5:                 4e   variable-length data
+
+3,837,248 rows x 5 columns, cached two ways (REST: /storage/rdd):
+  python rdd of tuples             72.1 MiB  (Memory Serialized 1x Replicated)
+  dataframe cache (columnar)      122.1 MiB  (Disk Memory Deserialized 1x Replicated)
+  parquet file, all 21 columns     62.4 MiB  (on disk, compressed)
+
+sum(fare_amount) over each cache, median of 5 runs:
+  python rdd of tuples         0.28 s
+  dataframe cache              0.06 s   (5x faster)

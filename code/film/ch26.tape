@@ -1,26 +1,68 @@
-# Spark Masterclass, Chapter 26. Storyboard: storyboard-part05.md.
-#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch26.tape --format chapter
-Set TypingSpeed 40ms
+# Spark Masterclass, Chapter 26. Clips for the book page.
+#   film render code/film/ch26.tape --format chapter
+Set TypingSpeed 35ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4025 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-
-# beat: dead-letters | Dead letters, safe for a replay
-Type "# four drops through try_ parsing; bad lines go to dead letters with a reason" Enter
+# beat: ch26-quarantine | A quarantine that balances
+Hide
+Type "nvim +/'quarantine: parsed' ch26/logs.py" Enter
+Sleep 2.5s
+Type ":noh" Enter
+Type "zt" Ctrl+L
+Show
+Sleep 7s
+Hide
+Type ":qa!" Enter
+Type "clear" Enter
 Sleep 500ms
-Type "python ch26/m3_dead_letters.py 2>/dev/null | head -17" Enter
-Wait@240s
-Sleep 12s
-
-# beat: future | One event from tomorrow
-Type "# the naive query: one event dated the next day moves the watermark a full day" Enter
+Show
+Type "# every input line is parsed or rejected, and the counts agree" Enter
 Sleep 500ms
-Type "python ch26/m4_watermark.py naive 2>/dev/null | head -9" Enter
-Wait@240s
-Sleep 12s
+Type "python ch26/logs.py 2>/dev/null | sed -n '/quarantine: parsed/,/sessions from/p' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s
+
+# beat: ch26-decimal | Decimal commas and locales
+Hide
+Type "nvim +/'decimal commas' ch26/csv_options.py" Enter
+Sleep 2.5s
+Type ":noh" Enter
+Type "zt" Ctrl+L
+Show
+Sleep 7s
+Hide
+Type ":qa!" Enter
+Type "clear" Enter
+Sleep 500ms
+Show
+Type "# a European amount, read as DECIMAL and DOUBLE with two locales" Enter
+Sleep 500ms
+Type "python ch26/csv_options.py 2>/dev/null | sed -n '/decimal commas/,/== encodings/p' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s
+
+# beat: ch26-modes | Parse modes
+Hide
+Type "nvim +/'parse modes and the corrupt' ch26/csv_drift.py" Enter
+Sleep 2.5s
+Type ":noh" Enter
+Type "zt" Ctrl+L
+Show
+Sleep 7s
+Hide
+Type ":qa!" Enter
+Type "clear" Enter
+Sleep 500ms
+Show
+Type "# the corrupt record column, and DROPMALFORMED gives three answers" Enter
+Sleep 500ms
+Type "python ch26/csv_drift.py 2>/dev/null | sed -n '/count the corrupt/,/a folder whose/p' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s

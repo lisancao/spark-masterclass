@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 420" width="780" height="420" role="img"><title>Physical plans of three queries on pydocs and on jdocs</title><defs><marker id="m8a919e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a919e"/></marker><marker id="m8a919es" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#8a919e"/></marker></defs><text x="180" y="22.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="middle" font-weight="700">filter + two columns</text>
+<text x="418" y="22.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="middle" font-weight="700">limit(3)</text>
+<text x="656" y="22.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="middle" font-weight="700">count(*)</text>
+<text x="8" y="130.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#c0661a" text-anchor="start" font-weight="700">pydocs</text>
+<text x="8" y="345.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#3a5f96" text-anchor="start" font-weight="700">jdocs</text>
+<rect x="70" y="40" width="220" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="180.0" y="58.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">Project [name, width]</text>
+<rect x="70" y="82" width="220" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="180.0" y="100.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">Filter isnotnull(kind)</text>
+<line x1="180.0" y1="81" x2="180.0" y2="71" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="70" y="124" width="220" height="30" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="180.0" y="142.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">BatchScan pydocs</text>
+<line x1="180.0" y1="123" x2="180.0" y2="113" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="70" y="166" width="220" height="30" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="180.0" y="184.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">7 columns, EqualTo(kind,image)</text>
+<line x1="180.0" y1="165" x2="180.0" y2="155" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="70" y="278" width="220" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="180.0" y="296.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">Project [name, width]</text>
+<rect x="70" y="320" width="220" height="30" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="180.0" y="338.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">BatchScan jdocs</text>
+<line x1="180.0" y1="319" x2="180.0" y2="309" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="70" y="362" width="220" height="30" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="180.0" y="380.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">files=5, pushed=[kind=&#x27;image&#x27;]</text>
+<line x1="180.0" y1="361" x2="180.0" y2="351" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="308" y="40" width="220" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="418.0" y="58.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">CollectLimit 3</text>
+<rect x="308" y="82" width="220" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="418.0" y="100.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">Project [name]</text>
+<line x1="418.0" y1="81" x2="418.0" y2="71" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="308" y="124" width="220" height="30" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="418.0" y="142.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">BatchScan pydocs</text>
+<line x1="418.0" y1="123" x2="418.0" y2="113" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="308" y="166" width="220" height="30" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="418.0" y="184.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">7 columns, 26 files</text>
+<line x1="418.0" y1="165" x2="418.0" y2="155" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="308" y="278" width="220" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="418.0" y="296.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">Project [name]</text>
+<rect x="308" y="320" width="220" height="30" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="418.0" y="338.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">BatchScan jdocs</text>
+<line x1="418.0" y1="319" x2="418.0" y2="309" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="308" y="362" width="220" height="30" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="418.0" y="380.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">files=3, limit=3</text>
+<line x1="418.0" y1="361" x2="418.0" y2="351" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="546" y="40" width="220" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="656.0" y="58.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">HashAggregate count(1)</text>
+<rect x="546" y="82" width="220" height="30" rx="6" fill="#a8323a" fill-opacity="1.0"/>
+<text x="656.0" y="100.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">Exchange SinglePartition</text>
+<line x1="656.0" y1="81" x2="656.0" y2="71" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="546" y="124" width="220" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="656.0" y="142.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">HashAggregate partial_count</text>
+<line x1="656.0" y1="123" x2="656.0" y2="113" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="546" y="166" width="220" height="30" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="656.0" y="184.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">BatchScan pydocs</text>
+<line x1="656.0" y1="165" x2="656.0" y2="155" stroke="#8a919e" stroke-width="1.5"/>
+<rect x="546" y="278" width="220" height="30" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="656.0" y="296.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">Project [count]</text>
+<rect x="546" y="320" width="220" height="30" rx="6" fill="#2f7d5b" fill-opacity="1.0"/>
+<text x="656.0" y="338.6" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">LocalTableScan [count]</text>
+<line x1="656.0" y1="319" x2="656.0" y2="309" stroke="#8a919e" stroke-width="1.5"/>
+<line x1="10" y1="245" x2="770" y2="245" stroke="#8a919e" stroke-width="1" stroke-dasharray="6 5"/>
+<text x="390" y="410.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400" font-style="italic">Red: a shuffle. Green: rows that the source calculated on the driver, with no scan.</text></svg>

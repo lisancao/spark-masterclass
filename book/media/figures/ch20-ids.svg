@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 440" font-family="Inter, 'DM Sans', Helvetica, Arial, sans-serif">
+  <style>
+    .h{font-size:17px;font-weight:700;fill:#8a909a}
+    .t{font-size:13.5px;fill:#8a909a}
+    .w{font-size:14px;fill:#fff;font-weight:600}
+    .ws{font-size:12px;fill:#fff}
+    .mw{font-size:11.5px;fill:#fff;font-family:Menlo,monospace}
+    .ln{stroke:#8a909a;stroke-width:1.6;fill:none}
+  </style>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a909a"/></marker></defs>
+  <text x="20" y="26" class="h">The client sets</text>
+  <text x="300" y="26" class="h">The server joins them into tags</text>
+  <text x="720" y="26" class="h">Where you find them</text>
+  <rect x="20" y="42" width="230" height="58" rx="6" fill="#3a5f96"/><text x="135" y="64" class="w" text-anchor="middle">user_id = agent</text><text x="135" y="84" class="ws" text-anchor="middle">connection string, or $USER</text>
+  <rect x="20" y="112" width="230" height="58" rx="6" fill="#3a5f96"/><text x="135" y="134" class="w" text-anchor="middle">session_id = 5710d742-...</text><text x="135" y="154" class="ws" text-anchor="middle">a UUID, one per SparkSession</text>
+  <rect x="20" y="182" width="230" height="58" rx="6" fill="#3a5f96"/><text x="135" y="204" class="w" text-anchor="middle">operation_id = 52ae259f-...</text><text x="135" y="224" class="ws" text-anchor="middle">a UUID per ExecutePlan (4.3: client)</text>
+  <rect x="20" y="252" width="230" height="58" rx="6" fill="#3a5f96"/><text x="135" y="274" class="w" text-anchor="middle">tags = [task-42]</text><text x="135" y="294" class="ws" text-anchor="middle">addTag, per thread</text>
+  <rect x="300" y="72" width="380" height="88" rx="6" fill="#c0661a"/>
+  <text x="490" y="94" class="w" text-anchor="middle">operation job tag</text>
+  <text x="490" y="118" class="mw" text-anchor="middle">SparkConnect_OperationTag_User_agent</text>
+  <text x="490" y="136" class="mw" text-anchor="middle">_Session_5710d742-..._Operation_52ae259f-...</text>
+  <rect x="300" y="200" width="380" height="88" rx="6" fill="#c0661a"/>
+  <text x="490" y="222" class="w" text-anchor="middle">session tag for a client tag</text>
+  <text x="490" y="246" class="mw" text-anchor="middle">SparkConnect_SessionTag_User_agent</text>
+  <text x="490" y="264" class="mw" text-anchor="middle">_Session_5710d742-..._Tag_task-42</text>
+  <path d="M250 71 L300 100 M250 141 L300 116 M250 211 L300 136" class="ln" marker-end="url(#a)"/>
+  <path d="M250 71 L300 222 M250 141 L300 240 M250 281 L300 262" class="ln" marker-end="url(#a)"/>
+  <rect x="720" y="42" width="240" height="40" rx="6" fill="#6b7280"/><text x="840" y="67" class="ws" text-anchor="middle">REST connect/operations, sessions</text>
+  <rect x="720" y="92" width="240" height="40" rx="6" fill="#6b7280"/><text x="840" y="117" class="ws" text-anchor="middle">Connect tab of the Spark UI</text>
+  <rect x="720" y="142" width="240" height="40" rx="6" fill="#6b7280"/><text x="840" y="167" class="ws" text-anchor="middle">spark.job.tags of each job</text>
+  <rect x="720" y="192" width="240" height="40" rx="6" fill="#6b7280"/><text x="840" y="217" class="ws" text-anchor="middle">server log: ExecuteKey(user, session, op)</text>
+  <rect x="720" y="242" width="240" height="40" rx="6" fill="#6b7280"/><text x="840" y="267" class="ws" text-anchor="middle">event log: SparkListenerConnect* events</text>
+  <rect x="720" y="292" width="240" height="40" rx="6" fill="#6b7280"/><text x="840" y="317" class="ws" text-anchor="middle">Interrupt RPC: by op ID, tag or all</text>
+  <path d="M680 116 L720 62 M680 116 L720 112 M680 116 L720 162 M680 116 L720 212 M680 116 L720 262 M680 244 L720 162 M680 244 L720 312" class="ln" marker-end="url(#a)"/>
+  <text x="20" y="360" class="t">A session is the pair (user_id, session_id). An operation is (user_id, session_id, operation_id).</text>
+  <text x="20" y="382" class="t">The Interrupt RPC acts only inside one session. To stop an operation from a second process,</text>
+  <text x="20" y="404" class="t">connect with the same user_id and session_id (Step 6). IDs are from code/ch81/output/observe.txt.</text>
+</svg>

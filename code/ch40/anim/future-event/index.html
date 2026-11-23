@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from data.json (m4_naive.txt, m4_defended.txt). Event positions inside a drop and timing are schematic.
+      const m = (s) => { const [h, mm] = s.split(":").map(Number); return h * 60 + mm; };
+      const T0 = m("09:00"), T1 = m("09:55"), XL = 0.05, XR = 0.74;
+      const X = (t) => XL + (t - T0) / (T1 - T0) * (XR - XL);
+      const AX = 0.60, FX = 0.88;           // FX: the place of 10-06 09:12 to 09:22, one day later
+      // beat open (0.0): the axis, with a break to the next day
+      A.title("One event from the future", "session windows over clicks, watermark delay 10 minutes, no future check");
+      A.line({ x1: XL, y1: AX, x2: XR + 0.02, y2: AX, color: "var(--a-mute)" });
+      A.line({ x1: 0.81, y1: AX, x2: 0.95, y2: AX, color: "var(--a-mute)" });
+      A.text("//", { x: 0.785, y: AX, size: 34, color: "var(--a-mute)" });
+      for (let t = T0; t <= T1; t += 15) A.text(`${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`, { x: X(t), y: AX + A.dy(30), size: 22, color: "var(--a-mute)" });
+      A.text("10-06 09:12", { x: FX, y: AX + A.dy(30), size: 22, color: "var(--a-mute)" });
+      A.text("one day later", { x: FX, y: AX + A.dy(58), size: 20, color: "var(--a-mute)" });
+      const wm = A.el(`<div style="width:${A.px(4)}px;height:${A.px(230)}px;background:var(--a-acc);margin:auto"></div><div style="font-size:${A.px(22)}px;color:var(--a-acc);font-weight:700;text-align:center;white-space:nowrap">watermark</div>`,
+        { x: X(m("09:02")), y: AX - A.dy(30), css: { width: A.px(160) + "px" } });
+      gsap.set(wm, { opacity: 0 });
+      const drop = (from, to, n, t0, late) => {
+        const ds = [];
+        for (let i = 0; i < n; i++) {
+          const tt = m(from) + (m(to) - m(from)) * (i + 0.5) / n;
+          const d = A.dot({ x: X(tt), y: AX - A.dy(24 + (i % 3) * 22), r: 10, color: "var(--a-fg)" });
+          A.tl.fromTo(d, { opacity: 0, y: -A.px(120) }, { opacity: 0.85, y: 0, duration: 0.4, ease: "power2.out" }, t0 + i * 0.05);
+          if (late) {
+            A.tl.to(d, { backgroundColor: "var(--a-acc)", duration: 0.2 }, t0 + 0.9);
+            A.tl.to(d, { y: A.px(160), opacity: 0, duration: 0.6, ease: "power2.in" }, t0 + 1.3 + i * 0.03);
+          }
+          ds.push(d);
+        }
+        return ds;
+      };
+      const hud = (s, t0, t1) => { const h = A.text(s, { x: 0.5, y: 0.25, size: 30, mono: true }); gsap.set(h, { opacity: 0 }); A.tl.to(h, { opacity: 1, duration: 0.2 }, t0); if (t1) A.tl.to(h, { opacity: 0, duration: 0.2 }, t1); };
+      drop("09:00", "09:12", 10, 0.6, false);
+      hud("drop 1: watermark after it 09:02", 0.6, 4.7);
+      A.tl.to(wm, { opacity: 1, duration: 0.3 }, 1.6);
+      cap("Drop 1 sets the watermark to 09:02", 0.2, 4.7);
+      // beat future (4.8): drop 2 holds e903, one day ahead
+      drop("09:10", "09:24", 15, 4.9, false);
+      const e903 = A.dot({ x: FX + 0.02, y: AX - A.dy(40), r: 14, color: "var(--a-acc)" });
+      A.tl.fromTo(e903, { opacity: 0, y: -A.px(140) }, { opacity: 1, y: 0, duration: 0.5 }, 5.8);
+      const lbl = A.text("e903: 2026-10-06 09:22", { x: FX, y: AX - A.dy(90), size: 24, mono: true, color: "var(--a-acc)", weight: 700 });
+      A.in(lbl, 6.0);
+      A.tl.to(wm, { x: A.X(FX - 0.02 - X(m("09:02"))), duration: 0.9, ease: "power3.inOut" }, 7.4);
+      hud("drop 2: watermark after it 10-06 09:12", 7.4, 9.5);
+      cap("One device clock is a day ahead, and the watermark jumps", 4.8, 9.5);
+      // beat late (9.6): drops 3 and 4 are all late
+      drop("09:25", "09:37", 10, 9.7, true);
+      hud("drop 3: 10 of 10 rows late", 9.7, 11.9);
+      drop("09:38", "09:51", 10, 12.0, true);
+      hud("drop 4: 10 of 10 rows late", 12.0, 14.3);
+      cap("Each later event is older than the watermark, and Spark drops it", 9.6, 14.3);
+      // beat result (14.4)
+      const tab = A.table(["run", "future check", "sessions written"], [["naive", "none", "5"], ["defended", "future_ts before the watermark", "7, all complete"]], { x: 0.5, y: 0.31, w: 1100, size: 30, hi: 1 });
+      gsap.set(tab, { opacity: 0 }); A.in(tab, 14.5);
+      cap("Reject future events before withWatermark", 14.4);
+      A.in(A.note("watermarks, late counts and sessions from m4_naive.txt and m4_defended.txt; positions schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>

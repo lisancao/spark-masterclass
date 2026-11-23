@@ -1,0 +1,74 @@
+$ echo "server options: ${LAKE[*]}" | sed "s/ --/\n  --/g"
+server options:
+  --jars ~/spark-masterclass/data/jars/iceberg-spark-runtime-4.3_2.13-b1eab64.jar
+  --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+  --conf spark.sql.catalog.lake=org.apache.iceberg.spark.SparkCatalog
+  --conf spark.sql.catalog.lake.type=hadoop
+  --conf spark.sql.catalog.lake.warehouse=file://~/spark-masterclass/data/work/sdp/ch79i/taxi_etl/lake
+$ printf 'catalog: lake\ndatabase: taxi\n' >> spark-pipeline.yml && cat spark-pipeline.yml
+name: taxi_etl
+storage: file://~/spark-masterclass/data/work/sdp/ch79i/taxi_etl/pipeline-storage
+libraries:
+  - glob:
+      include: transformations/**
+catalog: lake
+database: taxi
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Exception|Run is' | cut -c1-170
+pyspark.errors.exceptions.connect.AnalysisException: [SCHEMA_NOT_FOUND] The schema `lake`.`taxi` cannot be found. Verify the spelling and correctness of the schema and ca
+$ py <<'PY'
+import sys
+from pyspark.sql import SparkSession
+s = SparkSession.builder.remote(f'sc://localhost:{sys.argv[1]}').getOrCreate()
+s.sql('CREATE NAMESPACE IF NOT EXISTS lake.taxi')
+print('namespaces:', [r[0] for r in s.sql('SHOW NAMESPACES IN lake').collect()])
+PY
+namespaces: ['taxi']
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Flow .* is QUEUED|Exception|Run is' | sed -E 's/^[0-9-]+ //' | cut -c1-170
+18:25:49: Flow lake.taxi.zones is QUEUED.
+18:25:49: Flow lake.taxi.raw_trips is QUEUED.
+18:25:49: Flow lake.taxi.clean_trips is QUEUED.
+18:25:49: Flow lake.taxi.borough_daily is QUEUED.
+18:25:58: Run is COMPLETED.
+$ py <<'PY'
+import sys
+from pyspark.sql import SparkSession
+s = SparkSession.builder.remote(f'sc://localhost:{sys.argv[1]}').getOrCreate()
+for t in ['raw_trips', 'clean_trips', 'zones', 'borough_daily']:
+    n = s.table(f'lake.taxi.{t}').count()
+    snaps = s.sql(f'SELECT operation FROM lake.taxi.{t}.snapshots ORDER BY committed_at').collect()
+    print(f'lake.taxi.{t:14} {n:>8,} rows   snapshots: {[r[0] for r in snaps]}')
+PY
+lake.taxi.raw_trips       237,806 rows   snapshots: ['append']
+lake.taxi.clean_trips     223,444 rows   snapshots: ['append']
+lake.taxi.zones               265 rows   snapshots: ['append']
+lake.taxi.borough_daily        14 rows   snapshots: ['append']
+$ find lake -maxdepth 3 -type d | sort
+lake
+lake/taxi
+lake/taxi/borough_daily
+lake/taxi/borough_daily/data
+lake/taxi/borough_daily/metadata
+lake/taxi/clean_trips
+lake/taxi/clean_trips/data
+lake/taxi/clean_trips/metadata
+lake/taxi/raw_trips
+lake/taxi/raw_trips/data
+lake/taxi/raw_trips/metadata
+lake/taxi/zones
+lake/taxi/zones/data
+lake/taxi/zones/metadata
+$ ls spark-warehouse 2>&1 | head -2
+$ python "~/spark-masterclass-parts/sdp/code/ch46/make_days.py" data/trips 2026-06-03
+trips_2026-06-03.parquet: 140,184 trips
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Run is'
+2026-11-22 18:26:11: Run is COMPLETED.
+$ py <<'PY'
+import sys
+from pyspark.sql import SparkSession
+s = SparkSession.builder.remote(f'sc://localhost:{sys.argv[1]}').getOrCreate()
+for t in ['raw_trips', 'borough_daily']:
+    snaps = s.sql(f'SELECT operation, summary["added-records"] AS added FROM lake.taxi.{t}.snapshots ORDER BY committed_at').collect()
+    print(f'lake.taxi.{t:14}', [(r[0], r[1]) for r in snaps])
+PY
+lake.taxi.raw_trips      [('append', '237806'), ('append', '140184')]
+lake.taxi.borough_daily  [('append', '14'), ('delete', None), ('append', '21')]

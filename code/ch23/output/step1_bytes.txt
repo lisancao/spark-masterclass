@@ -1,0 +1,17 @@
+ExecutePlanRequest: 84 bytes
+  0000  0a 24 30 30 31 31 32 32 33 33 2d 34 34 35 35 2d  .$00112233-4455-
+  0010  36 36 37 37 2d 38 38 39 39 2d 61 61 62 62 63 63  6677-8899-aabbcc
+  0020  64 64 65 65 66 66 12 06 0a 04 62 6f 6f 6b 1a 13  ddeeff....book..
+  0030  0a 11 52 0f 0a 0d 53 45 4c 45 43 54 20 31 20 41  ..R...SELECT 1 A
+  0040  53 20 78 22 0f 6d 69 6e 69 63 6f 6e 6e 65 63 74  S x".miniconnect
+  0050  2f 30 2e 31                                      /0.1
+
+field by field (offset, tag and length bytes, field):
+  @00 0a 24     session_id = '00112233-4455-6677-8899-aabbccddeeff'
+  @26 12 06     user_context (UserContext, 6 bytes)
+  @28 0a 04       user_id = 'book'
+  @2e 1a 13     plan (Plan, 19 bytes)
+  @30 0a 11       root (Relation, 17 bytes)
+  @32 52 0f         sql (SQL, 15 bytes)
+  @34 0a 0d           query = 'SELECT 1 AS x'
+  @43 22 0f     client_type = 'miniconnect/0.1'

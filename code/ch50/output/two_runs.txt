@@ -1,0 +1,116 @@
+== run 1: orders_2026-10-01.json and orders_2026-10-02.json
+18:42:13: Flow bronze_customers has COMPLETED.
+18:42:13: Flow bronze_products has COMPLETED.
+18:42:14: Flow bronze_orders has COMPLETED.
+18:42:14: Flow silver_customers has COMPLETED.
+18:42:16: Flow silver_orders has COMPLETED.
+18:42:16: Flow quarantine_orders has COMPLETED.
+18:42:19: Flow check_orders_accounted_for has COMPLETED.
+18:42:19: Flow gold_revenue_merch has COMPLETED.
+18:42:19: Flow gold_revenue_hardware has COMPLETED.
+18:42:19: Flow gold_customer_value has COMPLETED.
+18:42:19: Flow gold_daily_revenue has COMPLETED.
+18:42:21: Flow check_gold_reconciles has COMPLETED.
+18:42:22: Run is COMPLETED.
+bronze_orders: 11 rows
+silver_orders: 7 rows
+quarantine_orders: 3 rows
+gold_daily_revenue: 2 rows
++----------------------+----+-----------+
+|_source_file          |rows|ingested_at|
++----------------------+----+-----------+
+|orders_2026-10-01.json|6   |10:42:11   |
+|orders_2026-10-02.json|5   |10:42:11   |
++----------------------+----+-----------+
+
++--------+-----------+--------+----------+----------------+
+|order_id|customer_id|quantity|unit_price|_reason         |
++--------+-----------+--------+----------+----------------+
+|o-1005  |c-04       |3       |NULL      |invalid_price   |
+|o-1008  |c-03       |-2      |3.25      |invalid_quantity|
+|o-1009  |c-99       |1       |9.99      |unknown_customer|
++--------+-----------+--------+----------+----------------+
+
++----------+-------+------+---------------+------------------+
+|order_date|revenue|orders|avg_order_value|cumulative_revenue|
++----------+-------+------+---------------+------------------+
+|2026-10-01|214.43 |4     |53.61          |214.43            |
+|2026-10-02|133.00 |2     |66.50          |347.43            |
++----------+-------+------+---------------+------------------+
+
++-----------+---------+-------+------+------------+-------------+
+|customer_id|city     |revenue|orders|revenue_rank|revenue_share|
++-----------+---------+-------+------+------------+-------------+
+|c-02       |Vancouver|144.50 |2     |1           |0.4159       |
+|c-01       |Toronto  |139.98 |2     |2           |0.4029       |
+|c-03       |Montreal |49.95  |1     |3           |0.1438       |
+|c-05       |Calgary  |13.00  |1     |4           |0.0374       |
++-----------+---------+-------+------+------------+-------------+
+
+
+== orders_2026-10-03.json arrives
+orders_2026-10-01.json
+orders_2026-10-02.json
+orders_2026-10-03.json
+
+== run 2
+18:42:58: Flow bronze_products has COMPLETED.
+18:42:58: Flow bronze_customers has COMPLETED.
+18:42:58: Flow bronze_orders has COMPLETED.
+18:42:59: Flow silver_customers has COMPLETED.
+18:43:01: Flow quarantine_orders has COMPLETED.
+18:43:01: Flow silver_orders has COMPLETED.
+18:43:02: Flow gold_revenue_hardware has COMPLETED.
+18:43:02: Flow check_orders_accounted_for has COMPLETED.
+18:43:02: Flow gold_revenue_merch has COMPLETED.
+18:43:02: Flow gold_customer_value has COMPLETED.
+18:43:02: Flow gold_daily_revenue has COMPLETED.
+18:43:02: Flow check_gold_reconciles has COMPLETED.
+18:43:04: Run is COMPLETED.
+bronze_orders: 15 rows
+silver_orders: 10 rows
+quarantine_orders: 3 rows
+gold_daily_revenue: 3 rows
++----------------------+----+-----------+
+|_source_file          |rows|ingested_at|
++----------------------+----+-----------+
+|orders_2026-10-01.json|6   |10:42:11   |
+|orders_2026-10-02.json|5   |10:42:11   |
+|orders_2026-10-03.json|4   |10:42:57   |
++----------------------+----+-----------+
+
++--------+-----------+--------+----------+----------------+
+|order_id|customer_id|quantity|unit_price|_reason         |
++--------+-----------+--------+----------+----------------+
+|o-1005  |c-04       |3       |NULL      |invalid_price   |
+|o-1008  |c-03       |-2      |3.25      |invalid_quantity|
+|o-1009  |c-99       |1       |9.99      |unknown_customer|
++--------+-----------+--------+----------+----------------+
+
++----------+-------+------+---------------+------------------+
+|order_date|revenue|orders|avg_order_value|cumulative_revenue|
++----------+-------+------+---------------+------------------+
+|2026-10-01|214.43 |4     |53.61          |214.43            |
+|2026-10-02|133.00 |2     |66.50          |347.43            |
+|2026-10-03|189.69 |3     |63.23          |537.12            |
++----------+-------+------+---------------+------------------+
+
++-----------+---------+-------+------+------------+-------------+
+|customer_id|city     |revenue|orders|revenue_rank|revenue_share|
++-----------+---------+-------+------+------------+-------------+
+|c-02       |Vancouver|204.44 |3     |1           |0.3806       |
+|c-01       |Toronto  |149.73 |3     |2           |0.2788       |
+|c-05       |Calgary  |133.00 |2     |3           |0.2476       |
+|c-03       |Montreal |49.95  |1     |4           |0.0930       |
++-----------+---------+-------+------+------------+-------------+
+
+
+== streaming progress in the Spark event log
+run 1:
+  started   spark_catalog.default.bronze_orders
+  progress  spark_catalog.default.bronze_orders  batch 0  input rows 11  offsets None -> {"logOffset":0}
+  stopped   420ad4d3...  exception: None
+run 2:
+  started   spark_catalog.default.bronze_orders
+  progress  spark_catalog.default.bronze_orders  batch 1  input rows 4  offsets {"logOffset":0} -> {"logOffset":1}
+  stopped   420ad4d3...  exception: None

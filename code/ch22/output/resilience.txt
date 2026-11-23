@@ -1,0 +1,8 @@
+== 1. server.sh small-streams: each response stream ends after 1 MiB
+[  0.2 s] session f148d202-36b9-43f4-9830-16142f0d36aa
+[  4.0 s] 3724894 rows, 71.1 MiB of Arrow IPC
+server log: 62 ReattachExecute calls for this pull
+== 2. the server is down when the app starts
+[  8.0 s] server.sh start
+[ 18.1 s] session ec90c3cd-a4b8-40e4-89a9-d97cac4859aa
+[ 19.5 s] query done, count() = 1000

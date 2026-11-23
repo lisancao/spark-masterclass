@@ -1,0 +1,24 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 980 520' width='980' height='520'><defs><marker id='arrow' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#8a8f98'/></marker></defs><rect x='30' y='30' width='420' height='84' rx='8' fill='#5b6472' fill-opacity='0.88' stroke='#5b6472'/>
+<text x='42' y='67.1' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='16' font-weight='700' fill='#ffffff' text-anchor='start'>1  server start</text>
+<text x='42' y='88.1' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='14' font-weight='400' fill='#ffffff' text-anchor='start'>--jars, static: catalogImplementation, extensions</text>
+<text x='480' y='66' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='700' fill='#8a8f98' text-anchor='start'>tested:</text>
+<text x='480' y='88' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='400' fill='#8a8f98' text-anchor='start'>in the spec: each flow failed, CANNOT_MODIFY_STATIC_CONFIG</text>
+<line x1='240' y1='114' x2='240' y2='146' stroke='#8a8f98' stroke-width='2' marker-end='url(#arrow)'/>
+<rect x='30' y='148' width='420' height='84' rx='8' fill='#3a5f96' fill-opacity='0.88' stroke='#3a5f96'/>
+<text x='42' y='185.1' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='16' font-weight='700' fill='#ffffff' text-anchor='start'>2  CLI --conf</text>
+<text x='42' y='206.1' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='14' font-weight='400' fill='#ffffff' text-anchor='start'>spark.sql.* keys only reach a remote session</text>
+<text x='480' y='184' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='700' fill='#8a8f98' text-anchor='start'>tested:</text>
+<text x='480' y='206' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='400' fill='#8a8f98' text-anchor='start'>shuffle.partitions=5 arrived, taxi.min_fare=9 did not</text>
+<line x1='240' y1='232' x2='240' y2='264' stroke='#8a8f98' stroke-width='2' marker-end='url(#arrow)'/>
+<rect x='30' y='266' width='420' height='84' rx='8' fill='#c0661a' fill-opacity='0.88' stroke='#c0661a'/>
+<text x='42' y='303.1' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='16' font-weight='700' fill='#ffffff' text-anchor='start'>3  spec configuration</text>
+<text x='42' y='324.1' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='14' font-weight='400' fill='#ffffff' text-anchor='start'>the session, and each flow (defaultSqlConf)</text>
+<text x='480' y='302' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='700' fill='#8a8f98' text-anchor='start'>tested:</text>
+<text x='480' y='324' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='400' fill='#8a8f98' text-anchor='start'>replaced the CLI value: 3 shuffle partitions, 3 files</text>
+<line x1='240' y1='350' x2='240' y2='382' stroke='#8a8f98' stroke-width='2' marker-end='url(#arrow)'/>
+<rect x='30' y='384' width='420' height='84' rx='8' fill='#6a4c93' fill-opacity='0.88' stroke='#6a4c93'/>
+<text x='42' y='421.1' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='16' font-weight='700' fill='#ffffff' text-anchor='start'>4  decorator spark_conf</text>
+<text x='42' y='442.1' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='14' font-weight='400' fill='#ffffff' text-anchor='start'>merged after the spec for one flow</text>
+<text x='480' y='420' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='700' fill='#8a8f98' text-anchor='start'>tested:</text>
+<text x='480' y='442' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='400' fill='#8a8f98' text-anchor='start'>shuffle.partitions=2 did not reach the write: still 3 files</text>
+<text x='30' y='505' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='400' fill='#8a8f98' text-anchor='start'>A lower layer replaces a value from a higher layer, except where the test says otherwise.</text></svg>

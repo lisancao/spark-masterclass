@@ -1,28 +1,42 @@
-# Spark Masterclass, Chapter 21: Python UDTFs.
-#   film render code/film/ch21.tape --format chapter
-Set TypingSpeed 40ms
+# Spark Masterclass, Chapter 21: Spark Connect clients beyond Python.
+#   SCRATCH=<build dir> film render code/film/ch21.tape --format chapter
+# Needs: ch21/server.sh start, and ch21/run_probes.sh once (it builds the Rust, Go and Swift programs).
+Set TypingSpeed 35ms
 Set WaitPattern /❯$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4139 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 && setopt interactivecomments" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: lifecycle | One instance per partition, terminate at the end
-Type "# a UDTF that logs its own lifecycle: __init__, eval, terminate, cleanup" Enter
-Sleep 500ms
-Type "python ch21/udtf_core.py lifecycle 2>/dev/null | cut -c1-94" Enter
-Wait@180s
-Sleep 10s
+# beat: rust | The taxi query from the Rust client
+Type "# Rust: the client builds the plan; the 4.3.0 server runs it" Enter
+Sleep 400ms
+Type "sed -n '16,23p' ch21/rust/src/main.rs" Enter
+Sleep 2500ms
+Type "ch21/client.sh rust taxi" Enter
+Wait@60s
+Sleep 6s
 
-# beat: jsontable | JSON_TABLE against a parsing UDTF
+# beat: swift | The same query from the Swift client
 Hide
 Type "clear" Enter
 Show
-Type "# 20,000 JSON orders to item rows: a Python UDTF, JSON_TABLE, from_json" Enter
-Sleep 500ms
-Type "ORDERS=20000 RUNS=3 python ch21/json_table.py 2>/dev/null | cut -c1-94" Enter
-Wait@300s
-Sleep 10s
+Type "# Swift 0.8.0: the same plan, with Swift operators" Enter
+Sleep 400ms
+Type "sed -n '11,18p' ch21/swift/Sources/Taxi/main.swift" Enter
+Sleep 2500ms
+Type "ch21/client.sh swift taxi" Enter
+Wait@60s
+Sleep 6s
+
+# beat: probe | The capability probe from the Go client
+Hide
+Type "clear" Enter
+Show
+Type "# Go v0.1.0: the same checks; zip has no API in this client" Enter
+Sleep 400ms
+Type "ch21/client.sh go probe" Enter
+Wait@60s
+Sleep 7s

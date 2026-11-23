@@ -1,0 +1,2 @@
+ sum        14.88   403,753,192    5.26   196,912,788
+median of passes 2..10: mapreduce 1.39 s, rdd 0.40 s (3.5x)

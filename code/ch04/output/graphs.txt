@@ -1,0 +1,36 @@
+spark 4.3.0, graphframes-py 0.12.3, jar io.graphframes:graphframes-spark4_2.13:0.12.3
+vertices 265, edges 11636
+
+zones that the most other zones send trips to (inDegrees):
++---+-------------------------+--------+
+|id |Zone                     |inDegree|
++---+-------------------------+--------+
+|132|JFK Airport              |117     |
+|37 |Bushwick South           |113     |
+|79 |East Village             |106     |
+|230|Times Sq/Theatre District|106     |
+|42 |Central Harlem North     |105     |
++---+-------------------------+--------+
+
+PageRank, 10 iterations, top five zones:
++---+------------------------+--------+
+|id |Zone                    |pagerank|
++---+------------------------+--------+
+|14 |Bay Ridge               |3.946   |
+|265|Outside of NYC          |3.826   |
+|132|JFK Airport             |3.706   |
+|130|Jamaica                 |2.963   |
+|244|Washington Heights South|2.873   |
++---+------------------------+--------+
+
+connected components (by size):
++---------+-----+
+|component|count|
++---------+-----+
+|        1|  249|
+|      184|    1|
+|      110|    1|
+|      187|    1|
+|      103|    1|
++---------+-----+
+only showing top 5 rows

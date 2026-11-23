@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" font-family="Inter, 'DM Sans', Helvetica, Arial, sans-serif">
+<style>.t{font-size:15px;fill:#8a909a}.b{font-size:15px;fill:#8a909a;font-weight:700}.v{font-size:13px;fill:#8a909a;font-family:Menlo,monospace}</style>
+<text x="20" y="30" class="t">lower is better in every row</text><rect x="300" y="18" width="14" height="14" fill="#c0661a"/><text x="320" y="30" class="t">Classic (local[*], driver in the client)</text>
+<rect x="600" y="18" width="14" height="14" fill="#3a5f96"/><text x="620" y="30" class="t">Connect (client only)</text>
+<text x="286" y="82" class="b" text-anchor="end">first session and first query</text>
+
+<rect x="300" y="66" width="520.0" height="20" rx="3" fill="#c0661a"/>
+<text x="828.0" y="81" class="v">3.83 s</text>
+<rect x="300" y="92" width="38.0" height="20" rx="3" fill="#3a5f96"/>
+<text x="346.0" y="107" class="v">0.28 s</text>
+<text x="286" y="160" class="b" text-anchor="end">client memory (RSS)</text>
+<rect x="300" y="144" width="520.0" height="20" rx="3" fill="#c0661a"/>
+<text x="828.0" y="159" class="v">864 MB</text>
+<rect x="300" y="170" width="81.9" height="20" rx="3" fill="#3a5f96"/>
+<text x="389.9" y="185" class="v">136 MB</text>
+<text x="286" y="238" class="b" text-anchor="end">pyspark/ package on disk</text>
+<rect x="300" y="222" width="520.0" height="20" rx="3" fill="#c0661a"/>
+<text x="828.0" y="237" class="v">484 MB</text>
+<rect x="300" y="248" width="11.8" height="20" rx="3" fill="#3a5f96"/>
+<text x="319.8" y="263" class="v">11 MB</text>
+<text x="286" y="316" class="b" text-anchor="end">top-3 zones query, median</text>
+<text x="286" y="336" class="t" text-anchor="end">Connect pays a round trip</text>
+<rect x="300" y="300" width="281.7" height="20" rx="3" fill="#c0661a"/>
+<text x="589.7" y="315" class="v">91 ms</text>
+<rect x="300" y="326" width="520.0" height="20" rx="3" fill="#3a5f96"/>
+<text x="828.0" y="341" class="v">168 ms</text>
+<text x="286" y="394" class="b" text-anchor="end">df.columns on a new DataFrame</text>
+<text x="286" y="414" class="t" text-anchor="end">one AnalyzePlan RPC</text>
+<rect x="300" y="378" width="192.6" height="20" rx="3" fill="#c0661a"/>
+<text x="500.6" y="393" class="v">1.0 ms</text>
+<rect x="300" y="404" width="520.0" height="20" rx="3" fill="#3a5f96"/>
+<text x="828.0" y="419" class="v">2.7 ms</text>
+<text x="300" y="464" class="t">pyspark 4.3.0, one 16-core Linux machine, server and client on the same host</text></svg>

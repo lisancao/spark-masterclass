@@ -1,0 +1,14 @@
+$ mkdir -p ../specs && cp spark-pipeline.yml ../specs/dev.yml
+$ spark-pipelines dry-run --remote sc://localhost:15104 --spec ../specs/dev.yml 2>&1 | grep -E 'Loading pipeline spec|Root directory|Found|Run is|Exception' | cut -c1-200
+2026-11-22 10:15:57: Loading pipeline spec from ../specs/dev.yml...
+2026-11-22 10:16:02: Loading definitions. Root directory: '~/spark-masterclass/data/work/sdp/ch78x/specs'.
+2026-11-22 10:16:02: Found 0 files matching glob 'transformations/**/*'
+pyspark.errors.exceptions.connect.AnalysisException: [RUN_EMPTY_PIPELINE] Pipelines are expected to have at least one non-temporary dataset defined (tables, persisted views) but no non-temporary datas
+$ sed -i 's#include: transformations/\*\*#include: ../taxi_etl/transformations/**#' ../specs/dev.yml && tail -2 ../specs/dev.yml
+  - glob:
+      include: ../taxi_etl/transformations/**
+$ spark-pipelines dry-run --remote sc://localhost:15104 --spec ../specs/dev.yml 2>&1 | grep -E 'Root directory|Found|Run is|Exception' | cut -c1-200
+2026-11-22 10:16:06: Loading definitions. Root directory: '~/spark-masterclass/data/work/sdp/ch78x/specs'.
+2026-11-22 10:16:06: Found 3 files matching glob '../taxi_etl/transformations/**/*'
+2026-11-22 18:16:07: Run is COMPLETED.
+$ rm -r ../specs

@@ -1,0 +1,3 @@
+{"source": "code/ch68/output/writers.txt",
+ "job": "1d143314", "files": ["part-00000-1d143314-a0.jsonl", "part-00001-1d143314-a0.jsonl", "part-00002-1d143314-a0.jsonl"],
+ "before": "rows 400, files 6", "after": "rows 200, files 3", "abort": "abort([None, None, None])"}

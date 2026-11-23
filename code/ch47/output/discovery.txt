@@ -1,0 +1,22 @@
+$ mkdir -p transformations/sub && cd transformations/sub
+$ spark-pipelines dry-run --remote sc://localhost:15104 2>&1 | grep -E 'Loading pipeline spec|Run is'
+2026-11-22 10:12:34: Loading pipeline spec from ~/spark-masterclass/data/work/sdp/ch47/taxi_etl/spark-pipeline.yml...
+2026-11-22 18:12:39: Run is COMPLETED.
+$ cd ../..
+$ cd /tmp
+$ spark-pipelines dry-run --remote sc://localhost:15104 2>&1 | tail -1; echo "exit code: ${PIPESTATUS[0]}"
+pyspark.errors.exceptions.base.PySparkException: [PIPELINE_SPEC_FILE_NOT_FOUND] No spark-pipeline.yaml or spark-pipeline.yml file provided in arguments or found in directory `/` or readable ancestor directories.
+exit code: 1
+$ cd -
+~/spark-masterclass/data/work/sdp/ch47/taxi_etl
+$ cp spark-pipeline.yml spark-pipeline.yaml
+$ spark-pipelines dry-run --remote sc://localhost:15104 2>&1 | tail -1
+pyspark.errors.exceptions.base.PySparkException: [MULTIPLE_PIPELINE_SPEC_FILES_FOUND] Multiple pipeline spec files found in the directory `~/spark-masterclass/data/work/sdp/ch47/taxi_etl`. Please remove one or choose a particular one with the --spec argument.
+$ rm spark-pipeline.yaml
+$ spark-pipelines dry-run --remote sc://localhost:15104 --spec nothing/here.yml 2>&1 | tail -1
+pyspark.errors.exceptions.base.PySparkException: [PIPELINE_SPEC_FILE_DOES_NOT_EXIST] The pipeline spec file `nothing/here.yml` does not exist.
+$ mkdir -p ../specs && cp spark-pipeline.yml ../specs/dev.yml
+$ spark-pipelines dry-run --remote sc://localhost:15104 --spec ../specs/dev.yml 2>&1 | grep -E 'Loading pipeline spec|Root directory|Run is'
+2026-11-22 10:12:54: Loading pipeline spec from ../specs/dev.yml...
+2026-11-22 10:12:54: Loading definitions. Root directory: '~/spark-masterclass/data/work/sdp/ch47/specs'.
+$ rm -r ../specs transformations/sub

@@ -1,0 +1,138 @@
+== 1. The plan as a tree of relations
+limit    limit=5
+  project  PULocationID, fare_amount
+    filter   >(fare_amount, 100)
+      read     format=parquet
+
+== 2. The same plan as protobuf text (plan IDs removed)
+root {
+  limit {
+    input {
+      project {
+        input {
+          filter {
+            input {
+              read {
+                data_source {
+                  format: "parquet"
+                  schema: ""
+                  paths: "~/spark-masterclass/data/nyc-taxi/yellow"
+                }
+              }
+            }
+            condition {
+              unresolved_function {
+                function_name: ">"
+                arguments {
+                  unresolved_attribute {
+                    unparsed_identifier: "fare_amount"
+                    is_metadata_column: false
+                  }
+                }
+                arguments {
+                  literal {
+                    integer: 100
+                  }
+                }
+              }
+            }
+          }
+        }
+        expressions {
+          unresolved_attribute {
+            unparsed_identifier: "PULocationID"
+            is_metadata_column: false
+          }
+        }
+        expressions {
+          unresolved_attribute {
+            unparsed_identifier: "fare_amount"
+            is_metadata_column: false
+          }
+        }
+      }
+    }
+    limit: 5
+  }
+}
+
+== 3. The same plan as bytes: 592 bytes, field by field (187 bytes without the Python call sites in `origin`)
+    0  0a       root { 589 bytes
+    3  0a         common { 2 bytes
+    5  10           plan_id = 3
+    7  42         limit { 582 bytes
+   10  0a           input { 577 bytes
+   13  0a             common { 2 bytes
+   15  10               plan_id = 2
+   17  1a             project { 570 bytes
+   20  0a               input { 364 bytes
+   23  0a                 common { 2 bytes
+   25  10                   plan_id = 1
+   27  22                 filter { 357 bytes
+   30  0a                   input: 69 bytes
+  101  12                   condition: 283 bytes
+  387  1a               expressions { 100 bytes
+  389  12                 unresolved_attribute { 16 bytes
+  391  0a                   unparsed_identifier = 'PULocationID'
+  405  18                   is_metadata_column = 0
+  407  92 01              common { 79 bytes
+  410  0a                   origin: 77 bytes
+  489  1a               expressions { 99 bytes
+  491  12                 unresolved_attribute { 15 bytes
+  493  0a                   unparsed_identifier = 'fare_amount'
+  506  18                   is_metadata_column = 0
+  508  92 01              common { 79 bytes
+  511  0a                   origin: 77 bytes
+  590  10           limit = 5
+
+== 4. The ExecutePlanRequest of df.collect(), without the plan
+session_id: "3ceec26c-5727-49e7-aca9-3f9e6402b163"
+user_context {
+  user_id: "reader"
+}
+client_type: "ch19 spark/4.3.0 os/linux python/3.12.3"
+request_options {
+  result_chunking_options {
+    allow_arrow_batch_chunking: true
+  }
+}
+request_options {
+  reattach_options {
+    reattachable: true
+  }
+}
+operation_id: "c346d50b-d24a-4a5d-a019-0ada09da2386"
+client_observed_server_side_session_id: "75aa4a37-2e6b-4c2f-a9f8-8e917cda4eac"
+
+== 5. The ExecutePlanResponse that carried the rows: 662 bytes
+    0  0a       session_id = '3ceec26c-5727-49e7-aca9-3f9e6402b163'
+   38  12       arrow_batch { 507 bytes
+   41  08         row_count = 3
+   43  12         data: 496 bytes
+  542  18         start_offset = 0
+  544  20         chunk_index = 0
+  546  28         num_chunks_in_batch = 1
+  548  62       operation_id = 'c346d50b-d24a-4a5d-a019-0ada09da2386'
+  586  6a       response_id = '5ad4ed62-a66c-482a-8ad7-b456f519b48b'
+  624  7a       server_side_session_id = '75aa4a37-2e6b-4c2f-a9f8-8e917cda4eac'
+
+== 6. arrow_batch.data: an Arrow IPC stream of 496 bytes
+schema: PULocationID: int32, trips: int64 not null
+batch:  3 rows, {'PULocationID': [237, 161, 236], 'trips': [177610, 161198, 157113]}
+
+The messages in the stream (continuation marker, metadata length, metadata, body):
+  @0    schema        marker ffffffff  metadata 232 B  body 0 B
+  @240  record batch  marker ffffffff  metadata 184 B  body 56 B
+  @488  end-of-stream marker: ff ff ff ff 00 00 00 00
+
+The start of the stream (schema message):
+  0000  ff ff ff ff e8 00 00 00 10 00 00 00 00 00 0a 00  ................
+  0010  0e 00 06 00 0d 00 08 00 0a 00 00 00 00 00 04 00  ................
+  0020  10 00 00 00 00 01 0a 00 0c 00 00 00 08 00 04 00  ................
+  0030  0a 00 00 00 08 00 00 00 08 00 00 00 00 00 00 00  ................
+
+The record batch body (the three rows, column by column):
+  01b0  07 00 00 00 00 00 00 00 ed 00 00 00 a1 00 00 00  ................
+  01c0  ec 00 00 00 00 00 00 00 07 00 00 00 00 00 00 00  ................
+  01d0  ca b5 02 00 00 00 00 00 ae 75 02 00 00 00 00 00  .........u......
+  01e0  b9 65 02 00 00 00 00 00                          .e......

@@ -1,0 +1,47 @@
+key                                                default                      since  static SQL
+spark.master                                       (not registered)
+spark.app.name                                     (not registered)
+spark.driver.memory                                1g                           1.1.1  False
+spark.driver.cores                                 1                            1.3.0  False
+spark.driver.maxResultSize                         1g                           1.2.0  False
+spark.executor.memory                              1g                           0.7.0  False
+spark.executor.cores                               1                            1.0.0  False
+spark.executor.instances                           <undefined>                  1.0.0  False
+spark.executor.memoryOverhead                      <undefined>                  2.3.0  False
+spark.memory.fraction                              0.6                          1.6.0  False
+spark.memory.storageFraction                       0.5                          1.6.0  False
+spark.default.parallelism                          <undefined>                  0.5.0  False
+spark.dynamicAllocation.enabled                    false                        1.2.0  False
+spark.serializer                                   org.apache.spark.serializer.JavaSerializer 0.5.0  False
+spark.local.dir                                    (not registered)
+spark.ui.port                                      4040                         0.7.0  False
+spark.eventLog.enabled                             false                        1.0.0  False
+spark.eventLog.dir                                 /tmp/spark-events            1.0.0  False
+spark.jars.packages                                                             1.5.0  False
+spark.submit.pyFiles                                                            1.0.1  False
+spark.archives                                                                  3.1.0  False
+spark.sql.shuffle.partitions                       200                          1.1.0  False
+spark.sql.adaptive.enabled                         true                         1.6.0  False
+spark.sql.adaptive.coalescePartitions.enabled      true                         3.0.0  False
+spark.sql.adaptive.advisoryPartitionSizeInBytes    <value of spark.sql.adaptive.shuffle.targetPostShuffleInputSize> 3.0.0  False
+spark.sql.adaptive.skewJoin.enabled                true                         3.0.0  False
+spark.sql.autoBroadcastJoinThreshold               10MB                         1.1.0  False
+spark.sql.files.maxPartitionBytes                  128MB                        2.0.0  False
+spark.sql.ansi.enabled                             true                         3.0.0  False
+spark.sql.session.timeZone                         America/Los_Angeles          2.2.0  False
+spark.sql.caseSensitive                            false                        1.4.0  False
+spark.sql.execution.arrow.pyspark.enabled          <value of spark.sql.execution.arrow.enabled> 3.0.0  False
+spark.sql.execution.arrow.maxRecordsPerBatch       10000                        2.3.0  False
+spark.sql.execution.pythonUDF.arrow.enabled        true                         3.4.0  False
+spark.sql.parquet.compression.codec                snappy                       1.1.1  False
+spark.sql.sources.partitionOverwriteMode           STATIC                       2.3.0  False
+spark.sql.optimizer.singleTaskExecution.enabled    false                        4.3.0  False
+spark.sql.warehouse.dir                            file:~/spark-masterclass-parts/config-sql/code/spark-warehouse 2.0.0  True
+spark.sql.catalogImplementation                    in-memory                    2.0.0  True
+spark.sql.extensions                               <undefined>                  2.2.0  True
+spark.sql.defaultCatalog                           spark_catalog                3.0.0  False
+spark.sql.streaming.checkpointLocation             <undefined>                  2.0.0  False
+spark.sql.streaming.stateStore.providerClass       org.apache.spark.sql.execution.streaming.state.HDFSBackedStateStoreProvider 2.3.0  False
+spark.connect.grpc.binding.port                    15002                        3.4.0  True
+spark.sql.timestampType                            TIMESTAMP_LTZ                3.4.0  False
+spark.sql.legacy.timeParserPolicy                  CORRECTED                    3.0.0  False

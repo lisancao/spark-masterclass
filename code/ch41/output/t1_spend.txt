@@ -1,0 +1,74 @@
+1. On the default state store:
+  StreamingQueryException: [STREAM_FAILED] ...
+  [UNSUPPORTED_FEATURE.STORE_BACKEND_NOT_SUPPORTED_FOR_TWS] The feature is not supported:
+  Store backend
+  org.apache.spark.sql.execution.streaming.state.HDFSBackedStateStoreProvider is not ...
+
+The physical plan of the query (expression ids and long lists removed):
+  !TransformWithStateInPySpark transformWithStateWithInitStateUDF(user, event_id, amount), [...], [...
+  :- *(2) Sort [...], false, 0
+  :  +- Exchange hashpartitioning(user, 2), REQUIRED_BY_STATEFUL_OPERATOR, [...]
+  :     +- *(1) Project [...]
+  :        +- *(1) Filter (isnotnull(action) AND (action = pay))
+  :           +- StreamingRelation FileSource[~/spark-masterclass-parts/part05/data/work/ch41/
+  +- *(4) Sort [...], false, 0
+     +- Exchange hashpartitioning(user, 2), REQUIRED_BY_STATEFUL_OPERATOR, [...]
+        +- *(3) Project [...]
+           +- *(3) Scan ExistingRDD[...]
+  
+  
+
+2. With RocksDB. Batches (id, input rows): [(0, 1), (1, 2), (2, 2), (3, 1)]
+Every row the memory sink received (update mode appends each emitted row):
++----+-----+--------+-------+
+|user|total|payments|flagged|
++----+-----+--------+-------+
+|  u1|36.39|       1|  false|
+|  u1|78.15|       1|   true|
+|  u2|43.33|       1|  false|
+|  u3|39.26|       1|  false|
+|  u5|67.99|       1|   true|
+|  u6|19.15|       1|  false|
++----+-----+--------+-------+
+
+The latest row per user:
++----+-----+-------+
+|user|total|flagged|
++----+-----+-------+
+|  u1|78.15|   true|
+|  u2|43.33|  false|
+|  u3|39.26|  false|
+|  u5|67.99|   true|
+|  u6|19.15|  false|
++----+-----+-------+
+
+3. The same state, read from the checkpoint with the state data source
++----+-----------------+------------+
+|user|            total|partition_id|
++----+-----------------+------------+
+|  u1|            78.15|           0|
+|  u2|            43.33|           1|
+|  u3|            39.26|           1|
+|  u5|67.99000000000001|           0|
+|  u6|            19.15|           1|
+|  u9|             99.0|           1|
++----+-----------------+------------+
+
++----+--------+------+
+|user|event_id|amount|
++----+--------+------+
+|  u1|    c003| 16.39|
+|  u1|    c019| 41.76|
+|  u2|    c013| 43.33|
+|  u3|    c015| 39.26|
+|  u5|    c021| 62.99|
+|  u6|    c025| 19.15|
++----+--------+------+
+
+state-metadata: what the checkpoint says each operator keeps
++-------------------------------+--------------+-------------+----------+----------+
+|operatorName                   |stateStoreName|numPartitions|minBatchId|maxBatchId|
++-------------------------------+--------------+-------------+----------+----------+
+|transformWithStateInPySparkExec|default       |2            |0         |3         |
++-------------------------------+--------------+-------------+----------+----------+
+

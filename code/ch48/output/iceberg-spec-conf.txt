@@ -1,0 +1,38 @@
+$ cat spark-pipeline.yml
+name: taxi_etl
+storage: file://~/spark-masterclass/data/work/sdp/ch79i/taxi_etl/pipeline-storage
+catalog: lake
+database: taxi
+libraries:
+  - glob:
+      include: transformations/**
+configuration:
+  spark.sql.catalog.lake: org.apache.iceberg.spark.SparkCatalog
+  spark.sql.catalog.lake.type: hadoop
+  spark.sql.catalog.lake.warehouse: file://~/spark-masterclass/data/work/sdp/ch79i/taxi_etl/lake
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Exception|Run is' | cut -c1-170
+pyspark.errors.exceptions.connect.AnalysisException: [SCHEMA_NOT_FOUND] The schema `lake`.`taxi` cannot be found. Verify the spelling and correctness of the schema and ca
+$ py "~/spark-masterclass/data/work/sdp/ch79i/taxi_etl" <<'PY'
+import sys
+from pyspark.sql import SparkSession
+s = SparkSession.builder.remote(f'sc://localhost:{sys.argv[1]}').getOrCreate()
+print('server default:', s.conf.get('spark.sql.catalog.lake', '<not set>'))
+s.conf.set('spark.sql.catalog.lake', 'org.apache.iceberg.spark.SparkCatalog')
+s.conf.set('spark.sql.catalog.lake.type', 'hadoop')
+s.conf.set('spark.sql.catalog.lake.warehouse', f'file://{sys.argv[2]}/lake')
+s.sql('CREATE NAMESPACE IF NOT EXISTS lake.taxi')
+PY
+server default: <not set>
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | grep -E 'Flow .* is QUEUED|Exception|Run is' | sed -E 's/^[0-9-]+ //' | cut -c1-170
+18:26:32: Flow lake.taxi.zones is QUEUED.
+18:26:32: Flow lake.taxi.raw_trips is QUEUED.
+18:26:32: Flow lake.taxi.clean_trips is QUEUED.
+18:26:32: Flow lake.taxi.borough_daily is QUEUED.
+18:26:41: Run is COMPLETED.
+$ find lake -maxdepth 2 -type d | sort
+lake
+lake/taxi
+lake/taxi/borough_daily
+lake/taxi/clean_trips
+lake/taxi/raw_trips
+lake/taxi/zones

@@ -1,0 +1,16 @@
+swift (spark-connect-swift 0.8.0) -> server 4.3.0
+sql          works   [1, a]
+schema       works   21 columns, first VendorID
+local_data   works   count 2
+temp_view    works   [5]
+write_read   works   read back 10 rows
+config       works   "7"
+error        works   UNRESOLVED_COLUMN, SQLSTATE 42703
+arrow        n/o     collect() returns Rows; the Arrow reader is internal
+== Physical Plan ==
+*(1) Range (0, 3, step=1, splits=16)
+
+
+explain      works   the plan above
+zip          n/o     DataFrame has no zip method
+big_result   works   200000 rows

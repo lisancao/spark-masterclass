@@ -1,0 +1,35 @@
+top zones: [(237, 177610), (161, 161198), (236, 157113)]
+error: AnalysisException [UNRESOLVED_COLUMN
+interrupted: 1 operation(s)
+long query: UnknownException (org.apache.spark.SparkSQLException) [OPERATION_CANCELED]
+
+client call              RPC                      bytes out/in  responses
+build a DataFrame        Config                    146/129      -
+df.columns               Config                    236/201      -
+                         AnalyzePlan               649/118      result=schema
+conf.set                 Config                    167/76       -
+df.collect()             ExecutePlan               695/5756     schema, execution_progress x4, arrow_batch, 
+                         ReleaseExecute x8        1298/912      -
+                         Config                    182/127      -
+collect() with an error  ExecutePlan               361/0        error INTERNAL
+                         ReleaseExecute            129/114      -
+                         FetchErrorDetails         165/7595     -
+                         Config                    175/128      -
+addArtifacts(pyfile)     AddArtifacts              127/98       -
+interruptTag             ExecutePlan               260/687      schema, execution_progress x3, error INTERNA
+                         ReleaseExecute x4         668/456      -
+                         Interrupt                 138/114      -
+                         FetchErrorDetails         165/495      -
+                         ReleaseExecute            129/114      -
+                         Config                    175/128      -
+stop()                   ReleaseSession             89/76       -
+
+The response stream of df.collect(), message by message:
+    192 B  schema
+    155 B  execution_progress
+    662 B  arrow_batch rows=3 arrow_bytes=496
+    183 B  execution_progress
+    187 B  execution_progress
+   4038 B  metrics=14
+    185 B  execution_progress
+    154 B  result_complete

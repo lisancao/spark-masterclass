@@ -1,0 +1,22 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 980 430' width='980' height='430'><defs><marker id='arrow' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#8a8f98'/></marker></defs><rect x='20' y='30' width='940' height='56' rx='8' fill='#5b6472' fill-opacity='0.88' stroke='#5b6472'/>
+<text x='490.0' y='63.2' font-family='JetBrains Mono, DejaVu Sans Mono, Menlo, monospace' font-size='15' font-weight='700' fill='#ffffff' text-anchor='middle'>spark-pipelines --remote sc://localhost:15104 --conf spark.sql.shuffle.partitions=8 run --refresh zones</text>
+<rect x='330' y='130' width='320' height='60' rx='8' fill='#6a4c93' fill-opacity='0.88' stroke='#6a4c93'/>
+<text x='490.0' y='155.2' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='15' font-weight='700' fill='#ffffff' text-anchor='middle'>SparkPipelines.splitArgs</text>
+<text x='490.0' y='175.2' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='400' fill='#ffffff' text-anchor='middle'>core/.../deploy/SparkPipelines.scala</text>
+<line x1='490' y1='86' x2='490' y2='128' stroke='#8a8f98' stroke-width='2' marker-end='url(#arrow)'/>
+<rect x='20' y='250' width='420' height='120' rx='8' fill='#3a5f96' fill-opacity='0.88' stroke='#3a5f96'/>
+<text x='230.0' y='285.2' font-family='JetBrains Mono, DejaVu Sans Mono, Menlo, monospace' font-size='15' font-weight='700' fill='#ffffff' text-anchor='middle'>spark-submit</text>
+<text x='230.0' y='305.2' font-family='JetBrains Mono, DejaVu Sans Mono, Menlo, monospace' font-size='13' font-weight='400' fill='#ffffff' text-anchor='middle'>--remote sc://localhost:15104</text>
+<text x='230.0' y='325.2' font-family='JetBrains Mono, DejaVu Sans Mono, Menlo, monospace' font-size='13' font-weight='400' fill='#ffffff' text-anchor='middle'>--conf spark.sql.shuffle.partitions=8</text>
+<text x='230.0' y='345.2' font-family='JetBrains Mono, DejaVu Sans Mono, Menlo, monospace' font-size='13' font-weight='400' fill='#ffffff' text-anchor='middle'>+ --conf spark.api.mode=connect (always)</text>
+<rect x='540' y='250' width='420' height='120' rx='8' fill='#c0661a' fill-opacity='0.88' stroke='#c0661a'/>
+<text x='750.0' y='295.2' font-family='JetBrains Mono, DejaVu Sans Mono, Menlo, monospace' font-size='15' font-weight='700' fill='#ffffff' text-anchor='middle'>cli.py (PythonRunner)</text>
+<text x='750.0' y='315.2' font-family='JetBrains Mono, DejaVu Sans Mono, Menlo, monospace' font-size='13' font-weight='400' fill='#ffffff' text-anchor='middle'>run --refresh zones</text>
+<text x='750.0' y='335.2' font-family='JetBrains Mono, DejaVu Sans Mono, Menlo, monospace' font-size='13' font-weight='400' fill='#ffffff' text-anchor='middle'>also: --spec, --full-refresh, --name, -h</text>
+<line x1='400' y1='190' x2='230' y2='248' stroke='#8a8f98' stroke-width='2' marker-end='url(#arrow)'/>
+<text x='190' y='222' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='12' font-weight='400' fill='#8a8f98' text-anchor='middle'>options that spark-submit knows</text>
+<line x1='580' y1='190' x2='750' y2='248' stroke='#8a8f98' stroke-width='2' marker-end='url(#arrow)'/>
+<text x='800' y='222' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='12' font-weight='400' fill='#8a8f98' text-anchor='middle'>unknown options and words</text>
+<rect x='400' y='385' width='180' height='36' rx='8' fill='#b03a2e' fill-opacity='0.88' stroke='#b03a2e'/>
+<text x='490.0' y='407.9' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='14' font-weight='700' fill='#ffffff' text-anchor='middle'>--class: refused</text>
+<text x='20' y='412' font-family='Inter, DejaVu Sans, Helvetica, Arial, sans-serif' font-size='13' font-weight='400' fill='#8a8f98' text-anchor='start'>No --remote: the wrapper adds --remote local</text></svg>

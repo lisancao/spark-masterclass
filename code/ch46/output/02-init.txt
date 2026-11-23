@@ -1,0 +1,16 @@
+$ spark-pipelines init --name taxi_etl
+Pipeline project 'taxi_etl' created successfully. To run your pipeline:
+cd 'taxi_etl'
+spark-pipelines run
+$ cd taxi_etl
+$ find . -type f | sort
+./spark-pipeline.yml
+./transformations/example_python_materialized_view.py
+./transformations/example_sql_materialized_view.sql
+$ cat spark-pipeline.yml
+name: taxi_etl
+storage: file://~/spark-masterclass/data/work/sdp/ch46/taxi_etl/pipeline-storage
+libraries:
+  - glob:
+      include: transformations/**
+$ rm transformations/example_*

@@ -1,0 +1,23 @@
+== The message types that a Plan can hold
+spark.connect.Plan         op_type        3 kinds: root, command, compressed_operation, ...
+spark.connect.Relation     rel_type      62 kinds: read, project, filter, join, set_op, sort, ...
+spark.connect.Expression   expr_type     22 kinds: literal, unresolved_attribute, unresolved_function, expression_string, unresolved_star, alias, ...
+spark.connect.Command      command_type  20 kinds: register_function, write_operation, create_dataframe_view, write_operation_v2, sql_command, write_stream_operation_start, ...
+
+== The gRPC service spark.connect.SparkConnectService
+  ExecutePlan        ExecutePlanRequest -> stream ExecutePlanResponse
+  AnalyzePlan        AnalyzePlanRequest -> AnalyzePlanResponse
+  Config             ConfigRequest -> ConfigResponse
+  AddArtifacts       stream AddArtifactsRequest -> AddArtifactsResponse
+  ArtifactStatus     ArtifactStatusesRequest -> ArtifactStatusesResponse
+  Interrupt          InterruptRequest -> InterruptResponse
+  ReattachExecute    ReattachExecuteRequest -> stream ExecutePlanResponse
+  ReleaseExecute     ReleaseExecuteRequest -> ReleaseExecuteResponse
+  ReleaseSession     ReleaseSessionRequest -> ReleaseSessionResponse
+  FetchErrorDetails  FetchErrorDetailsRequest -> FetchErrorDetailsResponse
+  CloneSession       CloneSessionRequest -> CloneSessionResponse
+  GetStatus          GetStatusRequest -> GetStatusResponse
+
+== What an ExecutePlanResponse can carry (response_type)
+  arrow_batch, sql_command_result, write_stream_operation_start_result, streaming_query_command_result, get_resources_command_result, streaming_query_manager_command_result, streaming_query_listener_events_result, result_complete, create_resource_profile_command_result, execution_progress, checkpoint_command_result, ml_command_result, pipeline_event_result, pipeline_command_result, pipeline_query_function_execution_signal, extension
+  and, outside the oneof: session_id, server_side_session_id, operation_id, response_id, metrics, observed_metrics, schema

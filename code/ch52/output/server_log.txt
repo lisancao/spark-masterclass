@@ -1,0 +1,47 @@
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`bronze_products`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`bronze_customers`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`bronze_orders`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`silver_customers`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`silver_orders`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`quarantine_orders`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`gold_revenue_hardware`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`gold_daily_revenue`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`gold_revenue_merch`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`gold_customer_value`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`check_orders_accounted_for`.
+INFO DatasetManager: Materializing metadata for table `spark_catalog`.`default`.`check_gold_reconciles`.
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`bronze_customers`
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`bronze_orders`
+INFO FlowSystemMetadata: Flow bronze_orders using checkpoint directory: file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoi
+INFO StreamingTableWrite: Starting `spark_catalog`.`default`.`bronze_orders` with checkpoint location file://~/spark-masterclass/data/work/part06/ch52
+INFO ResolveWriteToStream: Checkpoint root file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/spark_catalog/default/bro
+INFO MicroBatchExecution: Starting bronze_orders [id = 004cf646-f31a-4894-96f7-be89c4987a4c, runId = 4f1b901b-4f86-4ef8-b9ed-512af084292c]. Use file:~
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`bronze_products`
+~WriteToMicroBatchDataSourceV1 `spark_catalog`.`default`.`bronze_orders`, org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe, FileSink[file:~
+INFO CheckpointFileManager: Writing atomically to file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/spark_catalog/defa
+INFO CheckpointFileManager: Renamed temp file file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/spark_catalog/default/
+INFO CheckpointFileManager: Writing atomically to file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/spark_catalog/defa
+INFO CheckpointFileManager: Renamed temp file file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/spark_catalog/default/
+INFO CheckpointFileManager: Writing atomically to file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/spark_catalog/defa
+INFO CheckpointFileManager: Renamed temp file file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/spark_catalog/default/
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`silver_customers`
+INFO TriggeredGraphExecution: Starting flow `shipped_orders_to_feed`
+INFO FlowSystemMetadata: Flow shipped_orders_to_feed using checkpoint directory: file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/
+INFO SinkWrite: Starting `shipped_orders_to_feed` with checkpoint location file://~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_che
+INFO ResolveWriteToStream: Checkpoint root file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/shipping_feed/shipped_ord
+INFO MicroBatchExecution: Starting shipped_orders_to_feed [id = 94de5cde-8c3b-4e88-8aa4-cbf3fba3c121, runId = 840236bc-4e2c-4fdf-9133-f993fb5a9b4c]. U
+~WriteToMicroBatchDataSourceV1 FileSink[file:~/spark-masterclass/data/work/part06/ch52-shop/exports/shipping_feed], 94de5cde-8c3b-4e88-8aa4-cbf3fba3c1
+INFO CheckpointFileManager: Writing atomically to file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/shipping_feed/ship
+INFO CheckpointFileManager: Renamed temp file file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/shipping_feed/shipped_
+INFO CheckpointFileManager: Writing atomically to file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/shipping_feed/ship
+INFO CheckpointFileManager: Renamed temp file file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/shipping_feed/shipped_
+INFO CheckpointFileManager: Writing atomically to file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/shipping_feed/ship
+INFO CheckpointFileManager: Renamed temp file file:~/spark-masterclass/data/work/part06/ch52-shop/pipeline-storage/_checkpoints/shipping_feed/shipped_
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`silver_orders`
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`quarantine_orders`
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`gold_customer_value`
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`check_orders_accounted_for`
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`gold_revenue_hardware`
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`gold_revenue_merch`
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`gold_daily_revenue`
+INFO TriggeredGraphExecution: Starting flow `spark_catalog`.`default`.`check_gold_reconciles`

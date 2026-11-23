@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13.5" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 23: DataFrame calls -> Relation tree -> bytes -> gRPC -> Arrow -> table.
+      // Node chain, plan size and rows from code/ch23/output/step4_dataframe.txt.
+      const D = {"nodes": ["read", "filter", "aggregate", "sort", "limit"], "bytes": 320,
+                 "rows": [["237", "177610", "14.15"], ["161", "161198", "18.47"], ["236", "157113", "15.02"], ["132", "148169", "60.84"], ["162", "119615", "17.39"]]};
+      A.mount();
+      // beat open (0.0)
+      A.title("A Spark client in a few hundred lines of Python");
+      const code = A.code(`trips = s.read_parquet(TRIPS)
+top = (trips.where(june)
+       .group_by("PULocationID")
+       .agg(fn("count", 1).alias("trips"), avg_fare)
+       .order_by(col("trips").desc())
+       .limit(5))
+top.to_arrow()`, { x: 0.24, y: 0.45, w: 800, size: 26 });
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.915, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      // beat wrap (1.2): one nested box per call
+      cap("Each call wraps the plan in one more Relation", 1.2, 4.8);
+      const boxes = D.nodes.map((n, i) => {
+        const w = 300 + i * 90, h = 120 + i * 80;
+        const b = A.el(`<div style="font:600 ${A.px(24)}px var(--a-mono);color:var(--a-fg);padding:${A.px(8)}px ${A.px(14)}px">${n}</div>`,
+          { x: 0.72, y: 0.47, css: { width: A.px(w) + "px", height: A.px(h) + "px", border: `${A.px(4)}px solid ${i === 0 ? "var(--a-acc)" : "var(--a-fg)"}`,
+            borderRadius: A.px(14) + "px", boxSizing: "border-box" } });
+        A.tl.set(b, { opacity: 0 }, 0); A.tl.to(b, { opacity: 1, duration: 0.4 }, 1.5 + i * 0.6);
+        return b;
+      });
+      // beat bytes (5.0): the tree becomes bytes
+      cap(`protobuf turns the tree into ${D.bytes} bytes`, 5.0, 7.0);
+      A.tl.to(boxes, { scaleY: 0.12, scaleX: 0.9, opacity: 0.0, duration: 0.8, ease: "power2.in" }, 5.2);
+      const bar = A.box({ x: 0.72, y: 0.47, w: 640, h: 70, kind: "accent", title: `${D.bytes} bytes of protobuf`, size: 28 });
+      A.tl.set(bar, { opacity: 0 }, 0); A.tl.to(bar, { opacity: 1, duration: 0.4 }, 5.8);
+      // beat wire (7.2): to the server and back
+      cap("gRPC sends the plan. Arrow batches come back.", 7.2, 9.4);
+      A.out(code, 7.2);
+      const srv = A.box({ x: 0.16, y: 0.47, w: 360, h: 300, kind: "ink", title: "Connect server", sub: "Spark 4.3.0", size: 32 });
+      A.tl.set(srv, { opacity: 0 }, 0); A.tl.to(srv, { opacity: 1, duration: 0.4 }, 7.3);
+      A.tl.to(bar, { x: A.X(0.30 - 0.72), scale: 0.5, duration: 0.9, ease: "power2.in" }, 7.6);
+      A.tl.to(bar, { opacity: 0, duration: 0.2 }, 8.4);
+      const back = [0, 1, 2].map((i) => {
+        const a = A.box({ x: 0.32, y: 0.40 + i * 0.07, w: 160, h: 50, kind: "ok", title: "ArrowBatch", size: 20, radius: 25 });
+        A.tl.set(a, { opacity: 0 }, 0); A.tl.to(a, { opacity: 1, duration: 0.2 }, 8.5 + i * 0.15);
+        A.tl.to(a, { x: A.X(0.36), duration: 0.8, ease: "power1.inOut" }, 8.6 + i * 0.15);
+        A.tl.to(a, { opacity: 0, duration: 0.2 }, 9.4 + i * 0.15);
+        return a;
+      });
+      // beat table (9.6)
+      cap("pyarrow reads them into a table: the same five rows", 9.6);
+      const tbl = A.table(["PULocationID", "trips", "avg_fare"], D.rows, { x: 0.72, y: 0.47, w: 720, size: 30 });
+      A.in(tbl, 9.8);
+      A.in(A.note("schematic timing, not measured"), 0.5);
+      A.finish(13.5);
+    </script>
+  </body>
+</html>

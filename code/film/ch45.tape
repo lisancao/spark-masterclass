@@ -1,28 +1,57 @@
-# Spark Masterclass, Chapter 45: observability. Storyboard: notes/part08.md.
+# Spark Masterclass, Chapter 45: Apache Iceberg with Spark. Storyboard: storyboard.md.
+#   code/ch45/catalogs.sh up        (the Hive Metastore and Polaris containers)
 #   film render code/film/ch45.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4028 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4063 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: connect | Connect operations in the REST API, live and in the History Server
-Type "# two Connect sessions, then the 4.3 REST endpoints, live and from the History Server" Enter
+# beat: jar | The released runtime fails on Spark 4.3, the PR build works
+Type "# Iceberg 1.12.0 has no runtime for Spark 4.3. Try the jar for Spark 4.1:" Enter
 Sleep 500ms
-Type "python ch45/connect_obs.py 2>/dev/null | grep -v 'jobTag:\|statement:\|their tags\|the tag as' | cut -c1-94" Enter
-Wait@300s
-Sleep 12s
+Type "python ch45/wrong_jar.py 2>/dev/null" Enter
+Wait@180s
+Sleep 4s
+Type "# a build of apache/iceberg PR #18749, for Spark 4.3:" Enter
+Sleep 500ms
+Type "python ch45/runtime.py 2>/dev/null | sed -n '/^Spark/,/iceberg_version/p'" Enter
+Wait@180s
+Sleep 8s
 
-# beat: listener | A Python streaming listener sees the drift in each batch
+# beat: commit | One INSERT, and the files it adds to metadata/
 Hide
 Type "clear" Enter
 Show
-Type "# a StreamingQueryListener with observe(): nulls in each micro-batch" Enter
+Type "# CREATE TABLE writes v1.metadata.json. INSERT adds data, a manifest and v2:" Enter
 Sleep 500ms
-Type "python ch45/stream_listener.py 2>/dev/null | grep -v durationMs | cut -c1-94" Enter
-Wait@180s
+Type "python ch45/tables.py 2>/dev/null | sed -n '/^== INSERT/,/summary/p'" Enter
+Wait@300s
+Sleep 10s
+
+# beat: catalogs | Four catalogs in one session, four places for the pointer
+Hide
+Type "clear" Enter
+Show
+Type "# Hadoop, JDBC, Hive and REST (Polaris) catalogs, in one Spark session:" Enter
+Sleep 500ms
+Type "python ch45/catalogs.py 2>/dev/null | sed -n '/^== One table/,/39 endpoints/p' | cut -c1-94" Enter
+Wait@300s
+Sleep 12s
+
+# beat: maintenance | The maintenance procedures, and the files on disk
+# (catalogs.py removes the Hadoop warehouse, so the table is built again, off camera)
+Hide
+Type "clear" Enter
+Type "python ch45/tables.py >/dev/null 2>&1; python ch45/evolve.py >/dev/null 2>&1; python ch45/snapshots.py >/dev/null 2>&1; clear" Enter
+Wait@1500s
+Show
+Type "# small INSERTs, then each maintenance procedure. Count the files on disk:" Enter
+Sleep 500ms
+Type "python ch45/maintenance.py 2>/dev/null | grep -E '^(before|after)' | cut -c1-94" Enter
+Wait@600s
 Sleep 12s

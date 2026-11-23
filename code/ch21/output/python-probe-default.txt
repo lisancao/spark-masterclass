@@ -1,0 +1,12 @@
+python (pyspark 4.3.0) -> server 4.3.0
+sql          works   [1, 'a']
+schema       works   21 columns, first VendorID
+local_data   works   count 2
+temp_view    works   [5]
+write_read   works   read back 10 rows
+config       works   '7'
+error        works   UNRESOLVED_COLUMN, SQLSTATE 42703
+arrow        works   pyarrow.Table, 16 batch(es), 1000 rows
+explain      works   *(1) Range (0, 3, step=1, splits=16)
+zip          works   count 3
+big_result   works   200000 rows

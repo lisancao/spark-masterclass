@@ -1,0 +1,32 @@
+# SparkSubmitOperator, conn spark_local
+spark-submit --master local[2] --conf spark.sql.shuffle.partitions=8 --driver-memory \
+    1g --name ch63-zone-revenue jobs/zone_revenue.py
+
+# SparkSubmitOperator, conn spark_k8s, track_driver_via_k8s_api=True
+spark-submit --master k8s://https://127.0.0.1:6443 --conf \
+    spark.kubernetes.scheduler.name=yunikorn --conf \
+    spark.kubernetes.namespace=spark-jobs --name ch63-zone-revenue --deploy-mode \
+    cluster --conf spark.kubernetes.submission.waitAppCompletion=false \
+    local:///opt/ch63/jobs/zone_revenue.py
+
+# SparkSqlOperator, conn spark_sql_local
+spark-sql -e SELECT 1 --master local[2] --name ch63-top-zones --queue default
+
+# SparkPipelinesOperator, pipeline_command='dry-run', conn spark_local
+spark-pipelines dry-run --spec pipeline.yml --master local[2] --name default-name
+
+# SparkPipelinesOperator, pipeline_command='dry-run', conn spark_connect_ch48
+python -m pyspark.pipelines.cli dry-run --spec pipeline.yml
+
+# SparkConnectHook('spark_connect_ch48').get_connection_url()
+sc://localhost:15064/
+
+# SparkConnectHook('spark_connect_prod').get_connection_url()
+sc://spark.example.com:443/;user_id=etl;token=s3cret;use_ssl=True
+
+# SparkConnectHook('spark_connect_path').get_connection_url()
+ValueError: Path {url.path} is not supported in Spark Connect connection URL
+
+# Jinja on a template field (the DAG's own template environment)
+'{{APP_ID}}'             -> UndefinedError: 'APP_ID' is undefined
+"{{ '{{APP_ID}}' }}"     -> '{{APP_ID}}'

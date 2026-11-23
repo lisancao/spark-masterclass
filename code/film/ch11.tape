@@ -1,49 +1,31 @@
-# Spark Masterclass, Chapter 11. Clips for the book page.
+# Spark Masterclass, Chapter 11: Joins. VO lines: notes/part02.md.
 #   film render code/film/ch11.tape --format chapter
-Set TypingSpeed 35ms
+Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4122 BOOK_NO_LOCK=1 PYTHONUNBUFFERED=1 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: ch11-bytes | Metadata without content, then magic bytes
+# beat: types | Join types and the default strategy
 Hide
-Type "nvim +/'content is read only when' ch11/bytes.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
 Type "clear" Enter
-Sleep 500ms
 Show
-Type "# a metadata query reads no content; a content read checks maxLength" Enter
+Type "# join types on a tiny table, then trips x zones: which strategy?" Enter
 Sleep 500ms
-Type "python ch11/bytes.py 2>/dev/null | sed -n '/content is read only/,/magic bytes, not/p' | cut -c1-92" Enter
+Type "python ch11/strategies.py 2>/dev/null | sed -n '/== 2/,/== 3/{/== 3/q;p}' | cut -c1-92" Enter
 Wait@300s
 Sleep 10s
 
-# beat: ch11-archives | The archive reader, off and on
+# beat: asof | ASOF JOIN, new in 4.3
 Hide
-Type "nvim +/'archive.reader.enabled' ch11/archives.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
 Type "clear" Enter
-Sleep 500ms
 Show
-Type "# new in 4.3: read the files inside a zip, entry by entry" Enter
+Type "# new in 4.3: ASOF JOIN, the last drop-off before each pickup" Enter
 Sleep 500ms
-Type "python ch11/archives.py 2>/dev/null | sed -n '/before 4.3/,/archivePathFilter picks/p' | cut -c1-92" Enter
+Type "python ch11/asof.py 2>/dev/null | sed -n '/== 2/,/== 3/{/== 3/q;p}' | cut -c1-92" Enter
 Wait@300s
 Sleep 10s

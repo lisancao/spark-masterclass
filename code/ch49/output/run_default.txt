@@ -1,0 +1,41 @@
+== run 1, in-memory catalog
+2026-11-22 02:17:25: Loading pipeline spec from ~/spark-masterclass/data/work/part06/ch49-retail/spark-pipeline.yml...
+2026-11-22 02:17:25: Creating Spark session...
+2026-11-22 02:17:26: Creating dataflow graph...
+2026-11-22 02:17:28: Registering graph elements...
+2026-11-22 02:17:28: Loading definitions. Root directory: '~/spark-masterclass/data/work/part06/ch49-retail'.
+2026-11-22 02:17:28: Found 3 files matching glob 'transformations/**/*'
+2026-11-22 02:17:28: Registering SQL file ~/spark-masterclass/data/work/part06/ch49-retail/transformations/placed_by_customer.sql...
+2026-11-22 02:17:28: Importing ~/spark-masterclass/data/work/part06/ch49-retail/transformations/products.py...
+query function products_by_category: called
+2026-11-22 02:17:30: Importing ~/spark-masterclass/data/work/part06/ch49-retail/transformations/orders.py...
+2026-11-22 02:17:30: Starting run...
+2026-11-22 10:17:31: Flow spark_catalog.default.orders_by_status is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.ingest_orders is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.products is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.placed_by_customer is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.products_by_category is QUEUED.
+2026-11-22 10:17:31: Flow spark_catalog.default.products is PLANNING.
+2026-11-22 10:17:31: Flow spark_catalog.default.products is STARTING.
+2026-11-22 10:17:31: Flow spark_catalog.default.products is RUNNING.
+2026-11-22 10:17:31: Flow spark_catalog.default.ingest_orders is STARTING.
+2026-11-22 10:17:32: Flow spark_catalog.default.ingest_orders is RUNNING.
+2026-11-22 10:17:36: Flow spark_catalog.default.products has COMPLETED.
+2026-11-22 10:17:36: Flow spark_catalog.default.ingest_orders has COMPLETED.
+2026-11-22 10:17:37: Flow spark_catalog.default.products_by_category is PLANNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.products_by_category is STARTING.
+2026-11-22 10:17:37: Flow spark_catalog.default.products_by_category is RUNNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.placed_by_customer is PLANNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.placed_by_customer is STARTING.
+2026-11-22 10:17:37: Flow spark_catalog.default.placed_by_customer is RUNNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.orders_by_status is PLANNING.
+2026-11-22 10:17:37: Flow spark_catalog.default.orders_by_status is STARTING.
+2026-11-22 10:17:37: Flow spark_catalog.default.orders_by_status is RUNNING.
+2026-11-22 10:17:41: Flow spark_catalog.default.orders_by_status has COMPLETED.
+2026-11-22 10:17:41: Flow spark_catalog.default.products_by_category has COMPLETED.
+2026-11-22 10:17:41: Flow spark_catalog.default.placed_by_customer has COMPLETED.
+2026-11-22 10:17:42: Run is COMPLETED.
+
+== run 2, in-memory catalog
+2026-11-22 02:18:00: Starting run...
+pyspark.errors.exceptions.connect.UnknownException: (org.apache.spark.sql.pipelines.graph.DatasetManager$TableMaterializationException) org.apache.spark.SparkRuntimeException: [LOCATION_ALREADY_EXISTS] Cannot name the managed table as `spark_catalog`.`default`.`products`, as its associated location 'file:~/spark-masterclass/data/work/part06/ch49-retail/spark-warehouse/products' already exists. Please pick a different table...

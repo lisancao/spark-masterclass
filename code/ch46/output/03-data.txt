@@ -1,0 +1,12 @@
+$ mkdir -p data
+$ cp "$BOOK_DATA/nyc-taxi/taxi_zone_lookup.csv" data/
+$ python make_days.py data/trips 2026-06-01
+trips_2026-06-01.parquet: 111,546 trips
+$ ls -sh data data/trips
+data:
+total 20K
+ 16K taxi_zone_lookup.csv
+4.0K trips
+data/trips:
+total 2.2M
+2.2M trips_2026-06-01.parquet

@@ -1,0 +1,16 @@
+AnalyzePlan(schema): 21 fields
+  VendorID: integer nullable=True
+  tpep_pickup_datetime: timestamp_ntz nullable=True
+  tpep_dropoff_datetime: timestamp_ntz nullable=True
+
+the plan is 320 bytes of protobuf; its node chain:
+  limit <- sort <- aggregate <- filter <- read
+
+PULocationID: int32
+trips: int64 not null
+avg_fare: double
+  {'PULocationID': 237, 'trips': 177610, 'avg_fare': 14.15}
+  {'PULocationID': 161, 'trips': 161198, 'avg_fare': 18.47}
+  {'PULocationID': 236, 'trips': 157113, 'avg_fare': 15.02}
+  {'PULocationID': 132, 'trips': 148169, 'avg_fare': 60.84}
+  {'PULocationID': 162, 'trips': 119615, 'avg_fare': 17.39}

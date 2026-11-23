@@ -1,18 +1,26 @@
-# Spark Masterclass, Chapter 41: sketches. Storyboard: notes/part07.md.
-#   film render code/film/ch41.tape --format chapter
+# Spark Masterclass, Chapter 41. Storyboard: storyboard-part05.md.
+#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch41.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4227 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4025 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: rollups | Rollups from stored sketches after the raw events are deleted
-Type "# store daily sketches, delete the raw events, answer from the sketches" Enter
+
+# beat: sessions | Sessions closed by gaps and by timers
+Type "# sessions per user: closed by a 30-minute gap or by an event-time timer" Enter
 Sleep 500ms
-Type "python ch41/sketches.py 2>/dev/null | sed -n '/== sketch table/,/rank of the estimate/p;/^   0\./p' | grep -v 'plan of\|schema' | cut -c1-92" Enter
-Wait@1200s
+Type "python ch41/t2_sessions.py 2>/dev/null | head -21" Enter
+Wait@240s
 Sleep 12s
+
+# beat: clock | Processing-time timers and TTL
+Type "# a timer 5 s after each click; the last page kept 8 s (TTL)" Enter
+Sleep 500ms
+Type "python ch41/t3_time.py 2>/dev/null | head -11" Enter
+Wait@240s
+Sleep 10s

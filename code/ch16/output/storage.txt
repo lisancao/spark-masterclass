@@ -1,0 +1,36 @@
+== 1. write GEOMETRY(2263) zones and GEOGRAPHY(4326) stations to Parquet
+
+geo_zones: 263 rows in part-00000...
+  physical type: BYTE_ARRAY | logical type: Geometry(crs=EPSG:2263)
+  min/max statistics set: True | geospatial statistics set: True
+  bbox x [913175.109009, 1067382.508405]  y [120121.881254, 272844.294005]
+  geometry types: [6]
+  arrow type: binary
+
+geo_stations: 2279 rows in part-00000...
+  physical type: BYTE_ARRAY | logical type: Geography(crs=OGC:CRS84, algorithm=spherical)
+  min/max statistics set: True | geospatial statistics set: False
+  arrow type: binary
+
+read back in Spark: Row(typeof(geom)='geometry(2263)', st_srid(geom)=2263)
+
+== 2. what the Parquet source refuses
+  write GEOMETRY(ANY)            UNSUPPORTED_DATA_TYPE_FOR_DATASOURCE: The Parquet datasource doesn't support the column `g` of the type "GEOMETRY(ANY)". SQLSTAT
+  partitionBy a GEOMETRY column  INVALID_PARTITION_COLUMN_DATA_TYPE: Cannot use "GEOMETRY(2263)" for partition column. SQLSTATE: 0A000
+  saveAsTable (session catalog)  None
+    and read it back             Row(typeof(geom)='geometry(2263)', count(1)=263)
+
+== 3. an Iceberg v3 table with the geospatial types
+Row(count(1)=263, typeof(geom)='geometry(2263)')
+Row(count(1)=2279, typeof(geog)='geography(4326)')
+format-version: 3
+zones schema fields: [('location_id', 'int'), ('zone', 'string'), ('geom', 'geometry(EPSG:2263)')]
+stations schema fields: [('pid', 'long'), ('trips', 'long'), ('geog', 'geography(OGC:CRS84, spherical)')]
+  v2 table with GEOMETRY(2263)   IllegalStateException: Invalid schema for v2: - Invalid type for geom: geometry(EPSG:2263) is not supported until
+  GEOMETRY(ANY) column           UnsupportedOperationException: Cannot convert Spark geometry with mixed SRID to Iceberg
+
+file-level bounds of the geometry column (Iceberg metadata table, field id 3):
+  readable_metrics.geom          Py4JJavaError, caused by java.lang.IllegalStateException: Unknown type for binary field. Type name: org.apache.iceberg
+  00000-11-855f4c8d-7f2c-4... rows 128: 16-byte bounds, x [913175.109, 1067382.508]  y [120121.881, 265000.636]
+  00001-12-855f4c8d-7f2c-4... rows 135: 16-byte bounds, x [922745.647, 1060539.825]  y [130242.304, 272844.294]
+  filter on a geometry column    263

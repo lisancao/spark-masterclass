@@ -1,0 +1,14 @@
+$ mv pipeline-storage pipeline-storage.keep; mv spark-warehouse spark-warehouse.keep
+$ sed -i 's/avg(c.fare_amount)/avg(c.fare)/' transformations/borough_daily.sql
+$ spark-pipelines dry-run --remote sc://localhost:15104 2>&1 | grep -E 'Failed to resolve flow:|Error:' | cut -c1-150; echo "exit code: ${PIPESTATUS[0]}"
+2026-11-22 18:14:18: Failed to resolve flow: 'spark_catalog.default.borough_daily'.
+Error: [UNRESOLVED_COLUMN.WITH_SUGGESTION] A column, variable, or function parameter with name `c`.`fare` cannot be resolved. Did you mean one of the 
+exit code: 1
+$ sed -i 's/avg(c.fare)/avg(c.fare_amount)/' transformations/borough_daily.sql
+$ spark-pipelines dry-run --remote sc://localhost:15104 2>&1 | tail -1; echo "exit code: ${PIPESTATUS[0]}"
+2026-11-22 18:14:22: Run is COMPLETED.
+exit code: 0
+$ ls -d pipeline-storage spark-warehouse 2>&1
+ls: cannot access 'pipeline-storage': No such file or directory
+ls: cannot access 'spark-warehouse': No such file or directory
+$ rm -rf pipeline-storage spark-warehouse; mv pipeline-storage.keep pipeline-storage; mv spark-warehouse.keep spark-warehouse

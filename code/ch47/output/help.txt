@@ -1,0 +1,25 @@
+$ spark-pipelines --help | head -3
+usage: cli.py [-h] {run,dry-run,init} ...
+Pipelines CLI
+$ spark-pipelines run --help
+usage: cli.py run [-h] [--spec SPEC] [--full-refresh FULL_REFRESH]
+                  [--full-refresh-all] [--refresh REFRESH]
+options:
+  -h, --help            show this help message and exit
+  --spec SPEC           Path to the pipeline spec.
+  --full-refresh FULL_REFRESH
+                        List of datasets to reset and recompute (comma-
+                        separated).
+  --full-refresh-all    Perform a full graph reset and recompute.
+  --refresh REFRESH     List of datasets to update (comma-separated).
+$ spark-pipelines dry-run --help
+usage: cli.py dry-run [-h] [--spec SPEC]
+options:
+  -h, --help   show this help message and exit
+  --spec SPEC  Path to the pipeline spec.
+$ spark-pipelines init --help
+usage: cli.py init [-h] --name NAME
+options:
+  -h, --help   show this help message and exit
+  --name NAME  Name of the project. A directory with this name will be created
+               underneath the current directory.

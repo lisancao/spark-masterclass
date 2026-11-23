@@ -1,0 +1,72 @@
+before the run: Found 0 WholeStageCodegen subtrees.
+after the run:  Found 3 WholeStageCodegen subtrees.
+== Subtree 1 / 3 (maxMethodCodeSize:347; maxConstantPoolSize:350(0.53% used); numInnerClasses:1) ==
+    *(1) HashAggregate(keys=[_groupingexpression#48], functions=[partial_count(1), partial_avg(fare_amount#10)
+    +- *(1) Project [fare_amount#10, hour(tpep_pickup_datetime#1, Some(America/Los_Angeles)) AS _groupingexpre
+       +- *(1) Filter (isnotnull(fare_amount#10) AND (fare_amount#10 > 0.0))
+          +- *(1) ColumnarToRow
+             +- FileScan parquet [tpep_pickup_datetime#1,fare_amount#10] Batched: true, DataFilters: [isnotnul
+    
+== Subtree 2 / 3 (maxMethodCodeSize:280; maxConstantPoolSize:272(0.42% used); numInnerClasses:0) ==
+    *(2) HashAggregate(keys=[_groupingexpression#48], functions=[count(1), avg(fare_amount#10)], output=[hour#
+    +- AQEShuffleRead coalesced
+       +- ShuffleQueryStage 0
+          +- Exchange hashpartitioning(_groupingexpression#48, 200), ENSURE_REQUIREMENTS, [plan_id=50]
+             +- *(1) HashAggregate(keys=[_groupingexpression#48], functions=[partial_count(1), partial_avg(far
+                +- *(1) Project [fare_amount#10, hour(tpep_pickup_datetime#1, Some(America/Los_Angeles)) AS _g
+                   +- *(1) Filter (isnotnull(fare_amount#10) AND (fare_amount#10 > 0.0))
+                      +- *(1) ColumnarToRow
+                         +- FileScan parquet [tpep_pickup_datetime#1,fare_amount#10] Batched: true, DataFilter
+    
+== Subtree 3 / 3 (maxMethodCodeSize:120; maxConstantPoolSize:124(0.19% used); numInnerClasses:0) ==
+    *(3) Sort [hour#22 ASC NULLS FIRST], true, 0
+    +- AQEShuffleRead coalesced
+       +- ShuffleQueryStage 1
+          +- Exchange rangepartitioning(hour#22 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id=83]
+             +- *(2) HashAggregate(keys=[_groupingexpression#48], functions=[count(1), avg(fare_amount#10)], o
+                +- AQEShuffleRead coalesced
+                   +- ShuffleQueryStage 0
+                      +- Exchange hashpartitioning(_groupingexpression#48, 200), ENSURE_REQUIREMENTS, [plan_id
+                         +- *(1) HashAggregate(keys=[_groupingexpression#48], functions=[partial_count(1), par
+                            +- *(1) Project [fare_amount#10, hour(tpep_pickup_datetime#1, Some(America/Los_Ang
+                               +- *(1) Filter (isnotnull(fare_amount#10) AND (fare_amount#10 > 0.0))
+                                  +- *(1) ColumnarToRow
+                                     +- FileScan parquet [tpep_pickup_datetime#1,fare_amount#10] Batched: true
+    
+
+subtree 1 generated code: 338 lines; the loop that fuses scan, filter, project and partial aggregate:
+/* 136 */   private void hashAgg_doAggregateWithKeys_0(int partitionIndex) throws java.io.IOException {
+/* 137 */     if (columnartorow_mutableStateArray_1[0] == null) {
+/* 138 */       columnartorow_nextBatch_0();
+/* 139 */     }
+/* 140 */     while ( columnartorow_mutableStateArray_1[0] != null) {
+/* 141 */       int columnartorow_numRows_0 = columnartorow_mutableStateArray_1[0].numRows();
+/* 142 */       int columnartorow_localEnd_0 = columnartorow_numRows_0 - columnartorow_batchIdx_0;
+/* 143 */       for (int columnartorow_localIdx_0 = 0; columnartorow_localIdx_0 < columnartorow_localEnd_0; columnarto
+/* 144 */         int columnartorow_rowIdx_0 = columnartorow_batchIdx_0 + columnartorow_localIdx_0;
+/* 145 */         do {
+/* 146 */           boolean columnartorow_isNull_1 = columnartorow_mutableStateArray_2[1].isNullAt(columnartorow_rowId
+/* 147 */           double columnartorow_value_1 = columnartorow_isNull_1 ? -1.0 : (columnartorow_mutableStateArray_2[
+/* 148 */
+/* 149 */           boolean filter_value_2 = !columnartorow_isNull_1;
+/* 150 */           if (!filter_value_2) continue;
+/* 151 */
+/* 152 */           boolean filter_value_3 = false;
+/* 153 */           filter_value_3 = org.apache.spark.sql.catalyst.util.SQLOrderingUtil.compareDoubles(columnartorow_v
+/* 154 */           if (!filter_value_3) continue;
+
+the final plan after AQE (explain after the run):
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   ResultQueryStage 2
+   +- *(3) Sort [hour#22 ASC NULLS FIRST], true, 0
+      +- AQEShuffleRead coalesced
+         +- ShuffleQueryStage 1
+            +- Exchange rangepartitioning(hour#22 ASC NULLS FIRST, 200), ENSURE_REQUIREMENTS, [plan_id=83]
+               +- *(2) HashAggregate(keys=[_groupingexpression#48], functions=[count(1), avg(fare_amount#10)])
+                  +- AQEShuffleRead coalesced
+                     +- ShuffleQueryStage 0
+                        +- Exchange hashpartitioning(_groupingexpression#48, 200), ENSURE_REQUIREMENTS, [plan_
+                           +- *(1) HashAggregate(keys=[_groupingexpression#48], functions=[partial_count(1), p
+                              +- *(1) Project [fare_amount#10, hour(tpep_pickup_datetime#1, Some(America/Los_A

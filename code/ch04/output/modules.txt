@@ -1,0 +1,47 @@
+pyspark 4.3.0
+
+Spark module jars in pyspark/jars:
+  spark-catalyst                   19.1 MiB
+  spark-common-utils-java           0.1 MiB
+  spark-common-utils                0.6 MiB
+  spark-config                      1.8 MiB
+  spark-connect                    13.8 MiB
+  spark-core                       15.6 MiB
+  spark-graphx                      0.4 MiB
+  spark-hive-thriftserver           0.6 MiB
+  spark-hive                        0.7 MiB
+  spark-kubernetes                  0.6 MiB
+  spark-kvstore                     0.1 MiB
+  spark-launcher                    0.1 MiB
+  spark-mllib-local                 0.1 MiB
+  spark-mllib                       6.6 MiB
+  spark-network-common              3.2 MiB
+  spark-network-shuffle             0.2 MiB
+  spark-pipelines                   0.8 MiB
+  spark-repl                        0.0 MiB
+  spark-sketch                      0.0 MiB
+  spark-sql-api                     3.2 MiB
+  spark-sql                        15.3 MiB
+  spark-streaming                   1.1 MiB
+  spark-tags                        0.0 MiB
+  spark-udf-worker-core             0.1 MiB
+  spark-udf-worker-proto            0.4 MiB
+  spark-unsafe                      0.1 MiB
+  spark-variant                     0.1 MiB
+  spark-yarn                        0.4 MiB
+  (plus 251 third-party jars)
+
+Python packages in pyspark/:
+  pyspark.cloudpickle
+  pyspark.core
+  pyspark.errors
+  pyspark.logger
+  pyspark.messages
+  pyspark.ml
+  pyspark.mllib
+  pyspark.pandas
+  pyspark.pipelines
+  pyspark.resource
+  pyspark.sql
+  pyspark.streaming
+  pyspark.testing

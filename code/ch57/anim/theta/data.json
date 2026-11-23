@@ -1,0 +1,2 @@
+{"source": "code/ch57/output/sketches.txt (theta, days 0 and 1). The hash positions, the 30 users and K = 12 are schematic; the real sketch keeps 4,096 hashes.",
+ "estimate": "5,229", "exact": "5,175", "share_of_union": "32.4%", "k_schematic": 12, "lgNomEntries": 12}

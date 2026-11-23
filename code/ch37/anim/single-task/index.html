@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from data.json (plans_aqe.txt). Timing is schematic.
+      // beat open (0.0): the plan with the setting off, as a chain from scan to sort
+      A.title("Single-task execution", "zones by borough, sorted: the physical plan");
+      const Y = 0.44;
+      const N = [
+        { k: "scan", t: "FileScan csv", s: "[Borough]", x: 0.09, x2: 0.25, kind: "soft" },
+        { k: "p", t: "HashAggregate", s: "partial_count(1)", x: 0.24, x2: 0.5, kind: "soft" },
+        { k: "ex1", t: "Exchange", s: "hash, 200", x: 0.39, kind: "ghost" },
+        { k: "f", t: "HashAggregate", s: "count(1)", x: 0.54, x2: 0.5, kind: "soft" },
+        { k: "ex2", t: "Exchange", s: "range, 200", x: 0.69, kind: "ghost" },
+        { k: "sort", t: "Sort", s: "Borough ASC", x: 0.84, x2: 0.75, kind: "soft" },
+      ];
+      const el = {};
+      for (const n of N) el[n.k] = A.box({ x: n.x, y: Y, w: 250, h: 120, kind: n.kind, title: n.t, sub: n.s, size: 30 });
+      const arrows = [];
+      for (let i = 0; i < N.length - 1; i++) arrows.push(A.line({ x1: N[i].x + 0.068, y1: Y, x2: N[i + 1].x - 0.068, y2: Y, color: "var(--a-line)" }));
+      const offStats = A.text("setting off: 4 jobs, 4 stages, 4 tasks, 1,933 ms", { x: 0.5, y: 0.68, size: 36, weight: 600 });
+      cap("Off: two shuffles, and the aggregate runs in two phases", 0.2, 4.7);
+      // beat single (4.8): the scan reports SinglePartition
+      A.tl.to(el.scan, { scale: 1.08, duration: 0.3, yoyo: true, repeat: 1 }, 5.0);
+      const sp = A.text("SinglePartition", { x: 0.09, y: Y + A.dy(100), size: 28, mono: true, color: "var(--a-acc)", weight: 700 });
+      A.in(sp, 5.2);
+      cap("On: the one-file scan reports a single partition", 4.8, 9.5);
+      // beat collapse (9.6): no Exchange is needed; the aggregate has one phase
+      A.out([el.ex1, el.ex2, ...arrows], 9.7);
+      A.out(el.p, 10.3);
+      A.out(sp, 10.3);
+      for (const n of N) if (n.x2 !== undefined) A.tl.to(el[n.k], { x: A.X(n.x2 - n.x), duration: 1.0, ease: "power2.inOut" }, 10.6);
+      const newArrows = [A.line({ x1: 0.25 + 0.068, y1: Y, x2: 0.5 - 0.068, y2: Y, color: "var(--a-line)" }), A.line({ x1: 0.5 + 0.068, y1: Y, x2: 0.75 - 0.068, y2: Y, color: "var(--a-line)" })];
+      gsap.set(newArrows, { opacity: 0 }); A.in(newArrows, 11.7);
+      const stage = A.box({ x: 0.5, y: Y, w: 1240, h: 200, kind: "ghost", radius: 22 });
+      gsap.set(stage, { opacity: 0 }); A.tl.to(stage, { opacity: 1, duration: 0.5 }, 12.0);
+      const st = A.text("one codegen stage *(1)", { x: 0.5, y: Y - A.dy(130), size: 28, color: "var(--a-acc)", weight: 600 });
+      A.in(st, 12.2);
+      cap("No Exchange is needed, and one complete count is enough", 9.6, 14.3);
+      // beat result (14.4): the measured records
+      A.out(offStats, 9.7);
+      const tab = A.table(["", "jobs", "stages", "tasks", "shuffle write", "duration"],
+        [["setting off", "4", "4", "4", "1,172 B", "1,933 ms"], ["setting on", "1", "1", "1", "0 B", "340 ms"]], { x: 0.5, y: 0.72, w: 1300, size: 32, hi: 1 });
+      gsap.set(tab, { opacity: 0 }); A.in(tab, 14.6);
+      cap("One job, one stage, one task", 14.4);
+      A.in(A.note("counts and durations from plans_aqe.txt; timing schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>

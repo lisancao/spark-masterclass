@@ -1,0 +1,23 @@
+== 1. expressions, ANSI on and off
+  expression                           ANSI on                            ANSI off
+  '1' + 1                              2 (bigint)                         2.0 (double)
+  '1.5' + 1                            CAST_INVALID_INPUT                 2.5 (double)
+  1 = '1.0'                            CAST_INVALID_INPUT                 True (boolean)
+  size(NULL)                           None (int)                         -1 (int)
+  CAST(1.9 AS INT)                     1 (int)                            1 (int)
+  7 / 2                                3.5 (double)                       3.5 (double)
+  CAST('yes' AS BOOLEAN)               True (boolean)                     True (boolean)
+  CAST('2026-06-01 10:00' AS DATE)     2026-06-01 (date)                  2026-06-01 (date)
+  map('a', 1)['b']                     None (int)                         None (int)
+  element_at(map('a', 1), 'b')         None (int)                         None (int)
+
+== 2. INSERT follows spark.sql.storeAssignmentPolicy, not ansi.enabled
+  spark.sql.storeAssignmentPolicy = ANSI
+  ansi.enabled=true  INSERT 3000000000   -> CAST_OVERFLOW_IN_TABLE_INSERT
+  ansi.enabled=true  INSERT '12a'        -> INCOMPATIBLE_DATA_FOR_TABLE.CANNOT_SAFELY_CAST
+  ansi.enabled=false INSERT 3000000000   -> CAST_OVERFLOW_IN_TABLE_INSERT
+  ansi.enabled=false INSERT '12a'        -> INCOMPATIBLE_DATA_FOR_TABLE.CANNOT_SAFELY_CAST
+
+== 3. reserved keywords: off by default, also under ANSI
+  enforceReservedKeywords=false SELECT 1 AS select -> accepted
+  enforceReservedKeywords=true  SELECT 1 AS select -> PARSE_SYNTAX_ERROR

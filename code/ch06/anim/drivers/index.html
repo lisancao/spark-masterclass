@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="11" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 6: the same program on four installs. Numbers: code/ch06/output/check_env.txt and the chapter text.
+      const D = {"trips": "3,837,248 trips", "rows": [
+        {"name": "1. pip", "py": "Python 3.12.3", "link": "Py4J", "drv": "driver JVM", "drvsub": "your JDK 17"},
+        {"name": "2. Tarball", "py": "Python 3.12.3", "link": "spark-submit", "drv": "driver JVM", "drvsub": "your JDK"},
+        {"name": "3. Docker", "py": "Python 3.10.12", "link": "local", "drv": "driver JVM", "drvsub": "Java 21 in the image"},
+        {"name": "4. Connect", "py": "pyspark-client", "link": "gRPC :15002", "drv": "Connect server", "drvsub": "driver JVM"}]};
+      A.mount();
+      // beat open (0.0): title at frame 0
+      A.title("Where the driver runs", "Four ways to install Spark 4.3");
+      const ys = [0.30, 0.45, 0.60, 0.75];
+      const XC = 0.34, XD = 0.64, XD4 = 0.73, XR = 0.905;
+      const rows = D.rows.map((r, i) => {
+        const y = ys[i], last = i === 3, xd = last ? XD4 : XD;
+        const els = [];
+        els.push(A.text(r.name, { x: 0.06, y, size: 36, weight: 700, anchor: "left" }));
+        if (i === 2) els.push(A.box({ x: (XC + XD) / 2, y, w: 1000, h: 140, kind: "ghost", radius: 18 }));
+        els.push(A.box({ x: XC, y, w: 300, h: 100, kind: "paper", title: "your code", sub: r.py, size: 30 }));
+        const x1 = XC + A.dx(160), x2 = xd - A.dx(160);
+        els.push(A.line({ x1, y1: y, x2, y2: y }));
+        els.push(A.text(r.link, { x: (x1 + x2) / 2, y: y - A.dy(26), size: 26, weight: 600, color: last ? "var(--a-acc)" : "var(--a-mute)" }));
+        els.push(A.box({ x: xd, y, w: 300, h: 100, kind: last ? "accent" : "soft", title: r.drv, sub: r.drvsub, size: 30 }));
+        const res = A.text(D.trips, { x: XR, y, size: 32, weight: 700, color: "var(--a-ok)" });
+        return { y, x1, x2, els, res };
+      });
+      // the machine boundary for Connect
+      const edge = A.line({ x1: 0.645, y1: 0.69, x2: 0.645, y2: 0.81, color: "var(--a-acc)" });
+      gsap.set(edge, { rotation: 90, transformOrigin: "0 50%" });
+      rows.forEach((r, i) => A.in(r.els, 0.2 + i * 0.15, { stagger: 0.03 }));
+      A.in(edge, 0.8);
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.92, size: 40, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); }
+      function trip(r, t) {
+        const d = A.dot({ x: r.x1, y: r.y, r: 14, color: "var(--a-acc)" });
+        A.tl.set(d, { opacity: 1, x: 0 }, t);
+        A.tl.to(d, { x: A.X(r.x2 - r.x1), duration: 0.8, ease: "power1.inOut" }, t);
+        A.tl.to(d, { x: 0, duration: 0.8, ease: "power1.inOut" }, t + 0.9);
+        A.tl.set(d, { opacity: 0 }, t + 1.7);
+        A.in(r.res, t + 1.7);
+      }
+      // beat local (1.2)
+      cap("pip and the tarball start a driver JVM next to your Python", 1.2, 4.0);
+      trip(rows[0], 1.4); trip(rows[1], 1.9);
+      // beat docker (4.2)
+      cap("Docker puts Python and the driver in one container", 4.2, 6.4);
+      trip(rows[2], 4.4);
+      // beat connect (6.6)
+      cap("Spark Connect sends the plan over gRPC to a server", 6.6, 8.8);
+      trip(rows[3], 6.8);
+      // beat same (9.0)
+      cap("The same program gives the same count on each install", 9.0);
+      A.finish(11);
+    </script>
+  </body>
+</html>

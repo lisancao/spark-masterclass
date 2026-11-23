@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" font-family="DM Sans, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a8f98"/>
+    </marker>
+  </defs>
+  <!-- GEOMETRY: the plane -->
+  <rect x="20" y="20" width="400" height="330" rx="12" fill="#3a5f96" fill-opacity="0.10" stroke="#3a5f96" stroke-width="2"/>
+  <text x="40" y="52" font-size="22" font-weight="700" fill="#3a5f96">GEOMETRY(srid)</text>
+  <text x="40" y="76" font-size="14" fill="#8a8f98">planar: x and y in the units of the SRID</text>
+  <g stroke="#8a8f98" stroke-opacity="0.45" stroke-width="1">
+    <line x1="60" y1="100" x2="60" y2="230"/><line x1="110" y1="100" x2="110" y2="230"/><line x1="160" y1="100" x2="160" y2="230"/>
+    <line x1="210" y1="100" x2="210" y2="230"/><line x1="260" y1="100" x2="260" y2="230"/><line x1="310" y1="100" x2="310" y2="230"/>
+    <line x1="360" y1="100" x2="360" y2="230"/>
+    <line x1="60" y1="100" x2="360" y2="100"/><line x1="60" y1="143" x2="360" y2="143"/><line x1="60" y1="186" x2="360" y2="186"/>
+    <line x1="60" y1="230" x2="360" y2="230"/>
+  </g>
+  <line x1="90" y1="205" x2="330" y2="122" stroke="#3a5f96" stroke-width="3"/>
+  <circle cx="90" cy="205" r="6" fill="#3a5f96"/><circle cx="330" cy="122" r="6" fill="#3a5f96"/>
+  <text x="200" y="178" font-size="13" fill="#3a5f96" transform="rotate(-19 200 178)">straight edge</text>
+  <text x="40" y="262" font-size="14" fill="#8a8f98">SRID: 0 or any of the 10,713 registry entries</text>
+  <text x="40" y="284" font-size="14" fill="#8a8f98">for example 3857 (Web Mercator, metres),</text>
+  <text x="40" y="306" font-size="14" fill="#8a8f98">2263 (New York Long Island, US feet)</text>
+  <text x="40" y="332" font-size="14" fill="#8a8f98">no range check on x and y</text>
+
+  <!-- GEOGRAPHY: the sphere -->
+  <rect x="540" y="20" width="400" height="330" rx="12" fill="#c0661a" fill-opacity="0.10" stroke="#c0661a" stroke-width="2"/>
+  <text x="560" y="52" font-size="22" font-weight="700" fill="#c0661a">GEOGRAPHY(srid)</text>
+  <text x="560" y="76" font-size="14" fill="#8a8f98">longitude and latitude in degrees</text>
+  <circle cx="740" cy="165" r="68" fill="none" stroke="#8a8f98" stroke-opacity="0.6" stroke-width="1.5"/>
+  <ellipse cx="740" cy="165" rx="68" ry="20" fill="none" stroke="#8a8f98" stroke-opacity="0.45"/>
+  <ellipse cx="740" cy="165" rx="25" ry="68" fill="none" stroke="#8a8f98" stroke-opacity="0.45"/>
+  <path d="M688,190 Q735,95 796,150" fill="none" stroke="#c0661a" stroke-width="3"/>
+  <circle cx="688" cy="190" r="6" fill="#c0661a"/><circle cx="796" cy="150" r="6" fill="#c0661a"/>
+  <text x="815" y="128" font-size="13" fill="#c0661a">spherical edge</text>
+  <text x="560" y="262" font-size="14" fill="#8a8f98">SRID: geographic entries only (1,406),</text>
+  <text x="560" y="284" font-size="14" fill="#8a8f98">for example 4326 (WGS 84, OGC:CRS84)</text>
+  <text x="560" y="306" font-size="14" fill="#8a8f98">st_geogfromwkb always gives 4326</text>
+  <text x="560" y="332" font-size="14" fill="#8a8f98">lon in [-180, 180], lat in [-90, 90]</text>
+
+  <!-- casts between them -->
+  <line x1="430" y1="130" x2="530" y2="130" stroke="#8a8f98" stroke-width="2" marker-end="url(#ar)"/>
+  <text x="480" y="120" font-size="12" fill="#8a8f98" text-anchor="middle">CAST, same SRID</text>
+  <line x1="530" y1="175" x2="430" y2="175" stroke="#8a8f98" stroke-width="2" marker-end="url(#ar)"/>
+  <text x="480" y="197" font-size="12" fill="#8a8f98" text-anchor="middle">CAST, same SRID</text>
+  <text x="480" y="232" font-size="12" fill="#8a8f98" text-anchor="middle">no CAST from</text>
+  <text x="480" y="248" font-size="12" fill="#8a8f98" text-anchor="middle">GEOMETRY(0)</text>
+  <text x="480" y="264" font-size="12" fill="#8a8f98" text-anchor="middle">to GEOGRAPHY</text>
+
+  <!-- BINARY at the bottom -->
+  <rect x="330" y="420" width="300" height="70" rx="12" fill="#4b5563" fill-opacity="0.12" stroke="#8a8f98" stroke-width="2"/>
+  <text x="480" y="450" font-size="20" font-weight="700" fill="#8a8f98" text-anchor="middle">BINARY (WKB)</text>
+  <text x="480" y="473" font-size="13" fill="#8a8f98" text-anchor="middle">no CAST to or from the geo types</text>
+  <line x1="220" y1="355" x2="350" y2="418" stroke="#3a5f96" stroke-width="2" marker-start="url(#ar)"/>
+  <line x1="190" y1="355" x2="320" y2="440" stroke="#3a5f96" stroke-width="2" marker-end="url(#ar)" stroke-dasharray="5 4"/>
+  <text x="40" y="410" font-size="13" fill="#3a5f96">st_geomfromwkb(wkb[, srid])</text>
+  <text x="40" y="460" font-size="13" fill="#3a5f96">st_asbinary(geo[, 'NDR' | 'XDR'])</text>
+  <line x1="740" y1="355" x2="610" y2="418" stroke="#c0661a" stroke-width="2" marker-start="url(#ar)"/>
+  <line x1="770" y1="355" x2="640" y2="440" stroke="#c0661a" stroke-width="2" marker-end="url(#ar)" stroke-dasharray="5 4"/>
+  <text x="700" y="410" font-size="13" fill="#c0661a">st_geogfromwkb(wkb)</text>
+  <text x="700" y="460" font-size="13" fill="#c0661a">st_asbinary(geo[, 'NDR' | 'XDR'])</text>
+  <text x="480" y="512" font-size="12" fill="#8a8f98" text-anchor="middle">st_srid(geo) reads the SRID, st_setsrid(geo, srid) changes the label, never the coordinates</text>
+</svg>

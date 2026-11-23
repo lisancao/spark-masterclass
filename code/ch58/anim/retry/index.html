@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Rules and counts: data.json (service.py, calling.txt). Speed: schematic.
+      const D = {"source": "code/ch58/service.py (client timeout 0.5 s, slow answer after 1 s) and code/ch58/output/calling.txt (attempts table, model runs). Motion speed is schematic.", "timeout_s": 0.5, "slow_s": 1, "retried_texts": 61, "model_runs_more_than_once": 0};
+      A.mount();
+      // beat open (0.0)
+      A.title("A safe retry: the same Idempotency-Key");
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.875, size: 36 }); A.in(c, t0); if (t1) A.out(c, t1); };
+      const task = A.box({ x: 0.15, y: 0.45, w: 300, h: 120, kind: "paper", title: "task", sub: "mapInPandas client", size: 32 });
+      const svc = A.box({ x: 0.5, y: 0.45, w: 320, h: 120, kind: "soft", title: "service", sub: "stored answers by key", size: 32 });
+      const mdl = A.box({ x: 0.84, y: 0.45, w: 280, h: 120, kind: "ink", title: "model", size: 32 });
+      A.line({ x1: 0.15 + A.dx(150), y1: 0.45, x2: 0.5 - A.dx(160), y2: 0.45, color: "var(--a-mute)", width: 3 });
+      A.line({ x1: 0.5 + A.dx(160), y1: 0.45, x2: 0.84 - A.dx(140), y2: 0.45, color: "var(--a-mute)", width: 3 });
+      const runs1 = A.text("model runs: 1", { x: 0.84, y: 0.62, size: 30, weight: 700, color: "var(--a-acc)" });
+      gsap.set(runs1, { opacity: 0 });
+      const msg = (s, x1, x2, y, t, d = 0.8, col = "var(--a-acc)") => {
+        const e = A.text(s, { x: x1, y, size: 24, mono: true, color: col });
+        gsap.set(e, { opacity: 0 });
+        A.tl.set(e, { opacity: 1 }, t);
+        A.tl.to(e, { x: A.X(x2 - x1), duration: d, ease: "power1.inOut" }, t);
+        A.tl.to(e, { opacity: 0, duration: 0.2 }, t + d + 0.3);
+      };
+      // beat send (0.8)
+      msg("POST, key k1", 0.15, 0.5, 0.33, 0.8);
+      msg("run", 0.5, 0.84, 0.33, 1.9, 0.6);
+      A.tl.to(runs1, { opacity: 1, duration: 0.3 }, 2.6);
+      cap("The task sends 10 items with the key k1", 0.8, 2.8);
+      // beat timeout (2.9): the answer is slow, the client gives up
+      const to = A.text("timeout after " + D.timeout_s + " s", { x: 0.15, y: 0.62, size: 28, weight: 700, color: "var(--a-acc)" });
+      gsap.set(to, { opacity: 0 }); A.tl.to(to, { opacity: 1, duration: 0.3 }, 3.0);
+      const st = A.text("answer stored for k1", { x: 0.5, y: 0.62, size: 26, mono: true });
+      gsap.set(st, { opacity: 0 }); A.tl.to(st, { opacity: 1, duration: 0.3 }, 3.2);
+      cap("The answer is slow, and the client does not know if the model ran", 2.9, 5.6);
+      // beat retry (5.8): backoff, then the same key
+      A.tl.to(to, { opacity: 0, duration: 0.3 }, 5.6);
+      const bo = A.text("backoff with jitter", { x: 0.15, y: 0.62, size: 28, color: "var(--a-mute)" });
+      gsap.set(bo, { opacity: 0 }); A.tl.to(bo, { opacity: 1, duration: 0.3 }, 5.8); A.tl.to(bo, { opacity: 0, duration: 0.3 }, 6.8);
+      msg("retry, key k1", 0.15, 0.5, 0.33, 7.0);
+      msg("stored answer", 0.5, 0.15, 0.27, 8.2, 0.8, "var(--a-ok)");
+      A.tl.fromTo(svc, { scale: 1 }, { scale: 1.06, duration: 0.25, yoyo: true, repeat: 1 }, 7.9);
+      cap("The retry gets the stored answer. The model does not run again", 7.0, 9.9);
+      // beat result (10.0)
+      cap(D.retried_texts + " texts needed a retry. Texts the model ran on twice: " + D.model_runs_more_than_once, 10.0);
+      A.in(A.note("speed of the motion: schematic; rules and counts from the service and the run"), 0.3);
+      A.finish(13);
+    </script>
+  </body>
+</html>

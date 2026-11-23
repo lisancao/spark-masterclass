@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Results: data.json (pyfiles.txt). Timing: schematic.
+      const D = {"source": "code/ch60/output/pyfiles.txt (Step 5): captured includes, the results of the old and new UDF, the two worker PIDs. Timing is schematic.", "pids": ["142738", "142740"]};
+      A.mount();
+      // beat open (0.0)
+      A.title("A UDF records its include list one time");
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.875, size: 36 }); A.in(c, t0); if (t1) A.out(c, t1); };
+      const old = A.box({ x: 0.17, y: 0.32, w: 400, h: 96, kind: "paper", title: "old UDF", sub: "includes: [ ]", size: 30 });
+      const nw = A.box({ x: 0.17, y: 0.56, w: 400, h: 96, kind: "ok", title: "new UDF", sub: "includes: [messytools.zip]", size: 30 });
+      gsap.set(nw, { opacity: 0 });
+      const wk = D.pids.map((p, i) => A.box({ x: 0.72, y: 0.3 + i * 0.27, w: 520, h: 150, kind: "soft", title: "worker " + p, sub: "sys.path: files root, pyspark.zip", size: 28 }));
+      const wk2 = D.pids.map((p, i) => A.box({ x: 0.72, y: 0.3 + i * 0.27, w: 520, h: 150, kind: "soft", title: "worker " + p, sub: "sys.path: ..., messytools.zip", size: 28 }));
+      gsap.set(wk2, { opacity: 0 });
+      const res = (s, i, t, col, keep) => { const e = A.text(s, { x: 0.45, y: 0.3 + i * 0.27, size: 26, mono: true, color: col }); gsap.set(e, { opacity: 0 }); A.tl.to(e, { opacity: 1, duration: 0.3 }, t); if (!keep) A.tl.to(e, { opacity: 0, duration: 0.3 }, t + 1.8); };
+      const task = (fromY, t) => D.pids.forEach((_, i) => { const dd = A.dot({ x: 0.3, y: fromY, r: 14, color: "var(--a-acc)" });
+        A.tl.set(dd, { opacity: 1 }, t); A.tl.to(dd, { x: A.X(0.44), y: A.Y(0.3 + i * 0.27 - fromY), duration: 0.7 }, t); A.tl.set(dd, { opacity: 0 }, t + 0.7); });
+      // beat first (0.8): old UDF before addPyFile
+      task(0.32, 0.8);
+      res("ModuleNotFoundError", 0, 1.5, "var(--a-acc)"); res("ModuleNotFoundError", 1, 1.5, "var(--a-acc)");
+      cap("The old UDF records an empty include list", 0.8, 3.4);
+      // beat add (3.6): addPyFile, old UDF again
+      const add = A.box({ x: 0.17, y: 0.8 - 0.02, w: 400, h: 70, kind: "accent", title: "addPyFile(messytools.zip)", size: 24 });
+      gsap.set(add, { opacity: 0 }); A.tl.to(add, { opacity: 1, duration: 0.3 }, 3.6); A.tl.to(add, { opacity: 0, duration: 0.3 }, 6.2);
+      task(0.32, 4.4);
+      res("ModuleNotFoundError", 0, 5.1, "var(--a-acc)"); res("ModuleNotFoundError", 1, 5.1, "var(--a-acc)");
+      cap("After addPyFile, the old UDF still sends no include", 3.6, 7.0);
+      // beat new (7.2): the new UDF puts the zip on the workers' sys.path
+      A.tl.to(nw, { opacity: 1, duration: 0.3 }, 7.2);
+      task(0.56, 7.6);
+      A.tl.to(wk, { opacity: 0, duration: 0.3 }, 8.3); A.tl.to(wk2, { opacity: 1, duration: 0.3 }, 8.3);
+      res("messytools 1.0", 0, 8.4, "var(--a-ok)"); res("messytools 1.0", 1, 8.4, "var(--a-ok)");
+      cap("A new UDF adds the zip to the reused workers", 7.2, 10.2);
+      // beat leftover (10.4): old UDF works only on these workers
+      task(0.32, 10.4);
+      res("messytools 1.0", 0, 11.1, "var(--a-ok)", true); res("messytools 1.0", 1, 11.1, "var(--a-ok)", true);
+      cap("Now the old UDF works, but only on these two workers", 10.4);
+      A.in(A.note("worker PIDs and results from the run; timing schematic"), 0.3);
+      A.finish(14);
+    </script>
+  </body>
+</html>

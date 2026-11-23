@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <script src="data.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="17" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Seconds per pass come from data.js (built from iterative.txt).
+      // The lanes run in real time: one second on screen is one measured second.
+      A.mount();
+      const D = window.DATA, T0 = 1.0;
+
+      // beat open (0.0)
+      const [title, sub] = A.title("Ten passes over the same data", "one iterative job, two styles, Spark 4.3");
+
+      const lanes = [
+        { key: "mr", y: 0.36, col: "var(--a-acc)", kind: "accent", name: "MapReduce style", src: "read + parse text" },
+        { key: "rdd", y: 0.66, col: "var(--a-ok)", kind: "ok", name: "RDD with cache()", src: "cached partitions" },
+      ];
+      const X0 = 0.34, STEP = A.dx(100), CW = 88, CH = 64;
+      for (const L of lanes) {
+        A.text(L.name, { x: 0.05, y: L.y - A.dy(70), size: 40, weight: 700, color: L.col, anchor: "left" });
+        const disk = A.box({ x: 0.1, y: L.y + A.dy(10), w: 150, h: 80, kind: "ghost", title: "disk", size: 26, radius: 40 });
+        const mem = L.key === "rdd" ? A.box({ x: 0.235, y: L.y + A.dy(10), w: 170, h: 80, kind: "ok", title: "memory", size: 26 }) : null;
+        let t = T0, total = 0;
+        D.passes.forEach((p, i) => {
+          const s = p[L.key];
+          const x = X0 + i * STEP;
+          A.box({ x, y: L.y + A.dy(10), w: CW, h: CH, kind: "soft", title: String(p.pass), size: 24 });
+          const fill = A.el("", { x, y: L.y + A.dy(10), css: { width: A.px(CW) + "px", height: A.px(CH) + "px",
+            background: L.col, opacity: 0.55, borderRadius: A.px(10) + "px" } });
+          gsap.set(fill, { scaleX: 0, transformOrigin: "0% 50%" });
+          A.tl.to(fill, { scaleX: 1, duration: s, ease: "none" }, t);
+          // where the pass reads from: disk for every MapReduce pass, disk only for the first cached pass
+          const from = (L.key === "mr" || i === 0) ? disk : mem;
+          A.tl.fromTo(from, { scale: 1.12 }, { scale: 1, duration: Math.min(0.4, s), ease: "power2.out" }, t);
+          if (L.key === "mr") A.tl.fromTo(disk, { scale: 1.12 }, { scale: 1, duration: 0.2 }, t + s - 0.2);
+          total += s; t += s;
+        });
+        const done = A.text(`10 passes: ${total.toFixed(1)} s`, { x: X0 + 9 * STEP + A.dx(44), y: L.y + A.dy(84), size: 34, weight: 700,
+          color: L.col, anchor: "right" });
+        A.in(done, t, { rise: 8 });
+        L.end = t;
+      }
+
+      // captions (bottom), one per beat
+      const cap = (s, a, b) => { const c = A.text(s, { y: 0.88, size: 38, weight: 500 }); A.in(c, a); if (b) A.out(c, b); return c; };
+      cap("Each MapReduce pass reads and parses all the input again", 0.6, lanes[1].end + 0.4);       // beat run
+      cap("cache() parses once, then every pass reads memory", lanes[1].end + 0.8, lanes[0].end + 0.2); // beat cached
+      cap(`Same answer. Median pass ${D.median_mr.toFixed(2)} s against ${D.median_rdd.toFixed(2)} s: ${D.ratio}x`,
+          lanes[0].end + 0.6);                                                                          // beat result
+      A.in(A.note("measured on one 16-core laptop, real time, ten passes over 3.8 million trips"), 0.5);
+      A.finish(17);
+    </script>
+  </body>
+</html>

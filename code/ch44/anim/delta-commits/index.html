@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from data.json (delta_log.txt). Timing is schematic.
+      A.title("Each change is a new commit", "a Delta table: WRITE, MERGE, DELETE (Delta 4.4.1 on Spark 4.2.0)");
+      A.text("_delta_log/", { x: 0.25, y: 0.22, size: 30, mono: true, color: "var(--a-mute)" });
+      A.text("data files on disk", { x: 0.72, y: 0.22, size: 30, color: "var(--a-mute)" });
+      const logBox = (v, op, acts, t) => {
+        const e = A.box({ x: 0.25, y: 0.32 + v * A.dy(110), w: 620, h: 90, kind: "soft", title: `${String(v).padStart(20, "0").slice(-5)}.json: ${op}`, sub: acts, size: 30 });
+        A.tl.fromTo(e, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, t); return e;
+      };
+      const fileBox = (i, name, rows, t) => {
+        const e = A.box({ x: 0.72, y: 0.32 + i * A.dy(110), w: 520, h: 90, kind: "ok", title: `${name}: part-00000-...`, sub: `${rows} rows`, size: 30 });
+        A.tl.fromTo(e, { opacity: 0, x: A.px(120) }, { opacity: 1, x: 0, duration: 0.5 }, t); return e;
+      };
+      const removed = (e, t) => A.tl.to(e, { opacity: 0.35, duration: 0.4 }, t);
+      // beat write (0.0)
+      const fA = fileBox(0, "A", 3, 0.8);
+      logBox(0, "WRITE", "add A", 2.0);
+      cap("A write adds a Parquet file, then creates the commit file", 0.2, 4.7);
+      // beat merge (4.8)
+      const fB = fileBox(1, "B", 5, 5.0);
+      const m = A.text("2 rows copied, 1 updated, 2 inserted", { x: 0.72, y: 0.32 + A.dy(160), size: 24, color: "var(--a-mute)" }); A.in(m, 5.4); A.out(m, 9.4);
+      logBox(1, "MERGE", "remove A, add B", 6.4);
+      removed(fA, 7.0);
+      cap("MERGE writes a new file and marks the old file as removed", 4.8, 9.5);
+      // beat delete (9.6)
+      const fC = fileBox(2, "C", 4, 9.8);
+      const d = A.text("4 rows copied to remove 1", { x: 0.72, y: 0.32 + A.dy(270), size: 24, color: "var(--a-mute)" }); A.in(d, 10.2); A.out(d, 14.2);
+      logBox(2, "DELETE", "remove B, add C", 11.2);
+      removed(fB, 11.8);
+      cap("DELETE copies four rows to remove one: copy-on-write", 9.6, 14.3);
+      // beat read (14.4): two readers
+      const r1 = A.box({ x: 0.30, y: 0.72, w: 640, h: 80, kind: "ok", title: "read as delta: 4 rows", sub: "the log of version 2 lists file C only", size: 28 });
+      const r2 = A.box({ x: 0.72, y: 0.72, w: 560, h: 80, kind: "accent", title: "read as parquet: 12 rows", sub: "every file that is still on disk", size: 28 });
+      gsap.set([r1, r2], { opacity: 0 }); A.in(r1, 14.6); A.in(r2, 15.4);
+      A.tl.fromTo([fA, fB, fC], { scale: 1 }, { scale: 1.04, duration: 0.25, yoyo: true, repeat: 1 }, 15.4);
+      cap("The log decides what a reader sees: 4 rows, not 12", 14.4);
+      A.in(A.note("operations, row counts and reads from delta_log.txt; timing schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>

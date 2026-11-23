@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 300" width="780" height="300" role="img"><title>The processes of a UDF query in three settings, with their PIDs</title><defs><marker id="m8a919e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a919e"/></marker><marker id="m8a919es" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#8a919e"/></marker></defs><rect x="12" y="10" width="244" height="280" rx="10" fill="none" stroke="#8a919e" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="24" y="29.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="600">defaults</text>
+<rect x="24" y="40" width="220" height="34" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="134.0" y="54.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">driver Python</text>
+<text x="134.0" y="69.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">pid 812921</text>
+<rect x="24" y="88" width="220" height="34" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="134.0" y="102.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">JVM (driver + executor)</text>
+<text x="134.0" y="117.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">pid 812941</text>
+<rect x="54" y="136" width="160" height="34" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="134.0" y="150.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">pyspark.daemon</text>
+<text x="134.0" y="165.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">814789</text>
+<line x1="134" y1="123" x2="134" y2="134" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<line x1="134" y1="170" x2="82" y2="184" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<line x1="134" y1="170" x2="186" y2="184" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<rect x="24" y="186" width="104" height="34" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="76.0" y="200.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">worker</text>
+<text x="76.0" y="215.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">814942</text>
+<rect x="140" y="186" width="104" height="34" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="192.0" y="200.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">worker</text>
+<text x="192.0" y="215.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">814943</text>
+<text x="134" y="242.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400" font-style="italic">2 workers for 12 tasks</text>
+<text x="134" y="256.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400" font-style="italic">rows seen by one worker: 4, 8, 12</text>
+<rect x="268" y="10" width="244" height="280" rx="10" fill="none" stroke="#8a919e" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="280" y="29.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="600">worker.reuse = false</text>
+<rect x="280" y="40" width="220" height="34" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="390.0" y="54.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">driver Python</text>
+<text x="390.0" y="69.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">pid 815191</text>
+<rect x="280" y="88" width="220" height="34" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="390.0" y="102.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">JVM (driver + executor)</text>
+<text x="390.0" y="117.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">pid 815205</text>
+<rect x="310" y="136" width="160" height="34" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="390.0" y="150.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">pyspark.daemon</text>
+<text x="390.0" y="165.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">815986</text>
+<line x1="390" y1="123" x2="390" y2="134" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<line x1="390" y1="170" x2="338" y2="184" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<line x1="390" y1="170" x2="442" y2="184" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<rect x="280" y="186" width="104" height="34" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="332.0" y="200.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">worker</text>
+<text x="332.0" y="215.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">4 new forks</text>
+<rect x="396" y="186" width="104" height="34" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="448.0" y="200.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">worker</text>
+<text x="448.0" y="215.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">per job</text>
+<text x="390" y="246.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400" font-style="italic">12 workers for 12 tasks</text>
+<rect x="524" y="10" width="244" height="280" rx="10" fill="none" stroke="#8a919e" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="536" y="29.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="600">use.daemon = false</text>
+<rect x="536" y="40" width="220" height="34" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="646.0" y="54.6" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">driver Python</text>
+<text x="646.0" y="69.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">pid 816380</text>
+<rect x="536" y="88" width="220" height="34" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="646.0" y="102.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">JVM (driver + executor)</text>
+<text x="646.0" y="117.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">pid 816388</text>
+<line x1="646" y1="123" x2="594" y2="134" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<line x1="646" y1="123" x2="698" y2="134" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<rect x="536" y="136" width="104" height="34" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="588.0" y="150.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">worker</text>
+<text x="588.0" y="165.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">4 new Pythons</text>
+<rect x="652" y="136" width="104" height="34" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="704.0" y="150.7" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">worker</text>
+<text x="704.0" y="165.2" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="400">per job</text>
+<text x="646" y="196.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#8a919e" text-anchor="middle" font-weight="400" font-style="italic">12 workers, each a child of the JVM</text></svg>

@@ -1,26 +1,26 @@
-# Spark Masterclass, Chapter 42: calling models and services. Storyboard: notes/part07.md.
-#   film render code/film/ch42.tape --format chapter
+# Spark Masterclass, Chapter 42. Storyboard: storyboard-part05.md.
+#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch42.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4227 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4025 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: runs | How many rows go into the model for each action
-Type "# one labelled DataFrame, five actions: how many rows reach the model?" Enter
-Sleep 500ms
-Type "python ch42/inference.py 2>/dev/null | sed -n '/how many times/,/cache()/p' | grep -v 'filter plan' | cut -c1-92" Enter
-Wait@900s
-Sleep 10s
 
-# beat: requests | One request per row, then a client per partition
-Type "clear" Enter
-Type "# the same 232 texts: a UDF per row, then mapInPandas with batches and a rate limit" Enter
+# beat: rules | What Real-time Mode accepts
+Type "# each probe starts a query with trigger(realTime='5 seconds')" Enter
 Sleep 500ms
-Type "python ch42/calling.py 2>/dev/null | sed -n '/once per row/,/largest request 10/p' | cut -c1-92" Enter
-Wait@900s
-Sleep 10s
+Type "python ch42/r1_rules.py 2>/dev/null | grep -E '^(Each|The trigger|  )' | sed -E 's/STREAMING_REAL_TIME_MODE/RTM/; s/  [(]from the running query[)]/ (late)/'" Enter
+Wait@400s
+Sleep 12s
+
+# beat: latency | Latency, micro-batch against Real-time
+Type "# 200 records/s through a running count, Kafka to Kafka, both engines" Enter
+Sleep 500ms
+Type "python ch42/r2_latency.py 200 20 mb_count rtm_count 2>/dev/null | sed -E 's/ +/ /g'" Enter
+Wait@400s
+Sleep 12s

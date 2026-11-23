@@ -1,28 +1,38 @@
-# Spark Masterclass, Chapter 22: Parquet from the inside.
-#   film render code/film/ch22.tape --format chapter
-Set TypingSpeed 40ms
+# Spark Masterclass, Chapter 22: building an application on a Connect client.
+#   SCRATCH=<build dir> film render code/film/ch22.tape --format chapter
+# Needs: ch21/server.sh start and ch22/run.sh build.
+Set TypingSpeed 35ms
 Set WaitPattern /❯$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4139 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && setopt interactivecomments" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: footer | The bytes at the two ends of a Parquet file
-Type "# PAR1, the footer length, and the Thrift footer read by hand" Enter
-Sleep 500ms
-Type "python ch22/footer.py 2>/dev/null | sed -n '1,27p' | cut -c1-94" Enter
-Wait@180s
-Sleep 12s
+# beat: heavy | Six months aggregated by Spark, back as Arrow, into Polars
+Type "# the app: Spark does six months of trips; the answer comes back as Arrow" Enter
+Sleep 400ms
+Type "ch22/run.sh show | sed -n '/== 1/,/^schema/p'" Enter
+Wait@60s
+Sleep 6s
 
-# beat: skipping | Rows the Parquet reader returned, layout by layout
+# beat: local | Follow-up questions in Polars and DuckDB, no round trip
 Hide
 Type "clear" Enter
 Show
-Type "# 2,000,000 events in four layouts: what can each filter skip?" Enter
-Sleep 500ms
-Type "python ch22/skipping.py layouts 2>/dev/null | sed -n '1,15p' | cut -c1-94" Enter
-Wait@600s
-Sleep 12s
+Type "# follow-up questions: Polars and DuckDB on the same Arrow data" Enter
+Sleep 400ms
+Type "ch22/run.sh show | sed -n '/== 4/,/question 1/p;/busiest/,/^$/p' | grep -v '^shape\|---\|^==\|^$'" Enter
+Wait@60s
+Sleep 8s
+
+# beat: retry | The server is down when the app starts; retries carry it through
+Hide
+Type "clear" Enter
+Show
+Type "# the server is down when the app starts; it comes back after 8 s" Enter
+Sleep 400ms
+Type "ch22/resilience.sh wait" Enter
+Wait@120s
+Sleep 6s

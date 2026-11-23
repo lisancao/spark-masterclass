@@ -1,0 +1,10 @@
+Connect server up: sc://localhost:15102, UI http://localhost:4142
+$ java --add-opens=java.base/java.nio=ALL-UNNAMED -cp <driver jars> ConnectJdbc.java jdbc:sc://localhost:15102
+driver:  Apache Spark Connect JDBC Driver 4.3.0
+product: Apache Spark Connect Server 4.3.0
+column 1: cat  STRING     VARCHAR
+column 2: t    STRING     VARCHAR
+column 3: a    ARRAY<INT> ARRAY
+column 4: st   STRUCT<x: INT NOT NULL> STRUCT
+row:     spark_catalog | array<int> | [1,2] | {"x":1}
+prepareStatement: SQLFeatureNotSupportedException

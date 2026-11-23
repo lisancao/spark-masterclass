@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 420" width="1120" height="420">
+<text x="20" y="26" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="700" fill="#1f2328" text-anchor="start">The parts of an application, with their class names in Spark 4.3</text>
+<rect x="20" y="45" width="420" height="330" rx="12" fill="#f3f4f6" stroke="#3a5f96" stroke-width="2"/>
+<text x="230" y="70" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#3a5f96" text-anchor="middle">driver JVM</text>
+<rect x="40" y="85" width="380" height="34" rx="6" fill="#dbe5f3" stroke="#3a5f96" stroke-width="1.5"/>
+<text x="52" y="107" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">SparkContext</text>
+<text x="408" y="107" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6370" text-anchor="end">creates the parts below</text>
+<rect x="40" y="125" width="380" height="34" rx="6" fill="#dbe5f3" stroke="#3a5f96" stroke-width="1.5"/>
+<text x="52" y="147" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">DAGScheduler</text>
+<text x="408" y="147" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6370" text-anchor="end">job -&gt; stages -&gt; TaskSets</text>
+<rect x="40" y="165" width="380" height="34" rx="6" fill="#dbe5f3" stroke="#3a5f96" stroke-width="1.5"/>
+<text x="52" y="187" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">TaskSchedulerImpl</text>
+<text x="408" y="187" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6370" text-anchor="end">TaskSetManager, locality</text>
+<rect x="40" y="205" width="380" height="34" rx="6" fill="#dbe5f3" stroke="#3a5f96" stroke-width="1.5"/>
+<text x="52" y="227" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">CoarseGrainedSchedulerBackend</text>
+<text x="408" y="227" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6370" text-anchor="end">offers, launches, RPC</text>
+<rect x="40" y="245" width="380" height="34" rx="6" fill="#dbe5f3" stroke="#3a5f96" stroke-width="1.5"/>
+<text x="52" y="267" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">BlockManagerMaster</text>
+<text x="408" y="267" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6370" text-anchor="end">where every block is</text>
+<rect x="40" y="285" width="380" height="34" rx="6" fill="#dbe5f3" stroke="#3a5f96" stroke-width="1.5"/>
+<text x="52" y="307" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">MapOutputTracker</text>
+<text x="408" y="307" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6370" text-anchor="end">where every map output is</text>
+<rect x="40" y="325" width="380" height="34" rx="6" fill="#dbe5f3" stroke="#3a5f96" stroke-width="1.5"/>
+<text x="52" y="347" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">LiveListenerBus</text>
+<text x="408" y="347" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6370" text-anchor="end">UI, event log, listeners</text>
+<rect x="520" y="45" width="280" height="330" rx="12" fill="#f3f4f6" stroke="#c0661a" stroke-width="2"/>
+<text x="660" y="70" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#c0661a" text-anchor="middle">executor 0 JVM</text>
+<rect x="535" y="85" width="250" height="34" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="660" y="107.0" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">CoarseGrainedExecutorBackend</text>
+<rect x="535" y="127" width="250" height="50" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="660" y="146" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">Executor: task threads</text>
+<rect x="590" y="155" width="60" height="14" rx="3" fill="#c0661a" stroke="#c0661a" stroke-width="1.5"/>
+<rect x="665" y="155" width="60" height="14" rx="3" fill="#c0661a" stroke="#c0661a" stroke-width="1.5"/>
+<rect x="535" y="185" width="250" height="34" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="660" y="207.0" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">BlockManager</text>
+<rect x="535" y="227" width="250" height="34" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="660" y="249.0" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">UnifiedMemoryManager</text>
+<rect x="535" y="269" width="250" height="34" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="660" y="291.0" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">SortShuffleManager</text>
+<text x="660" y="341" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="400" fill="#5b6370" text-anchor="middle">local dir: blockmgr-*/</text>
+<text x="660" y="359" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6370" text-anchor="middle">shuffle files, spills</text>
+<rect x="820" y="45" width="280" height="330" rx="12" fill="#f3f4f6" stroke="#c0661a" stroke-width="2"/>
+<text x="960" y="70" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#c0661a" text-anchor="middle">executor 1 JVM</text>
+<rect x="835" y="85" width="250" height="34" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="960" y="107.0" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">CoarseGrainedExecutorBackend</text>
+<rect x="835" y="127" width="250" height="50" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="960" y="146" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">Executor: task threads</text>
+<rect x="890" y="155" width="60" height="14" rx="3" fill="#c0661a" stroke="#c0661a" stroke-width="1.5"/>
+<rect x="965" y="155" width="60" height="14" rx="3" fill="#c0661a" stroke="#c0661a" stroke-width="1.5"/>
+<rect x="835" y="185" width="250" height="34" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="960" y="207.0" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">BlockManager</text>
+<rect x="835" y="227" width="250" height="34" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="960" y="249.0" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">UnifiedMemoryManager</text>
+<rect x="835" y="269" width="250" height="34" rx="6" fill="#f6e3d3" stroke="#c0661a" stroke-width="1.5"/>
+<text x="960" y="291.0" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1f2328" text-anchor="middle">SortShuffleManager</text>
+<text x="960" y="341" font-family="'JetBrains Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" font-weight="400" fill="#5b6370" text-anchor="middle">local dir: blockmgr-*/</text>
+<text x="960" y="359" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6370" text-anchor="middle">shuffle files, spills</text>
+<line x1="440" y1="230" x2="518" y2="230" stroke="#3a5f96" stroke-width="1.8"/>
+<polygon points="518,230 509.7,233.5 509.7,226.5" fill="#3a5f96"/>
+<text x="479" y="222" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">tasks</text>
+<line x1="518" y1="260" x2="440" y2="260" stroke="#c0661a" stroke-width="1.8"/>
+<polygon points="440,260 448.3,256.5 448.3,263.5" fill="#c0661a"/>
+<text x="479" y="278" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6370" text-anchor="middle">status</text>
+<line x1="800" y1="300" x2="820" y2="300" stroke="#2f7d4f" stroke-width="1.8"/>
+<polygon points="820,300 811.7,303.5 811.7,296.5" fill="#2f7d4f"/>
+<line x1="820" y1="310" x2="800" y2="310" stroke="#2f7d4f" stroke-width="1.8"/>
+<polygon points="800,310 808.3,306.5 808.3,313.5" fill="#2f7d4f"/>
+<text x="810" y="395" font-family="Inter, 'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#2f7d4f" text-anchor="middle">shuffle fetch between executors</text>
+</svg>

@@ -1,46 +1,38 @@
-# Spark Masterclass, Chapter 24: acceleration. Storyboard: storyboard.md.
-#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch24.tape --format chapter
+# Spark Masterclass, Chapter 24: Spark Connect in production. Storyboard: notes/part08.md.
+#   film render code/film/ch24.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4062 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python && alias py41=$BOOK_DATA/ch24/venv-4.1.1/bin/python py42=$BOOK_DATA/ch24/venv-4.2.0/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4028 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: blocked | The newest engine releases on Spark 4.3.0
-Type "# Spark 4.3.0 with the newest RAPIDS and Gluten jars: does each one start?" Enter
+# beat: isolation | Two sessions on one server: what is isolated, what is shared
+Type "# session A sets state; what does session B on the same server see?" Enter
 Sleep 500ms
-Type "python ch24/blocked_43.py --one rapids 2>/dev/null | cut -c1-170 | fold -w 90" Enter
-Wait@180s
-Sleep 4s
-Type "python ch24/blocked_43.py --one gluten 2>/dev/null | fold -w 90" Enter
-Wait@180s
-Sleep 8s
+Type "python ch24/isolation.py 2>/dev/null" Enter
+Wait@240s
+Sleep 12s
 
-# beat: fallback | Gluten with Spark's defaults, then with two settings changed
+# beat: lifecycle | Idle timeout, release, restart, interrupt
 Hide
 Type "clear" Enter
 Show
-Type "# Gluten 1.7.0 on Spark 4.1.1, Spark defaults (ANSI on, TIMESTAMP_NTZ)" Enter
+Type "# how a session ends: timeout, release, server restart, interruptTag" Enter
 Sleep 500ms
-Type "py41 ch24/plans.py gluten --defaults hourly 2>/dev/null | grep '^hourly'" Enter
+Type "python ch24/lifecycle.py 2>/dev/null | cut -c1-94" Enter
 Wait@240s
-Sleep 3s
-Type "# the same query with ANSI off and pickup times read as TIMESTAMP" Enter
-Sleep 500ms
-Type "py41 ch24/plans.py gluten hourly 2>/dev/null | grep '^hourly'" Enter
-Wait@240s
-Sleep 10s
+Sleep 12s
 
-# beat: gpu | The same query on the GPU
+# beat: feather | Single-task execution in one session of a shared server
 Hide
 Type "clear" Enter
 Show
-Type "# RAPIDS 26.10.0 (cuDF, CUDA 13) on Spark 4.2.0, RTX 5070 Ti" Enter
+Type "# new in 4.3: one session turns on single-task execution" Enter
 Sleep 500ms
-Type "py42 ch24/plans.py rapids hourly 2>/dev/null | tail -n +2" Enter
+Type "python ch24/feather_server.py 2>/dev/null" Enter
 Wait@240s
-Sleep 10s
+Sleep 12s

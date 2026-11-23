@@ -1,0 +1,3 @@
+session class: pyspark.sql.connect.session.SparkSession
+trips: 3,837,248 | server-side session: 65f15f90
+select('revenue') raised nothing: analysis waits for an action, as in any Connect session

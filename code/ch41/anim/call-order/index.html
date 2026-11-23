@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from data.json (t2_sessions.txt; the new timer follows the Sessionizer code). Timing is schematic.
+      const s = (t) => { const [h, m, x] = t.split(":").map(Number); return h * 3600 + m * 60 + x; };
+      const T0 = s("08:55:00"), T1 = s("11:25:00"), XL = 0.06, XR = 0.94;
+      const X = (t) => XL + (s(t) - T0) / (T1 - T0) * (XR - XL);
+      const AY = 0.50;
+      // beat open (0.0): u1's open session and its timer, before batch 2
+      A.title("Batch 2 of the Sessionizer, key u1", "event-time timers: the call order inside one batch");
+      A.line({ x1: XL, y1: AY + 0.07, x2: XR, y2: AY + 0.07, color: "var(--a-mute)" });
+      ["09:00:00", "09:30:00", "10:00:00", "10:30:00", "11:00:00"].forEach((t) => A.text(t.slice(0, 5), { x: X(t), y: AY + 0.07 + A.dy(28), size: 22, color: "var(--a-mute)" }));
+      const sess = A.box({ x: (X("09:00:14") + X("09:09:18")) / 2, y: AY, w: Math.max(40, (A.X(X("09:09:18")) - A.X(X("09:00:14"))) / A.s), h: 60, kind: "soft", size: 20 });
+      A.text("session: 3 clicks", { x: X("09:04:00"), y: AY - A.dy(56), size: 24 });
+      const timer = A.text("&#9670; timer 09:39:18", { x: X("09:39:18"), y: AY, size: 26, weight: 700 });
+      cap("u1 has an open session and a timer at 09:39:18", 0.2, 4.7);
+      // beat watermark (4.8): batch 2 runs with watermark 10:02:28, past the timer; c018 is in its input
+      const wm = A.el(`<div style="font-size:${A.px(22)}px;color:var(--a-acc);font-weight:700;text-align:center;white-space:nowrap">watermark 10:02:28</div><div style="width:${A.px(4)}px;height:${A.px(200)}px;background:var(--a-acc);margin:auto"></div>`,
+        { x: X("10:02:28"), y: AY - A.dy(40), css: { width: A.px(240) + "px" } });
+      A.in(wm, 5.0);
+      A.tl.to(timer, { color: "var(--a-acc)", duration: 0.3 }, 5.8);
+      const c018 = A.dot({ x: X("10:45:56"), y: AY, r: 14, color: "var(--a-fg)" });
+      A.tl.fromTo(c018, { opacity: 0, y: -A.px(120) }, { opacity: 1, y: 0, duration: 0.5 }, 6.6);
+      const cl = A.text("c018 at 10:45:56", { x: X("10:45:56"), y: AY - A.dy(56), size: 24, mono: true }); A.in(cl, 6.8);
+      cap("Batch 2: the timer expired, and a new click arrived", 4.8, 9.5);
+      // beat input (9.6): handleInputRows runs first
+      const step1 = A.code("1. handleInputRows(u1, [c018])\n   10:45:56 > 09:09:18 + 30 min: closed by gap", { x: 0.5, y: 0.25, w: 1200, size: 28 });
+      gsap.set(step1, { opacity: 0 }); A.in(step1, 9.7);
+      A.tl.to(sess, { opacity: 0.2, duration: 0.6 }, 10.6);
+      const row = A.text("u1 | 09:00:14 | 09:09:18 | 3 | 16.39 | gap", { x: 0.3, y: 0.80, size: 28, mono: true, color: "var(--a-acc)", weight: 700 });
+      A.in(row, 11.0);
+      A.tl.to(timer, { opacity: 0, duration: 0.3 }, 12.0);
+      const nt = A.text("&#9670; new timer 11:15:56", { x: X("11:10:00"), y: AY + A.dy(56), size: 24, weight: 600 });
+      A.in(nt, 12.4);
+      cap("handleInputRows runs first, sees the gap, and closes the session", 9.6, 14.3);
+      // beat timer (14.4): handleExpiredTimer finds no old timer for u1
+      A.out(step1, 14.4);
+      const step2 = A.code("2. handleExpiredTimer: the old timer of u1 is gone", { x: 0.5, y: 0.25, w: 1200, size: 28 });
+      gsap.set(step2, { opacity: 0 }); A.in(step2, 14.6);
+      cap("Then the timers run, so the session closed by gap, not by timer", 14.4);
+      A.in(A.note("times and the closed row from t2_sessions.txt; timing schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>

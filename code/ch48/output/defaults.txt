@@ -1,0 +1,11 @@
+$ spark-pipelines run --remote sc://localhost:15104 2>&1 | ev
+probe: spark.sql.shuffle.partitions   = 200
+probe: spark.sql.adaptive.enabled     = true
+probe: taxi.min_fare                  = <not set>
+probe: spark.sql.catalogImplementation = hive
+probe: current catalog and database   = spark_catalog default
+probe: TAXI_ENV in the CLI process    = <not set>
+Run is COMPLETED.
+$ files borough_daily zones_by_borough
+borough_daily      1 part files
+zones_by_borough   1 part files

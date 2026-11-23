@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="12" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Events and results: data.json (c-01 in drops.txt).
+      A.mount();
+      // beat open (0.0)
+      A.title("SCD Type 2: close one version, open the next");
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.92, size: 38 }); A.in(c, t0); if (t1) A.out(c, t1); };
+      const L = 0.23, R = 0.66;
+      A.text("customers_current (SCD Type 1)", { x: L, y: 0.34, size: 32, weight: 700 });
+      A.text("customers_history (SCD Type 2)", { x: R, y: 0.34, size: 32, weight: 700 });
+      const hdr = (x, cols, ws) => { let xx = x; cols.forEach((c, i) => { A.text(c, { x: xx, y: 0.41, size: 24, mono: true, color: "var(--a-mute)", anchor: "left" }); xx += ws[i]; }); };
+      const WS1 = [A.dx(190), A.dx(120)], WS2 = [A.dx(190), A.dx(190), A.dx(170)];
+      const x1 = L - A.dx(160), x2 = R - A.dx(270);
+      hdr(x1, ["city", "seq"], WS1);
+      hdr(x2, ["city", "__START_AT", "__END_AT"], WS2);
+      const ROW = (k) => 0.48 + k * A.dy(70);
+      const cell = (s, x, y, t, o = {}) => { const e = A.text(s, { x, y, size: 34, mono: true, anchor: "left", ...o }); gsap.set(e, { opacity: 0 }); A.tl.to(e, { opacity: 1, duration: 0.35 }, t); return e; };
+      const swap = (a, b, t) => { A.tl.to(a, { opacity: 0, duration: 0.3 }, t); A.tl.to(b, { opacity: 1, duration: 0.3 }, t); };
+      const chip = (s, t0, t1) => { const b = A.box({ x: 0.5, y: 0.205, w: 760, h: 70, kind: "accent", title: s, size: 30 }); A.in(b, t0); if (t1) A.out(b, t1); };
+
+      // beat e1 (1.0): Toronto, seq 1
+      chip("c-01 from file 1: Toronto, seq 1", 0.9, 2.9);
+      const s1a = cell("Toronto", x1, ROW(0), 1.5), s1b = cell("1", x1 + WS1[0], ROW(0), 1.5);
+      const tA = cell("Toronto", x2, ROW(0), 1.5), tS = cell("1", x2 + WS2[0], ROW(0), 1.5);
+      const tE0 = cell("NULL", x2 + WS2[0] + WS2[1], ROW(0), 1.5, { color: "var(--a-mute)" });
+      cap("Each new value closes the current version", 1.0, 5.3);
+
+      // beat e2 (3.0): Hanoi, seq 5
+      chip("c-01 from file 1: Hanoi, seq 5", 3.0, 5.3);
+      const s2a = cell("Hanoi", x1, ROW(0), 99), s2b = cell("5", x1 + WS1[0], ROW(0), 99);
+      swap([s1a, s1b], [s2a, s2b], 3.6);
+      const tE1 = cell("5", x2 + WS2[0] + WS2[1], ROW(0), 99, { color: "var(--a-acc)", weight: 700 });
+      swap(tE0, tE1, 3.6);
+      const hA = cell("Hanoi", x2, ROW(1), 4.0), hS = cell("5", x2 + WS2[0], ROW(1), 4.0);
+      const hE = cell("NULL", x2 + WS2[0] + WS2[1], ROW(1), 4.0, { color: "var(--a-mute)" });
+
+      // beat e3 (5.6): Ottawa, seq 4, arrives late
+      chip("c-01 from file 2: Ottawa, seq 4 (late)", 5.5);
+      const no = A.text("seq 4 is older than seq 5: no change", { x: L, y: ROW(1) + A.dy(10), size: 26, color: "var(--a-acc)" });
+      A.in(no, 6.2);
+      A.tl.to([hA, hS, hE], { y: A.Y(ROW(2) - ROW(1)), duration: 0.6, ease: "power2.inOut" }, 6.1);
+      const tE2 = cell("4", x2 + WS2[0] + WS2[1], ROW(0), 99, { color: "var(--a-acc)", weight: 700 });
+      swap(tE1, tE2, 6.7);
+      cell("Ottawa", x2, ROW(1), 7.0, { color: "var(--a-acc)", weight: 700 });
+      cell("4", x2 + WS2[0], ROW(1), 7.0, { color: "var(--a-acc)", weight: 700 });
+      cell("5", x2 + WS2[0] + WS2[1], ROW(1), 7.0, { color: "var(--a-acc)", weight: 700 });
+      cap("A late event goes into its place by seq", 5.6);
+      A.finish(12);
+    </script>
+  </body>
+</html>

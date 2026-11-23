@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 260" width="780" height="260" role="img"><title>The rows of plan_nodes(df) and the optimized plan that they describe</title><defs><marker id="m8a919e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a919e"/></marker><marker id="m8a919es" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" fill="#8a919e"/></marker></defs><text x="20" y="24.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">id</text>
+<text x="60" y="24.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">parent</text>
+<text x="140" y="24.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">depth</text>
+<text x="210" y="24.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="700">node</text>
+<text x="20" y="52.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">0</text>
+<text x="60" y="52.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">NULL</text>
+<text x="140" y="52.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">0</text>
+<text x="210" y="52.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">Aggregate</text>
+<text x="20" y="82.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">1</text>
+<text x="60" y="82.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">0</text>
+<text x="140" y="82.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">1</text>
+<text x="210" y="82.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">Project</text>
+<text x="20" y="112.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">2</text>
+<text x="60" y="112.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">1</text>
+<text x="140" y="112.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">2</text>
+<text x="210" y="112.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">Filter</text>
+<text x="20" y="142.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">3</text>
+<text x="60" y="142.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">2</text>
+<text x="140" y="142.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">3</text>
+<text x="210" y="142.0" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">Range</text>
+<line x1="300" y1="100" x2="380" y2="100" stroke="#8a919e" stroke-width="2" marker-end="url(#m8a919e)"/>
+<text x="340" y="90.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="middle" font-weight="400">as a tree</text>
+<rect x="420" y="20" width="250" height="36" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="545.0" y="41.9" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">Aggregate [k, count(1)]</text>
+<rect x="446" y="72" width="250" height="36" rx="6" fill="#4b5563" fill-opacity="1.0"/>
+<text x="571.0" y="93.9" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">Project [(id % 2) AS k]</text>
+<path d="M432,56 L432,90 L444,90" fill="none" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<rect x="472" y="124" width="250" height="36" rx="6" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="597.0" y="145.9" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">Filter (id &gt; 3)</text>
+<path d="M458,108 L458,142 L470,142" fill="none" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<rect x="498" y="176" width="250" height="36" rx="6" fill="#c0661a" fill-opacity="1.0"/>
+<text x="623.0" y="197.9" font-family="'Roboto Mono', 'DejaVu Sans Mono', Menlo, monospace" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">Range (0, 10)</text>
+<path d="M484,160 L484,194 L496,194" fill="none" stroke="#8a919e" stroke-width="1.5" marker-end="url(#m8a919e)"/>
+<text x="20" y="200.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="600">The relation plugin walks the plan depth first on the server</text>
+<text x="20" y="218.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">and returns one row for each node, as a usual DataFrame.</text>
+<text x="20" y="244.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#8a919e" text-anchor="start" font-weight="400" font-style="italic">From plugins.txt: spark.range(10).filter(&#x27;id &gt; 3&#x27;).groupBy(id % 2).count(), optimized plan (details shortened).</text></svg>

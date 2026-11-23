@@ -1,38 +1,27 @@
-# Spark Masterclass, Chapter 50: Python data sources I. Storyboard: storyboard-part09a.md.
-#   film render code/film/ch50.tape --format chapter
+# Spark Masterclass, Chapter 50: medallion. Storyboard: notes/part06.md (film section).
+#   film render code/film/ch50.tape --format chapter (after ch50/two_runs.sh and ch50/gate.sh)
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4029 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} SPARK_UI_PORT=4026 W=${BOOK_DATA:-$HOME/spark-masterclass/data}/work/part06 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: where | Which process runs each method
-Type "# a traced Python data source: each method logs its process id" Enter
+# beat: incremental | The second run read only the new file
+Type "# each pipeline run is one Spark event log: read the streaming progress of bronze" Enter
 Sleep 500ms
-Type "python ch50/where_it_runs.py 2>/dev/null | sed -n '/^driver/,/^The plan/p'" Enter
-Wait@120s
+Type "python ch50/progress.py $W/ch50-shop | cut -c1-92" Enter
 Sleep 12s
 
-# beat: balance | Partitions balanced by bytes
+# beat: gate | The gate stopped silver, and silver is empty
 Hide
 Type "clear" Enter
 Show
-Type "# 26 files to 3 tasks: dealt in turn, or largest file first" Enter
+Type "# day 3 broke the gate: what is left in each table?" Enter
 Sleep 500ms
-Type "python ch50/docs_source.py 2>/dev/null | sed -n '1,3p;/^Bytes per task/,/^$/p'" Enter
+Type "SHOW=1 python ch49/show_tables.py $W/ch50-quality quality_report silver_orders 2>/dev/null | grep -v tables" Enter
 Wait@120s
-Sleep 12s
-
-# beat: errors | When each error appears
-Hide
-Type "clear" Enter
-Show
-Type "# planning errors fail at the first action, read() errors fail in a task" Enter
-Sleep 500ms
-Type "python ch50/counter.py 2>/dev/null | sed -n '/^schema()/,$p' | grep -v '^    [FA][an]'" Enter
-Wait@120s
-Sleep 12s
+Sleep 10s

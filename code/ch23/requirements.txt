@@ -1,0 +1,7 @@
+googleapis-common-protos==1.76.0
+grpcio==1.85.3
+grpcio-tools==1.85.3
+protobuf==7.36.2
+pyarrow==26.0.1
+setuptools==84.2.1
+typing-extensions==4.16.0

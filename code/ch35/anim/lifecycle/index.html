@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+
+      A.mount();
+      // caption at the bottom: one beat, held long enough to read twice
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.885, size: 38, weight: 500 }); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // Numbers from data.json (udtf_core.txt). The rows are the real rows of the first partition. Timing is schematic.
+      // beat open (0.0): one partition, its two rows, then one instance
+      A.title("The lifecycle of a Python UDTF", "Words on 6 rows in 3 partitions: the first partition");
+      A.text("partition 0", { x: 0.15, y: 0.27, size: 30, color: "var(--a-mute)" });
+      const r0 = A.box({ x: 0.15, y: 0.38, w: 330, h: 70, kind: "soft", title: "doc 0 has words", size: 28 });
+      const r1 = A.box({ x: 0.15, y: 0.50, w: 330, h: 70, kind: "soft", title: "doc 1 has words", size: 28 });
+      const inst = A.box({ x: 0.46, y: 0.44, w: 300, h: 230, kind: "ok", title: "Words", sub: "one instance", size: 36 });
+      gsap.set(inst, { opacity: 0 });
+      const meth = A.text("__init__()", { x: 0.46, y: 0.44 + A.dy(150), size: 30, mono: true, color: "var(--a-acc)", weight: 600 });
+      gsap.set(meth, { opacity: 0 });
+      A.tl.to(inst, { opacity: 1, duration: 0.5 }, 1.0);
+      A.tl.to(meth, { opacity: 1, duration: 0.3 }, 1.2); A.tl.to(meth, { opacity: 0, duration: 0.3 }, 4.4);
+      A.text("output rows", { x: 0.78, y: 0.20, size: 30, color: "var(--a-mute)" });
+      cap("One partition with two rows gets one Words instance", 0.2, 4.7);
+      // output rows, one per line
+      const outRow = (txt, i, t, hi) => {
+        const e = A.text(txt, { x: 0.66, y: 0.26 + i * A.dy(52), size: 27, mono: true, anchor: "left", color: hi ? "var(--a-acc)" : "var(--a-fg)", weight: hi ? 700 : 400 });
+        A.in(e, t, { dur: 0.3 }); return e;
+      };
+      const label = (txt, t0, t1) => { const m = A.text(txt, { x: 0.46, y: 0.44 + A.dy(150), size: 28, mono: true, color: "var(--a-acc)", weight: 600 }); A.in(m, t0, { dur: 0.3 }); A.out(m, t1, { dur: 0.3 }); };
+      const feed = (row, t) => { A.tl.to(row, { x: A.X(0.46 - 0.15), scale: 0.6, opacity: 0, duration: 0.7, ease: "power2.in" }, t); };
+      // beat eval1 (4.8)
+      feed(r0, 4.9); label("eval(\"doc 0 has words\")", 5.2, 9.3);
+      ["doc", "0", "has", "words"].forEach((w, i) => outRow(`doc 0 has words | ${w.padEnd(5).replace(/ /g, "&nbsp;")} | 1`, i, 5.8 + i * 0.35));
+      cap("Each eval call yields one row for each word", 4.8, 9.5);
+      // beat eval2 + terminate (9.6)
+      feed(r1, 9.7); label("eval(\"doc 1 has words\")", 9.9, 12.0);
+      ["doc", "1", "has", "words"].forEach((w, i) => outRow(`doc 1 has words | ${w.padEnd(5).replace(/ /g, "&nbsp;")} | 2`, 4 + i, 10.4 + i * 0.3));
+      label("terminate()", 12.2, 14.3);
+      outRow("doc 1 has words | &lt;end&gt; | 2", 8, 12.7, true);
+      cap("terminate runs once at the end and joins to the last row", 9.6, 14.3);
+      // beat cleanup (14.4)
+      label("cleanup()", 14.5, 16.0);
+      A.tl.to(inst, { opacity: 0.25, duration: 0.6 }, 15.6);
+      const sum = A.text("3 partitions x (8 + 1) rows = 27 rows", { x: 0.3, y: 0.72, size: 36, weight: 700 });
+      A.in(sum, 16.0);
+      cap("cleanup runs last, also after a failure", 14.4);
+      A.in(A.note("rows and counts from udtf_core.txt; timing schematic"), 0.4);
+
+      A.finish(20);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+plain ExecutePlan: 200000 rows
+reattachable ExecutePlan:
+  stream ended after 3 responses without ResultComplete: ReattachExecute
+  stream ended after 7 responses without ResultComplete: ReattachExecute
+  stream ended after 9 responses without ResultComplete: ReattachExecute
+  stream ended after 11 responses without ResultComplete: ReattachExecute
+  stream ended after 13 responses without ResultComplete: ReattachExecute
+  stream ended after 15 responses without ResultComplete: ReattachExecute
+  stream ended after 17 responses without ResultComplete: ReattachExecute
+  stream ended after 19 responses without ResultComplete: ReattachExecute
+  stream ended after 21 responses without ResultComplete: ReattachExecute
+  stream ended after 23 responses without ResultComplete: ReattachExecute
+  stream ended after 25 responses without ResultComplete: ReattachExecute
+  stream ended after 27 responses without ResultComplete: ReattachExecute
+  stream ended after 29 responses without ResultComplete: ReattachExecute
+  stream ended after 31 responses without ResultComplete: ReattachExecute
+  stream ended after 33 responses without ResultComplete: ReattachExecute
+  stream ended after 35 responses without ResultComplete: ReattachExecute
+  ResultComplete after 38 responses: ReleaseExecute
+  200000 rows, 21.4 MiB of Arrow data

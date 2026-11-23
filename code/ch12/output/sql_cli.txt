@@ -1,0 +1,45 @@
+== 1. spark-sql -e: one shell, a few statements
+$ spark-sql -e "SHOW CATALOGS; CREATE DATABASE taxi; ..."
+spark_catalog
+Time taken: 0.851 seconds, Fetched 1 row(s)
+spark_catalog	default
+Time taken: 0.478 seconds, Fetched 1 row(s)
+Time taken: 0.17 seconds
+Time taken: 2.065 seconds
+Queens	69
+Manhattan	69
+Brooklyn	61
+Bronx	43
+Staten Island	20
+EWR	1
+Unknown	1
+N/A	1
+Time taken: 1.924 seconds, Fetched 8 row(s)
+
+== 2. a second spark-sql process: the table is still in the metastore
+$ spark-sql --database taxi -e "SHOW TABLES; DESCRIBE TABLE EXTENDED zones"
+zones
+Time taken: 0.433 seconds, Fetched 1 row(s)
+Catalog             	spark_catalog       	                    
+Database            	taxi                	                    
+Table               	zones               	                    
+Owner               	lnc                 	                    
+Type                	EXTERNAL            	                    
+Provider            	csv                 	                    
+Location            	file:~/spark-masterclass/data/nyc-taxi/taxi_zone_lookup.csv	                    
+Time taken: 0.463 seconds, Fetched 20 row(s)
+
+== 3. spark-sql -f: a file of statements, with a variable from --hivevar
+$ spark-sql --hivevar borough=Bronx -f top_zones.sql
+Allerton/Pelham Gardens
+Bedford Park
+Belmont
+Time taken: 2.599 seconds, Fetched 3 row(s)
+
+== 4. what is on disk
+  .
+  ./derby.log
+  ./metastore_db
+  ./top_zones.sql
+  ./warehouse
+  ./warehouse/taxi.db

@@ -1,0 +1,28 @@
+== 1. one key, more sources each time (a new session for each row)
+  sources                                       shuffle  driver.memory    JVM heap
+  built-in defaults only                            200      (not set)    1024 MiB
+  + spark-env.sh (SPARK_DRIVER_MEMORY=3g)           200             3g    3072 MiB
+  + spark-defaults.conf (11, 1g)                     11             1g    1024 MiB
+  + --conf (12, 2g)                                  12             2g    2048 MiB
+  + --driver-memory 1500m                            12          1500m    1500 MiB
+  + builder.config (13, 4g)                          13             4g    1500 MiB
+  -- the same builder.config, with fewer sources under it
+  --conf (12, 2g) + builder.config                   13             4g    2048 MiB
+  builder.config (13, 4g) only                       13             4g    4096 MiB
+
+== 2. runtime changes in one session (the builder set 13)
+  after getOrCreate                            13
+  after spark.conf.set(..., 14)                14
+  after SET spark.sql.shuffle.partitions=15    15
++----------------------------+-----+
+|key                         |value|
++----------------------------+-----+
+|spark.sql.shuffle.partitions|15   |
++----------------------------+-----+
+
+  after RESET spark.sql.shuffle.partitions     13
+  after RESET (all keys)                       13
+  after spark.conf.unset                       200
+== 3. a second session on the same SparkContext
+  first session : 17
+  newSession()  : 13

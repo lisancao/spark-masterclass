@@ -1,38 +1,42 @@
-# Spark Masterclass, Chapter 18: reading query plans. 
+# Spark Masterclass, Chapter 18: Spark Connect. Storyboard: storyboard.md.
 #   film render code/film/ch18.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4139 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data CONNECT_PORT=15105 CONNECT_UI_PORT=4145 && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: rules | Which optimizer rules changed the plan
-Type "# 272 rules run on one query; which of them changed the plan?" Enter
-Sleep 500ms
-Type "python ch18/optimizer.py 2>/dev/null | sed -n '/rules ran/,$p'" Enter
+# beat: connect | A query and a mistake, over Spark Connect
+Hide
+Type "ch18/server.sh start >/dev/null; rm -f ../data/failed_op; clear" Enter
 Wait@120s
-Sleep 9s
-
-# beat: join | AQE changes a sort-merge join to a broadcast join
-Hide
-Type "clear" Enter
 Show
-Type "# the same join twice: AQE keeps sort-merge, then switches to broadcast" Enter
+Type "# the same DataFrame code, sent to a Connect server as a plan" Enter
 Sleep 500ms
-Type "python ch18/aqe.py joinbrief 2>/dev/null" Enter
-Wait@180s
-Sleep 12s
+Type "python ch18/connect.py 2>/dev/null | sed -n '/busiest/,/SQLSTATE/p'" Enter
+Wait@120s
+Sleep 10s
 
-# beat: skew | AQE splits the skewed pickup zones
+# beat: rest | The failed operation, from the server's REST API
 Hide
-Type "clear" Enter
+Type "export API=localhost:$CONNECT_UI_PORT/api/v1/applications/$(curl -s localhost:$CONNECT_UI_PORT/api/v1/applications | jq -r '.[0].id') OP=$(cat ../data/failed_op); clear" Enter
+Sleep 1s
 Show
-Type "# a sort-merge join on pickup zone: the busiest zones are 300x the median" Enter
+Type "# new in 4.3: look the operation up by the ID the client printed" Enter
 Sleep 500ms
-Type "python ch18/aqe.py skew 2>/dev/null | sed -n '/^rows/,$p' | cut -c1-94" Enter
+Type "curl -s $API/connect/operations | jq '.[] | select(.operationId == env.OP) | {operationId, state, executionTime, sqlExecIds, detail: .detail[0:120]}'" Enter
+Sleep 10s
+
+# beat: thin | The same server from pyspark-client: no jars, no Py4J
+Hide
+Type "export THIN=/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/connect-core; clear" Enter
+Show
+Type "# a client environment with only pyspark-client 4.3.0: how big, and does it work?" Enter
+Sleep 500ms
+Type "ch18/sizes.sh $THIN" Enter
 Wait@180s
 Sleep 10s

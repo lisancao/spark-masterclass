@@ -1,0 +1,18 @@
+# Chapter 63's kind cluster: one control plane and two workers.
+# The taxi data, the chapter's jobs and the Celeborn client jar are mounted into every worker node,
+# so driver and executor pods can read them through hostPath volumes. kind_up.sh fills in the paths.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ch63
+nodes:
+  - role: control-plane
+  - role: worker
+    extraMounts:
+      - {hostPath: __TAXI__, containerPath: /data/nyc-taxi, readOnly: true}
+      - {hostPath: __JOBS__, containerPath: /opt/ch63/jobs, readOnly: true}
+      - {hostPath: __JARS__, containerPath: /opt/ch63/jars, readOnly: true}
+  - role: worker
+    extraMounts:
+      - {hostPath: __TAXI__, containerPath: /data/nyc-taxi, readOnly: true}
+      - {hostPath: __JOBS__, containerPath: /opt/ch63/jobs, readOnly: true}
+      - {hostPath: __JARS__, containerPath: /opt/ch63/jars, readOnly: true}

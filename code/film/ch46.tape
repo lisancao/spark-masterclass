@@ -1,38 +1,31 @@
-# Spark Masterclass, Chapter 46: Spark Connect in production. Storyboard: notes/part08.md.
+# Spark Masterclass, Chapter 46: your first ETL pipeline. Storyboard: notes/v2-sdp.md (films).
 #   film render code/film/ch46.tape --format chapter
-Set TypingSpeed 40ms
-Set WaitPattern /❯$/
+Set TypingSpeed 35ms
+Set WaitPattern /❯ ?$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4028 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
-Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
+Type "bash --norc" Enter
+Sleep 500ms
+Type "export BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} CONNECT_PORT=15104 SPARK_UI_PORT=4144; . $FILM_DEMO/film/sdp-film.sh" Enter
+Sleep 2s
+Type "sdp_film_prepare ch46; spark-pipelines run $R >/dev/null 2>&1; PS1=$'\e[35m❯\e[0m '; clear" Enter
+Wait@240s
 Sleep 1s
 Show
 
-# beat: isolation | Two sessions on one server: what is isolated, what is shared
-Type "# session A sets state; what does session B on the same server see?" Enter
-Sleep 500ms
-Type "python ch46/isolation.py 2>/dev/null" Enter
-Wait@240s
-Sleep 12s
-
-# beat: lifecycle | Idle timeout, release, restart, interrupt
+# beat: day2 | A second day arrives; the next run reads only the new file
+Type "counts      # after the first run: one day of trips" Enter
+Wait@60s
+Sleep 3s
+Type "python make_days.py data/trips 2026-06-02" Enter
+Wait@60s
+Sleep 2s
+Type "spark-pipelines run $R 2>&1 | ev" Enter
+Wait@120s
+Sleep 3s
+Type "counts      # raw_trips = 111,546 + 126,260: the old file was not read again" Enter
+Wait@60s
+Sleep 8s
 Hide
-Type "clear" Enter
-Show
-Type "# how a session ends: timeout, release, server restart, interruptTag" Enter
-Sleep 500ms
-Type "python ch46/lifecycle.py 2>/dev/null | cut -c1-94" Enter
-Wait@240s
-Sleep 12s
-
-# beat: feather | Single-task execution in one session of a shared server
-Hide
-Type "clear" Enter
-Show
-Type "# new in 4.3: one session turns on single-task execution" Enter
-Sleep 500ms
-Type "python ch46/feather_server.py 2>/dev/null" Enter
-Wait@240s
-Sleep 12s
+Type "sdp_film_end" Enter
+Wait@60s

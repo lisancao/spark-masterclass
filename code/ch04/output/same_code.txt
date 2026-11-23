@@ -1,0 +1,42 @@
+inbox: ['2026-06-01.json', '2026-06-02.json', '2026-06-03.json']
+
+batch, top three zones:
+  zone 237  trips 21,559  revenue   474,331.46
+  zone 161  trips 19,304  revenue   546,614.52
+  zone 236  trips 19,068  revenue   430,656.29
+
+stream, first run: 3 micro-batches
+  batch 0: 111,104 input rows
+  batch 1: 125,784 input rows
+  batch 2: 139,672 input rows
+stream, top three zones:
+  zone 237  trips 21,559  revenue   474,331.46
+  zone 161  trips 19,304  revenue   546,614.52
+  zone 236  trips 19,068  revenue   430,656.29
+same rows as the batch query: True
+
+a fourth day lands; the same query restarts from its checkpoint:
+  batch 3: 146,152 input rows
+  state rows: 249  source startOffset: {"logOffset": 2}  endOffset: {"logOffset": 3}
+
+the physical plan of the last micro-batch:
+== Physical Plan ==
+WriteToDataSourceV2 MicroBatchWrite[epoch: 3, writer: org.apache.spark.sql.execution.streaming.sourc
++- *(4) HashAggregate(keys=[PULocationID#230], functions=[count(1), sum(total_amount#231)])
+   +- StateStoreSave [PULocationID#230], state info [ checkpoint = file:~/spark-masterclass-
+      +- *(3) HashAggregate(keys=[PULocationID#230], functions=[merge_count(1), merge_sum(total_amou
+         +- StateStoreRestore [PULocationID#230], state info [ checkpoint = file:~/spark-mas
+            +- *(2) HashAggregate(keys=[PULocationID#230], functions=[merge_count(1), merge_sum(tota
+               +- Exchange hashpartitioning(PULocationID#230, 4), REQUIRED_BY_STATEFUL_OPERATOR, [pl
+                  +- *(1) HashAggregate(keys=[PULocationID#230], functions=[partial_count(1), partia
+                     +- *(1) Filter (isnotnull(total_amount#231) AND (total_amount#231 > 0.0))
+                        +- FileScan json [PULocationID#230,total_amount#231] Batched: false, DataFil
+
+the physical plan of the batch query:
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- HashAggregate(keys=[PULocationID#23], functions=[count(1), sum(total_amount#24)])
+   +- Exchange hashpartitioning(PULocationID#23, 4), ENSURE_REQUIREMENTS, [plan_id=592]
+      +- HashAggregate(keys=[PULocationID#23], functions=[partial_count(1), partial_sum(total_amount
+         +- Filter (isnotnull(total_amount#24) AND (total_amount#24 > 0.0))
+            +- FileScan json [PULocationID#23,total_amount#24] Batched: false, DataFilters: [isnotnu
