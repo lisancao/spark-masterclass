@@ -178,7 +178,9 @@ val noise = Vectors.dense(Array.fill(d)(random.nextDouble()))
 distanceMeasure.symmetricCentroids(level, noise, center.vector)
 ```
 
-The size of the difference is proportional to the norm of the center. `StandardScaler` with `withMean=True` moves the center of all rows to the origin. Then the norm of the center is only a rounding error (6.6e-16 here), and the two new centers are almost the same point. The rounding error depends on the order of the sums, and that order depends on the partitions. The part notes record this result as an open problem.
+The size of the difference is proportional to the norm of the center. `StandardScaler` with `withMean=True` moves the center of all rows to the origin. Then the norm of the center is only a rounding error (6.6e-16 here), and the two new centers are almost the same point. The rounding error depends on the order of the sums, and that order depends on the partitions.
+
+`repro_bisecting.py` shows the same effect on synthetic data: three groups of 100 points, far apart. With 4 and 8 partitions, it found the three groups. With 1, 2, 16, 32 and 200 partitions, one cluster had all 300 points. The part notes record this result as an open problem.
 
 ```mermaid
 flowchart TB
