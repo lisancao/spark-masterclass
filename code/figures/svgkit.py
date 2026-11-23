@@ -109,4 +109,4 @@ class Svg:
         return path
 
 
-FIG = "/home/lnc/spark-masterclass-parts/vis-d/book/media/figures/"
+FIG = str(__import__("pathlib").Path(__file__).resolve().parents[2] / "book" / "media" / "figures") + "/"
