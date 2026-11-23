@@ -850,6 +850,180 @@ Spark 4.3 changed the shuffle manager API (SPARK-58185). `ShuffleManager` now ha
 !!! warning "Do not upgrade a Celeborn cluster to Spark 4.3 yet"
     Celeborn 0.7.0 does not work with Spark 4.3.0. The driver stops at start. Keep Spark 4.2 for jobs that use Celeborn until a Celeborn release supports Spark 4.3.
 
+## Step 12: The external shuffle service, without Kubernetes
+
+Steps 10 and 11 moved shuffle data out of the executors with Celeborn. Spark has its own service for the same problem on standalone and YARN: the **external shuffle service**. It runs in the worker (standalone) or in the NodeManager (YARN), not in the executor. When an executor writes a shuffle file, the service of its node can serve the file later. Thus dynamic allocation can remove an idle executor and keep its shuffle output.
+
+On Kubernetes, Spark has no such service. That is why Step 10 needed shuffle tracking or Celeborn.
+
+`ops/ess.sh` uses the standalone cluster of [Chapter 80](ch80-submitting-applications.md). The first try starts two workers on one machine, each with the service:
+
+```text
+--- two workers on one host, each with a shuffle service
+requirement failed: Starting multiple workers on one host is failed because we may launch 
+no more than one external shuffle service on each host, please set 
+spark.shuffle.service.enabled to false or set SPARK_WORKER_INSTANCES to 1 to resolve the 
+conflict.
+--- one worker with 4 cores and the shuffle service on port 7351
+worker shuffle service: Starting shuffle service on port 7351 (auth enabled = false)
+```
+
+A worker refuses to start a second service on the same host, because the port can have only one service. With the service, run one worker on each host. The script runs `ess_app.py` with `spark.dynamicAllocation.enabled=true`, `spark.shuffle.service.enabled=true`, `spark.shuffle.service.port=7351`, `spark.dynamicAllocation.minExecutors=0` and an idle timeout of 5 seconds:
+
+```text
+  6.0s  action 1: 258 zones   executors ['0']
+ 22.8s  idle timeout passed            executors []
+ 22.8s  action 2: 258 zones   executors ['1', '2']
+        stage 0  COMPLETE  tasks  1  shuffle read       0 B  write       0 B
+        stage 1  COMPLETE  tasks  2  shuffle read       0 B  write   4,703 B
+        stage 2  COMPLETE  tasks  8  shuffle read   4,703 B  write       0 B
+        stage 3  SKIPPED   tasks  2  shuffle read       0 B  write       0 B
+        stage 4  COMPLETE  tasks  8  shuffle read   4,703 B  write       0 B
+        executors removed during the run: 1, reasons: ['Executor killed by driver.']
+```
+
+Action 1 wrote the shuffle files (stage 1, 4,703 bytes). Then the application waited until dynamic allocation removed its only executor (`Executor killed by driver.`). Action 2 started new executors. Spark skipped the map stage (stage 3, `SKIPPED`), and the reduce tasks of stage 4 read the 4,703 bytes that executor 0 wrote. That executor was gone, so the shuffle service of the worker served the files.
+
+The rules of Spark 4.3.0 for dynamic allocation are these:
+
+| Cluster manager | What lets an idle executor go without a loss of shuffle data |
+|---|---|
+| standalone | `spark.shuffle.service.enabled=true` on the workers and in the application, one worker on each host |
+| YARN | the `spark_shuffle` auxiliary service in the NodeManager (`spark-*-yarn-shuffle.jar`) |
+| Kubernetes | no service. `spark.dynamicAllocation.shuffleTracking.enabled=true` keeps executors that hold shuffle data, or a remote shuffle service such as Celeborn (Step 10) |
+
+## Step 13: Push-based shuffle is for YARN only
+
+Push-based shuffle (`spark.shuffle.push.enabled`, 3.2) makes map tasks push their blocks to the shuffle services of other nodes, which merge the blocks for each reduce partition. Reduce tasks then read a few large blocks instead of many small ones. `Utils.isPushBasedShuffleEnabled` of 4.3.0 allows it only when four conditions are true:
+
+- the master is `yarn`
+- the external shuffle service is on
+- I/O encryption is off
+- the serializer supports relocation of serialized objects
+
+`ess.sh` asks for it on standalone:
+
+```text
+(4 times) WARN Utils: Push-based shuffle can only be enabled when the application is submitted to run in YARN mode, with external shuffle service enabled, IO encryption disabled, and relocation of serialized objects supported.
+ch63-push: ok, 10 groups, executors 2
+```
+
+Spark logs the warning and runs the job with the normal shuffle. On YARN, the NodeManager service also needs a merged shuffle file manager (`spark.shuffle.push.server.mergedShuffleFileManagerImpl`). This chapter did not run YARN, so it did not measure push-based shuffle.
+
+## Step 14: Graceful decommission
+
+A node can leave a cluster on purpose. Examples are a spot instance that the cloud takes back, a node that an autoscaler removes, and a node that gets maintenance. **Graceful decommission** lets the executors on that node move their blocks to other executors before they exit. Then Spark does not recompute cached data. The configurations of 4.3.0:
+
+| Configuration | Effect |
+|---|---|
+| `spark.decommission.enabled` | the worker and the executors react to the decommission signal (`SIGPWR` by default, `spark.worker.decommission.signal`, `spark.executor.decommission.signal`) |
+| `spark.storage.decommission.enabled` | the block manager of the executor migrates blocks |
+| `spark.storage.decommission.rddBlocks.enabled` | migrate cached RDD blocks |
+| `spark.storage.decommission.shuffleBlocks.enabled` | migrate shuffle files |
+| `spark.storage.decommission.fallbackStorage.path` | a shared storage path for blocks that no executor can take |
+| `spark.executor.decommission.forceKillTimeout` | stop the executor after this time, even if it did not finish |
+
+`ops/decom.sh` restarts the two workers of Chapter 80 with `spark.decommission.enabled=true`. `decom_app.py` caches an RDD on disk and runs one shuffle. An accumulator counts the rows that the map function computed. Then the script sends `SIGPWR` to worker 2, as `sbin/decommission-worker.sh` does:
+
+```text
+sent SIGPWR to worker 2 (pid 914615)
+ 54.8s  cache 400,000 rows, shuffle 50 keys, rows computed 400,000
+        executors ['0', '1']  cached partitions per executor {'0': 4, '1': 4}
+ 86.5s  one executor left ['1']  cached partitions per executor {'1': 8}
+ 86.9s  again: cache 400,000 rows, shuffle 50 keys, rows computed 400,000
+        stage 0.0  COMPLETE tasks 8/8  count         shuffle write      0 B
+        stage 1.0  COMPLETE tasks 8/8  reduceByKey   shuffle write  5,495 B
+        stage 2.0  COMPLETE tasks 4/4  count         shuffle write      0 B
+        stage 3.0  COMPLETE tasks 8/8  count         shuffle write      0 B
+        stage 4.0  COMPLETE tasks 8/8  reduceByKey   shuffle write  5,495 B
+        stage 5.0  COMPLETE tasks 4/4  count         shuffle write      0 B
+```
+
+The cached partitions moved from executor 0 to executor 1. The second `count()` did not compute the rows again, because the accumulator stayed at 400,000. The logs show the migration:
+
+```text
+--- driver log
+16:08:17 StandaloneAppClient$ClientEndpoint: Executor updated: app-20261122160720-0000/0 is now DECOMMISSIONED (worker decommissioned)
+16:08:17 StandaloneSchedulerBackend: Asked to decommission executor app-20261122160720-0000/0
+16:08:17 StandaloneSchedulerBackend: Decommission executors: 0
+16:08:17 StandaloneSchedulerBackend: Notify executor 0 to decommission.
+16:08:17 BlockManagerMasterEndpoint: Mark BlockManagers (BlockManagerId(0, 127.0.0.1, 45375, None)) as being decommissioning.
+16:08:17 StandaloneSchedulerBackend: Executor app-20261122160720-0000/0 decommissioned: ExecutorDecommissionInfo(worker decommissioned,Some(127.0.0.1)
+16:08:47 TaskSchedulerImpl: Executor 0 on 127.0.0.1 is decommissioned after 30.0 s.
+16:08:47 DAGScheduler: Shuffle files lost for host: 127.0.0.1 (epoch 2
+--- log of the decommissioned executor (0)
+16:08:17 CoarseGrainedExecutorBackend: Decommission executor 0.
+16:08:17 CoarseGrainedExecutorBackend: Will exit when finished decommissioning
+16:08:17 BlockManagerDecommissioner: Attempting to migrate all RDD blocks
+16:08:17 BlockManagerDecommissioner: 4 of 4 local shuffles are added. In total, 4 shuffles are remained.
+16:08:17 BlockManagerDecommissioner: Need to replicate 4 RDD blocks for block manager decommissioning
+16:08:17 BlockManagerDecommissioner: Block rdd_1_4 migrated successfully, Removing block now
+16:08:17 BlockManagerDecommissioner: Migrated migrate_shuffle_0_8 (size: 727.0 B) to BlockManagerId(1, 127.0.0.1, 42845,
+16:08:17 BlockManagerDecommissioner: Block rdd_1_5 migrated successfully, Removing block now
+16:08:18 BlockManagerDecommissioner: Block rdd_1_2 migrated successfully, Removing block now
+16:08:18 BlockManagerDecommissioner: Block rdd_1_3 migrated successfully, Removing block now
+16:08:47 BlockManagerDecommissioner: 0 of 4 local shuffles are added. In total, 0 shuffles are remained.
+16:08:47 CoarseGrainedExecutorBackend: Executor self-exiting due to : Finished decommissioning
+```
+
+The shuffle did not survive here. Executor 0 migrated its shuffle files to executor 1, but the map stage ran again. Stage 4 wrote the 5,495 bytes again.
+
+The driver log says why: `Shuffle files lost for host: 127.0.0.1`. When a whole worker goes into decommission, the `DAGScheduler` expects that the host goes away. It removes the map output of every executor on that host (`DAGScheduler.scala:4188` to `4197`). In this test, both workers have the host `127.0.0.1`, so the output of executor 1 also went. On a cluster with one worker on each host, the outputs on other hosts stay. The migrated shuffle files then save the rerun.
+
+```mermaid
+sequenceDiagram
+  participant W as worker 2
+  participant M as master
+  participant D as driver
+  participant E0 as executor 0 (on worker 2)
+  participant E1 as executor 1
+  W->>W: SIGPWR, decommission
+  W->>M: worker decommissioned
+  M->>D: executor 0 DECOMMISSIONED
+  D->>E0: decommission
+  E0->>E1: migrate rdd_1_2..5 and shuffle blocks
+  E0-->>D: finished, exit
+  D->>D: host lost: remove map outputs on 127.0.0.1
+```
+
+On Kubernetes, `spark.kubernetes.executor.rollPolicy` uses the same decommission path to replace executors at an interval ([Chapter 80](ch80-submitting-applications.md)).
+
+## Step 15: Stage-level scheduling with a ResourceProfile
+
+Some stages need other resources than the rest of the job, for example a GPU for one model step. A `ResourceProfile` asks for executors and tasks with other resources for one RDD and the stages that compute it. Spark 4.3.0 allows a profile other than the default on YARN, Kubernetes and standalone, with dynamic allocation (`ResourceProfileManager.isSupported`). A `TaskResourceProfile`, which changes only the task resources, also works without dynamic allocation on these three.
+
+Spark finds GPUs with a **discovery script** that prints one JSON object, such as `{"name": "gpu", "addresses": ["0", "1"]}`. This laptop has no GPU for Spark, so `ops/getGpus.sh` reports two pretend addresses. `ops/stage_level.sh` starts the workers with `spark.worker.resource.gpu.amount=2` and the script, then runs `stage_level.py` with dynamic allocation and shuffle tracking:
+
+```python
+ereq = ExecutorResourceRequests().cores(2).memory("1g").resource("gpu", 2, "/opt/getGpus.sh")
+treq = TaskResourceRequests().cpus(1).resource("gpu", 1)
+gpu_profile = ResourceProfileBuilder().require(ereq).require(treq).build
+rdd.withResources(gpu_profile).mapPartitions(where).collect()
+```
+
+```text
+worker 1 log: gpu -> [name: gpu, addresses: 0,1]
+stage A, default profile:
+    stage 0  partition 0  cpus 1  gpu addresses []
+    stage 0  partition 1  cpus 1  gpu addresses []
+    stage 0  partition 2  cpus 1  gpu addresses []
+    stage 0  partition 3  cpus 1  gpu addresses []
+profile 1: executor {'cores': 2, 'memory': 1024, 'gpu': 2}  task {'cpus': 1.0, 'gpu': 1.0}
+stage B, GPU profile:
+    stage 1  partition 0  cpus 1  gpu addresses ['0']
+    stage 1  partition 1  cpus 1  gpu addresses ['1']
+    stage 1  partition 2  cpus 1  gpu addresses ['0']
+    stage 1  partition 3  cpus 1  gpu addresses ['1']
+executor 0  profile 0  cores 2  resources {}  active True
+executor 1  profile 0  cores 2  resources {}  active True
+executor 2  profile 1  cores 2  resources {'gpu': ['0', '1']}  active True
+executor 3  profile 1  cores 2  resources {'gpu': ['0', '1']}  active True
+```
+
+Stage 0 ran on the default executors without GPUs. For stage 1, Spark started two new executors with profile 1. Each one got the two GPU addresses of its worker, and each task got one address. An executor with two cores and two GPUs can run two tasks at the same time, one for each GPU address. In a real task, give `TaskContext.get().resources()["gpu"].addresses[0]` to the GPU library.
+
+The executors of profile 0 cannot run tasks of profile 1. Spark keeps the executors of each profile apart, so the idle timeout must remove the old executors before their resources are free. Plan the size of the cluster for both profiles. Spark 4.3 also accepts a fractional `spark.task.cpus` (core migration guide, 4.2 to 4.3), for tasks that share a core.
+
 ## When to use which
 
 | You need | Use | The driver runs |
@@ -862,7 +1036,7 @@ Spark 4.3 changed the shuffle manager API (SPARK-58185). `ShuffleManager` now ha
 | A job on Kubernetes, with the settings in a resource and retries in the cluster | `KubernetesCreateResourceOperator` with a `SparkApplication` of the Apache operator, and a sensor | in a pod that the Spark operator creates |
 | A cluster that already runs the Kubeflow Spark operator | `SparkKubernetesOperator` | in a pod that the Kubeflow operator creates |
 
-On a Kubernetes cluster that many Spark jobs share, add a batch scheduler. Use YuniKorn or Volcano for queues, and use gang scheduling so that drivers cannot use all the resources. Add Celeborn when you use dynamic allocation and want idle executors to stop. Make sure that the Celeborn release supports your Spark version.
+On a Kubernetes cluster that many Spark jobs share, add a batch scheduler. Use YuniKorn or Volcano for queues, and use gang scheduling so that drivers cannot use all the resources. Add Celeborn when you use dynamic allocation and want idle executors to stop. Make sure that the Celeborn release supports your Spark version. On standalone and YARN, use the external shuffle service instead (Step 12).
 
 ## The whole chapter, on one page
 
@@ -879,6 +1053,9 @@ On a Kubernetes cluster that many Spark jobs share, add a batch scheduler. Use Y
 - **The default Kubernetes scheduler can deadlock Spark.** Drivers use the resources, and executors wait. YuniKorn gang scheduling reserves a driver and its minimum executors together, and it rejects a gang that cannot fit in its queue.
 - **On Kubernetes, dynamic allocation keeps executors that hold shuffle data.** Celeborn moves the shuffle data to its own workers, so idle executors stop and Spark still skips the finished map stage.
 - **Celeborn 0.7.0 supports Spark up to 4.2.** Spark 4.3.0 rejects its shuffle manager.
+- **On standalone and YARN, the external shuffle service keeps shuffle files** after dynamic allocation removes an executor. One worker on each host. Push-based shuffle works only on YARN.
+- **Graceful decommission migrates cached blocks and shuffle files** before an executor exits. A worker decommission removes all map outputs of its host.
+- **A `ResourceProfile` gives one stage other executors**, for example with GPUs that a discovery script reports. It needs dynamic allocation.
 
 The commands, in order:
 
@@ -898,6 +1075,9 @@ ch63/yunikorn_demo.sh gang 240           # gang scheduling
 ch63/celeborn_job.sh tracking 4.3.0      # dynamic allocation with shuffle tracking
 ch63/celeborn_job.sh celeborn 4.2.1      # dynamic allocation with Celeborn
 ch63/kind_up.sh delete
+ch63/ops/ess.sh                          # external shuffle service, push-based shuffle (standalone, Chapter 80)
+ch63/ops/decom.sh                        # graceful decommission of a worker
+ch63/ops/stage_level.sh                  # a GPU ResourceProfile for one stage
 ```
 
 ## Further reading
