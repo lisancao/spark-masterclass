@@ -1,0 +1,76 @@
+session: pyspark.sql.session
+
+== 1. describe(): count, mean, stddev, min, max
++-------+------------------+------------------+-----------------+------------------+
+|summary|   passenger_count|     trip_distance|      fare_amount|        tip_amount|
++-------+------------------+------------------+-----------------+------------------+
+|  count|           2823748|           3837248|          3837248|           3837248|
+|   mean|1.2570296641201693|5.2017636519705865|21.43972443271672|2.9869563239068553|
+| stddev|0.6561344679942783| 532.8536966799546|19.17533535065736| 4.070483233040719|
+|    min|                 0|               0.0|          -1683.7|            -81.97|
+|    max|                 9|         311565.39|           7045.0|            333.33|
++-------+------------------+------------------+-----------------+------------------+
+
+== 2. summary(): describe plus the quartiles, or the statistics that you name
++-------+------------------+------------------+-----------------+------------------+
+|summary|   passenger_count|     trip_distance|      fare_amount|        tip_amount|
++-------+------------------+------------------+-----------------+------------------+
+|  count|           2823748|           3837248|          3837248|           3837248|
+|   mean|1.2570296641201693|5.2017636519705865|21.43972443271672|2.9869563239068553|
+| stddev|0.6561344679942783| 532.8536966799546|19.17533535065736| 4.070483233040719|
+|    min|                 0|               0.0|          -1683.7|            -81.97|
+|    25%|                 1|              1.01|             10.0|               0.0|
+|    50%|                 1|              1.82|            15.74|              2.24|
+|    75%|                 1|              3.64|            26.21|              4.11|
+|    max|                 9|         311565.39|           7045.0|            333.33|
++-------+------------------+------------------+-----------------+------------------+
+
++--------------------+-----------+------------+
+|             summary|fare_amount|payment_type|
++--------------------+-----------+------------+
+|               count|    3837248|     3837248|
+|                 min|    -1683.7|           0|
+|                  1%|        3.7|           0|
+|                 50%|      15.74|           1|
+|                 99%|       83.5|           2|
+|                 max|     7045.0|           5|
+|      count_distinct|      12454|           6|
+|approx_count_dist...|      11495|           6|
++--------------------+-----------+------------+
+
+the plan of summary() is one aggregate over the data:
+      +- ObjectHashAggregate(keys=[], functions=[count(passenger_count#3L), avg(passenger_count#3L), stddev(cast(passenger_count#3L as double)), min(passenger_count#3L), percentile_approx(passenger_count#3L, [0.25,0.5,0.75], 10000 ...
+
+== 3. stat.corr and stat.cov (Pearson, two columns, one pass)
+corr(trip_distance, fare_amount) = 0.0074
+corr(fare_amount, tip_amount)    = 0.4339
+cov(fare_amount, tip_amount)     = 33.87
+corr(trip_distance, fare_amount) without outliers = 0.8858
+
+== 4. stat.crosstab: a contingency table of two columns
++---------------------+------+-------+------+----+-----+---+
+|VendorID_payment_type|     0|      1|     2|   3|    4|  5|
++---------------------+------+-------+------+----+-----+---+
+|                    1|114578| 428201| 57955|7829| 4580|  2|
+|                    2|890246|1961429|294189|2988|17051|  0|
+|                    6|  8676|      0|     0|   0|    0|  0|
+|                    7|     0|  43241|  5660| 388|  235|  0|
++---------------------+------+-------+------+----+-----+---+
+
+== 5. stat.freqItems: items in more than a fraction of rows (approximate, may include false positives)
+{'PULocationID_freqItems': [161, 162, 132, 230, 263, 138, 234, 236, 237, 79, 239, 209, 114, 146, 246, 87, 249, 186], 'payment_type_freqItems': [0, 1, 2, 3, 4, 5]}
+
+== 6. stat.approxQuantile: the error you allow sets the cost
+  relativeError     25% / 50% / 75% of fare_amount    time
+            0.0               [10.0, 15.73, 26.21]   2.33s
+          0.001               [10.0, 15.85, 26.27]   0.40s
+           0.01                 [10.0, 16.3, 26.2]   0.44s
+            0.1                 [10.0, 14.2, 27.5]   0.49s
+  several columns at once: [[16.3, 7045.0], [2.24, 333.33]]
+
+== 7. stat.sampleBy: a stratified sample with one fraction per key
+  payment_type 1: 24,490 of 2,432,871  (0.010, asked 0.01)
+  payment_type 2:  3,614 of   357,804  (0.010, asked 0.01)
+  payment_type 3:  5,595 of    11,205  (0.499, asked 0.5)
+  payment_type 4: 10,791 of    21,866  (0.494, asked 0.5)
+  keys not in fractions get fraction 0: 0 rows of type 0

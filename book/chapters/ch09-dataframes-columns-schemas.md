@@ -925,6 +925,205 @@ flowchart BT
 
 Use `zip` when two parts of a program compute columns from one DataFrame, and you want them in one DataFrame again. Before 4.3, the usual method was `zipWithIndex` (or `monotonically_increasing_id`) on both sides and a join on the index. That method costs a shuffle. A join on a key is still the correct tool when the two sides come from different sources.
 
+## Step 19: describe, summary and the stat functions
+
+A new data set needs a first look: counts, ranges, quartiles and the relations between columns. A DataFrame has methods for each of these, and each method is one Spark job, not a `collect()`. `stats.py` runs them on the June 2026 trips. It ran on Spark Classic and on Spark Connect with the same results.
+
+### describe and summary
+
+`describe()` gives the count, mean, standard deviation, minimum and maximum of each column. `summary()` adds the quartiles, or it gives only the statistics that you name:
+
+```python
+num = trips.select("passenger_count", "trip_distance", "fare_amount", "tip_amount")
+num.describe().show()
+num.summary().show()
+trips.select("fare_amount", "payment_type").summary("count", "min", "1%", "50%", "99%", "max",
+                                                  "count_distinct", "approx_count_distinct").show()
+```
+
+```text
+== 2. summary(): describe plus the quartiles, or the statistics that you name
++-------+------------------+------------------+-----------------+------------------+
+|summary|   passenger_count|     trip_distance|      fare_amount|        tip_amount|
++-------+------------------+------------------+-----------------+------------------+
+|  count|           2823748|           3837248|          3837248|           3837248|
+|   mean|1.2570296641201693|5.2017636519705865|21.43972443271672|2.9869563239068553|
+| stddev|0.6561344679942783| 532.8536966799546|19.17533535065736| 4.070483233040719|
+|    min|                 0|               0.0|          -1683.7|            -81.97|
+|    25%|                 1|              1.01|             10.0|               0.0|
+|    50%|                 1|              1.82|            15.74|              2.24|
+|    75%|                 1|              3.64|            26.21|              4.11|
+|    max|                 9|         311565.39|           7045.0|            333.33|
++-------+------------------+------------------+-----------------+------------------+
+
++--------------------+-----------+------------+
+|             summary|fare_amount|payment_type|
++--------------------+-----------+------------+
+|               count|    3837248|     3837248|
+|                 min|    -1683.7|           0|
+|                  1%|        3.7|           0|
+|                 50%|      15.74|           1|
+|                 99%|       83.5|           2|
+|                 max|     7045.0|           5|
+|      count_distinct|      12454|           6|
+|approx_count_dist...|      11495|           6|
++--------------------+-----------+------------+
+```
+
+The first table finds three problems in seconds:
+
+- **`passenger_count` has 2,823,748 values in 3,837,248 rows.** About a quarter of the trips have no passenger count.
+- **`trip_distance` has a maximum of 311,565.39 miles** and a standard deviation of 532.85, but a median of 1.82. A few bad values make the mean and the standard deviation useless.
+- **`fare_amount` and `tip_amount` have negative values.** The minimum fare is -1683.7.
+
+The quartiles come from `percentile_approx`, so they are approximate. The values in `summary()` are strings, because one column holds counts, means and percentiles. `count_distinct` is exact, and `approx_count_distinct` uses HyperLogLog++: it gave 11,495 against the exact 12,454 here. The plan shows that `summary()` is one aggregate over the data:
+
+```text
+the plan of summary() is one aggregate over the data:
+      +- ObjectHashAggregate(keys=[], functions=[count(passenger_count#3L), avg(passenger_count#3L), stddev(cast(passenger_count#3L as double)), min(passenger_count#3L), percentile_approx(passenger_count#3L, [0.25,0.5,0.75], 10000 ...
+```
+
+### The stat functions
+
+`df.stat` (or the same methods on the DataFrame, such as `df.corr`) has the functions for two columns and for samples:
+
+| Method | What it computes | Exact |
+|---|---|---|
+| `stat.corr(a, b)` | the Pearson correlation of two numeric columns | yes |
+| `stat.cov(a, b)` | the sample covariance of two numeric columns | yes |
+| `stat.crosstab(a, b)` | a contingency table: one row for each value of `a`, one column for each value of `b` | yes |
+| `stat.freqItems(cols, support)` | the values that occur in more than a fraction `support` of the rows | no: the list can have false positives |
+| `stat.approxQuantile(col, probabilities, relativeError)` | quantiles with an error that you set | only with `relativeError=0` |
+| `stat.sampleBy(col, fractions, seed)` | a stratified sample with one fraction for each value of `col` | no: each fraction is a probability |
+
+```text
+== 3. stat.corr and stat.cov (Pearson, two columns, one pass)
+corr(trip_distance, fare_amount) = 0.0074
+corr(fare_amount, tip_amount)    = 0.4339
+cov(fare_amount, tip_amount)     = 33.87
+corr(trip_distance, fare_amount) without outliers = 0.8858
+```
+
+The correlation of distance and fare is 0.0074 on all trips. A taxi fare depends on the distance, so the number is wrong for the question. The bad distances of `describe()` cause it. With the trips between 0.1 and 100 miles and between 1 and 500 dollars, the correlation is 0.8858. Pearson correlation is sensitive to outliers. Run `describe()` first, and filter before you correlate.
+
+```text
+== 4. stat.crosstab: a contingency table of two columns
++---------------------+------+-------+------+----+-----+---+
+|VendorID_payment_type|     0|      1|     2|   3|    4|  5|
++---------------------+------+-------+------+----+-----+---+
+|                    1|114578| 428201| 57955|7829| 4580|  2|
+|                    2|890246|1961429|294189|2988|17051|  0|
+|                    6|  8676|      0|     0|   0|    0|  0|
+|                    7|     0|  43241|  5660| 388|  235|  0|
++---------------------+------+-------+------+----+-----+---+
+```
+
+The crosstab shows that vendor 6 sends only payment type 0, and vendor 7 never does. The name of the first column of the result is `<a>_<b>`. Each distinct value of `b` becomes a column, so use `crosstab` only on columns with a small number of values.
+
+```text
+== 6. stat.approxQuantile: the error you allow sets the cost
+  relativeError     25% / 50% / 75% of fare_amount    time
+            0.0               [10.0, 15.73, 26.21]   2.33s
+          0.001               [10.0, 15.85, 26.27]   0.40s
+           0.01                 [10.0, 16.3, 26.2]   0.44s
+            0.1                 [10.0, 14.2, 27.5]   0.49s
+  several columns at once: [[16.3, 7045.0], [2.24, 333.33]]
+```
+
+`relativeError=0` gives the exact quantiles, and it took 2.33 s, more than five times the approximate runs. These times are medians of three runs after a warmup, under the benchmark lock. With 0.001, the median was 15.85 against the exact 15.73. With 0.1, it was 14.2. For a first look, 0.01 is enough.
+
+```text
+== 7. stat.sampleBy: a stratified sample with one fraction per key
+  payment_type 1: 24,490 of 2,432,871  (0.010, asked 0.01)
+  payment_type 2:  3,614 of   357,804  (0.010, asked 0.01)
+  payment_type 3:  5,595 of    11,205  (0.499, asked 0.5)
+  payment_type 4: 10,791 of    21,866  (0.494, asked 0.5)
+  keys not in fractions get fraction 0: 0 rows of type 0
+```
+
+`sampleBy` kept 1% of the frequent payment types and 50% of the rare ones. Thus the sample has enough rows of each type to study. Each row goes into the sample with its probability, so the counts are close to the fractions, not equal to them. A value that is not in `fractions` gets fraction 0.
+
+## Step 20: DataFrame.plot
+
+Since Spark 4.0, a PySpark DataFrame has a `plot` accessor, the same API as `pandas.DataFrame.plot`. It uses plotly, the only backend that it supports. `plot.py` makes each kind of plot. It ran on Classic and on Connect with the same results:
+
+```python
+top = (trips.groupBy("PULocationID").count()
+       .join(zones, trips.PULocationID == zones.LocationID).orderBy(F.desc("count")).limit(10)
+       .select("Zone", "count"))
+fig = top.plot.bar(x="Zone", y="count")                         # (1)!
+```
+
+1. The result is a plotly `Figure`. Show it with `fig.show()`, or save it with `fig.write_html` or `fig.write_image`.
+
+<figure markdown>
+  ![Top zones bar chart](../media/figures/ch09-plot-bar.svg)
+  <figcaption><code>top.plot.bar</code> on the ten busiest pickup zones. Spark computed the counts. The plot got ten rows.</figcaption>
+</figure>
+
+The important question is how much data goes to the driver. The source (`pyspark/sql/plot/core.py`) puts each kind of plot into one of three groups, and `plot.py` shows each group:
+
+```text
+session: pyspark.sql.session
+spark.sql.pyspark.plotting.max_rows = 1000
+
+== 1. bar: a top-n plot. Aggregate first, then plot the small result
+type: plotly.graph_objs._figure.Figure  bars: 10
+first bar: Upper East Side South 177610
+
+== 2. bar on the raw 3.8 million rows: only the first max_rows rows reach the plot
+bars in the figure: 1000
+
+== 3. scatter: a sampled plot
+points in the figure: 1000 (a random sample of the filtered rows)
+
+== 4. hist, box and kde: Spark computes the numbers, the driver gets only the result
+hist traces: ['fare_amount', 'tip_amount']  bins in each: 20
+hist bar heights (fare_amount, first 5): [2006689, 1185285, 361585, 103878, 127386]
+box: q1=10.35 median=16.3 q3=26.8 lowerfence=0.0 upperfence=51.47
+kde points: 50
+
+== 5. an unsupported backend
+PySparkValueError UNSUPPORTED_PLOT_BACKEND | `matplotlib` is not supported, it should be one of the values from plo
+```
+
+| Group | Kinds | What goes to the driver |
+|---|---|---|
+| top-n | `bar`, `barh`, `pie` | the first `spark.sql.pyspark.plotting.max_rows` rows (1,000) |
+| sampled | `scatter`, `line`, `area` | a random sample of about `max_rows` rows |
+| computed in Spark | `hist`, `box`, `kde` | only the bins, the quartiles and fences, or the density points |
+
+```mermaid
+flowchart LR
+  classDef sp fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
+  classDef dr fill:#c0661a,fill-opacity:0.72,stroke:#c0661a,color:#ffffff
+  df["DataFrame<br/>3.8 million rows"]:::sp --> t["bar, barh, pie:<br/>limit(max_rows)"]:::sp
+  df --> s["scatter, line, area:<br/>sample to max_rows"]:::sp
+  df --> c["hist, box, kde:<br/>aggregate in Spark"]:::sp
+  t --> p["toPandas():<br/>at most 1,000 rows"]:::dr
+  s --> p
+  c --> r["bins, quartiles,<br/>density points"]:::dr
+  p --> f["plotly Figure"]:::dr
+  r --> f
+```
+
+The bar plot on the raw rows has 1,000 bars: the first 1,000 trips, not a view of the month. A top-n plot does not aggregate for you. Aggregate first, as in the first example. The scatter plot has 1,000 points from a random sample of the filtered rows:
+
+<figure markdown>
+  ![Scatter of a sample](../media/figures/ch09-plot-scatter.svg)
+  <figcaption><code>plot.scatter</code> on the trips between 0.1 and 30 miles. The plot shows a sample of 1,000 trips, not all of them. The points at 70 dollars match the most common JFK fare in <a href="ch91-pandas-api-on-spark.md">Chapter 91</a>.</figcaption>
+</figure>
+
+The histogram, the box plot and the density plot computed their numbers in Spark over all the rows. The histogram of two columns uses one set of 20 bins for both columns. The box plot uses `percentile_approx`, so its quartiles are approximate. Its options `precision` and `whis` set the accuracy and the length of the whiskers.
+
+The accessor supports only plotly. Other backends fail with `UNSUPPORTED_PLOT_BACKEND`. The pandas API on Spark has its own `plot` accessor ([Chapter 91](ch91-pandas-api-on-spark.md)).
+
+To run Step 20, install plotly in the environment. `kaleido` is necessary only for `write_image`:
+
+```bash
+uv run --with plotly==6.5.0 --with kaleido==1.2.0 python ch09/plot.py
+```
+
 ## The whole chapter, on one page
 
 - **A DataFrame is a schema and a plan.** Methods return new DataFrames with one more plan node. Only `spark.read` can run a job before an action, and for Parquet that job reads one footer.
@@ -936,6 +1135,8 @@ Use `zip` when two parts of a program compute columns from one DataFrame, and yo
 - **Inference changes with the data.** Read with a schema contract, infer only to find drift, and count the values that the contract changed to NULL.
 - **Reshape each source to the contract before a union.** `unionByName(allowMissingColumns=True)` can add a strict cast. `try_cast` protects values, not types.
 - **`DataFrame.zip` (4.3) combines projections of one DataFrame without a join.**
+- **`describe`, `summary` and `df.stat` give a first look in one job each.** Filter outliers before `corr`. Set `relativeError` for quantiles: 0 is exact and costs the most.
+- **`DataFrame.plot` (4.0+, plotly) sends at most `max_rows` rows for bar and scatter plots.** Aggregate first. Spark computes histograms, box plots and density plots.
 
 All of these points come from one fact. A DataFrame is a description. Spark examines that description before it runs anything. [Chapter 10](ch10-cleaning-values.md) uses the same expressions to clean values that do not fit their types.
 

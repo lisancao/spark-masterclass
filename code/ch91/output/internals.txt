@@ -1,0 +1,39 @@
+== 1. one pandas-on-Spark DataFrame, three layers
+type: pyspark.pandas.frame.DataFrame  shape: (3837248, 4)
+spark_frame columns: ['__index_level_0__', 'VendorID', 'tpep_pickup_datetime', 'tpep_dropoff_datetime', 'passenger_count', 'trip_distance', 'RatecodeID', 'store_and_fwd_flag', 'PULocationID', 'DOLocationID', 'payment_type', 'fare_amount', 'extra', 'mta_tax', 'tip_amount', 'tolls_amount', 'improvement_surcharge', 'total_amount', 'congestion_surcharge', 'Airport_fee', 'cbd_congestion_fee', 'request_source', '__natural_order__']
+index columns:       ['__index_level_0__']
+data columns:        ['PULocationID', 'payment_type', 'fare_amount', 'tip_amount']
+spark.frame():       ['PULocationID', 'payment_type', 'fare_amount', 'tip_amount'] (drops the index)
+spark.frame(index_col='idx'): ['idx', 'PULocationID'] ...
+   PULocationID  payment_type  fare_amount  tip_amount
+0           140             1         16.3        6.40
+1           138             1         16.3        7.14
+2           138             1         39.4        5.00
+
+== 2. the plan of each default index type
+-- sequence
+AdaptiveSparkPlan isFinalPlan=false
++- Project [(cast(_we0#63 as bigint) - 1) AS idx#65L, PULocationID#45, payment_type#47L, fare_amount#48, tip_amount#51]
+   +- Window [row_number() windowspecdefinition(_w0#62L ASC NULLS FIRST, specifiedwindowframe(RowFrame, unboundedpreceding$(), currentrow$())) AS _we0#63], [_w0#62L ASC NULLS FIRST]
+      +- Sort [_w0#62L ASC NULLS FIRST], false, 0
+         +- Exchange SinglePartition, ENSURE_REQUIREMENTS, [plan_id=76]
+            +- Project [PULocationID#45, payment_type#47L, fare_amount#48, tip_amount#51, monotonically_increasing_id() AS _w0#62L]
+               +- FileScan parquet [PULocationID#45,payment_type#47L,fare_amount#48,tip_amount#51]
+-- distributed-sequence
+*(2) Project [distributed_sequence_id#89L AS idx#91L, PULocationID#73, payment_type#75L, fare_amount#76, tip_amount#79]
++- AttachDistributedSequence[distributed_sequence_id#89L, PULocationID#73, payment_type#75L, fare_amount#76, tip_amount#79] Index: distributed_sequence_id#89L
+   +- *(1) ColumnarToRow
+      +- FileScan parquet [PULocationID#73,payment_type#75L,fare_amount#76,tip_amount#79]
+-- distributed
+*(1) Project [__index_level_0__#113L AS idx#116L, PULocationID#99, payment_type#101L, fare_amount#102, tip_amount#105]
++- *(1) Project [distributed_id() AS __index_level_0__#113L, PULocationID#99, payment_type#101L, fare_amount#102, tip_amount#105]
+   +- *(1) ColumnarToRow
+      +- FileScan parquet [PULocationID#99,payment_type#101L,fare_amount#102,tip_amount#105]
+
+== 3. the cost of each default index (median of 5 runs after a warmup)
+  index                               all rows (noop write)   head(5)  fare mean
+  sequence                                            1.57s     0.20s      0.13s
+  distributed-sequence                                0.96s     0.68s      0.10s
+  distributed                                         0.15s     0.13s      0.10s
+  index_col='PULocationID'                            0.11s     0.09s      0.09s
+  (PySpark DataFrame, no index)                       0.08s     0.04s      0.08s

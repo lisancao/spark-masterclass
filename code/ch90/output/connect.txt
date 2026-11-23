@@ -1,0 +1,16 @@
+session: pyspark.sql.connect.session  server: 4.3.0
+== 1. the RDD entry points
+  spark.sparkContext                 PySparkAttributeError: JVM_ATTRIBUTE_NOT_SUPPORTED
+                                     Attribute `sparkContext` is not supported in Spark Connect
+  trips.rdd                          PySparkNotImplementedError: NOT_IMPLEMENTED
+                                     rdd is not implemented.
+  trips.foreachPartition(f)          ok: None
+  trips.mapInPandas(f, schema)       ok: 2
+
+== 2. the DataFrame equivalents run over Connect
+  join(F.broadcast(zones))           ok: 3837248
+  observe() + Observation            ok: {'bad': 16815}
+  persist(StorageLevel.DISK_ONLY)    ok: Disk Serialized 1x Replicated
+  localCheckpoint()                  ok: 258
+  repartition(8, col) partitions     ok: 8
+  zipWithIndex() (DataFrame, 4.2+)   ok: [Row(i=0), Row(i=1), Row(i=2)]

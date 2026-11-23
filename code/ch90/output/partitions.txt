@@ -1,0 +1,47 @@
+== 1. a new RDD has no partitioner
+fares.partitioner: None
+
+== 2. partitionBy(8): key -> portable_hash(key) % 8
+  key 132: portable_hash = 132, partition 4
+  key 138: portable_hash = 138, partition 2
+  key 161: portable_hash = 161, partition 1
+  key 237: portable_hash = 237, partition 5
+partitioner: 8 partitions, portable_hash
+rows per partition: [223057, 467721, 728887, 299179, 713132, 424708, 508386, 472178]
+keys in partition 4: [4, 12, 20, 28, 36, 44, 52, 60] ...
+
+== 3. mapValues keeps the partitioner, map drops it
+mapValues(...).partitioner: True
+map(...).partitioner:       False
+
+== 4. a join of two RDDs with the same partitioner
+result partitions: 8  sample: [(132, 9014928, 1332845), (138, 4638595, 987905)]
+(8) PythonRDD[24] at RDD at PythonRDD.scala:59 []
+ |  PartitionerAwareUnionRDD[20] at union at NativeMethodAccessorImpl.java:0 []
+ |  PythonRDD[18] at RDD at PythonRDD.scala:59 []
+ |  MapPartitionsRDD[11] at mapPartitions at PythonRDD.scala:197 []
+ |      CachedPartitions: 8; MemorySize: 16.1 MiB; DiskSize: 0.0 B
+ |  ShuffledRDD[10] at partitionBy at NativeMethodAccessorImpl.java:0 []
+ +-(16) PairwiseRDD[9] at partitionBy at partitions.py:28 []
+    |   PythonRDD[8] at partitionBy at partitions.py:28 []
+    |   MapPartitionsRDD[7] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   MapPartitionsRDD[6] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   SQLExecutionRDD[5] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   MapPartitionsRDD[4] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   MapPartitionsRDD[3] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   FileScanRDD[2] at javaToPython at NativeMethodAccessorImpl.java:0 []
+ |  PythonRDD[19] at RDD at PythonRDD.scala:59 []
+ |  MapPartitionsRDD[17] at mapPartitions at PythonRDD.scala:197 []
+ |      CachedPartitions: 8; MemorySize: 16.1 MiB; DiskSize: 0.0 B
+ |  ShuffledRDD[16] at partitionBy at NativeMethodAccessorImpl.java:0 []
+ +-(16) PairwiseRDD[15] at partitionBy at partitions.py:41 []
+    |   PythonRDD[14] at partitionBy at partitions.py:41 []
+    |   MapPartitionsRDD[7] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   MapPartitionsRDD[6] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   SQLExecutionRDD[5] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   MapPartitionsRDD[4] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   MapPartitionsRDD[3] at javaToPython at NativeMethodAccessorImpl.java:0 []
+    |   FileScanRDD[2] at javaToPython at NativeMethodAccessorImpl.java:0 []
+
+== 5. a custom partition function: one partition for each airport
+rows per partition (EWR, JFK, LGA, other): [569, 148172, 100818, 3587689]

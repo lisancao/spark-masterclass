@@ -1,0 +1,12 @@
+CLASS org.apache.spark.sql.connect.Dataset
+FIRST Trip(140,Some(1),Some(1),2.9,16.3,6.4)
+COUNT 3820433
+== Physical Plan ==
+*(2) SerializeFromObject [invoke(knownnotnull(assertnotnull(input[0, scala.Tuple2, true]))._1()) AS _1#3780, invoke(knownnotnull(assertnotnull(input[0
++- MapPartitions org.apache.spark.sql.internal.UDFAdaptors$$$Lambda$6088/0x000077cecf9d6da8@92e12fc, obj#3775: scala.Tuple2
+   +- Filter (isnotnull(obj#3770) AND invoke(ammonite.$sess.cmd9$Helper$$Lambda$6832/0x000077cece390210@21f91f35.apply(obj#3770)))
+      +- DeserializeToObject newInstance(class ammonite.$sess.cmd3$Helper$Trip), obj#3770: ammonite.$sess.cmd3$Helper$Trip
+         +- *(1) ColumnarToRow
+            +- FileScan parquet [passenger_count#3713L,trip_distance#3714,PULocationID#3717,payment_type#3719L,fare_amount#3720,tip_amount#3723] Batch
+GBK_COUNT 258
+SHARE failed: org.sparkproject.io.grpc.StatusRuntimeException: UNKNOWN: ammonite/repl/ReplBridge$

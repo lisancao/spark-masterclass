@@ -1060,6 +1060,183 @@ time_bucket on nanos: ERROR [DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE] Cannot res
 
 Thus a SQL job can read nanosecond Parquet, transform it and write it with no loss. `time_bucket` does not accept the nanosecond types in 4.3.0 ([Chapter 15](ch15-time-series.md)). The preview is not ready for Python code that collects the values. Use it in SQL jobs, and test each function that you need.
 
+## Step 17: Catch errors by condition and SQLSTATE
+
+Step 3 read the three parts of one error. A job that runs without a person needs more: a rule for each kind of error. Some errors are bad data, some are bad code, and some are a missing table that a retry can fix. `errors.py` makes one failure of each kind, on Spark Classic and on Spark Connect, and it prints what each exception carries:
+
+```python
+from pyspark.errors import PySparkException
+
+try:
+    spark.sql("SELECT 10 / 0").collect()
+except PySparkException as e:                                    # (1)!
+    print(e.getCondition(), e.getSqlState(), e.getMessageParameters())
+    for c in e.getQueryContext():                                # (2)!
+        print(c.contextType().name, c.fragment())
+```
+
+1. `PySparkException` is the base class of all Spark errors in PySpark. It catches errors from the JVM, from the Connect server and from the checks of PySpark in Python.
+2. The query context points to the part of the query that failed. For SQL text, it is the fragment of the statement. For a DataFrame call, it is the API call.
+
+```text
+== 1. one failure of each kind, and what the exception carries
+unknown column:
+  class:     pyspark.errors.exceptions.captured.AnalysisException
+  condition: UNRESOLVED_COLUMN.WITH_SUGGESTION   SQLSTATE: 42703
+  params:    {'objectName': '`revenue`', 'proposal': '`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`'}
+  context:   DataFrame fragment='col'
+SQL syntax:
+  class:     pyspark.errors.exceptions.captured.ParseException
+  condition: PARSE_SYNTAX_ERROR   SQLSTATE: 42601
+  params:    {'error': "'SELEC'", 'hint': ''}
+divide by zero:
+  class:     pyspark.errors.exceptions.captured.ArithmeticException
+  condition: DIVIDE_BY_ZERO   SQLSTATE: 22012
+  params:    {'config': '"spark.sql.ansi.enabled"'}
+  context:   SQL fragment='10 / 0'
+bad cast:
+  class:     pyspark.errors.exceptions.captured.NumberFormatException
+  condition: CAST_INVALID_INPUT   SQLSTATE: 22018
+  params:    {'expression': "'12a'", 'sourceType': '"STRING"', 'targetType': '"INT"', 'ansiConfig': '"spark.sql.ansi.enabled"'}
+  context:   SQL fragment="CAST('12a' AS INT)"
+table not found:
+  class:     pyspark.errors.exceptions.captured.AnalysisException
+  condition: TABLE_OR_VIEW_NOT_FOUND   SQLSTATE: 42P01
+  params:    {'relationName': '`no_such_table`', 'searchPath': '[`system`.`builtin`, `system`.`session`, `spark_catalog`.`default`]'}
+Python-side check:
+  class:     pyspark.errors.exceptions.base.PySparkTypeError
+  condition: NOT_EXPECTED_TYPE   SQLSTATE: 42K09
+  params:    {'expected_type': 'Column', 'arg_name': 'col', 'arg_type': 'int'}
+no condition:
+  class:     pyspark.errors.exceptions.captured.IllegalArgumentException
+  condition: None   SQLSTATE: None
+  params:    None
+  message:   requirement failed: Sampling fraction (2.0) must be on interval [0, 1] without r
+```
+
+Four facts come from this output:
+
+- **The condition is the stable name.** A condition such as `UNRESOLVED_COLUMN.WITH_SUGGESTION` has a main condition and a subcondition after the dot. The message text can change between releases, but the condition stays. Compare the condition in code, not the message.
+- **The SQLSTATE has a class.** The first two characters are the class: `22` is a data exception, and `42` is a syntax error or an access rule violation. The last three characters are the subclass. Thus `22012` is "division by zero" in class `22`.
+- **The parameters are the values in the message.** `objectName` is the column that was not there. `proposal` is the list of columns that the analyzer suggests.
+- **Some errors have no condition.** `sample(fraction=2.0)` fails a `require` check in the Scala code, with no condition and no SQLSTATE. `getCondition()` returns `None`. Your handler must accept `None`.
+
+`getErrorClass()` is the old name of `getCondition()`. Spark 4.0.0 made it deprecated, and it gives a `FutureWarning` (`pyspark/errors/exceptions/base.py`).
+
+<figure markdown>
+  ![SQLSTATE codes and classes](../media/figures/ch10-sqlstate-light.svg#only-light)
+  ![SQLSTATE codes and classes](../media/figures/ch10-sqlstate-dark.svg#only-dark)
+  <figcaption>The conditions from <code>errors.py</code> and their SQLSTATE codes. The first two characters are the class. The class tells a handler if the data or the code caused the error. Descriptions from <code>error-states.json</code> in Spark 4.3.0.</figcaption>
+</figure>
+
+### One handler for Classic and Connect
+
+The exception classes have a different module on each side: `pyspark.errors.exceptions.captured` on Classic, and `pyspark.errors.exceptions.connect` on Connect. But both modules subclass the same classes in `pyspark.errors`. Thus `except AnalysisException` catches the error on the two sides:
+
+```text
+== 2. the Python classes are the same on Classic and Connect
+  isinstance('unknown column', AnalysisException): True   TypeError: False
+  isinstance('SQL syntax', ParseException): True   TypeError: False
+  isinstance('divide by zero', ArithmeticException): True   TypeError: False
+  isinstance('bad cast', NumberFormatException): True   TypeError: False
+  isinstance('Python-side check', PySparkTypeError): True   TypeError: True
+```
+
+The Connect run (`errors-connect.txt`) gave the same conditions, SQLSTATE codes, parameters and query contexts. Only the module names and the order of the keys in the parameters were different. `PySparkTypeError` is also a Python `TypeError`, so older code that catches `TypeError` still works.
+
+A handler decides by the condition first, and then by the class of the SQLSTATE:
+
+```python
+def handle(e: PySparkException) -> str:
+    cond, state = e.getCondition() or "", e.getSqlState() or ""
+    if cond == "DIVIDE_BY_ZERO":
+        return "retry with try_divide"
+    if cond.startswith("UNRESOLVED_COLUMN"):                      # (1)!
+        return "fix the code: column " + e.getMessageParameters().get("objectName", "?")
+    if cond == "TABLE_OR_VIEW_NOT_FOUND":
+        return "create the table, then run again"
+    if not cond:
+        return "no condition: log the message and stop the job"
+    return f"SQLSTATE class {state[:2]} ({SQLSTATE_CLASS.get(state[:2], 'other')}): stop the job"
+```
+
+1. Compare the main condition with `startswith`. Then the handler also catches a subcondition that a later release adds.
+
+```text
+== 3. a handler that decides by condition first, then by SQLSTATE class
+  unknown column     -> fix the code: column `revenue`
+  SQL syntax         -> SQLSTATE class 42 (syntax error or access rule violation): stop the job
+  divide by zero     -> retry with try_divide
+  bad cast           -> SQLSTATE class 22 (data exception): stop the job
+  table not found    -> create the table, then run again
+  Python-side check  -> SQLSTATE class 42 (syntax error or access rule violation): stop the job
+  no condition       -> no condition: log the message and stop the job
+```
+
+```mermaid
+flowchart TD
+  classDef q fill:#4b5563,fill-opacity:0.72,stroke:#4b5563,color:#ffffff
+  classDef data fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
+  classDef code fill:#c0661a,fill-opacity:0.72,stroke:#c0661a,color:#ffffff
+  e["except PySparkException as e"]:::q --> c{"getCondition()"}:::q
+  c -->|"a condition that you know"| a["the action for that condition"]:::data
+  c -->|"None"| n["log str(e), stop"]:::code
+  c -->|"other"| s{"getSqlState()[:2]"}:::q
+  s -->|"22: data exception"| d["quarantine the rows,<br/>use a try_ function"]:::data
+  s -->|"42: syntax or access"| k["a code error: stop,<br/>do not retry"]:::code
+  s -->|"XX: internal"| x["collect the logs,<br/>report it"]:::code
+```
+
+!!! warning "CAUTION"
+    Do not compare the text of an error message in a handler. The text can change in a later release. Compare `getCondition()`, and use `getSqlState()` for the conditions that you do not know.
+
+### Where the error appears
+
+The same `select("revenue")` fails at a different line on each side:
+
+=== "Classic"
+
+    ```text
+    == 5. where the error appears: on the line that defines the DataFrame, or at the action
+      raised by: select('revenue') -> UNRESOLVED_COLUMN.WITH_SUGGESTION
+    ```
+
+=== "Connect"
+
+    ```text
+    == 5. where the error appears: on the line that defines the DataFrame, or at the action
+      select('revenue') returned a DataFrame
+      raised by: collect() -> UNRESOLVED_COLUMN.WITH_SUGGESTION
+    ```
+
+Classic analyzes each new DataFrame at once, so `select` fails. Connect sends the plan to the server only at the action, so `collect()` fails ([Chapter 18](ch18-spark-connect.md)). Put the `try` block around the action, and the handler works on the two sides.
+
+### The error-conditions catalog
+
+Each condition is an entry in a JSON file. The JVM conditions are in `error/error-conditions.json` inside the `spark-common-utils` JAR. The conditions that PySpark raises in Python are in `pyspark/errors/error-conditions.json`. `errors.py` reads the two files from the pip package:
+
+```text
+== 4. the error-conditions catalog
+JVM:    spark-common-utils_2.13-4.3.0.jar!error/error-conditions.json: 1347 conditions, 779 subconditions
+        error-states.json: 1262 SQLSTATE codes
+Python: pyspark/errors/error-conditions.json: 223 conditions (client-side errors)
+DIVIDE_BY_ZERO: sqlState=22012  message=Division by zero. Use `try_divide` to tolerate divisor being 0 and return NULL instead. 
+CAST_INVALID_INPUT: sqlState=22018  message=The value <expression> of the type <sourceType> cannot be cast to <targetType> because i
+22012 in error-states.json: {'description': 'division by zero', 'standard': 'Y'}
+  42703  class 42  An undefined column or parameter name was detected.
+  42601  class 42  A character, token, or clause is invalid or missing.
+  22012  class 22  division by zero
+  22018  class 22  invalid character value for cast
+  42P01  class 42  undefined table
+  42K09  class 42  Data type mismatch
+UNRESOLVED_COLUMN subconditions: ['WITHOUT_SUGGESTION', 'WITH_SUGGESTION']
+Python-side PySparkTypeError above: NOT_EXPECTED_TYPE -> Argument `<arg_name>` should be <expected_type>, got <arg_type>.
+```
+
+Spark 4.3.0 has 1,347 JVM conditions with 779 subconditions, and PySpark has 223 conditions of its own. Each message is a template. The names in angle brackets are the keys of `getMessageParameters()`. `error-states.json` describes each SQLSTATE and says if it comes from the SQL standard (`'standard': 'Y'`) or from Spark.
+
+The same catalog is on the web as the [error conditions reference](https://spark.apache.org/docs/4.3.0/sql-error-conditions.html). Use the reference to find the conditions for a feature before you write a handler. Use the JSON files in a test. For example, make sure that each condition in your handler exists in the release that you run.
+
 ## The whole chapter, on one page
 
 - **ANSI mode stops the job at the first bad value, at the action.** If you turn it off, the job gives wrong numbers. Catch `PySparkException`, and read `getCondition()`, `getSqlState()` and `getMessageParameters()`.
@@ -1071,6 +1248,7 @@ Thus a SQL job can read nanosecond Parquet, transform it and write it with no lo
 - **NULL, `""`, markers and NaN are four different values.** Change markers to NULL early. Watch `NOT IN` with NULL, and NaN in aggregates.
 - **Map categories with a table and a left join, and keep each row with a `reject_reason`.**
 - **Nanosecond timestamps (4.3 preview) work in SQL and Parquet, not in PySpark.** Cast them before they go to Python.
+- **Handle errors by condition, then by SQLSTATE class.** The same `pyspark.errors` classes catch errors on Classic and Connect. Some errors have no condition. Put the `try` around the action.
 
 These rules all have one source. ANSI mode makes errors visible, and a `try_` function makes them data. Some values convert to a wrong value with no error. These values still need a test. [Chapter 13](ch13-spark-sql-in-depth.md) uses these clean values in SQL, with window functions, pipe syntax and `QUALIFY`.
 

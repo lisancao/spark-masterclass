@@ -1,0 +1,23 @@
+session: pyspark.sql.session
+spark.sql.pyspark.plotting.max_rows = 1000
+
+== 1. bar: a top-n plot. Aggregate first, then plot the small result
+type: plotly.graph_objs._figure.Figure  bars: 10
+first bar: Upper East Side South 177610
+
+== 2. bar on the raw 3.8 million rows: only the first max_rows rows reach the plot
+bars in the figure: 1000
+
+== 3. scatter: a sampled plot
+points in the figure: 1000 (a random sample of the filtered rows)
+
+== 4. hist, box and kde: Spark computes the numbers, the driver gets only the result
+hist traces: ['fare_amount', 'tip_amount']  bins in each: 20
+hist bar heights (fare_amount, first 5): [2006689, 1185285, 361585, 103878, 127386]
+box: q1=10.35 median=16.3 q3=26.8 lowerfence=0.0 upperfence=51.47
+kde points: 50
+
+== 5. an unsupported backend
+PySparkValueError UNSUPPORTED_PLOT_BACKEND | `matplotlib` is not supported, it should be one of the values from plo
+
+wrote ch09-plot-bar.svg and ch09-plot-scatter.svg

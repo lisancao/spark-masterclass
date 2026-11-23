@@ -1,0 +1,70 @@
+session: Classic
+
+== 1. one failure of each kind, and what the exception carries
+unknown column:
+  class:     pyspark.errors.exceptions.captured.AnalysisException
+  condition: UNRESOLVED_COLUMN.WITH_SUGGESTION   SQLSTATE: 42703
+  params:    {'objectName': '`revenue`', 'proposal': '`extra`, `VendorID`, `mta_tax`, `RatecodeID`, `fare_amount`'}
+  context:   DataFrame fragment='col'
+SQL syntax:
+  class:     pyspark.errors.exceptions.captured.ParseException
+  condition: PARSE_SYNTAX_ERROR   SQLSTATE: 42601
+  params:    {'error': "'SELEC'", 'hint': ''}
+divide by zero:
+  class:     pyspark.errors.exceptions.captured.ArithmeticException
+  condition: DIVIDE_BY_ZERO   SQLSTATE: 22012
+  params:    {'config': '"spark.sql.ansi.enabled"'}
+  context:   SQL fragment='10 / 0'
+bad cast:
+  class:     pyspark.errors.exceptions.captured.NumberFormatException
+  condition: CAST_INVALID_INPUT   SQLSTATE: 22018
+  params:    {'expression': "'12a'", 'sourceType': '"STRING"', 'targetType': '"INT"', 'ansiConfig': '"spark.sql.ansi.enabled"'}
+  context:   SQL fragment="CAST('12a' AS INT)"
+table not found:
+  class:     pyspark.errors.exceptions.captured.AnalysisException
+  condition: TABLE_OR_VIEW_NOT_FOUND   SQLSTATE: 42P01
+  params:    {'relationName': '`no_such_table`', 'searchPath': '[`system`.`builtin`, `system`.`session`, `spark_catalog`.`default`]'}
+Python-side check:
+  class:     pyspark.errors.exceptions.base.PySparkTypeError
+  condition: NOT_EXPECTED_TYPE   SQLSTATE: 42K09
+  params:    {'expected_type': 'Column', 'arg_name': 'col', 'arg_type': 'int'}
+no condition:
+  class:     pyspark.errors.exceptions.captured.IllegalArgumentException
+  condition: None   SQLSTATE: None
+  params:    None
+  message:   requirement failed: Sampling fraction (2.0) must be on interval [0, 1] without r
+
+== 2. the Python classes are the same on Classic and Connect
+  isinstance('unknown column', AnalysisException): True   TypeError: False
+  isinstance('SQL syntax', ParseException): True   TypeError: False
+  isinstance('divide by zero', ArithmeticException): True   TypeError: False
+  isinstance('bad cast', NumberFormatException): True   TypeError: False
+  isinstance('Python-side check', PySparkTypeError): True   TypeError: True
+
+== 3. a handler that decides by condition first, then by SQLSTATE class
+  unknown column     -> fix the code: column `revenue`
+  SQL syntax         -> SQLSTATE class 42 (syntax error or access rule violation): stop the job
+  divide by zero     -> retry with try_divide
+  bad cast           -> SQLSTATE class 22 (data exception): stop the job
+  table not found    -> create the table, then run again
+  Python-side check  -> SQLSTATE class 42 (syntax error or access rule violation): stop the job
+  no condition       -> no condition: log the message and stop the job
+
+== 4. the error-conditions catalog
+JVM:    spark-common-utils_2.13-4.3.0.jar!error/error-conditions.json: 1347 conditions, 779 subconditions
+        error-states.json: 1262 SQLSTATE codes
+Python: pyspark/errors/error-conditions.json: 223 conditions (client-side errors)
+DIVIDE_BY_ZERO: sqlState=22012  message=Division by zero. Use `try_divide` to tolerate divisor being 0 and return NULL instead. 
+CAST_INVALID_INPUT: sqlState=22018  message=The value <expression> of the type <sourceType> cannot be cast to <targetType> because i
+22012 in error-states.json: {'description': 'division by zero', 'standard': 'Y'}
+  42703  class 42  An undefined column or parameter name was detected.
+  42601  class 42  A character, token, or clause is invalid or missing.
+  22012  class 22  division by zero
+  22018  class 22  invalid character value for cast
+  42P01  class 42  undefined table
+  42K09  class 42  Data type mismatch
+UNRESOLVED_COLUMN subconditions: ['WITHOUT_SUGGESTION', 'WITH_SUGGESTION']
+Python-side PySparkTypeError above: NOT_EXPECTED_TYPE -> Argument `<arg_name>` should be <expected_type>, got <arg_type>.
+
+== 5. where the error appears: on the line that defines the DataFrame, or at the action
+  raised by: select('revenue') -> UNRESOLVED_COLUMN.WITH_SUGGESTION

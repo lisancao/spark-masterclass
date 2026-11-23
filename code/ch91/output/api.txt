@@ -1,0 +1,49 @@
+session: pyspark.sql.session
+
+== 1. options
+  compute.default_index_type   distributed-sequence
+  compute.ops_on_diff_frames   True
+  compute.shortcut_limit       1000
+  compute.max_rows             1000
+  compute.ansi_mode_support    True
+  display.max_rows             1000
+  plotting.backend             plotly
+  inside option_context('display.max_rows', 3): 3
+
+== 2. interop: to_spark, pandas_api, to_pandas, from_pandas, ps.sql
+  to_spark() columns:             ['PULocationID', 'payment_type', 'fare_amount', 'tip_amount', 'trip_distance']
+  to_spark(index_col='row'):      ['row', 'PULocationID'] ...
+  pandas_api(index_col='row'):    DataFrame row
+  pandas_api() with no index:     +- AttachDistributedSequence[distributed_seq
+  to_pandas():                    pandas.core.frame.DataFrame (1000, 5)
+  ps.from_pandas(pdf):            DataFrame
+  ps.sql(... {t} ...):            [[237, 177610], [161, 161198], [236, 157113]]
+
+== 3. functions: apply_batch and transform_batch, with and without type hints
+  no return hint:   defined in 0.72 s (runs the function on a sample to infer the schema)
+  with return hint: defined in 0.03 s, schema struct<PULocationID:bigint,pct:double>
+  mean pct, both: 0.1738 0.1738
+  plan of the hinted version: ['MapInPandas <lambda>(__index_level_0__#21L, PULocationID#7, ']
+
+== 4. operations on two different DataFrames
+  a.fare_amount + b.tip_amount: ok, the plan joins on the index: True
+  same with ops_on_diff_frames=False       ValueError 
+                                           Cannot combine the series or dataframe because i
+
+== 5. limits
+  psdf.append (removed in 4.0)             AttributeError 
+                                           'DataFrame' object has no attribute 'append'
+  psdf.iteritems (removed in 4.0)          AttributeError 
+                                           'DataFrame' object has no attribute 'iteritems'
+  ps.Int64Index (removed in 4.0)           AttributeError 
+                                           module 'pyspark.pandas' has no attribute 'Int64I
+  psdf.values (collects to the driver)     ok: ndarray
+  psdf.iloc[5] (row by position)           ok: [141.0, 1.0, 5.8, 2.16, 0.9]
+  psdf.iloc[:3] (a slice is fine)          ok: (3, 5)
+  psdf.fare_amount.rolling(3).mean()       ok: [nan, nan, 24.0, 20.96666666666667, 20.5]
+
+== 6. plotting (plotly)
+  hist type: plotly.graph_objs._figure.Figure  bars: 40
+  barh rows: 8
+  RatecodeID 2 (JFK) trips: 92,624, most common fare: [70.0]
+  wrote book/media/figures/ch91-fare-hist.svg
