@@ -10,7 +10,7 @@ Most Spark data in the cloud is in an object store: Amazon S3, Azure Data Lake S
 
 This chapter installs the `hadoop-cloud` module, connects Spark to an S3-compatible store, and then writes the same table with each committer. It counts the S3 requests that each committer sends, and it breaks a job on purpose to see what each committer leaves behind.
 
-The code is in [`code/ch38/`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch38). The scripts run on `pyspark==4.3.0` in local mode. Each output block below comes from a file in `code/ch38/output/`.
+The code is in [`code/ch38/`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch38). The scripts run on `pyspark==4.3.0` in local mode. Each output block below comes from a file in `code/ch38/output/`.
 
 !!! note "What ran, and what comes only from documentation"
     The S3 parts ran for real against [MinIO](https://min.io/) in Docker (`minio/minio:RELEASE.2025-04-08T15-41-24Z`). MinIO implements the S3 API, and the S3A connector cannot see a difference. MinIO runs on the same machine as Spark, so each request is fast. On Amazon S3, each request has more latency, and a copy runs at the speed of the service. Thus, the request counts in this chapter transfer to S3, but the seconds do not.

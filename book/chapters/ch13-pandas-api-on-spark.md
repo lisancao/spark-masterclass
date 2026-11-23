@@ -6,7 +6,7 @@ pandas is the DataFrame library that most Python data work starts with. Its API 
 
 This chapter opens a pandas-on-Spark DataFrame and shows what it maps to. It measures the three default index types, and it compares five operations in pandas, in the pandas API on Spark and in PySpark. Then it shows the options and the conversions to and from Spark and pandas. The last steps show functions with type hints, plots, the limits, and Spark Connect support in 4.3.
 
-The scripts are in [`code/ch13`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch13), and each output block comes from `code/ch13/output/`. `api.py` ran on Spark Classic and on Spark Connect.
+The scripts are in [`code/ch13`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch13), and each output block comes from `code/ch13/output/`. `api.py` ran on Spark Classic and on Spark Connect.
 
 ## Step 1: What a pandas-on-Spark DataFrame is
 

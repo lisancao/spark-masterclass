@@ -12,7 +12,7 @@ A Spark job that runs once from a terminal is easy. A Spark job that runs each n
 
 This chapter runs each part for real. A local Airflow 3.4.0 runs DAGs against Spark 4.3.0, on the laptop and on a kind cluster with three nodes. YuniKorn schedules Spark pods on that cluster, and Celeborn holds the shuffle data of a Spark job. [Chapter 76](ch76-kubernetes-operator.md) explains the Apache Spark Kubernetes Operator. This chapter only uses that operator from Airflow.
 
-The code is [`code/ch77`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch77).
+The code is [`code/ch77`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch77).
 
 ## The layers
 

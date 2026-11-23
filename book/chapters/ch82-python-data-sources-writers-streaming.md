@@ -10,7 +10,7 @@ This chapter builds two sinks and one stream source:
 - `arrowparquet`, a writer that receives Arrow batches.
 - `inbox`, a stream reader over a folder that grows, and a stream writer that skips a batch that it already published.
 
-The scripts are in [`code/ch82`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch82). All output comes from `code/ch82/output/`, from runs on `pyspark==4.3.0` in local mode.
+The scripts are in [`code/ch82`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch82). All output comes from `code/ch82/output/`, from runs on `pyspark==4.3.0` in local mode.
 
 !!! note "New in 4.3"
     The writer and stream APIs are the same as in 4.2. Admission control (`getDefaultReadLimit()`, `latestOffset(start, limit)`) and `SupportsTriggerAvailableNow` came in 4.2 (SPARK-55304). Real-time mode is the important new streaming feature of 4.3. Step 10 shows that a Python stream reader cannot use it: Spark 4.3.0 refuses the Python scan and the Python sink. In 4.3.0, the writer change of SPARK-58019 converts Arrow list columns to Python rows in bulk before `write()` receives them.

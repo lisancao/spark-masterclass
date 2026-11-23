@@ -4,7 +4,7 @@
 
 **The DataFrame API, standard SQL and pipe SQL are three surfaces on one engine. They all become one logical plan, and the optimizer cannot see which surface you used. A window function is different, because it adds real work to the plan: a shuffle by the partition key, a sort, and a `Window` operator. When you know that shape, you can write windows that cost one sort, not three.**
 
-The scripts are in [`code/ch18`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch18), and each output block below comes from `code/ch18/output/`. They use the June 2026 taxi trips and the zone lookup from Part II. `windows.py` also uses an 8-row table, so that you can check each window value by eye.
+The scripts are in [`code/ch18`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch18), and each output block below comes from `code/ch18/output/`. They use the June 2026 taxi trips and the zone lookup from Part II. `windows.py` also uses an 8-row table, so that you can check each window value by eye.
 
 - `syntaxes.py`: one question in three syntaxes, the plans, `explain` modes, constant folding and parameters.
 - `windows.py`: window functions, frames and the plans that they make.

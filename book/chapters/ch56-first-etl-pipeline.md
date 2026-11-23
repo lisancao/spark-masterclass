@@ -10,7 +10,7 @@ This chapter only does the work, one short step at a time. The next chapters exp
 - [Chapter 58](ch58-configuring-pipelines.md): the configuration.
 - [Chapter 59](ch59-declarative-pipelines.md): the model of tables and flows.
 
-The code is in [`code/ch56`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch56). `tutorial.sh` does each step of this chapter in a new folder. It saves the commands and their output in `code/ch56/output/`. Each output block below comes from these files. The runs use `pyspark==4.3.0`, Python 3.12 and Java 17.
+The code is in [`code/ch56`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch56). `tutorial.sh` does each step of this chapter in a new folder. It saves the commands and their output in `code/ch56/output/`. Each output block below comes from these files. The runs use `pyspark==4.3.0`, Python 3.12 and Java 17.
 
 ## What you build
 
@@ -234,7 +234,7 @@ The pip install includes the scripts that start a server. Start the server in th
 $ SPARK_HOME=$(python -c "import os, pyspark; print(os.path.dirname(pyspark.__file__))")
 
 $ $SPARK_HOME/sbin/start-connect-server.sh --conf spark.connect.grpc.binding.port=15104 --conf spark.sql.catalogImplementation=hive --conf spark.ui.port=4144 | sed "s#$W#.#"
-starting org.apache.spark.sql.connect.service.SparkConnectServer, logging to ./run/spark-lnc-org.apache.spark.sql.connect.service.SparkConnectServer-1-systemsnull.out
+starting org.apache.spark.sql.connect.service.SparkConnectServer, logging to ./run/spark-user-org.apache.spark.sql.connect.service.SparkConnectServer-1-laptop.out
 
 $ export SPARK_REMOTE=sc://localhost:15104
 ```

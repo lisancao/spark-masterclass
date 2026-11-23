@@ -118,7 +118,7 @@
 |day=2026-06-30|
 +--------------+
 
-> CREATE TABLE zones_ext USING parquet LOCATION '~/spark-masterclass-parts/sql-ddl/data/work/ch16-alter/external/zones'
+> CREATE TABLE zones_ext USING parquet LOCATION '~/spark-masterclass/data/work/ch16-alter/external/zones'
 > TRUNCATE TABLE zones_ext
   AnalysisException: [CANNOT_TRUNCATE_EXTERNAL_TABLE] Operation not allowed: TRUNCATE
   TABLE on external tables: `spark_catalog`.`taxi`.`zones_ext`. SQLSTATE: 0A000
@@ -151,8 +151,8 @@
 |Catalog Name  |spark_catalog                                                                        |
 |Namespace Name|taxi                                                                                 |
 |Comment       |NYC taxi tables of the book                                                          |
-|Location      |file:~/spark-masterclass-parts/sql-ddl/data/work/ch16-alter/warehouse/taxi.db|
-|Owner         |lnc                                                                                  |
+|Location      |file:~/spark-masterclass/data/work/ch16-alter/warehouse/taxi.db|
+|Owner         |user                                                                                 |
 +--------------+-------------------------------------------------------------------------------------+
 
 > CREATE VIEW notes_v AS SELECT id, note FROM trip_notes

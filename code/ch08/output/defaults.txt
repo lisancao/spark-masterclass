@@ -36,7 +36,7 @@ spark.sql.execution.pythonUDF.arrow.enabled        true                         
 spark.sql.parquet.compression.codec                snappy                       1.1.1  False
 spark.sql.sources.partitionOverwriteMode           STATIC                       2.3.0  False
 spark.sql.optimizer.singleTaskExecution.enabled    false                        4.3.0  False
-spark.sql.warehouse.dir                            file:~/spark-masterclass-parts/config-sql/code/spark-warehouse 2.0.0  True
+spark.sql.warehouse.dir                            file:~/spark-masterclass/code/spark-warehouse 2.0.0  True
 spark.sql.catalogImplementation                    in-memory                    2.0.0  True
 spark.sql.extensions                               <undefined>                  2.2.0  True
 spark.sql.defaultCatalog                           spark_catalog                3.0.0  False

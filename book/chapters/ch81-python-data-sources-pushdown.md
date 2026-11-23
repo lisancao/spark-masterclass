@@ -6,7 +6,7 @@ Filter pushdown gives the `WHERE` clause to the source. Spark 4.1 added it to th
 
 **Filter pushdown moves a filter from Spark into your source, and with the filter it moves the duty to give the correct answer. Spark does not check a filter that the source accepts. Thus a source that accepts a filter and applies it differently from Spark gives wrong results with no error. And in Spark 4.3.0, every query on the same relation uses the planned read that pushdown makes. Thus a correct source can also give wrong results.**
 
-The scripts are in [`code/ch81`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch81). All output comes from `code/ch81/output/`, from runs on `pyspark==4.3.0` in local mode.
+The scripts are in [`code/ch81`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch81). All output comes from `code/ch81/output/`, from runs on `pyspark==4.3.0` in local mode.
 
 !!! note "New in 4.3"
     Nothing in filter pushdown changed between 4.2.0 and 4.3.0. The flag `spark.sql.python.filterPushdown.enabled` is still internal and `false` by default (`SQLConf.scala` at `v4.3.0`). Python sources still get no column pruning, no limit pushdown and no aggregate pushdown. The planned-read problem in Step 8 is still in 4.3.0. A limit pushdown API for Python sources (SPARK-58551) is on the master branch, but it is not in 4.3.0. SPARK-59909 corrected PySpark errors with undefined conditions, and it is in 4.3.0.

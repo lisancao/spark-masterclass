@@ -1,6 +1,6 @@
 # v2-connect-clients: Chapters 27, 28, 29 (Spark Connect part)
 
-Worktree `~/spark-masterclass-parts/connect-clients`, branch `v2-connect-clients`. Ports: Connect 15106, UI 4146.
+Worktree `connect-clients`, branch `v2-connect-clients`. Ports: Connect 15106, UI 4146.
 
 ## Scope
 
@@ -129,7 +129,7 @@ Clips (`code/film/ch27.tape`, `ch28.tape`, `ch29.tape`, `--format chapter`; cut 
 | ch29-stream | `step2_execute` | One ExecutePlan, a stream of responses, a pyarrow table. |
 | ch29-reattach | `step6_reattach` | The server ends each stream early; the client reattaches, then releases. |
 
-## History (needs Lisa)
+## History (needs the author)
 
 Commit `ad8f6d8` ("WIP: ch27 clients and probes, ch29 minimal client code") accidentally contains a JDK download cache of about 595 MB under `code/ch27/scala/?/` (scala-cli in Docker, run as a non-root user, used `?` as its home). A later commit removes it and adds `code/ch27/scala/.gitignore`, but the objects stay in the branch history. A hook blocked a history rewrite. Before this branch is pushed or merged, either rewrite it (`git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch "code/ch27/scala/?"' 3f6ec08..HEAD`) or squash-merge it.
 

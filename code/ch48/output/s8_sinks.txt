@@ -13,7 +13,7 @@
 
 3. The memory sink keeps nothing across restarts:
   AnalysisException: This query does not support recovering from checkpoint location.
-  Delete ~/spark-masterclass-parts/part05/data/work/ch48/s8/mem/offsets to start ...
+  Delete ~/spark-masterclass/data/work/ch48/s8/mem/offsets to start ...
 
 4. A file sink needs a checkpoint location of its own:
   AnalysisException: checkpointLocation must be specified either through

@@ -14,7 +14,7 @@ This chapter is about the model. The chapters before it show how to use the tool
 - [Chapter 57](ch57-pipelines-cli-project.md) explains the `spark-pipelines` CLI, the spec file, the project layout, `dry-run` and the refresh options.
 - [Chapter 58](ch58-configuring-pipelines.md) explains the configuration, the catalog and the database, and one project in more than one environment.
 
-The code is in [`code/ch59`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch59). Each output block comes from `code/ch59/output/`. All runs use `pyspark==4.3.0`. The script `code/common/pipeline.sh` copies a project to a work folder, starts a Connect server there and runs `spark-pipelines` against it.
+The code is in [`code/ch59`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch59). Each output block comes from `code/ch59/output/`. All runs use `pyspark==4.3.0`. The script `code/common/pipeline.sh` copies a project to a work folder, starts a Connect server there and runs `spark-pipelines` against it.
 
 ## Step 1: The imperative job, and its second run
 

@@ -6,7 +6,7 @@ Most Spark data lives in Parquet files, and most Spark performance advice is abo
 
 ORC files have the same parts and follow the same rules. The writer also decides two more things: the columns that it encrypts, and the calendar of old dates.
 
-The scripts are in [`code/ch45`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch45), and each output block comes from `code/ch45/output/`. `thrift_compact.py` is a reader for the Thrift compact protocol, adapted from SparkTutor. `orc.py` (Steps 9 to 11) and `crypto_rebase.py` (Steps 12 and 13) are the scripts for ORC, encryption and old dates. All runs use Spark 4.3.0 in `local[*]` mode on 16 cores. Spark 4.3.0 writes Parquet with parquet-mr (parquet-java) 1.17.0, and ORC with ORC 2.3.0.
+The scripts are in [`code/ch45`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch45), and each output block comes from `code/ch45/output/`. `thrift_compact.py` is a reader for the Thrift compact protocol, adapted from SparkTutor. `orc.py` (Steps 9 to 11) and `crypto_rebase.py` (Steps 12 and 13) are the scripts for ORC, encryption and old dates. All runs use Spark 4.3.0 in `local[*]` mode on 16 cores. Spark 4.3.0 writes Parquet with parquet-mr (parquet-java) 1.17.0, and ORC with ORC 2.3.0.
 
 ## Step 1: The bytes at the two ends of a file
 

@@ -2,7 +2,7 @@ python  3.12.3
 pyspark 4.3.0
 java    openjdk version "17.0.21.1" 2026-11-17
 
-Spark 4.3.0 on local[*], 16 cores, UI at http://192.168.50.13:4040
+Spark 4.3.0 on local[*], 16 cores, UI at http://127.0.0.1:4040
 
 3,837,248 trips, 21 columns
 root

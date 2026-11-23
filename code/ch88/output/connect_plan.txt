@@ -13,7 +13,7 @@ root {
                 key: "wholetext"
                 value: "false"
               }
-              paths: "~/spark-masterclass-parts/part10/code/data/logs/access.log"
+              paths: "~/spark-masterclass/code/data/logs/access.log"
             }
           }
         }

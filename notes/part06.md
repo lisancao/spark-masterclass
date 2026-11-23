@@ -167,7 +167,7 @@ STE results (final, `scripts/ste-check`):
 7. **Metric views: `CREATE OR REPLACE VIEW ... WITH METRICS` fails with `TABLE_OR_VIEW_ALREADY_EXISTS`** on 4.2.0, 4.2.1 and 4.3.0 (Classic, in-memory and Hive catalogs). Repro: `code/ch23/lifecycle.py`; minimal script used: create a table, `CREATE VIEW mv WITH METRICS ...`, then `CREATE OR REPLACE VIEW mv WITH METRICS ...`. Not checked over Connect.
 8. **Metric views: `DROP TABLE` drops a metric view** in the Hive catalog (4.3.0) without `WRONG_COMMAND_FOR_OBJECT_TYPE`. Repro: `code/ch23/lifecycle.py`.
 9. **Metric views: a definition with no dimensions and no measures is accepted**, and a query of it reads the source. Repro: `code/ch23/rules.py`.
-10. **SPARK-60206** (fix on Lisa's branch, not in 4.3.0): unqualified metric view source resolves in the querying session's current database. Repro: `code/ch23/lifecycle.py` (5 rows instead of 3,694,387).
+10. **SPARK-60206** (fix on the author's branch, not in 4.3.0): unqualified metric view source resolves in the querying session's current database. Repro: `code/ch23/lifecycle.py` (5 rows instead of 3,694,387).
 11. **Doc gap**: the `PipelineEvent` proto carries only `timestamp` and `message`; OSS has no persisted pipeline event log. Users who need run history must save CLI output or the Spark event log.
 
 ## Not verified

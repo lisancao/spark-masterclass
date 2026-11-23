@@ -1,6 +1,6 @@
 # v3-sql-agg notes: Chapter 19 (Aggregation), UNNEST in Chapter 34, UNNEST in pipes and TABLESAMPLE in Chapter 18
 
-Branch `v3-sql-agg`, worktree `~/spark-masterclass-parts/sql-agg`. Ports: `SPARK_UI_PORT=4152` (some runs used 4153 to 4156 when another run held 4152), Connect 15112 (not used: every script runs on Spark Classic).
+Branch `v3-sql-agg`, worktree `sql-agg`. Ports: `SPARK_UI_PORT=4152` (some runs used 4153 to 4156 when another run held 4152), Connect 15112 (not used: every script runs on Spark Classic).
 
 ## Scope and changes
 
@@ -66,7 +66,7 @@ Branch `v3-sql-agg`, worktree `~/spark-masterclass-parts/sql-agg`. Ports: `SPARK
 
 - Linux 7.0.0, 16 cores, OpenJDK 17, Python 3.12.3, `pyspark==4.3.0` from `code/uv.lock`. Local mode `local[*]`, default 200 shuffle partitions, AQE on. `approx.py` and `bench.py` use `spark.driver.memory=4g`.
 - Data: `BOOK_DATA=$HOME/spark-masterclass/data`, June 2026 yellow trips (63 MB) and the zone lookup; Chapter 34 uses `code/data/messy/nested/orders.json`.
-- Spark source: `~/repos/spark` tag `v4.3.0` (98bc0212c94). Version checks with `git log v4.2.0 | grep SPARK-...`.
+- Spark source: `~/spark` tag `v4.3.0` (98bc0212c94). Version checks with `git log v4.2.0 | grep SPARK-...`.
 - pyspark 4.2.0 for `plan42.py` and the pivot `*` check: a scratch venv (`uv venv` + `pip install pyspark==4.2.0`) in the scratchpad, not committed.
 - Timings: `flock ~/spark-masterclass/data/.bench.lock`, median of 5 after one warmup, cached input where the script says so. Other writers used the machine at the same time. Two locked runs of `bench.py` gave different absolute numbers (for example `count(DISTINCT)` 1.824 s, then 0.925 s); the chapter quotes the saved second run and draws only conclusions that held in both runs (bypass faster for unique keys and slower for few keys, approx_count_distinct faster than count(DISTINCT), exact percentile faster than percentile_approx on fares, ROLLUP and UNION ALL close).
 

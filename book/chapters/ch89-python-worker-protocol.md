@@ -4,7 +4,7 @@
 
 **A Python UDF runs in a separate Python process that the JVM controls through a socket. The JVM sends one request for each task: an init message with the function and its settings, then the rows. The worker sends back the results, its timings and a code that tells the JVM if it can use the worker again. Each failure mode of a UDF is a failure at a known point in this exchange. If you can read the bytes, you can find the point.**
 
-This chapter records those bytes and decodes them. All the code runs on a laptop against `pyspark==4.3.0`, with Python 3.12 on Linux. Each source excerpt names its file in the [apache/spark](https://github.com/apache/spark/tree/v4.3.0) repository at the `v4.3.0` tag. The scripts are in [`code/ch89`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch89), and each output block comes from `code/ch89/output/`. Some scripts read `/proc` and set resource limits, so they need Linux.
+This chapter records those bytes and decodes them. All the code runs on a laptop against `pyspark==4.3.0`, with Python 3.12 on Linux. Each source excerpt names its file in the [apache/spark](https://github.com/apache/spark/tree/v4.3.0) repository at the `v4.3.0` tag. The scripts are in [`code/ch89`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch89), and each output block comes from `code/ch89/output/`. Some scripts read `/proc` and set resource limits, so they need Linux.
 
 ## Step 1: The processes that run a UDF
 

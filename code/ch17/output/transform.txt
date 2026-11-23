@@ -1,4 +1,4 @@
-> ADD FILE '~/spark-masterclass-parts/sql-ddl/code/ch17/zone_short.py'
+> ADD FILE '~/spark-masterclass/code/ch17/zone_short.py'
 == 1. no ROW FORMAT clause in a Hive session: LazySimpleSerDe, fields split by a tab
 > SELECT TRANSFORM (id, zone)
      USING 'python3 zone_short.py'
@@ -62,7 +62,7 @@
 > SELECT TRANSFORM (id, zone) USING 'python3 -c "import sys; sys.exit(3)"' AS (a STRING) FROM zones
   Py4JJavaError: An error occurred while calling o68.showString. :
   org.apache.spark.SparkException: Subprocess exited with status 3. Error: . at org.apac ...
-> ADD FILE '~/spark-masterclass-parts/sql-ddl/code/ch17/zone_short.py'
+> ADD FILE '~/spark-masterclass/code/ch17/zone_short.py'
 == 6. a session without Hive support: the default field separator is \u0001
   physical node: SparkScriptTransformation
 > SELECT TRANSFORM (id, zone) USING 'python3 zone_short.py' AS (id INT, short STRING, letters INT) FROM zones

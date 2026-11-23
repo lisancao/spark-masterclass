@@ -143,7 +143,7 @@ Rules broken on purpose:
 - Timed runs (`ch51/r2_latency.py`, `ch51/r3_foreach.py`) ran under `flock ~/spark-masterclass/data/.bench.lock`. After the integrator's rule change, films and untimed scripts ran without the lock.
 - Latency runs: 200 records/s for 30 s, 40 keys, 4 input partitions, 4 shuffle partitions, first 10 s of each run dropped, percentiles over the remaining 4000 inputs. Three runs are quoted (`r2_latency.txt`), medians in the ch51 table. Two other runs are not used: one overlapped this part's own (unlocked) film renders (micro-batch pass-through p50 424 ms, Real-time 1 ms; mentioned in ch51 as a load effect), and one ended with exit code 1 before printing (stderr not kept; the next locked run succeeded).
 - `r3_foreach.py`: one record a second for 10 s, 20 s Real-time batches, one run with each buffer size.
-- Spark source: `~/repos/spark` at tag `v4.3.0` (and `v4.2.0`, `v4.1.0`, `v4.0.0` for version claims).
+- Spark source: `~/spark` at tag `v4.3.0` (and `v4.2.0`, `v4.1.0`, `v4.0.0` for version claims).
 
 ## Open findings
 

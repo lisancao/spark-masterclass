@@ -6,7 +6,7 @@ Spark carries a Hive client, Hive's SerDes and Hive's UDF interfaces inside it. 
 
 This chapter continues [Chapter 16](ch16-tables-ddl-writes.md), which used the in-memory catalog. Here each script turns on Hive support, and each step looks at the metastore and at the files.
 
-The scripts are in [`code/ch17`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch17), and each output block below comes from `code/ch17/output/`.
+The scripts are in [`code/ch17`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch17), and each output block below comes from `code/ch17/output/`.
 
 | Script | What it shows |
 |---|---|
@@ -460,7 +460,7 @@ flowchart TB
 
 ```text
 == 5. partition DDL: a partition outside the warehouse, and DROP on a managed table
-> ALTER TABLE zones ADD PARTITION (borough = 'Staten Island') LOCATION '~/spark-masterclass-parts/sql-ddl/data/work/ch17-partitions/landing/si'
+> ALTER TABLE zones ADD PARTITION (borough = 'Staten Island') LOCATION '~/spark-masterclass/data/work/ch17-partitions/landing/si'
 > SELECT borough, count(*) AS zones FROM zones GROUP BY borough ORDER BY borough
 +-------------+-----+
 |borough      |zones|
@@ -563,7 +563,7 @@ spark.sql.sources.schema.partCol.0      |borough
 
 ```text
 == 1. LOAD DATA LOCAL INPATH copies a file into the table folder
-> LOAD DATA LOCAL INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones
+> LOAD DATA LOCAL INPATH '~/spark-masterclass/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones
   inbox:
     zones_1.csv  (42 B)
     zones_2.csv  (58 B)
@@ -572,7 +572,7 @@ spark.sql.sources.schema.partCol.0      |borough
     zones_1.csv  (42 B)
 ...
 == 2. LOAD DATA INPATH (no LOCAL) moves the file
-> LOAD DATA INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_2.csv' INTO TABLE zones
+> LOAD DATA INPATH '~/spark-masterclass/data/work/ch17-load/inbox/zones_2.csv' INTO TABLE zones
   inbox:
     zones_1.csv  (42 B)
     zones_3.csv  (30 B)
@@ -593,11 +593,11 @@ Because `LOAD DATA` does not read the files, it does not check their format. A C
 
 ```text
 > CREATE TABLE zones_ds (id INT, borough STRING, zone STRING) USING csv
-> LOAD DATA LOCAL INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones_ds
+> LOAD DATA LOCAL INPATH '~/spark-masterclass/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones_ds
   AnalysisException: LOAD DATA is not supported for datasource tables:
   `spark_catalog`.`taxi`.`zones_ds`.
 > CREATE TABLE zones_pq (id INT, borough STRING, zone STRING) STORED AS PARQUET
-> LOAD DATA LOCAL INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones_pq
+> LOAD DATA LOCAL INPATH '~/spark-masterclass/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones_pq
 > SELECT * FROM zones_pq
   Py4JJavaError: An error occurred while calling o93.showString. :
   org.apache.spark.SparkException: [FAILED_READ_FILE.NO_HINT] Encountered error while ...
@@ -608,17 +608,17 @@ Because `LOAD DATA` does not read the files, it does not check their format. A C
 `INSERT OVERWRITE [LOCAL] DIRECTORY` writes the result of a query to a folder, with no table. It has a Hive form (`ROW FORMAT`, `STORED AS`) and a data source form (`USING`):
 
 ```text
-> INSERT OVERWRITE LOCAL DIRECTORY '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/export/hive_delimited'
+> INSERT OVERWRITE LOCAL DIRECTORY '~/spark-masterclass/data/work/ch17-load/export/hive_delimited'
      ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'
      SELECT * FROM zones_p
   command: InsertIntoHiveDirCommand
 ...
-> INSERT OVERWRITE LOCAL DIRECTORY '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/export/hive_parquet'
+> INSERT OVERWRITE LOCAL DIRECTORY '~/spark-masterclass/data/work/ch17-load/export/hive_parquet'
      STORED AS PARQUET
      SELECT * FROM zones_p
   command: InsertIntoDataSourceDirCommand
 ...
-> INSERT OVERWRITE DIRECTORY '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/export/ds_json'
+> INSERT OVERWRITE DIRECTORY '~/spark-masterclass/data/work/ch17-load/export/ds_json'
      USING json OPTIONS (compression 'none')
      SELECT * FROM zones_p
   command: InsertIntoDataSourceDirCommand
@@ -652,8 +652,8 @@ public class Initials extends UDF {
 `CREATE TEMPORARY FUNCTION ... USING JAR` adds the jar to the session and registers the class:
 
 ```text
-> CREATE TEMPORARY FUNCTION borough_code AS 'book.udf.BoroughCode' USING JAR '~/spark-masterclass-parts/sql-ddl/code/ch17/hive_udf/book-hive-udf.jar'
-> CREATE TEMPORARY FUNCTION initials AS 'book.udf.Initials' USING JAR '~/spark-masterclass-parts/sql-ddl/code/ch17/hive_udf/book-hive-udf.jar'
+> CREATE TEMPORARY FUNCTION borough_code AS 'book.udf.BoroughCode' USING JAR '~/spark-masterclass/code/ch17/hive_udf/book-hive-udf.jar'
+> CREATE TEMPORARY FUNCTION initials AS 'book.udf.Initials' USING JAR '~/spark-masterclass/code/ch17/hive_udf/book-hive-udf.jar'
 > SELECT id, borough, borough_code(borough) AS code, zone, initials(zone) AS short FROM taxi.zones ORDER BY id
 +---+---------+----+---------------------+-----+
 |id |borough  |code|zone                 |short|
@@ -719,7 +719,7 @@ With no Hive support, Spark cannot run a Hive UDF class. The error names a UDAF,
 
 ```text
 == 5. a session without Hive support (the in-memory catalog)
-> CREATE TEMPORARY FUNCTION borough_code AS 'book.udf.BoroughCode' USING JAR '~/spark-masterclass-parts/sql-ddl/code/ch17/hive_udf/book-hive-udf.jar'
+> CREATE TEMPORARY FUNCTION borough_code AS 'book.udf.BoroughCode' USING JAR '~/spark-masterclass/code/ch17/hive_udf/book-hive-udf.jar'
 > SELECT borough_code('Queens') AS code
   AnalysisException: [NO_HANDLER_FOR_UDAF] No handler for UDAF 'book.udf.BoroughCode'.
   Use sparkSession.udf.register(...) instead. SQLSTATE: 42000; line 1 pos 7

@@ -4,7 +4,7 @@ Time series data needs more than a plain `GROUP BY`. It needs buckets: trips per
 
 **A time bucket is one expression in the projection, and a gap in a time series is a row that the data does not have. You must make that row. Fill the gaps before you calculate windows, because a `ROWS` frame counts rows, not time.**
 
-The scripts are in [`code/ch21`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch21), and each output block below comes from `code/ch21/output/`.
+The scripts are in [`code/ch21`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch21), and each output block below comes from `code/ch21/output/`.
 
 - `timeseries.py` uses the June 2026 taxi trips.
 

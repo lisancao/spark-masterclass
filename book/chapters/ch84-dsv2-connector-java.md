@@ -6,7 +6,7 @@ This chapter writes `jdocs`, the same source, directly against DSv2 in Java. It 
 
 **A Python data source can only accept filters. A DSv2 source in Java can answer the questions of the optimizer. It can say which columns it needs, how many rows it returns and how it partitions its data. It can also calculate part of the query itself, for example a `COUNT(*)` from the list of files in the folder, with no task. Each answer removes work from the plan: a column, a `Filter`, a `Limit`, an `Exchange` or a whole job.**
 
-The code is in [`code/ch84`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch84). The Java project is `code/ch84/jdocs`. The PySpark scripts that drive it are next to it, and each output block in this chapter comes from `code/ch84/output/`.
+The code is in [`code/ch84`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch84). The Java project is `code/ch84/jdocs`. The PySpark scripts that drive it are next to it, and each output block in this chapter comes from `code/ch84/output/`.
 
 ## The capability table
 

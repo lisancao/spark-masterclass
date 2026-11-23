@@ -9,7 +9,7 @@
 
 **For Catalyst, a Python UDF is an expression that it cannot evaluate. The optimizer moves other expressions around it, and it can copy it. At the end of optimization, one batch of rules takes each Python UDF out of its expression and puts it into a special operator. All the effects in the list above come from these two facts. In Spark 4.3, an experimental option can change some UDFs into native expressions before the optimizer starts, and then none of these effects occur.**
 
-The method of this chapter is the method of the whole part. Read the source at the `v4.3.0` tag, and then run something that shows the behavior. Each source excerpt names its file in the [apache/spark](https://github.com/apache/spark/tree/v4.3.0) repository at that tag. The scripts are in [`code/ch88`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch88), and each output block comes from `code/ch88/output/`. Most scripts use Py4J to reach JVM objects, so they need a Classic session. Step 10 uses Spark Connect.
+The method of this chapter is the method of the whole part. Read the source at the `v4.3.0` tag, and then run something that shows the behavior. Each source excerpt names its file in the [apache/spark](https://github.com/apache/spark/tree/v4.3.0) repository at that tag. The scripts are in [`code/ch88`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch88), and each output block comes from `code/ch88/output/`. Most scripts use Py4J to reach JVM objects, so they need a Classic session. Step 10 uses Spark Connect.
 
 ## The running example
 

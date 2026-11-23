@@ -107,7 +107,7 @@
 > CREATE EXTERNAL TABLE ext_nopath (x INT) USING parquet
   AnalysisException: [CREATE_EXTERNAL_TABLE_WITHOUT_LOCATION] CREATE EXTERNAL TABLE must
   be accompanied by LOCATION. SQLSTATE: 42601
-> CREATE TABLE ext_daily USING parquet LOCATION '~/spark-masterclass-parts/sql-ddl/data/work/ch16-create/warehouse/taxi.db/daily'
+> CREATE TABLE ext_daily USING parquet LOCATION '~/spark-masterclass/data/work/ch16-create/warehouse/taxi.db/daily'
   ext_daily Type: EXTERNAL | Partition Provider: Catalog
 > SELECT count(*) AS rows FROM ext_daily
 +----+

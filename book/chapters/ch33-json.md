@@ -8,7 +8,7 @@ Spark can guess, and its guess is good. But the guess costs a full read of the d
 
 **A JSON read for a pipeline needs three parts. It needs a schema that you write. It needs a corrupt record column for each record that does not fit. It needs a count that shows that each input record is in the clean table or in the quarantine.** Spark 4.3 adds `JSON_TABLE`, a SQL function that changes JSON text into rows with typed columns. It also adds a reader option for files that hold all their records in one array.
 
-The data is SparkTutor's `events/` folder in [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy): three days of order events. The shape of the events changes each day, and the last line of the third day is cut off. The chapter also uses the JSON lines at the end of `logs/app.log` from [Chapter 32](ch32-text-logs-csv.md). The scripts are [`code/ch33/infer.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch33), `infer_cost.py`, `drift.py` and `functions.py`. All output is from `code/ch33/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
+The data is SparkTutor's `events/` folder in [`code/data/messy`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/data/messy): three days of order events. The shape of the events changes each day, and the last line of the third day is cut off. The chapter also uses the JSON lines at the end of `logs/app.log` from [Chapter 32](ch32-text-logs-csv.md). The scripts are [`code/ch33/infer.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch33), `infer_cost.py`, `drift.py` and `functions.py`. All output is from `code/ch33/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
 
 ## The three days of events
 

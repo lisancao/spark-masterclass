@@ -6,7 +6,7 @@ Delta Lake and Apache Iceberg add the part that a folder does not have. They do 
 
 **A table format is a log of commits. Each commit lists the exact data files that make one version of the table. A writer commits a version with one atomic operation on the log, and a reader reads only the files that its version lists. MERGE, time travel, schema enforcement and safe concurrent writers all come from this one mechanism.** This chapter opens the log of each format on disk. Then it follows the log through a MERGE, a DELETE, a time-travel query and two concurrent writers.
 
-The code is in [`code/ch54`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch54). Each output block comes from `code/ch54/output/`. Deep Iceberg topics (catalog types, REST catalogs, procedures and table maintenance) are in [Chapter 55](ch55-iceberg.md). This chapter keeps to the log on disk and to what Spark does with it.
+The code is in [`code/ch54`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch54). Each output block comes from `code/ch54/output/`. Deep Iceberg topics (catalog types, REST catalogs, procedures and table maintenance) are in [Chapter 55](ch55-iceberg.md). This chapter keeps to the log on disk and to what Spark does with it.
 
 !!! note "Versions: no Delta or Iceberg release supports Spark 4.3.0 yet"
 

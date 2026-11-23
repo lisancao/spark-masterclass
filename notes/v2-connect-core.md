@@ -56,7 +56,7 @@ Rules broken on purpose: none beyond the allow words. Several sentences that sta
 ## Environment
 
 - pyspark 4.3.0 (`pyspark[connect]==4.3.0` in `code/pyproject.toml`), grpcio 1.85.3, pyarrow 26.0.1, Python 3.12.3, OpenJDK 17.0.21.1, 16-core Linux, 156 GB RAM.
-- `pyspark-client==4.3.0` in a scratch venv for `sizes.sh` (`/tmp/claude-1000/.../scratchpad/connect-core/thin`).
+- `pyspark-client==4.3.0` in a scratch venv for `sizes.sh` (`/tmp/connect-core/thin`).
 - Ports: Connect gRPC 15105, UI 4145 (`CONNECT_PORT`, `CONNECT_UI_PORT`); the logging proxy on 25105 (`PROXY_PORT`; 15106 was taken by another writer's server).
 - Server configs per script: `compare.py` and `bench.py` ran on a server with `spark.driver.memory=4g`; `reattach.py` with `spark.connect.execute.reattachable.senderMaxStreamSize=16m`; `observe.py` with `spark.eventLog.enabled=true` and `spark.eventLog.dir=file://.../data/ch26-events`.
 - Locked runs (bench lock): `ch25/bench.py` (5 runs per cell after a warmup, medians) and `ch24/compare.py` (10 query runs and 20 schema lookups, medians; it was run a second time with nothing else on the machine, and the text quotes that run).
@@ -95,7 +95,7 @@ Rules broken on purpose: none beyond the allow words. Several sentences that sta
 ## Figures, animation and clips
 
 - Figures: `ch24-architecture.svg`, `ch24-measured.svg`, `ch25-plan-tree.svg`, `ch25-arrow-batch.svg`, `ch26-ids.svg` (transparent background, mid-tone colours, checked rendered on white and on #1e1e1e), `ch26-connect-tab.png` (UI screenshot).
-- Animation: `book/media/clips/ch25-anim-round-trip.mp4` + `.webp` (32 s, sizes from `protocol.txt`, timing labelled schematic). Pacing not reviewed by Lisa at 1x.
+- Animation: `book/media/clips/ch25-anim-round-trip.mp4` + `.webp` (32 s, sizes from `protocol.txt`, timing labelled schematic). Pacing not reviewed by the author at 1x.
 - Film clips: `ch24-connect`, `ch24-rest`, `ch24-thin`, `ch25-proxy`, `ch25-arrow`, `ch26-stop` (cut list in `book/media/clips/clips-connect-core.tsv`). Film runs are separate runs, so IDs and small counts in the films differ from `output/`; the captions say so where it matters.
 
 ## Open findings

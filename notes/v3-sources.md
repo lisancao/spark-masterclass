@@ -17,7 +17,7 @@ Existing chapter changed:
 
 - **ch80** (Python data sources II): a warning admonition at the start of the Derby run in Step 11 ("Spark 4.2 deprecated the Derby JDBC data source", from `docs/sql-migration-guide.md` line 63 at `v4.3.0`, and the dialect list "Derby (deprecated)" in `docs/sql-data-sources-jdbc.md`). The "New in 4.3" note now ends with "Spark 4.2 deprecated the Derby dialect (Step 11)." Further reading links Chapter 39. Nothing else changed. ch80 still uses Derby for its range demo, because its JAR ships with PySpark; the warning says so.
 
-Shared files: none changed. `code/figures/ch38.py` and `ch39.py` use `svgkit.py` but set their own `FIG` path (the kit's `FIG` points at another worktree, `/home/lnc/spark-masterclass-parts/vis-d/...`; the integrator may want to fix that constant in `svgkit.py`).
+Shared files: none changed. `code/figures/ch38.py` and `ch39.py` use `svgkit.py` but set their own `FIG` path (the kit's `FIG` points at another worktree, `~/spark-masterclass/...`; the integrator may want to fix that constant in `svgkit.py`).
 
 ## Coverage
 

@@ -1,6 +1,6 @@
 # v3 APIs slice: notes
 
-Worktree `~/spark-masterclass-parts/apis`, branch `v3-apis`. `SPARK_UI_PORT=4157` for Classic runs. Connect server on gRPC 15117 with its UI off (`code/ch12/connect_server.sh`), so the Classic scripts that read the REST API keep port 4157. The scripts that read the REST API take the port from `sc.uiWebUrl`, so a port that Spark moved does not send them to another application.
+Worktree `apis`, branch `v3-apis`. `SPARK_UI_PORT=4157` for Classic runs. Connect server on gRPC 15117 with its UI off (`code/ch12/connect_server.sh`), so the Classic scripts that read the REST API keep port 4157. The scripts that read the REST API take the port from `sc.uiWebUrl`, so a port that Spark moved does not send them to another application.
 
 ## Scope
 

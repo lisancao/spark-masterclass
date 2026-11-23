@@ -10,7 +10,7 @@ The security page of the 4.3.0 docs starts with that fact: "Security features li
 
 Each step of this chapter turns on one switch and shows what changes. The evidence goes from the bytes on the wire to the first bytes of a shuffle file. Every configuration in this chapter comes from the source of `v4.3.0`. The steps use the standalone cluster of [Chapter 70](ch70-submitting-applications.md) and its kind cluster for Kubernetes. Kerberos did not run, because the book's setup has no KDC. Step 7 explains it from the source and shows the checks that run without a KDC.
 
-The code is in [`code/ch71`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch71). Each output block comes from `code/ch71/output/`. The versions are the same as in [Chapter 70](ch70-submitting-applications.md): the Spark 4.3.0 tarball, pyspark 4.3.0, OpenJDK 17.0.21.1, and kind with `kindest/node:v1.37.0`.
+The code is in [`code/ch71`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch71). Each output block comes from `code/ch71/output/`. The versions are the same as in [Chapter 70](ch70-submitting-applications.md): the Spark 4.3.0 tarball, pyspark 4.3.0, OpenJDK 17.0.21.1, and kind with `kindest/node:v1.37.0`.
 
 <figure markdown>
   ![The surfaces of an application](../media/figures/ch71-surfaces-light.svg#only-light)
@@ -177,7 +177,7 @@ Spark does not send the passwords to executors as startup configurations (`Spark
 
 `spark.acls.enable=true` turns on access control for the UI and the REST API. `spark.ui.view.acls` lists the users who may read, `spark.modify.acls` the users who may kill jobs and stages, and `spark.admin.acls` the users who may do both. Each list has a `.groups` partner. The user who started the application is always on the view and modify lists.
 
-Spark does not know who sends an HTTP request. A servlet filter in `spark.ui.filters` must set the remote user. Spark 4.3.0 ships one filter, `org.apache.spark.ui.JWSFilter`. It checks an `Authorization: Bearer` token signed with HS256, but it does not set a user. Thus `ssl_acl.sh` adds a toy filter, [`HeaderUserFilter.java`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch71/filter/book/HeaderUserFilter.java), that takes the user from a header:
+Spark does not know who sends an HTTP request. A servlet filter in `spark.ui.filters` must set the remote user. Spark 4.3.0 ships one filter, `org.apache.spark.ui.JWSFilter`. It checks an `Authorization: Bearer` token signed with HS256, but it does not set a user. Thus `ssl_acl.sh` adds a toy filter, [`HeaderUserFilter.java`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch71/filter/book/HeaderUserFilter.java), that takes the user from a header:
 
 ```java
 final String user = http.getHeader(header);              // X-Book-User

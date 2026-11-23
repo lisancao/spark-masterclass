@@ -1,6 +1,6 @@
 # v2 Background part: notes
 
-Worktree `~/spark-masterclass-parts/background`, branch `v2-background`. `SPARK_UI_PORT=4141` (4142 for side runs while a film held 4141), Connect port 15101 not used (no chapter here needs a Connect server).
+Worktree `background`, branch `v2-background`. `SPARK_UI_PORT=4141` (4142 for side runs while a film held 4141), Connect port 15101 not used (no chapter here needs a Connect server).
 
 ## Scope
 

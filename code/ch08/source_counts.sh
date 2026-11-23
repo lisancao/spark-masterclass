@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Chapter 8: find configs in the Spark source at tag v4.3.0, and count them.
 # SQL configs are declared with buildConf / buildStaticConf, core configs with ConfigBuilder.
-# Needs a clone of apache/spark with the v4.3.0 tag (SPARK_SRC, default ~/repos/spark).
+# Needs a clone of apache/spark with the v4.3.0 tag (SPARK_SRC, default ~/spark).
 # Run from code/:  ch08/source_counts.sh > ch08/output/source_counts.txt
 set -euo pipefail
-SRC=${SPARK_SRC:-$HOME/repos/spark}
+SRC=${SPARK_SRC:-$HOME/spark}
 T=v4.3.0
 g() { git -C "$SRC" show "$T:$1"; }
 SQLCONF=sql/catalyst/src/main/scala/org/apache/spark/sql/internal/SQLConf.scala

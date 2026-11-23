@@ -6,7 +6,7 @@ The chapters before this one showed what a pipeline does. They showed the errors
 
 The server resolves each flow and does a check of the graph. It resets what a full refresh selected. It prepares each table. Then it runs the flows in topological order, as Structured Streaming queries and batch writes. The source paths in this chapter are for the tag `v4.3.0` of apache/spark.
 
-The code is in [`code/ch62`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch62). Each output block comes from `code/ch62/output/`. The pipeline runs on `pyspark==4.3.0` with a Hive metastore.
+The code is in [`code/ch62`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch62). Each output block comes from `code/ch62/output/`. The pipeline runs on `pyspark==4.3.0` with a Hive metastore.
 
 ## Step 1: The reference pipeline
 

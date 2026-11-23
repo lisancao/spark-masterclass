@@ -10,7 +10,7 @@ Spark Connect has its own extension mechanism: **plugins**. A plugin is a JVM cl
 
 **Many server extensions work over Connect with no plugin, because the client calls them by name. You need a plugin only for a new operator, for arguments that SQL cannot express, or for a result from the server JVM. A plugin is a contract on the wire. It has a type URL, some bytes, and a JVM class on the classpath of the server. It must not come from the artifacts of one session.**
 
-The code is in [`code/ch86`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch86). The Java project is `code/ch86/jplug`. `ch86/build.sh` builds it with Maven against Spark 4.3.0. `ch86/server.sh` starts a Connect server with the jars of Chapters 84, 85 and 86. Each output block comes from `code/ch86/output/`.
+The code is in [`code/ch86`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch86). The Java project is `code/ch86/jplug`. `ch86/build.sh` builds it with Maven against Spark 4.3.0. `ch86/server.sh` starts a Connect server with the jars of Chapters 84, 85 and 86. Each output block comes from `code/ch86/output/`.
 
 ## Step 1: What works with no plugin
 

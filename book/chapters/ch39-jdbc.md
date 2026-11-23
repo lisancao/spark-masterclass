@@ -6,7 +6,7 @@ Much of the data of a Spark job is in a relational database: orders in PostgreSQ
 
 This chapter runs every option against PostgreSQL 16 in Docker, with the server log set to record each statement. Each step shows the Spark plan and the SQL that PostgreSQL received. [Chapter 80](ch80-python-data-sources-apis-databases.md) compares the JDBC key ranges with a Python data source. This chapter goes deeper into the JDBC source itself.
 
-The code is in [`code/ch39/`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch39). The scripts run on `pyspark==4.3.0` in local mode, with the PostgreSQL JDBC driver `org.postgresql:postgresql:42.7.11` from Maven Central. Each output block below comes from a file in `code/ch39/output/`.
+The code is in [`code/ch39/`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch39). The scripts run on `pyspark==4.3.0` in local mode, with the PostgreSQL JDBC driver `org.postgresql:postgresql:42.7.11` from Maven Central. Each output block below comes from a file in `code/ch39/output/`.
 
 !!! note "New in 4.3"
     These JDBC changes are in Spark 4.3.0. Each one comes from the source or the documentation at `v4.3.0`:

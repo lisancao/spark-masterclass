@@ -6,7 +6,7 @@ The book uses Python for most of its code. But the Spark engine is Scala code, a
 
 This chapter makes Encoders, reads the taxi trips as a `Dataset[Trip]`, and compares the plans and the times of typed and untyped code. Then it writes an `Aggregator` and uses it in two ways. The last step runs the typed code over Spark Connect from the Scala Connect REPL.
 
-The code is in [`code/ch14`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch14). `Datasets.scala` runs in the `spark-shell` of the pip package, as in Chapters [3](ch03-rdds-to-a-sql-engine.md) and [4](ch04-one-engine-batch-and-streaming.md). Each output block comes from `code/ch14/output/`.
+The code is in [`code/ch14`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch14). `Datasets.scala` runs in the `spark-shell` of the pip package, as in Chapters [3](ch03-rdds-to-a-sql-engine.md) and [4](ch04-one-engine-batch-and-streaming.md). Each output block comes from `code/ch14/output/`.
 
 ```bash
 cd code

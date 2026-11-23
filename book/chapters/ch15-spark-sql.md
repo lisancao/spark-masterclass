@@ -14,7 +14,7 @@ This chapter opens the Spark SQL part of the book. The next chapters teach the q
 - [Chapter 16](ch16-tables-ddl-writes.md) teaches table DDL and writes: `ALTER TABLE`, defaults, view schema modes, `writeTo` and partition overwrite.
 - [Chapter 17](ch17-hive-tables-metastore.md) teaches Hive tables and the Hive metastore.
 
-The scripts are in [`code/ch15`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch15), and each output block below comes from `code/ch15/output/`.
+The scripts are in [`code/ch15`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch15), and each output block below comes from `code/ch15/output/`.
 
 | Script | What it shows |
 |---|---|
@@ -94,7 +94,7 @@ Time taken: 0.433 seconds, Fetched 1 row(s)
 Catalog             	spark_catalog       	                    
 Database            	taxi                	                    
 Table               	zones               	                    
-Owner               	lnc                 	                    
+Owner               	user                	                    
 Type                	EXTERNAL            	                    
 Provider            	csv                 	                    
 Location            	file:~/spark-masterclass/data/nyc-taxi/taxi_zone_lookup.csv	                    
@@ -431,14 +431,14 @@ The external table needs no schema in the statement. Spark reads it from the Par
     Table     daily
     Type      MANAGED
     Provider  parquet
-    Location  file:~/spark-masterclass-parts/config-sql/data/work/ch15-tables/warehouse/taxi.db/daily
+    Location  file:~/spark-masterclass/data/work/ch15-tables/warehouse/taxi.db/daily
   daily_ext
     Catalog   spark_catalog
     Database  taxi
     Table     daily_ext
     Type      EXTERNAL
     Provider  parquet
-    Location  file:~/spark-masterclass-parts/config-sql/data/work/ch15-tables/external/daily_copy
+    Location  file:~/spark-masterclass/data/work/ch15-tables/external/daily_copy
 ```
 
 The two types are different when you drop them:

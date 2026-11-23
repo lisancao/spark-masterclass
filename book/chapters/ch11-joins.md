@@ -4,7 +4,7 @@ A join looks like one operation in the code. Spark has five ways to run it, and 
 
 **A join strategy is a decision about data movement. A broadcast join copies the small side to every task, and a shuffle join moves both sides by the key. A nested loop compares all pairs. The data decides which one is cheap: the size of each side, the skew of the keys, and whether the condition is an equality. The new time-aware joins follow the same rule. Their cost is the number of rows that each row must look at.**
 
-The scripts are in [`code/ch11`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch11), and each output block below comes from `code/ch11/output/`. They use the June 2026 taxi trips and the zone lookup.
+The scripts are in [`code/ch11`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch11), and each output block below comes from `code/ch11/output/`. They use the June 2026 taxi trips and the zone lookup.
 
 - `strategies.py`: join types, the five strategies, how Spark selects one, and the time of each.
 - `skew.py`: a skewed key, the AQE skew join, salting and bucketed tables.

@@ -8,7 +8,7 @@ A taxi dispatcher wants to show the fare before the trip starts. When the trip s
 
 This chapter builds a fare model from the taxi data with MLlib. It shows what `fit()` runs, how categorical features become vectors, and how to read a model's feature importances. Then it runs the same pipeline over Spark Connect and tracks the runs in open source MLflow.
 
-The last two steps leave MLlib: barrier execution mode, and distributed PyTorch training with `TorchDistributor`. The scripts are in [`code/ch63`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch63). They ran on `pyspark==4.3.0`, and MLflow is `mlflow==3.18.0`. Each output block comes from `code/ch63/output/`.
+The last two steps leave MLlib: barrier execution mode, and distributed PyTorch training with `TorchDistributor`. The scripts are in [`code/ch63`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch63). They ran on `pyspark==4.3.0`, and MLflow is `mlflow==3.18.0`. Each output block comes from `code/ch63/output/`.
 
 ## Step 1: The training table
 

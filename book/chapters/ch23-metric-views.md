@@ -6,7 +6,7 @@ Some numbers are easy to compute again. You can add the counts or the sums of gr
 
 Spark 4.2 added metric views (SPARK-54119), and Spark 4.3 adds them to DSv2 catalogs. **A metric view stores the formula of each measure in the catalog, next to the dimensions that a query can group by. The function `MEASURE()` puts the formula into the query, at the grain that the query asks for. Thus, a ratio or a distinct count is correct at each grain, from one definition. A metric view does not stop a query that aggregates the results of `MEASURE()` again.** This chapter shows each part of that sentence on one month of New York taxi trips.
 
-The code is in [`code/ch23`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch23). Each output block comes from `code/ch23/output/`. The scripts use a Classic session on `pyspark==4.3.0` with a Hive metastore. Thus, a metric view that one script creates is there for the next script.
+The code is in [`code/ch23`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch23). Each output block comes from `code/ch23/output/`. The scripts use a Classic session on `pyspark==4.3.0` with a Hive metastore. Thus, a metric view that one script creates is there for the next script.
 
 ## Step 1: Two errors that run without an error
 

@@ -20,5 +20,5 @@
 
 4. Remove the metadata file of a checkpoint that has offsets and commits:
   SparkRuntimeException: [STREAMING_CHECKPOINT_MISSING_METADATA_FILE] Checkpoint location
-  file:~/spark-masterclass-parts/part05/data/work/ch48/s11/ck_pos is in an
+  file:~/spark-masterclass/data/work/ch48/s11/ck_pos is in an
   inconsistent state: the metadata file is missing but offset and/or commit logs contain ...

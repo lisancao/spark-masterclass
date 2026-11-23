@@ -1,6 +1,6 @@
 # v2-geospatial notes: Chapter 22 (Geospatial data in Spark 4.3) and the Chapter 21 split
 
-Branch `v2-geospatial`, worktree `~/spark-masterclass-parts/geospatial`. Ports: `SPARK_UI_PORT=4143`, Connect gRPC 15103 (UI 4144).
+Branch `v2-geospatial`, worktree `geospatial`. Ports: `SPARK_UI_PORT=4143`, Connect gRPC 15103 (UI 4144).
 
 ## Scope and changes
 
@@ -8,7 +8,7 @@ Branch `v2-geospatial`, worktree `~/spark-masterclass-parts/geospatial`. Ports: 
 - **Changed, Chapter 21:** Steps 8 to 15 (geospatial) moved into Chapter 22 (as Steps 2, 3, 10, 12, 13, 14). Chapter 21 is now "Time series": new title line, new opening paragraph and thesis (the geospatial sentences removed, a sentence on `ROWS` frames added), a pointer to Chapter 22 under the script list and before the Part II closing line, geospatial bullets and further-reading links removed. The file name stays `ch21-time-series.md` so that links do not break; the integrator may rename it to `ch21-time-series.md`.
 - **Moved code:** `code/ch21/geo.py` -> `code/ch22/geo_points.py`, `code/ch21/output/geo.txt` -> `code/ch22/output/geo_points.txt` (re-run on 4.3.0 after the move: output byte-identical). `code/film/ch21.tape` beat `nearest` now runs `ch22/geo_points.py`. The clip keeps its name `ch21-nearest.mp4`, and Chapter 22 Step 13 embeds it (the caption says it was filmed as `ch21/geo.py`). The integrator can rename it to `ch22-nearest` with the cut list.
 
-## Lisa's premise ("Spark now has more geospatial functions"): not true for 4.3.0
+## The author's premise ("Spark now has more geospatial functions"): not true for 4.3.0
 
 Checked from source, not memory:
 

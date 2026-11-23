@@ -4,7 +4,7 @@ Part II used DataFrames as a convenient way to write a query. This chapter looks
 
 **A DataFrame is an immutable pair of a schema and a logical plan. The analyzer resolves names, types and nullability in that plan before any task runs. Thus the shape of your code changes the work of the analyzer. The schema that you declare decides what the data can do to your job.**
 
-The scripts are in [`code/ch09`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch09), and each output block below comes from `code/ch09/output/`. The scripts use two data sets:
+The scripts are in [`code/ch09`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch09), and each output block below comes from `code/ch09/output/`. The scripts use two data sets:
 
 - `plans.py` and `type_system.py` use the June 2026 taxi trips from Part II.
 - `drift.py` uses three days of order events from SparkTutor, copied to `code/data/events`. The shape of these events changes every day.

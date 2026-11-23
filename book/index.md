@@ -12,7 +12,7 @@ The book is for people who can read Python and SQL. These readers want to unders
 
 ## What every chapter has
 
-- **The exact code that ran**, as a file in [`code/`](https://github.com/lisancao/spark-masterclass/tree/main/code), pinned to `pyspark==4.3.0`.
+- **The exact code that ran**, as a file in [`code/`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code), pinned to `pyspark==4.3.0`.
 - **Its real output**, saved next to it. The output includes the plans that Spark printed and the numbers that the Spark UI reported.
 - **Diagrams of the mechanism**: where the data goes, which operator runs, and what the engine keeps.
 - **Figures and animations** made from the saved output, so that you can see a shuffle, a plan or a commit move.
@@ -42,7 +42,7 @@ The [coverage](coverage.md) page shows where each SparkTutor lesson is in the bo
 ## Run the code
 
 ```bash
-git clone https://github.com/lisancao/spark-masterclass && cd spark-masterclass
+git clone https://github.com/open-lakehouse/spark-masterclass && cd spark-masterclass
 code/common/get_data.sh                     # one month of NYC taxi trips, about 65 MB
 cd code && uv sync                          # Python 3.11+, pyspark 4.3.0; needs Java 17, 21 or 25
 uv run python ch07/quickstart.py
