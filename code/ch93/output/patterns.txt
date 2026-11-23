@@ -1,0 +1,81 @@
+== FPGrowth: 366,249 baskets (a 10% sample of the trips), one per trip
++---------------------------------------------------------------------------------------+
+|items                                                                                  |
++---------------------------------------------------------------------------------------+
+|[from LaGuardia Airport, to Flatiron, card, night, airport fee, toll]                  |
+|[from JFK Airport, to Downtown Brooklyn/MetroTech, card, night, airport fee, 10+ miles]|
+|[from Upper East Side North, to Yorkville West, card, night, tip >= 20%]               |
++---------------------------------------------------------------------------------------+
+only showing top 3 rows
+frequent itemsets with support >= 1%: 339
++-------------------------+------+
+|items                    |freq  |
++-------------------------+------+
+|[card]                   |240363|
+|[tip >= 20%]             |184174|
+|[tip >= 20%, card]       |184174|
+|[night]                  |76147 |
+|[night, card]            |40696 |
+|[cash]                   |34077 |
+|[night, tip >= 20%]      |29817 |
+|[night, tip >= 20%, card]|29817 |
++-------------------------+------+
+only showing top 8 rows
+association rules with confidence >= 0.5: 495; with at most 2 antecedent items, by lift:
++------------------------------+------------------+----------+-----+-------+
+|antecedent                    |consequent        |confidence|lift |support|
++------------------------------+------------------+----------+-----+-------+
+|[from JFK Airport, toll]      |[JFK flat fare]   |0.877     |35.98|0.015  |
+|[JFK flat fare, airport fee]  |[from JFK Airport]|0.993     |25.54|0.0181 |
+|[from JFK Airport, 10+ miles] |[JFK flat fare]   |0.615     |25.24|0.0186 |
+|[from JFK Airport, tip >= 20%]|[JFK flat fare]   |0.599     |24.59|0.0113 |
+|[from JFK Airport, card]      |[JFK flat fare]   |0.575     |23.6 |0.0162 |
+|[JFK flat fare, toll]         |[from JFK Airport]|0.78      |20.06|0.015  |
+|[JFK flat fare, 10+ miles]    |[from JFK Airport]|0.779     |20.03|0.0186 |
+|[JFK flat fare, card]         |[from JFK Airport]|0.771     |19.81|0.0162 |
+|[JFK flat fare, tip >= 20%]   |[from JFK Airport]|0.764     |19.65|0.0113 |
+|[JFK flat fare]               |[from JFK Airport]|0.764     |19.63|0.0186 |
++------------------------------+------------------+----------+-----+-------+
+only showing top 10 rows
+transform(): the consequents of each rule whose antecedent is in the basket
++----------------------------+---------------------------------------------------------+
+|items                       |prediction                                               |
++----------------------------+---------------------------------------------------------+
+|[from JFK Airport, toll]    |[JFK flat fare, card, 10+ miles, airport fee, tip >= 20%]|
+|[from Midtown Center, night]|[card, tip >= 20%]                                       |
++----------------------------+---------------------------------------------------------+
+
+the plan of transform():
+== Physical Plan ==
+*(1) Project [items#235, UDF(items#235) AS prediction#258]
++- *(1) Scan ExistingRDD[items#235]
+
+
+duplicates in a basket:
+  Py4JJavaError: Items in a transaction must be unique but got ArraySeq(card, card, night). at or
+  the job started first: True
+
+== PrefixSpan: one sequence per day, an itemset per hour (the 3 busiest pickup zones)
+30 sequences (days), 24 itemsets each
+2026-06-01: hour 0 ['JFK Airport', 'LaGuardia Airport', 'Penn Station/Madison Sq West'], hour 8 ['Penn Station/Madison Sq West', 'Upper East Side North', 'Upper East Side South'], hour 18 ['Midtown Center', 'Upper East Side North', 'Upper East Side South']
+patterns on all 30 days (minSupport=1.0, maxPatternLength=3): 57
+patterns with an itemset of two zones in the same hour: 8
++-------------------------------------------------------------------------+----+
+|sequence                                                                 |freq|
++-------------------------------------------------------------------------+----+
+|[[Clinton East], [Upper East Side North, Upper East Side South]]         |30  |
+|[[JFK Airport], [Upper East Side North, Upper East Side South]]          |30  |
+|[[Upper East Side North, Upper East Side South], [Midtown Center]]       |30  |
+|[[Upper East Side North, Upper East Side South], [Upper East Side North]]|30  |
++-------------------------------------------------------------------------+----+
+only showing top 4 rows
+three-step patterns with JFK Airport:
++-----------------------------------------------------------------+----+
+|sequence                                                         |freq|
++-----------------------------------------------------------------+----+
+|[[Clinton East], [JFK Airport], [Midtown Center]]                |30  |
+|[[Clinton East], [JFK Airport], [Upper East Side North]]         |30  |
+|[[Clinton East], [JFK Airport], [Upper East Side South]]         |30  |
+|[[JFK Airport], [Penn Station/Madison Sq West], [Midtown Center]]|30  |
++-----------------------------------------------------------------+----+
+only showing top 4 rows

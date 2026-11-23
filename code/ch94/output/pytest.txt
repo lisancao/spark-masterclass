@@ -1,0 +1,21 @@
+$ MODE=classic pytest -q --durations=2 ch94/tests
+..........                                                               [100%]
+============================= slowest 2 durations ==============================
+6.71s setup    ch94/tests/test_fares.py::test_fare_band_udf
+3.56s call     ch94/tests/test_fares.py::test_fare_band_udf
+10 passed in 12.80s
+
+$ MODE=connect SPARK_CONNECT_URL=local[2] pytest -q --durations=2 ch94/tests
+..........                                                               [100%]
+============================= slowest 2 durations ==============================
+5.22s setup    ch94/tests/test_fares.py::test_fare_band_udf
+3.63s call     ch94/tests/test_fares.py::test_fare_band_udf
+10 passed in 11.40s
+
+$ MODE=connect SPARK_CONNECT_URL=sc://localhost:15118 pytest -q --durations=2 ch94/tests
+..........                                                               [100%]
+============================= slowest 2 durations ==============================
+1.39s call     ch94/tests/test_fares.py::test_fare_band_udf
+0.15s call     ch94/tests/test_fares.py::test_zone_summary_values
+10 passed in 2.16s
+

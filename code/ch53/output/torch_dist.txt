@@ -1,0 +1,11 @@
+torch 2.15.0+cpu, pyspark 4.3.0, driver pid 855594, Classic session
+== local_mode=True: 7.5 s in all, the value came from rank 0
+   fare = 3.556 * miles + 8.588   (last batch mse 91.3, training loop 1.4 s)
+   rank 0: pid 857225, torch 2.15.0+cpu, 1,829,548 rows
+   rank 1: pid 857226, torch 2.15.0+cpu, 1,829,547 rows
+== local_mode=False: 11.6 s in all, the value came from rank 0
+   fare = 3.556 * miles + 8.588   (last batch mse 91.3, training loop 0.4 s)
+   rank 0: pid 859482, torch 2.15.0+cpu, 1,829,548 rows
+   rank 1: pid 859483, torch 2.15.0+cpu, 1,829,547 rows
+Spark jobs: 'TorchDistributor local_mode=False' -> job 0, 2 tasks, stages [0]
+   stage 0: run, 2 tasks, COMPLETE

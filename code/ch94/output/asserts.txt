@@ -1,0 +1,98 @@
+session: pyspark.sql.session.SparkSession
+
+== rows in another order (checkRowOrder=False, the default)
+passed
+
+== rows in another order, checkRowOrder=True
+PySparkAssertionError [DIFFERENT_ROWS]: 11 lines
+  [DIFFERENT_ROWS] Results do not match: ( 66.66667 % )
+  *** actual ***
+    Row(zone='JFK', trips=142192, avg_fare=70.31)
+  - Row(zone='LGA', trips=98619, avg_fare=49.12)
+    Row(zone='Midtown', trips=120511, avg_fare=17.4)
+  
+  
+  *** expected ***
+  + Row(zone='LGA', trips=98619, avg_fare=49.12)
+    Row(zone='JFK', trips=142192, avg_fare=70.31)
+    Row(zone='Midtown', trips=120511, avg_fare=17.4)
+
+== a float that differs in the 7th digit (rtol=1e-5)
+passed
+
+== two wrong values
+PySparkAssertionError [DIFFERENT_ROWS]: 11 lines
+  [DIFFERENT_ROWS] Results do not match: ( 66.66667 % )
+  *** actual ***
+    Row(zone='JFK', trips=142192, avg_fare=70.31)
+  ! Row(zone='LGA', trips=98619, avg_fare=49.12)
+  ! Row(zone='Midtown', trips=120511, avg_fare=17.4)
+  
+  
+  *** expected ***
+    Row(zone='JFK', trips=142192, avg_fare=70.31)
+  ! Row(zone='LGA', trips=98620, avg_fare=49.12)
+  ! Row(zone='Midtown', trips=120511, avg_fare=17.41)
+
+== two wrong values, showOnlyDiff=True
+PySparkAssertionError [DIFFERENT_ROWS]: 9 lines
+  [DIFFERENT_ROWS] Results do not match: ( 66.66667 % )
+  *** actual ***
+  ! Row(zone='LGA', trips=98619, avg_fare=49.12)
+  ! Row(zone='Midtown', trips=120511, avg_fare=17.4)
+  
+  
+  *** expected ***
+  ! Row(zone='LGA', trips=98620, avg_fare=49.12)
+  ! Row(zone='Midtown', trips=120511, avg_fare=17.41)
+
+== a column of another type (trips as int)
+PySparkAssertionError [DIFFERENT_SCHEMA]: 8 lines
+  [DIFFERENT_SCHEMA] Schemas do not match.
+  --- actual
+  +++ expected
+  - StructType([StructField('zone', StringType(), True), StructField('trips', LongType(), True), S
+  ?                                                                           ^^
+  
+  + StructType([StructField('zone', StringType(), True), StructField('trips', IntegerType(), True)
+  ?                                                                           ^ ++ ++
+
+== the same, ignoreColumnType=True
+NumberFormatException [CAST_INVALID_INPUT]: [CAST_INVALID_INPUT] The value 'LGA' of the type "STRING" cannot be cast to "FLOAT" because it is malformed. Correct the value as per the syntax, or c
+
+== the same, ignoreColumnType=True, spark.sql.ansi.enabled=false
+passed
+
+== columns in another order, ignoreColumnOrder=True
+passed
+
+== assertSchemaEqual, nullable differs (ignoreNullable=True, the default)
+passed
+
+== assertSchemaEqual, ignoreNullable=False
+PySparkAssertionError [DIFFERENT_SCHEMA]: 8 lines
+  [DIFFERENT_SCHEMA] Schemas do not match.
+  --- actual
+  +++ expected
+  - StructType([StructField('zone', StringType(), True), StructField('trips', LongType(), True), S
+  ?                                               ^^^
+  
+  + StructType([StructField('zone', StringType(), False), StructField('trips', LongType(), True), 
+  ?                                               ^^^^
+
+== pandas DataFrames (the pandas API path)
+PySparkAssertionError [DIFFERENT_PANDAS_DATAFRAME]: 19 lines
+  [DIFFERENT_PANDAS_DATAFRAME] DataFrames are not almost equal:
+  Left:
+        zone   trips  avg_fare
+  0      JFK  142192     70.31
+  1      LGA   98619     49.12
+  2  Midtown  120511     17.40
+  zone         object
+  trips         int64
+  avg_fare    float64
+  dtype: object
+  Right:
+        zone   trips  avg_fare
+  0      JFK  142192     70.31
+  1      LGA   98620     49.12

@@ -1,0 +1,25 @@
+== explicit: 4,824 pairs with >= 20 card trips, 103 pickup zones, 221 dropoff zones
+  coldStartStrategy='nan' (default): rmse nan   rows with NaN prediction: 15
+  coldStartStrategy='drop':          rmse 2.215   rows scored: 950 of 965
+  global mean of train       rmse 3.641
+  mean of the pickup zone    rmse 3.464
+  ALS rank 8                 rmse 2.215
+  factors: userFactors 100 rows, itemFactors 211 rows, rank 8
+
+== implicit: trip counts as confidence (train June 1-21, test June 22-30)
+  train pairs 29,447  test pairs 21,250
+  most popular destinations              precision@10 0.148  ndcg@10 0.144  (251 pickup zones)
+  own top destinations in train          precision@10 0.548  ndcg@10 0.608  (251 pickup zones)
+  ALS implicit, counts, alpha=1          precision@10 0.245  ndcg@10 0.273  (251 pickup zones)
+  ALS implicit, counts, alpha=40         precision@10 0.067  ndcg@10 0.069  (251 pickup zones)
+  ALS implicit, log1p(counts), alpha=1   precision@10 0.283  ndcg@10 0.324  (251 pickup zones)
+  ALS implicit, log1p(counts), alpha=40  precision@10 0.113  ndcg@10 0.114  (251 pickup zones)
+
+  pickup zones with fewer than 100 train trips (56):
+  own top destinations in train          precision@10 0.230  ndcg@10 0.303  (56 pickup zones)
+  ALS implicit, log1p(counts), alpha=1   precision@10 0.221  ndcg@10 0.311  (56 pickup zones)
+
+  pickup zone 138 (LaGuardia Airport), top 5:
+    own history  Times Sq/Theatre District, Midtown Center, Midtown East, Midtown South, Murray Hill
+    ALS          Kew Gardens, East New York, Jamaica, Queensbridge/Ravenswood, Outside of NYC
+    test week    Times Sq/Theatre District, Midtown Center, Midtown South, Midtown East, Murray Hill

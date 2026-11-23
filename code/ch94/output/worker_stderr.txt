@@ -1,0 +1,2 @@
+print: negative fare -8.0
+negative fare -8.0
