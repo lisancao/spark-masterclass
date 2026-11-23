@@ -170,7 +170,7 @@ df['typo']: Column<'typo'>
 df.select(df['typo']).collect(): ERROR [CANNOT_RESOLVE_DATAFRAME_COLUMN] Cannot resolve dataframe column "typo". It's proba
 ```
 
-In Classic mode, `df["typo"]` fails on its line. On Connect, it returns a `Column` and no error occurs. The Connect client does not keep the schema. It puts the name in the plan, and the server finds the error when it analyzes the plan, at `collect()`. The error class is also different. [Chapter 18](ch18-spark-connect.md) showed this difference in more detail. Code that must run in the two modes cannot use the `df["x"]` line as a check.
+In Classic mode, `df["typo"]` fails on its line. On Connect, it returns a `Column` and no error occurs. The Connect client does not keep the schema. It puts the name in the plan, and the server finds the error when it analyzes the plan, at `collect()`. The error class is also different. [Chapter 24](ch24-spark-connect.md) showed this difference in more detail. Code that must run in the two modes cannot use the `df["x"]` line as a check.
 
 ## Step 4: What a withColumn chain adds to the plan
 
@@ -611,7 +611,7 @@ JSON prefersDecimal: struct<amount:decimal(4,2)>
 
 Use `prefersDecimal` for money in JSON, because a `double` cannot hold `0.1` exactly (Step 7).
 
-Day 3 has a truncated line, so the reader adds a `_corrupt_record` column. [Chapter 27](ch27-json.md) shows the parse modes and the corrupt record column.
+Day 3 has a truncated line, so the reader adds a `_corrupt_record` column. [Chapter 33](ch33-json.md) shows the parse modes and the corrupt record column.
 
 `samplingRatio` tells the reader to infer from a fraction of the records. This is faster, and the result is less stable:
 
@@ -1111,12 +1111,12 @@ The bar plot on the raw rows has 1,000 bars: the first 1,000 trips, not a view o
 
 <figure markdown>
   ![Scatter of a sample](../media/figures/ch09-plot-scatter.svg)
-  <figcaption><code>plot.scatter</code> on the trips between 0.1 and 30 miles. The plot shows a sample of 1,000 trips, not all of them. The points at 70 dollars match the most common JFK fare in <a href="ch91-pandas-api-on-spark.md">Chapter 91</a>.</figcaption>
+  <figcaption><code>plot.scatter</code> on the trips between 0.1 and 30 miles. The plot shows a sample of 1,000 trips, not all of them. The points at 70 dollars match the most common JFK fare in <a href="ch13-pandas-api-on-spark.md">Chapter 13</a>.</figcaption>
 </figure>
 
 The histogram, the box plot and the density plot computed their numbers in Spark over all the rows. The histogram of two columns uses one set of 20 bins for both columns. The box plot uses `percentile_approx`, so its quartiles are approximate. Its options `precision` and `whis` set the accuracy and the length of the whiskers.
 
-The accessor supports only plotly. Other backends fail with `UNSUPPORTED_PLOT_BACKEND`. The pandas API on Spark has its own `plot` accessor ([Chapter 91](ch91-pandas-api-on-spark.md)).
+The accessor supports only plotly. Other backends fail with `UNSUPPORTED_PLOT_BACKEND`. The pandas API on Spark has its own `plot` accessor ([Chapter 13](ch13-pandas-api-on-spark.md)).
 
 To run Step 20, install plotly in the environment. `kaleido` is necessary only for `write_image`:
 

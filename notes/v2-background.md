@@ -19,10 +19,10 @@ A new part, "Background", that opens the book. Four new chapters (provisional nu
 
 ### Overlap decisions
 
-- ch02 memory: ch33 already measures pool sizes and spill. ch02 reads `maybeGrowExecutionPool` and shows execution evicting storage (new measurement, `memory.py`), links ch33 for the rest.
-- ch03 codegen and AQE: ch32 has the full treatment. ch03 shows one generated loop and one final AQE plan, and links ch32 three times.
-- ch03 Arrow, plugins, Feather: one measurement (`toPandas`) and a table that links ch34, ch36, ch37, ch38.
-- ch04 streaming: links ch39, ch42, ch43 for depth.
+- ch02 memory: ch42 already measures pool sizes and spill. ch02 reads `maybeGrowExecutionPool` and shows execution evicting storage (new measurement, `memory.py`), links ch42 for the rest.
+- ch03 codegen and AQE: ch40 has the full treatment. ch03 shows one generated loop and one final AQE plan, and links ch40 three times.
+- ch03 Arrow, plugins, Feather: one measurement (`toPandas`) and a table that links ch43, ch45, ch46, ch47.
+- ch04 streaming: links ch48, ch51, ch52 for depth.
 
 ## Technical names and verbs (STE)
 
@@ -174,7 +174,7 @@ Roadmap section:
 | 73 | [One engine for batch and streaming, and Spark's modules](chapters/ch04-one-engine-batch-and-streaming.md) | Release timeline 0.7 to 4.3, DStreams to Structured Streaming to Real-time Mode, one function as batch and stream, the module map, GraphX and GraphFrames |
 ```
 
-Cross-references to fix at renumbering: ch01 to ch04 link each other and link ch05, ch18, ch32-ch39, ch42, ch43, ch49-ch53, ch56, ch61-ch63, ch72, ch75 by current file names. ch05 now links ch01 and ch02.
+Cross-references to fix at renumbering: ch01 to ch04 link each other and link ch05, ch24, ch40-ch48, ch51, ch52, ch59-ch63, ch67, ch74-ch77, ch86, ch89 by current file names. ch05 now links ch01 and ch02.
 
 ## Commits
 

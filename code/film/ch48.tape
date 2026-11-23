@@ -1,32 +1,48 @@
-# Spark Masterclass, Chapter 48: configuring a pipeline.
-#   film render code/film/ch48.tape --format chapter
-Set TypingSpeed 35ms
-Set WaitPattern /❯ ?$/
+# Spark Masterclass, Chapter 48: Structured Streaming fundamentals. Storyboard: storyboard-part05.md.
+#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch48.tape --format chapter
+Set TypingSpeed 40ms
+Set WaitPattern /❯$/
 
+# Setup, off camera at the start of every clip.
 Hide
-Type "bash --norc" Enter
-Sleep 500ms
-Type "export BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} CONNECT_PORT=15104 SPARK_UI_PORT=4144; . $FILM_DEMO/film/sdp-film.sh" Enter
-Sleep 2s
-Type "sdp_film_prepare ch48; sdp_film_ch79_setup; PS1=$'\e[35m❯\e[0m '; clear" Enter
-Wait@240s
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4025 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: envs | A static key in the spec fails each flow; then one project, two specs
-Type "tail -2 spark-pipeline.static.yml   # a static key in the spec" Enter
-Sleep 2s
-Type "spark-pipelines run $R --spec spark-pipeline.static.yml 2>&1 | count_errors" Enter
-Wait@180s
-Sleep 4s
-Type "tail -3 envs/prod.yml   # prod: its own database, storage and partitions" Enter
-Sleep 3s
-Type "spark-pipelines run $R --spec envs/dev.yml 2>&1 | show_probe" Enter
-Wait@180s
-Sleep 2s
-Type "spark-pipelines run $R --spec envs/prod.yml 2>&1 | show_probe" Enter
+# beat: ticking | A stream that ticks
+Type "# a file of trips arrives every 4 s; the query runs a micro-batch every 2 s" Enter
+Sleep 500ms
+Type "python ch48/s3_ticking.py 2>/dev/null" Enter
 Wait@180s
 Sleep 8s
-Hide
-Type "sdp_film_end" Enter
-Wait@60s
+
+# beat: watermark | A watermark that advances over late trips
+Type "# count trips by pickup time, 10-minute windows, watermark 15 minutes behind" Enter
+Sleep 500ms
+Type "python ch48/s6_watermark.py 2>/dev/null | head -16" Enter
+Wait@180s
+Sleep 12s
+
+# beat: crash | The driver dies inside batch 3
+Type "# count trips per zone; the driver dies after the sink writes batch 3" Enter
+Sleep 500ms
+Type "python ch48/s7_restart.py crash 2>/dev/null" Enter
+Wait@180s
+Sleep 4s
+Type "ls ../data/work/ch48/s7-restart/checkpoint/{offsets,commits}" Enter
+Sleep 7s
+
+# beat: resume | Restart from the checkpoint
+Type "# same checkpoint, new process: batch 3 runs again with the same input" Enter
+Sleep 500ms
+Type "python ch48/s7_restart.py resume 2>/dev/null" Enter
+Wait@180s
+Sleep 10s
+
+# beat: manager | Three queries, one session, one listener
+Type "# three queries share a session; one has a UDF that fails on a negative fare" Enter
+Sleep 500ms
+Type "python ch48/s13_manager.py 2>/dev/null | head -22" Enter
+Wait@240s
+Sleep 12s

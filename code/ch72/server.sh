@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
-# Start or stop a Spark 4.3 Connect server with this chapter's jars and plugins.
-# gRPC on 10300, the UI and its REST API on 4130 (so it can run next to other servers).
-#   ch72/server.sh start      plugin jar on the classpath (spark.jars), plugins configured
-#   ch72/server.sh bare       plugins configured, but the plugin jar NOT on the classpath
-#   ch72/server.sh stop
+# Start or stop a Spark 4.3 Connect server from the pip install, for Part VIII.
+# gRPC on $CONNECT_PORT (default 10280), the UI and its REST API on $CONNECT_UI_PORT (default 4128).
+# Extra arguments go to start-connect-server.sh, so a chapter can pass its own --conf settings.
+#   ch72/server.sh start [--conf k=v ...] | stop
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export SPARK_HOME=$(uv run python -c "import pyspark, os; print(os.path.dirname(pyspark.__file__))")
-export SPARK_LOG_DIR=$PWD/../data/logs-ch72 SPARK_PID_DIR=$PWD/../data/pids-ch72 SPARK_LOCAL_IP=127.0.0.1
+PORT=${CONNECT_PORT:-10280} UI=${CONNECT_UI_PORT:-4128}
+export SPARK_HOME=$(.venv/bin/python -c "import pyspark, os; print(os.path.dirname(pyspark.__file__))")
+# Logs and PID files go in the repo's own data/ folder (ignored by git), whatever BOOK_DATA says,
+# so that start and stop always find the same PID file.
+RUN=$PWD/../data
+export SPARK_LOG_DIR=$RUN/logs/part08-$PORT SPARK_PID_DIR=$RUN/pids/part08-$PORT SPARK_LOCAL_IP=127.0.0.1
+export SPARK_IDENT_STRING=part08-$PORT
 mkdir -p "$SPARK_LOG_DIR" "$SPARK_PID_DIR"
 "$SPARK_HOME/sbin/stop-connect-server.sh" >/dev/null 2>&1 || true
-[[ ${1:-start} == stop ]] && exit 0
-JARS=$PWD/ch70/jdocs/target/jdocs-0.1.0.jar,$PWD/ch71/jext/target/jext-0.1.0.jar
-[[ ${1:-start} == start ]] && JARS=$JARS,$PWD/ch72/jplug/target/jplug-0.1.0.jar
+for _ in $(seq 60); do curl -sf "localhost:$UI/api/v1/applications" >/dev/null 2>&1 || break; sleep 1; done
+cmd=${1:-start}; shift || true
+[[ $cmd == stop ]] && exit 0
 "$SPARK_HOME/sbin/start-connect-server.sh" \
-  --jars "$JARS" \
-  --conf spark.connect.grpc.binding.port=10300 \
-  --conf spark.ui.port=4130 \
-  --conf spark.sql.extensions=jext.Extensions \
-  --conf spark.connect.extensions.relation.classes=jplug.PlanNodesPlugin \
-  --conf spark.connect.extensions.expression.classes=jplug.MagicPlugin \
-  --conf spark.connect.extensions.command.classes=jplug.NotePlugin >/dev/null
-until curl -sf localhost:4130/api/v1/applications >/dev/null; do sleep 1; done
-echo "Connect server up ($1): sc://localhost:10300, UI http://localhost:4130"
+  --conf spark.connect.grpc.binding.port="$PORT" --conf spark.ui.port="$UI" "$@" >/dev/null
+until curl -sf "localhost:$UI/api/v1/applications" >/dev/null && (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null; do sleep 1; done
+echo "Connect server up: sc://localhost:$PORT, UI http://localhost:$UI"

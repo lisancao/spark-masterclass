@@ -1,0 +1,194 @@
+> CREATE NAMESPACE taxi
+> USE taxi
+> CREATE TABLE daily USING parquet PARTITIONED BY (day) AS
+     SELECT count(*) AS trips, round(sum(fare_amount), 2) AS fares, to_date(tpep_pickup_datetime) AS day
+     FROM trips_raw
+     WHERE tpep_pickup_datetime >= '2026-06-01' AND tpep_pickup_datetime < '2026-06-04'
+     GROUP BY 3
+== 1. RENAME TO moves the folder of a managed table
+> CREATE TABLE zones USING parquet AS SELECT 1 AS LocationID, 'EWR' AS Borough
+  before:
+    daily/day=2026-06-01/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    daily/day=2026-06-02/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    daily/day=2026-06-03/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    zones/part-00000-<uuid>-c000.snappy.parquet  (708 B)
+> ALTER TABLE zones RENAME TO zone_lookup
+  after:
+    daily/day=2026-06-01/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    daily/day=2026-06-02/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    daily/day=2026-06-03/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    zone_lookup/part-00000-<uuid>-c000.snappy.parquet  (708 B)
+> SELECT * FROM zone_lookup
++----------+-------+
+|LocationID|Borough|
++----------+-------+
+|1         |EWR    |
++----------+-------+
+
+  a partitioned table in the in-memory catalog:
+> CREATE TABLE p_old USING parquet PARTITIONED BY (p) AS SELECT 1 AS v, 1 AS p
+    partition p=1 before: taxi.db/p_old/p=1
+> ALTER TABLE p_old RENAME TO p_new
+    partition p=1 after:  taxi.db/p_old/p=1
+    rows in p_new: 0
+  p_new on disk:
+    p=1/part-00000-<uuid>.c000.snappy.parquet  (445 B)
+
+== 2. Column changes that the session catalog accepts, and the ones it refuses
+> ALTER TABLE daily ADD COLUMNS (tips DOUBLE COMMENT 'sum of tip_amount')
+> ALTER TABLE daily ALTER COLUMN fares COMMENT 'sum of fare_amount'
+> ALTER TABLE daily RENAME COLUMN fares TO fare_total
+  AnalysisException: [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported:
+  Table `spark_catalog`.`taxi`.`daily` does not support RENAME COLUMN. Please check the ...
+> ALTER TABLE daily DROP COLUMN tips
+  AnalysisException: [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported:
+  Table `spark_catalog`.`taxi`.`daily` does not support DROP COLUMN. Please check the ...
+> ALTER TABLE daily ALTER COLUMN trips TYPE INT
+  AnalysisException: [NOT_SUPPORTED_CHANGE_COLUMN] ALTER TABLE ALTER/CHANGE COLUMN is
+  not supported for changing `spark_catalog`.`taxi`.`daily`'s column `trips` with type ...
+> ALTER TABLE daily ALTER COLUMN fares TYPE DECIMAL(12,2)
+  AnalysisException: [NOT_SUPPORTED_CHANGE_COLUMN] ALTER TABLE ALTER/CHANGE COLUMN is
+  not supported for changing `spark_catalog`.`taxi`.`daily`'s column `fares` with type ...
+> ALTER TABLE daily REPLACE COLUMNS (trips BIGINT, fares DOUBLE)
+  AnalysisException: [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported:
+  Table `spark_catalog`.`taxi`.`daily` does not support REPLACE COLUMNS. Please check ...
+
+== 3. Table properties
+> ALTER TABLE daily SET TBLPROPERTIES ('owner.team' = 'ops', 'quality' = 'raw')
+> ALTER TABLE daily UNSET TBLPROPERTIES ('quality')
+> SHOW TBLPROPERTIES daily
++----------+-----+
+|key       |value|
++----------+-----+
+|owner.team|ops  |
++----------+-----+
+
+== 4. Partition DDL: ADD, RENAME, DROP
+> ALTER TABLE daily ADD PARTITION (day = '2026-06-04')
+  after ADD PARTITION (an empty folder has no file):
+    _SUCCESS  (0 B)
+    day=2026-06-01/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    day=2026-06-02/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    day=2026-06-03/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+   folders: ['day=2026-06-01', 'day=2026-06-02', 'day=2026-06-03', 'day=2026-06-04']
+> ALTER TABLE daily PARTITION (day = '2026-06-03') RENAME TO PARTITION (day = '2026-06-30')
+> ALTER TABLE daily DROP PARTITION (day = '2026-06-01')
+> SHOW PARTITIONS daily
++--------------+
+|partition     |
++--------------+
+|day=2026-06-02|
+|day=2026-06-04|
+|day=2026-06-30|
++--------------+
+
+  on disk:
+    day=2026-06-02/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    day=2026-06-30/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+> SELECT day, trips FROM daily ORDER BY day
++----------+------+
+|day       |trips |
++----------+------+
+|2026-06-02|126260|
+|2026-06-30|140184|
++----------+------+
+
+== 5. TRUNCATE TABLE: one partition, then all of it
+> TRUNCATE TABLE daily PARTITION (day = '2026-06-02')
+  after TRUNCATE ... PARTITION:
+    day=2026-06-30/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+> SHOW PARTITIONS daily
++--------------+
+|partition     |
++--------------+
+|day=2026-06-02|
+|day=2026-06-04|
+|day=2026-06-30|
++--------------+
+
+> TRUNCATE TABLE daily
+  after TRUNCATE:
+    (empty)
+> SHOW PARTITIONS daily
++--------------+
+|partition     |
++--------------+
+|day=2026-06-02|
+|day=2026-06-04|
+|day=2026-06-30|
++--------------+
+
+> CREATE TABLE zones_ext USING parquet LOCATION '~/spark-masterclass-parts/sql-ddl/data/work/ch16-alter/external/zones'
+> TRUNCATE TABLE zones_ext
+  AnalysisException: [CANNOT_TRUNCATE_EXTERNAL_TABLE] Operation not allowed: TRUNCATE
+  TABLE on external tables: `spark_catalog`.`taxi`.`zones_ext`. SQLSTATE: 0A000
+
+== 6. COMMENT ON (COLUMN and the list form are new in 4.3)
+> CREATE TABLE trip_notes (id BIGINT, pickup STRUCT<zone: INT, borough: STRING>, note STRING) USING parquet
+> COMMENT ON NAMESPACE taxi IS 'NYC taxi tables of the book'
+> COMMENT ON TABLE trip_notes IS 'free-text notes per trip'
+> COMMENT ON COLUMN trip_notes.note IS 'what the driver wrote'
+> COMMENT ON TABLE trip_notes COLUMN (
+     id IS 'trip id from the source',
+     pickup.borough IS 'borough of the pickup zone')
+> DESCRIBE TABLE trip_notes
++--------+-------------------------------+-----------------------+
+|col_name|data_type                      |comment                |
++--------+-------------------------------+-----------------------+
+|id      |bigint                         |trip id from the source|
+|pickup  |struct<zone:int,borough:string>|NULL                   |
+|note    |string                         |what the driver wrote  |
++--------+-------------------------------+-----------------------+
+
+  the comment of the nested field:
+   {'comment': 'borough of the pickup zone'}
+> COMMENT ON COLUMN trip_notes.note IS NULL
+  note comment now: [None]
+> DESCRIBE NAMESPACE taxi
++--------------+-------------------------------------------------------------------------------------+
+|info_name     |info_value                                                                           |
++--------------+-------------------------------------------------------------------------------------+
+|Catalog Name  |spark_catalog                                                                        |
+|Namespace Name|taxi                                                                                 |
+|Comment       |NYC taxi tables of the book                                                          |
+|Location      |file:~/spark-masterclass-parts/sql-ddl/data/work/ch16-alter/warehouse/taxi.db|
+|Owner         |lnc                                                                                  |
++--------------+-------------------------------------------------------------------------------------+
+
+> CREATE VIEW notes_v AS SELECT id, note FROM trip_notes
+> COMMENT ON COLUMN notes_v.note IS 'x'
+  AnalysisException: [EXPECT_TABLE_NOT_VIEW.NO_ALTERNATIVE] 'COMMENT ON COLUMN' expects
+  a table but `spark_catalog`.`taxi`.`notes_v` is a view.  SQLSTATE: 42809; line 1 pos 0
+
+== 7. The same column changes on a V2 table (Iceberg)
+> CREATE NAMESPACE lake.taxi
+> CREATE TABLE lake.taxi.daily (trips INT, fares DOUBLE, day DATE) PARTITIONED BY (day)
+> ALTER TABLE lake.taxi.daily RENAME COLUMN fares TO fare_total
+> ALTER TABLE lake.taxi.daily ALTER COLUMN trips TYPE BIGINT
+> ALTER TABLE lake.taxi.daily ADD COLUMNS (tips DOUBLE)
+> ALTER TABLE lake.taxi.daily DROP COLUMN tips
+> COMMENT ON COLUMN lake.taxi.daily.fare_total IS 'sum of fare_amount'
+> DESCRIBE TABLE lake.taxi.daily
++-----------------------+---------+------------------+
+|col_name               |data_type|comment           |
++-----------------------+---------+------------------+
+|trips                  |bigint   |NULL              |
+|fare_total             |double   |sum of fare_amount|
+|day                    |date     |NULL              |
+|# Partition Information|         |                  |
+|# col_name             |data_type|comment           |
+|day                    |date     |NULL              |
++-----------------------+---------+------------------+
+
+> ALTER TABLE lake.taxi.daily ADD PARTITION (day = '2026-06-04')
+  AnalysisException: [INVALID_PARTITION_OPERATION.PARTITION_MANAGEMENT_IS_UNSUPPORTED]
+  The partition command is invalid. Table `lake`.`taxi`.`daily` does not support ...
+> INSERT INTO lake.taxi.daily VALUES (1, 2.0, DATE'2026-06-01')
+> TRUNCATE TABLE lake.taxi.daily
+> SELECT count(*) AS rows FROM lake.taxi.daily
++----+
+|rows|
++----+
+|0   |
++----+
+

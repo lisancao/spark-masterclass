@@ -1,0 +1,4 @@
+{"source": "code/ch54/output/delta_log.txt (Delta 4.4.1 on Spark 4.2.0)",
+ "versions": [{"v": 0, "op": "WRITE", "add": "A", "rows": 3}, {"v": 1, "op": "MERGE", "remove": "A", "add": "B", "rows": 5, "copied": 2, "updated": 1, "inserted": 2},
+              {"v": 2, "op": "DELETE", "remove": "B", "add": "C", "rows": 4, "copied": 4, "deleted": 1}],
+ "read_as_delta": 4, "read_as_parquet": 12, "timing": "schematic"}

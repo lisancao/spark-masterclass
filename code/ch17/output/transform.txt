@@ -1,0 +1,91 @@
+> ADD FILE '~/spark-masterclass-parts/sql-ddl/code/ch17/zone_short.py'
+== 1. no ROW FORMAT clause in a Hive session: LazySimpleSerDe, fields split by a tab
+> SELECT TRANSFORM (id, zone)
+     USING 'python3 zone_short.py'
+     AS (id INT, short STRING, letters INT)
+     FROM zones
++---+-----+-------+
+|id |short|letters|
++---+-----+-------+
+|4  |AC   |13     |
+|24 |B    |12     |
+|238|UWSN |21     |
+|3  |APG  |23     |
++---+-----+-------+
+
+  physical node: HiveScriptTransformation
+  the IO schema: List(),List(),Some(org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe),Some(org.apache.hadoop.h ...
+== 2. ROW FORMAT DELIMITED sets the separators on each side
+> SELECT TRANSFORM (id, zone)
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+     USING 'python3 zone_short.py'
+     AS (id STRING, short STRING, letters STRING)
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+     FROM zones
++---+-----+-------+
+|id |short|letters|
++---+-----+-------+
+|4  |AC   |13     |
+|24 |B    |12     |
+|238|UWSN |21     |
+|3  |APG  |23     |
++---+-----+-------+
+
+== 3. ROW FORMAT SERDE names the SerDe on each side
+> SELECT TRANSFORM (id, zone)
+     ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+     USING 'python3 zone_short.py'
+     AS (id INT, short STRING, letters INT)
+     ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+     FROM zones
++---+-----+-------+
+|id |short|letters|
++---+-----+-------+
+|4  |AC   |13     |
+|24 |B    |12     |
+|238|UWSN |21     |
+|3  |APG  |23     |
++---+-----+-------+
+
+== 4. no AS clause: two columns, key and value
+> SELECT TRANSFORM (id, zone) USING 'python3 zone_short.py' FROM zones
++---+--------+
+|key|value   |
++---+--------+
+|4  |AC\t13  |
+|24 |B\t12   |
+|238|UWSN\t21|
+|3  |APG\t23 |
++---+--------+
+
+== 5. a script that fails
+> SELECT TRANSFORM (id, zone) USING 'python3 -c "import sys; sys.exit(3)"' AS (a STRING) FROM zones
+  Py4JJavaError: An error occurred while calling o68.showString. :
+  org.apache.spark.SparkException: Subprocess exited with status 3. Error: . at org.apac ...
+> ADD FILE '~/spark-masterclass-parts/sql-ddl/code/ch17/zone_short.py'
+== 6. a session without Hive support: the default field separator is \u0001
+  physical node: SparkScriptTransformation
+> SELECT TRANSFORM (id, zone) USING 'python3 zone_short.py' AS (id INT, short STRING, letters INT) FROM zones
+  Py4JJavaError: An error occurred while calling o42.showString. :
+  org.apache.spark.SparkException: Subprocess exited with status 1. Error: Traceback ...
+> SELECT TRANSFORM (id, zone)
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+     USING 'python3 zone_short.py'
+     AS (id INT, short STRING, letters INT)
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+     FROM zones
++---+-----+-------+
+|id |short|letters|
++---+-----+-------+
+|4  |AC   |13     |
+|24 |B    |12     |
+|238|UWSN |21     |
+|3  |APG  |23     |
++---+-----+-------+
+
+> SELECT TRANSFORM (id, zone)
+     ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+     USING 'python3 zone_short.py' AS (id INT, short STRING, letters INT)
+     FROM zones
+  ParseException: [UNSUPPORTED_FEATURE.TRANSFORM_NON_HIVE] The feature is not supported:
+  TRANSFORM with SERDE is only supported in hive mode. SQLSTATE: 0A000 == SQL (line 1, ...

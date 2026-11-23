@@ -1,0 +1,132 @@
+> CREATE NAMESPACE taxi
+> USE taxi
+== 1. CREATE TABLE ... USING: columns, partitions, buckets, options, properties
+> CREATE TABLE trips_by_day (
+     vendor INT COMMENT 'VendorID from the source',
+     pu_zone INT,
+     fare DECIMAL(10,2),
+     day DATE)
+     USING parquet
+     PARTITIONED BY (day)
+     CLUSTERED BY (pu_zone) INTO 4 BUCKETS
+     OPTIONS ('compression' = 'zstd')
+     COMMENT 'one row per trip, partitioned by pickup day'
+     TBLPROPERTIES ('owner.team' = 'ops')
+  Type                MANAGED
+  Provider            parquet
+  Num Buckets         4
+  Bucket Columns      [`pu_zone`]
+  Comment             one row per trip, partitioned by pickup day
+  Table Properties    [owner.team=ops]
+  Storage Properties  [compression=zstd]
+  Partition Provider  Catalog
+> INSERT INTO trips_by_day
+     SELECT VendorID, PULocationID, CAST(fare_amount AS DECIMAL(10,2)), to_date(tpep_pickup_datetime)
+     FROM trips_raw
+     WHERE tpep_pickup_datetime >= '2026-06-01' AND tpep_pickup_datetime < '2026-06-03'
+  on disk: one folder per day, one file per bucket per task:
+    _SUCCESS  (0 B)
+    day=2026-06-01/part-00002-<uuid>_00000.c000.zstd.parquet  (34662 B)
+    day=2026-06-01/part-00002-<uuid>_00001.c000.zstd.parquet  (57159 B)
+    day=2026-06-01/part-00002-<uuid>_00002.c000.zstd.parquet  (19188 B)
+    day=2026-06-01/part-00002-<uuid>_00003.c000.zstd.parquet  (41093 B)
+    day=2026-06-01/part-00010-<uuid>_00000.c000.zstd.parquet  (19413 B)
+    day=2026-06-01/part-00010-<uuid>_00001.c000.zstd.parquet  (22782 B)
+    day=2026-06-01/part-00010-<uuid>_00002.c000.zstd.parquet  (14760 B)
+    day=2026-06-01/part-00010-<uuid>_00003.c000.zstd.parquet  (22978 B)
+    day=2026-06-02/part-00002-<uuid>_00000.c000.zstd.parquet  (39446 B)
+    day=2026-06-02/part-00002-<uuid>_00001.c000.zstd.parquet  (63284 B)
+    day=2026-06-02/part-00002-<uuid>_00002.c000.zstd.parquet  (21875 B)
+    day=2026-06-02/part-00002-<uuid>_00003.c000.zstd.parquet  (46968 B)
+    day=2026-06-02/part-00010-<uuid>_00000.c000.zstd.parquet  (20156 B)
+    day=2026-06-02/part-00010-<uuid>_00001.c000.zstd.parquet  (24644 B)
+    day=2026-06-02/part-00010-<uuid>_00002.c000.zstd.parquet  (16426 B)
+    day=2026-06-02/part-00010-<uuid>_00003.c000.zstd.parquet  (24335 B)
+
+== 2. CREATE TABLE with no USING: the provider is spark.sql.sources.default
+> SET spark.sql.sources.default
++-------------------------+-------+
+|key                      |value  |
++-------------------------+-------+
+|spark.sql.sources.default|parquet|
++-------------------------+-------+
+
+> CREATE TABLE notes (id INT, note STRING)
+  notes Provider: parquet
+
+== 3. CREATE TABLE ... AS SELECT (CTAS): the schema comes from the query
+> CREATE TABLE daily USING parquet PARTITIONED BY (day) AS
+     SELECT count(*) AS trips, round(sum(fare_amount), 2) AS fares, to_date(tpep_pickup_datetime) AS day
+     FROM trips_raw
+     WHERE tpep_pickup_datetime >= '2026-06-01' AND tpep_pickup_datetime < '2026-06-04'
+     GROUP BY 3
+> DESCRIBE TABLE daily
++-----------------------+---------+-------+
+|col_name               |data_type|comment|
++-----------------------+---------+-------+
+|trips                  |bigint   |NULL   |
+|fares                  |double   |NULL   |
+|day                    |date     |NULL   |
+|# Partition Information|         |       |
+|# col_name             |data_type|comment|
+|day                    |date     |NULL   |
++-----------------------+---------+-------+
+
+  on disk:
+    _SUCCESS  (0 B)
+    day=2026-06-01/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    day=2026-06-02/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+    day=2026-06-03/part-00000-<uuid>.c000.snappy.parquet  (740 B)
+  a CTAS cannot also give a column list:
+> CREATE TABLE bad (n BIGINT) USING parquet AS SELECT 1 AS n
+  ParseException: Operation not allowed: Schema may not be specified in a Create Table
+  As Select (CTAS) statement. == SQL (line 1, position 1) == CREATE TABLE bad (n BIGINT) ...
+
+== 4. CREATE TABLE LIKE: the definition, no data
+> CREATE TABLE daily_empty LIKE daily
+> CREATE TABLE daily_json LIKE daily USING json
+  daily        Provider=parquet  rows=3   partition columns: ['day']
+  daily_empty  Provider=parquet  rows=0   partition columns: ['day']
+  daily_json   Provider=json     rows=0   partition columns: ['day']
+
+== 5. IF NOT EXISTS, and a second CREATE without it
+> CREATE TABLE IF NOT EXISTS daily (x INT) USING parquet
+> CREATE TABLE daily (x INT) USING parquet
+  AnalysisException: [TABLE_OR_VIEW_ALREADY_EXISTS] Cannot create table or view
+  `spark_catalog`.`taxi`.`daily` because it already exists. Choose a different name, ...
+
+== 6. REPLACE TABLE and CREATE OR REPLACE TABLE need a V2 catalog
+> CREATE OR REPLACE TABLE daily USING parquet AS SELECT 1 AS trips
+  AnalysisException: [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported:
+  Table `spark_catalog`.`taxi`.`daily` does not support REPLACE TABLE AS SELECT. Please ...
+> REPLACE TABLE daily (x INT) USING parquet
+  AnalysisException: [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported:
+  Table `spark_catalog`.`taxi`.`daily` does not support REPLACE TABLE. Please check the ...
+
+== 7. EXTERNAL needs LOCATION, and LOCATION makes a table external
+> CREATE EXTERNAL TABLE ext_nopath (x INT) USING parquet
+  AnalysisException: [CREATE_EXTERNAL_TABLE_WITHOUT_LOCATION] CREATE EXTERNAL TABLE must
+  be accompanied by LOCATION. SQLSTATE: 42601
+> CREATE TABLE ext_daily USING parquet LOCATION '~/spark-masterclass-parts/sql-ddl/data/work/ch16-create/warehouse/taxi.db/daily'
+  ext_daily Type: EXTERNAL | Partition Provider: Catalog
+> SELECT count(*) AS rows FROM ext_daily
++----+
+|rows|
++----+
+|0   |
++----+
+
+> SHOW PARTITIONS ext_daily
++---------+
+|partition|
++---------+
++---------+
+
+> MSCK REPAIR TABLE ext_daily
+> SELECT count(*) AS rows FROM ext_daily
++----+
+|rows|
++----+
+|3   |
++----+
+

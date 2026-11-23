@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Selections, EXCLUDED flows and checkpoint folders from code/ch57/output/refresh.txt.
+      A.mount();
+      const [title, sub] = A.title("Selecting what a run updates", "spark-pipelines run, the taxi_etl project");
+      const N = {
+        raw:   {x: 0.16, y: 0.38, t: "raw_trips", st: true},
+        zones: {x: 0.16, y: 0.62, t: "zones"},
+        clean: {x: 0.45, y: 0.38, t: "clean_trips", st: true},
+        agg:   {x: 0.74, y: 0.50, t: "borough_daily"},
+      };
+      const W = 300, H = 110;
+      const base = {}, hot = {}, excl = {};
+      for (const [k, n] of Object.entries(N)) {
+        base[k] = A.box({x: n.x, y: n.y, w: W, h: H, kind: "ghost", title: n.t, sub: n.st ? "streaming table" : "materialized view", size: 30});
+        hot[k] = A.box({x: n.x, y: n.y, w: W, h: H, kind: "accent", title: n.t, sub: "runs", size: 30});
+        excl[k] = A.box({x: n.x, y: n.y, w: W, h: H, kind: "soft", title: n.t, sub: "EXCLUDED", size: 30});
+        gsap.set([hot[k], excl[k]], {opacity: 0});
+      }
+      [["raw","clean"],["clean","agg"],["zones","agg"]].forEach(([a,b]) => {
+        const p = N[a], q = N[b]; A.line({x1: p.x + A.dx(W/2), y1: p.y, x2: q.x - A.dx(W/2), y2: q.y}); });
+      // checkpoint folder labels for the two streaming tables
+      const ck = {raw: [], clean: []};
+      for (const k of ["raw", "clean"]) for (const v of ["checkpoint folders: 0", "checkpoint folders: 0 1", "checkpoint folders: 0 1 2"]) {
+        const t = A.text(v, {x: N[k].x, y: N[k].y - A.dy(90), size: 26, mono: true, color: "var(--a-mute)"}); gsap.set(t, {opacity: 0}); ck[k].push(t); }
+      A.tl.set([ck.raw[0], ck.clean[0]], {opacity: 1}, 0);
+      const cmd = (s, t0, t1) => { const c = A.text(s, {y: 0.80, size: 36, mono: true, color: "var(--a-acc)"}); A.in(c, t0); A.out(c, t1); };
+      const cap = (s, t0, t1) => { const c = A.text(s, {y: 0.88, size: 34}); A.in(c, t0); A.out(c, t1); };
+      const sel = (run, ex, t0, t1) => {
+        for (const k of run) { A.tl.to(hot[k], {opacity: 1, duration: 0.3}, t0 + 0.4); A.tl.to(hot[k], {opacity: 0, duration: 0.3}, t1); }
+        for (const k of ex) { A.tl.to(excl[k], {opacity: 1, duration: 0.3}, t0 + 0.4); A.tl.to(excl[k], {opacity: 0, duration: 0.3}, t1); }
+      };
+      // beat refresh (1.0)
+      cmd("--refresh borough_daily", 1.0, 4.6); cap("Only the selected flow runs. The others are EXCLUDED.", 1.2, 4.6);
+      sel(["agg"], ["raw", "zones", "clean"], 1.0, 4.6);
+      // beat full (5.0)
+      cmd("--full-refresh raw_trips", 5.0, 8.8); cap("A full refresh clears the table and starts a new checkpoint folder.", 5.2, 8.8);
+      sel(["raw"], ["zones", "clean", "agg"], 5.0, 8.8);
+      A.tl.to(ck.raw[0], {opacity: 0, duration: 0.2}, 6.2); A.tl.to(ck.raw[1], {opacity: 1, duration: 0.3}, 6.2);
+      // beat all (9.2)
+      cmd("--full-refresh-all", 9.2, 13.6); cap("--full-refresh-all does this for each dataset.", 9.4, 13.6);
+      sel(["raw", "zones", "clean", "agg"], [], 9.2, 13.6);
+      A.tl.to([ck.raw[1], ck.clean[0]], {opacity: 0, duration: 0.2}, 10.4);
+      A.tl.to([ck.raw[2], ck.clean[1]], {opacity: 1, duration: 0.3}, 10.4);
+      A.in(A.note("selections, EXCLUDED flows and folders from real runs (clean_trips also had one full refresh before this)"), 0.0);
+      A.finish(14);
+    </script>
+  </body>
+</html>

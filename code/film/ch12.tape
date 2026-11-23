@@ -1,41 +1,43 @@
-# Spark Masterclass, Chapter 12: Spark SQL: the language, the catalog and the tools. VO lines: notes/v2-config-sql.md.
+# Spark Masterclass, Chapter 12: RDDs today. Needs the Connect server: ch12/connect_server.sh start
 #   film render code/film/ch12.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4142 CONNECT_PORT=15102 THRIFT_PORT=15102 PYTHONUNBUFFERED=1 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4157 SPARK_LOCAL_IP=127.0.0.1 PYTHONHASHSEED=0 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: cli | The spark-sql shell
-Hide
-Type "clear" Enter
-Show
-Type "# spark-sql: a SQL shell with a Hive metastore, in one command" Enter
+# beat: lazy | Transformations run nothing, an action runs a job
+Type "# transformations are lazy: the first job starts at count()" Enter
 Sleep 500ms
-Type "ch12/sql_cli.sh | sed -n '/== 1/,/== 2/p' | head -18" Enter
+Type "python ch12/basics.py 2>/dev/null | sed -n '1,10p'" Enter
+Hide
 Wait@300s
+Show
 Sleep 8s
 
-# beat: thrift | The Thrift server, a JDBC client and a Python client
+# beat: keyvalue | reduceByKey against groupByKey
 Hide
 Type "clear" Enter
 Show
-Type "# the Thrift server: beeline and PyHive connect to one Spark driver" Enter
+Type "# the same totals three ways: what crosses the shuffle?" Enter
 Sleep 500ms
-Type "ch12/thrift_demo.sh | sed -n '/== 2/,$p' | grep -v -E '^\+-+\+$'" Enter
+Type "python ch12/keyvalue.py 2>/dev/null" Enter
+Hide
 Wait@300s
-Sleep 8s
+Show
+Sleep 10s
 
-# beat: catalogs | One query over two catalogs
+# beat: connect | No RDDs over Spark Connect
 Hide
 Type "clear" Enter
 Show
-Type "# three-part names: a Parquet table and an H2 table in one join" Enter
+Type "# over Spark Connect: no sparkContext, no df.rdd, but the DataFrame equivalents" Enter
 Sleep 500ms
-Type "python ch12/catalogs.py 2>/dev/null | sed -n '/== 5/,/== 6/p' | head -12" Enter
+Type "SPARK_REMOTE=sc://localhost:15117 python ch12/connect.py 2>/dev/null" Enter
+Hide
 Wait@300s
-Sleep 8s
+Show
+Sleep 10s

@@ -1,38 +1,29 @@
-# Spark Masterclass, Chapter 22: building an application on a Connect client.
-#   SCRATCH=<build dir> film render code/film/ch22.tape --format chapter
-# Needs: ch21/server.sh start and ch22/run.sh build.
-Set TypingSpeed 35ms
+# Spark Masterclass, Chapter 22: Geospatial data in Spark 4.3.
+#   film render code/film/ch22.tape --format chapter
+# Needs ch22/zones.py first (pip.py reads data/work/ch22/zones.parquet).
+Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
+# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && setopt interactivecomments" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4143 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: heavy | Six months aggregated by Spark, back as Arrow, into Polars
-Type "# the app: Spark does six months of trips; the answer comes back as Arrow" Enter
-Sleep 400ms
-Type "ch22/run.sh show | sed -n '/== 1/,/^schema/p'" Enter
-Wait@60s
-Sleep 6s
+# beat: inventory | Five ST functions in 4.3.0, and the names it does not have
+Type "# Which ST functions does Spark 4.3.0 have, in SQL, PySpark and Scala?" Enter
+Sleep 500ms
+Type "python ch22/inventory.py 2>/dev/null | sed -n '1,5p;/== 5/,$p' | cut -c1-90" Enter
+Wait@180s
+Sleep 9s
 
-# beat: local | Follow-up questions in Polars and DuckDB, no round trip
+# beat: pip | Point in polygon by hand: a grid key, a bounding box, then edge crossings
 Hide
 Type "clear" Enter
 Show
-Type "# follow-up questions: Polars and DuckDB on the same Arrow data" Enter
-Sleep 400ms
-Type "ch22/run.sh show | sed -n '/== 4/,/question 1/p;/busiest/,/^$/p' | grep -v '^shape\|---\|^==\|^$'" Enter
-Wait@60s
-Sleep 8s
-
-# beat: retry | The server is down when the app starts; retries carry it through
-Hide
-Type "clear" Enter
-Show
-Type "# the server is down when the app starts; it comes back after 8 s" Enter
-Sleep 400ms
-Type "ch22/resilience.sh wait" Enter
-Wait@120s
-Sleep 6s
+Type "# Citi Bike starts, June 2026, against the 263 taxi zones. No st_contains:" Enter
+Sleep 500ms
+Type "python ch22/pip.py 2>/dev/null | sed -n '/^distinct/p;/== 3/,/inside bbox/p;/== 5/,/^Row/p' | cut -c1-90" Enter
+Wait@300s
+Sleep 10s

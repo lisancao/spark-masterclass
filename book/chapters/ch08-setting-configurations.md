@@ -352,7 +352,7 @@ There are five places to find a configuration. `find_configs.py` uses four of th
 +-----+-----+
 ```
 
-The 4.3 rows include `spark.sql.optimizer.singleTaskExecution.enabled` ([Chapter 37](ch37-project-feather.md)), `spark.sql.experimental.optimizer.transpilePyUDFs` ([Chapter 34](ch34-python-udfs-arrow.md)) and `spark.sql.files.archive.reader.enabled` ([Chapter 25](ch25-files-as-files.md)). The full list is in `find_configs.txt`. You can also find a word in the `meaning` column:
+The 4.3 rows include `spark.sql.optimizer.singleTaskExecution.enabled` ([Chapter 46](ch46-project-feather.md)), `spark.sql.experimental.optimizer.transpilePyUDFs` ([Chapter 43](ch43-python-udfs-arrow.md)) and `spark.sql.files.archive.reader.enabled` ([Chapter 31](ch31-files-as-files.md)). The full list is in `find_configs.txt`. You can also find a word in the `meaning` column:
 
 ```text
 == 2. SET -v, searched for a word in the meaning
@@ -408,7 +408,7 @@ The 4.3 rows include `spark.sql.optimizer.singleTaskExecution.enabled` ([Chapter
     spark.sql.ansi.enabled in sparkProperties: False
 ```
 
-The Environment tab shows the `SparkConf`, not the configurations of a session. A runtime change with `spark.conf.set` is not in it. To see the runtime values of a session, use `SET` in that session. [Chapter 61](ch61-observability.md) shows the other endpoints of the REST API.
+The Environment tab shows the `SparkConf`, not the configurations of a session. A runtime change with `spark.conf.set` is not in it. To see the runtime values of a session, use `SET` in that session. [Chapter 74](ch74-observability.md) shows the other endpoints of the REST API.
 
 **The source** is the last authority. Each SQL configuration is a `buildConf` call in `SQLConf.scala`, with its documentation, its version, its type, a check and its default:
 
@@ -547,11 +547,11 @@ The client can read the other server configurations, and `isModifiable` tells it
 | A redacted key (4.3) | `spark.conf.get` returns it | `SQL_CONF_NOT_FOUND` |
 | Scope of a runtime change | one session | one client session |
 
-Thus, in a Connect deployment, the person who starts the server owns the static and core configurations. The client owns only the runtime SQL configurations of its own session. [Chapter 24](ch24-connect-in-production.md) shows how to plan servers with this rule.
+Thus, in a Connect deployment, the person who starts the server owns the static and core configurations. The client owns only the runtime SQL configurations of its own session. [Chapter 30](ch30-connect-in-production.md) shows how to plan servers with this rule.
 
 ## Step 8: The `configuration` key of a pipeline spec
 
-A Spark Declarative Pipelines project has a spec file, `spark-pipeline.yml`. Its `configuration` key holds configurations for the pipeline ([Chapter 49](ch49-declarative-pipelines.md)). Pipeline code must not call `spark.conf.set`. [Chapter 49](ch49-declarative-pipelines.md) shows the error. `sdp_conf.sh` runs a pipeline with this spec:
+A Spark Declarative Pipelines project has a spec file, `spark-pipeline.yml`. Its `configuration` key holds configurations for the pipeline ([Chapter 59](ch59-declarative-pipelines.md)). Pipeline code must not call `spark.conf.set`. [Chapter 59](ch59-declarative-pipelines.md) shows the error. `sdp_conf.sh` runs a pipeline with this spec:
 
 ```text
 == spark-pipeline.yml
@@ -597,7 +597,7 @@ The spec value reached the session, and the first flow planned 7 shuffle partiti
 !!! warning "CAUTION"
     In Spark 4.3.0, do a check of the plan before you depend on the `spark_conf` argument of a materialized view. Put configurations that must apply to all flows in the `configuration` key of the spec.
 
-Static configurations, such as `spark.sql.catalogImplementation`, must go to the server when the server starts. [Chapter 49](ch49-declarative-pipelines.md) shows this with the Hive metastore.
+Static configurations, such as `spark.sql.catalogImplementation`, must go to the server when the server starts. [Chapter 59](ch59-declarative-pipelines.md) shows this with the Hive metastore.
 
 ## Step 9: A reference table of frequent configurations
 
@@ -605,49 +605,49 @@ Static configurations, such as `spark.sql.catalogImplementation`, must go to the
 
 | Key | Default in 4.3.0 | Type | Explained in |
 |---|---|---|---|
-| `spark.master` | none (PySpark uses `local[*]`) | core, launch | [Chapter 6](ch06-installing.md), [Chapter 62](ch62-kubernetes-operator.md) |
+| `spark.master` | none (PySpark uses `local[*]`) | core, launch | [Chapter 6](ch06-installing.md), [Chapter 76](ch76-kubernetes-operator.md) |
 | `spark.app.name` | none | core | [Chapter 5](ch05-how-spark-runs.md) |
-| `spark.driver.memory` | `1g` | core, launch | [Chapter 33](ch33-partitions-caching-memory.md), Step 2 |
-| `spark.driver.maxResultSize` | `1g` | core | [Chapter 33](ch33-partitions-caching-memory.md) |
-| `spark.executor.memory` | `1g` | core | [Chapter 33](ch33-partitions-caching-memory.md) |
-| `spark.executor.cores` | `1` | core | [Chapter 62](ch62-kubernetes-operator.md) |
-| `spark.executor.instances` | `<undefined>` | core | [Chapter 62](ch62-kubernetes-operator.md) |
-| `spark.memory.fraction` | `0.6` | core | [Chapter 33](ch33-partitions-caching-memory.md) |
-| `spark.default.parallelism` | `<undefined>` | core | [Chapter 33](ch33-partitions-caching-memory.md) |
-| `spark.serializer` | `org.apache.spark.serializer.JavaSerializer` | core | [Chapter 33](ch33-partitions-caching-memory.md) |
-| `spark.ui.port` | `4040` | core | [Chapter 61](ch61-observability.md) |
-| `spark.eventLog.enabled` | `false` | core | [Chapter 61](ch61-observability.md) |
-| `spark.jars.packages` | empty | core, launch | [Chapter 44](ch44-tables-delta-iceberg.md) |
-| `spark.submit.pyFiles`, `spark.archives` | empty | core, launch | [Chapter 60](ch60-shipping-dependencies.md) |
-| `spark.sql.shuffle.partitions` | `200` | runtime SQL | [Chapter 32](ch32-query-plans.md) |
-| `spark.sql.adaptive.enabled` | `true` | runtime SQL | [Chapter 32](ch32-query-plans.md) |
-| `spark.sql.adaptive.coalescePartitions.enabled` | `true` | runtime SQL | [Chapter 32](ch32-query-plans.md) |
-| `spark.sql.adaptive.advisoryPartitionSizeInBytes` | `64MB` (from `spark.sql.adaptive.shuffle.targetPostShuffleInputSize`) | runtime SQL | [Chapter 32](ch32-query-plans.md) |
+| `spark.driver.memory` | `1g` | core, launch | [Chapter 42](ch42-partitions-caching-memory.md), Step 2 |
+| `spark.driver.maxResultSize` | `1g` | core | [Chapter 42](ch42-partitions-caching-memory.md) |
+| `spark.executor.memory` | `1g` | core | [Chapter 42](ch42-partitions-caching-memory.md) |
+| `spark.executor.cores` | `1` | core | [Chapter 76](ch76-kubernetes-operator.md) |
+| `spark.executor.instances` | `<undefined>` | core | [Chapter 76](ch76-kubernetes-operator.md) |
+| `spark.memory.fraction` | `0.6` | core | [Chapter 42](ch42-partitions-caching-memory.md) |
+| `spark.default.parallelism` | `<undefined>` | core | [Chapter 42](ch42-partitions-caching-memory.md) |
+| `spark.serializer` | `org.apache.spark.serializer.JavaSerializer` | core | [Chapter 42](ch42-partitions-caching-memory.md) |
+| `spark.ui.port` | `4040` | core | [Chapter 74](ch74-observability.md) |
+| `spark.eventLog.enabled` | `false` | core | [Chapter 74](ch74-observability.md) |
+| `spark.jars.packages` | empty | core, launch | [Chapter 54](ch54-tables-delta-iceberg.md) |
+| `spark.submit.pyFiles`, `spark.archives` | empty | core, launch | [Chapter 73](ch73-shipping-dependencies.md) |
+| `spark.sql.shuffle.partitions` | `200` | runtime SQL | [Chapter 40](ch40-query-plans.md) |
+| `spark.sql.adaptive.enabled` | `true` | runtime SQL | [Chapter 40](ch40-query-plans.md) |
+| `spark.sql.adaptive.coalescePartitions.enabled` | `true` | runtime SQL | [Chapter 40](ch40-query-plans.md) |
+| `spark.sql.adaptive.advisoryPartitionSizeInBytes` | `64MB` (from `spark.sql.adaptive.shuffle.targetPostShuffleInputSize`) | runtime SQL | [Chapter 40](ch40-query-plans.md) |
 | `spark.sql.adaptive.skewJoin.enabled` | `true` | runtime SQL | [Chapter 11](ch11-joins.md) |
 | `spark.sql.autoBroadcastJoinThreshold` | `10MB` | runtime SQL | [Chapter 11](ch11-joins.md) |
-| `spark.sql.files.maxPartitionBytes` | `128MB` | runtime SQL | [Chapter 33](ch33-partitions-caching-memory.md) |
+| `spark.sql.files.maxPartitionBytes` | `128MB` | runtime SQL | [Chapter 42](ch42-partitions-caching-memory.md) |
 | `spark.sql.ansi.enabled` | `true` (`false` if `SPARK_ANSI_SQL_MODE=false`) | runtime SQL | [Chapter 10](ch10-cleaning-values.md) |
 | `spark.sql.session.timeZone` | the time zone of the JVM | runtime SQL | [Chapter 10](ch10-cleaning-values.md) |
 | `spark.sql.caseSensitive` | `false` | runtime SQL | [Chapter 9](ch09-dataframes-columns-schemas.md) |
 | `spark.sql.timestampType` | `TIMESTAMP_LTZ` | runtime SQL | [Chapter 9](ch09-dataframes-columns-schemas.md) |
-| `spark.sql.execution.arrow.pyspark.enabled` | `true` (from `spark.sql.execution.arrow.enabled`) | runtime SQL | [Chapter 34](ch34-python-udfs-arrow.md) |
-| `spark.sql.execution.pythonUDF.arrow.enabled` | `true` | runtime SQL | [Chapter 34](ch34-python-udfs-arrow.md) |
-| `spark.sql.execution.arrow.maxRecordsPerBatch` | `10000` | runtime SQL | [Chapter 34](ch34-python-udfs-arrow.md) |
-| `spark.sql.parquet.compression.codec` | `snappy` | runtime SQL | [Chapter 36](ch36-parquet-inside.md) |
-| `spark.sql.sources.partitionOverwriteMode` | `STATIC` | runtime SQL | [Chapter 59](ch59-determinism-retries.md) |
-| `spark.sql.optimizer.singleTaskExecution.enabled` | `false` (new in 4.3) | runtime SQL | [Chapter 37](ch37-project-feather.md) |
-| `spark.sql.streaming.stateStore.providerClass` | `org.apache.spark.sql.execution.streaming.state.HDFSBackedStateStoreProvider` | runtime SQL | [Chapter 43](ch43-checkpoints-and-state-store.md) |
-| `spark.sql.defaultCatalog` | `spark_catalog` | runtime SQL | [Chapter 12](ch12-spark-sql.md) |
-| `spark.sql.warehouse.dir` | `spark-warehouse` in the working directory | static SQL | [Chapter 12](ch12-spark-sql.md) |
-| `spark.sql.catalogImplementation` | `in-memory` (`hive` in `spark-sql` and the Thrift server) | static SQL | [Chapter 12](ch12-spark-sql.md), [Chapter 49](ch49-declarative-pipelines.md) |
-| `spark.sql.extensions` | `<undefined>` | static SQL | [Chapter 45](ch45-iceberg.md), [Chapter 71](ch71-catalyst-extensions.md) |
-| `spark.connect.grpc.binding.port` | `15002` | static (server) | [Chapter 18](ch18-spark-connect.md), [Chapter 24](ch24-connect-in-production.md) |
+| `spark.sql.execution.arrow.pyspark.enabled` | `true` (from `spark.sql.execution.arrow.enabled`) | runtime SQL | [Chapter 43](ch43-python-udfs-arrow.md) |
+| `spark.sql.execution.pythonUDF.arrow.enabled` | `true` | runtime SQL | [Chapter 43](ch43-python-udfs-arrow.md) |
+| `spark.sql.execution.arrow.maxRecordsPerBatch` | `10000` | runtime SQL | [Chapter 43](ch43-python-udfs-arrow.md) |
+| `spark.sql.parquet.compression.codec` | `snappy` | runtime SQL | [Chapter 45](ch45-parquet-inside.md) |
+| `spark.sql.sources.partitionOverwriteMode` | `STATIC` | runtime SQL | [Chapter 72](ch72-determinism-retries.md) |
+| `spark.sql.optimizer.singleTaskExecution.enabled` | `false` (new in 4.3) | runtime SQL | [Chapter 46](ch46-project-feather.md) |
+| `spark.sql.streaming.stateStore.providerClass` | `org.apache.spark.sql.execution.streaming.state.HDFSBackedStateStoreProvider` | runtime SQL | [Chapter 52](ch52-checkpoints-and-state-store.md) |
+| `spark.sql.defaultCatalog` | `spark_catalog` | runtime SQL | [Chapter 15](ch15-spark-sql.md) |
+| `spark.sql.warehouse.dir` | `spark-warehouse` in the working directory | static SQL | [Chapter 15](ch15-spark-sql.md) |
+| `spark.sql.catalogImplementation` | `in-memory` (`hive` in `spark-sql` and the Thrift server) | static SQL | [Chapter 15](ch15-spark-sql.md), [Chapter 59](ch59-declarative-pipelines.md) |
+| `spark.sql.extensions` | `<undefined>` | static SQL | [Chapter 55](ch55-iceberg.md), [Chapter 85](ch85-catalyst-extensions.md) |
+| `spark.connect.grpc.binding.port` | `15002` | static (server) | [Chapter 24](ch24-spark-connect.md), [Chapter 30](ch30-connect-in-production.md) |
 
 !!! note "New in 4.2: Arrow by default for PySpark"
     The defaults of `spark.sql.execution.arrow.pyspark.enabled` and `spark.sql.execution.pythonUDF.arrow.enabled` are `true` in 4.2 and 4.3. They were `false` in 4.1. The PySpark migration guide records the change, and `SQLConf.scala` at v4.1.0 and v4.2.0 shows it.
 
 !!! note "New in 4.0: ANSI mode"
-    Since Spark 4.0, `spark.sql.ansi.enabled` is `true` by default (SPARK-44444). [Chapter 10](ch10-cleaning-values.md) and [Chapter 12](ch12-spark-sql.md) show the changes.
+    Since Spark 4.0, `spark.sql.ansi.enabled` is `true` by default (SPARK-44444). [Chapter 10](ch10-cleaning-values.md) and [Chapter 15](ch15-spark-sql.md) show the changes.
 
 ## Which source to use
 
@@ -684,7 +684,7 @@ ch08/connect_server.sh start && uv run python ch08/connect_conf.py; ch08/connect
 ch08/sdp_conf.sh
 ```
 
-The next part of the book is about Spark SQL. Its first chapter is [Chapter 12](ch12-spark-sql.md). It uses three static configurations of this chapter: the warehouse directory, the catalog implementation and the catalogs that you register with `spark.sql.catalog.<name>`.
+The next part of the book is about Spark SQL. Its first chapter is [Chapter 15](ch15-spark-sql.md). It uses three static configurations of this chapter: the warehouse directory, the catalog implementation and the catalogs that you register with `spark.sql.catalog.<name>`.
 
 ## Further reading
 

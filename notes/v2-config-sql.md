@@ -1,25 +1,25 @@
 # v2-config-sql notes: chapters 74 and 75 (provisional numbers)
 
-Branch `v2-config-sql`, worktree `~/spark-masterclass-parts/config-sql`. Ports: Spark UI 4142, Connect 15102 (the Thrift server in ch12 also uses 15102, never at the same time as Connect).
+Branch `v2-config-sql`, worktree `~/spark-masterclass-parts/config-sql`. Ports: Spark UI 4142, Connect 15102 (the Thrift server in ch15 also uses 15102, never at the same time as Connect).
 
 ## Scope
 
 Two new chapters. No existing chapter was edited.
 
 - `book/chapters/ch08-setting-configurations.md`: Setting Spark configurations, a practical guide. Goes in Part I (Getting started) after the quick start (ch07).
-- `book/chapters/ch12-spark-sql.md`: Spark SQL: the language, the catalog and the tools. Opens the new Spark SQL part, before ch13 and ch14.
+- `book/chapters/ch15-spark-sql.md`: Spark SQL: the language, the catalog and the tools. Opens the new Spark SQL part, before ch18 and ch20.
 
-Cross-references use current numbers. Chapter 12 links to Chapter 8 as `ch08-setting-configurations.md`, and Chapter 8 links to Chapter 12 as `ch12-spark-sql.md`. The last paragraph of ch12 says "The next chapter, Chapter 13": correct after renumbering only if ch13 directly follows ch12 in the new Spark SQL part.
+Cross-references use current numbers. Chapter 15 links to Chapter 8 as `ch08-setting-configurations.md`, and Chapter 8 links to Chapter 15 as `ch15-spark-sql.md`. The last paragraph of ch15 says "The next chapter, Chapter 18": correct after renumbering only if ch18 directly follows ch15 in the new Spark SQL part.
 
 Shared files added: `code/common/svgfig.py` and `code/common/build_anim.sh`, byte-identical copies of the files on branch `v2-vis-a` (so a merge has no conflict).
 
 ## Files
 
 - `code/ch08/`: `layers.py`, `env_vars.py`, `static_runtime.py`, `find_configs.py`, `source_counts.sh`, `defaults.py`, `connect_server.sh`, `connect_conf.py`, `sdp_conf.sh` + `sdp_conf/` project, `figures/make_figures.py`, `anim/layers/`, `output/*.txt`.
-- `code/ch12/`: `sql_cli.sh`, `thrift.sh`, `thrift_demo.sh`, `thrift_client.py`, `ConnectJdbc.java`, `connect_jdbc.sh`, `catalogs.py`, `tables_views.py`, `type_system.py`, `functions.py`, `function_groups.sh`, `ansi_changes.py`, `same_plan.py`, `figures/make_figures.py`, `anim/names/`, `output/*.txt`.
-- Figures: `book/media/figures/ch08-layers-{light,dark}.svg`, `ch08-who-may-change-*`, `ch12-catalogs-*`, `ch12-drop-table-*`, `ch12-function-groups-*`. Each was rendered to PNG with headless Chrome and checked.
-- Animations (HyperFrames, paper theme, 1280x720): `book/media/clips/ch08-anim-layers.{mp4,webp}`, `ch12-anim-names.{mp4,webp}`. Storyboards next to the sources.
-- Film clips (VHS, `film render code/film/chNN.tape --format chapter --demo code`): `ch08-layers`, `ch08-static`, `ch08-connect`, `ch12-cli`, `ch12-thrift`, `ch12-catalogs`. Cut list: `book/media/clips/clips-v2-config-sql.tsv`. `ch08-layers` keeps 0-6 s, plays 40-92 s at 4x, then 92-105.7 s (the caption says so). `ch12-cli` and `ch12-thrift` keep the first 5 s and the last 14 s (the caption says the wait is not shown). All mp4 files are under 230 kB.
+- `code/ch15/`: `sql_cli.sh`, `thrift.sh`, `thrift_demo.sh`, `thrift_client.py`, `ConnectJdbc.java`, `connect_jdbc.sh`, `catalogs.py`, `tables_views.py`, `type_system.py`, `functions.py`, `function_groups.sh`, `ansi_changes.py`, `same_plan.py`, `figures/make_figures.py`, `anim/names/`, `output/*.txt`.
+- Figures: `book/media/figures/ch08-layers-{light,dark}.svg`, `ch08-who-may-change-*`, `ch15-catalogs-*`, `ch15-drop-table-*`, `ch15-function-groups-*`. Each was rendered to PNG with headless Chrome and checked.
+- Animations (HyperFrames, paper theme, 1280x720): `book/media/clips/ch08-anim-layers.{mp4,webp}`, `ch15-anim-names.{mp4,webp}`. Storyboards next to the sources.
+- Film clips (VHS, `film render code/film/chNN.tape --format chapter --demo code`): `ch08-layers`, `ch08-static`, `ch08-connect`, `ch15-cli`, `ch15-thrift`, `ch15-catalogs`. Cut list: `book/media/clips/clips-v2-config-sql.tsv`. `ch08-layers` keeps 0-6 s, plays 40-92 s at 4x, then 92-105.7 s (the caption says so). `ch15-cli` and `ch15-thrift` keep the first 5 s and the last 14 s (the caption says the wait is not shown). All mp4 files are under 230 kB.
 
 ### VO lines (drafts, checked against the output)
 
@@ -28,9 +28,9 @@ Shared files added: `code/common/svgfig.py` and `code/common/build_anim.sh`, byt
 | ch08-layers | Each row starts a new session with one more source. The value climbs from the default, to the file, to the flag, to the builder. In the last row the SparkConf says four gigabytes, but the heap is fifteen hundred megabytes. |
 | ch08-static | A runtime SQL config changes. A static one raises CANNOT_MODIFY_STATIC_CONFIG, and a core one raises CANNOT_MODIFY_CONFIG. |
 | ch08-connect | Two Connect sessions on one server. The builder set twenty-two, the other session keeps the server's twenty-one, and the static value never changed. |
-| ch12-cli | spark-sql starts a driver with a Hive metastore, makes a database and a table, and prints rows as tab-separated text. |
-| ch12-thrift | Two beeline connections get two sessions, so the temporary view is in only one. PyHive queries the same server with no JVM. |
-| ch12-catalogs | One join across two catalogs: a Parquet table in the session catalog and a table in an H2 database. |
+| ch15-cli | spark-sql starts a driver with a Hive metastore, makes a database and a table, and prints rows as tab-separated text. |
+| ch15-thrift | Two beeline connections get two sessions, so the temporary view is in only one. PyHive queries the same server with no JVM. |
+| ch15-catalogs | One join across two catalogs: a Parquet table in the session catalog and a table in an H2 database. |
 
 ## Technical names and technical verbs
 
@@ -45,7 +45,7 @@ STE allowlist: none needed beyond `scripts/ste-allow.txt`.
 | Chapter | Findings |
 |---|---|
 | ch08 | 0 |
-| ch12 | 0 |
+| ch15 | 0 |
 
 Rules broken on purpose: none flagged. Output blocks, error messages, config keys and SQL keywords stay as code. Figure alt texts were shortened to two sentences so the checker does not join them into long paragraphs.
 
@@ -53,8 +53,8 @@ Rules broken on purpose: none flagged. Output blocks, error messages, config key
 
 - pyspark 4.3.0 (pip, `code/.venv`), OpenJDK 17.0.21.1, Python 3.12.
 - Tarball `spark-4.3.0-bin-hadoop3` in `$BOOK_DATA/tarball/` (for `jars/connect-repl/spark-connect-client-jdbc_2.13-4.3.0.jar` and `spark-connect-client-jvm_2.13-4.3.0.jar`).
-- `com.h2database:h2:2.3.232` through `spark.jars.packages` (ch12 catalogs).
-- `pyhive[hive_pure_sasl]` through `uv run --with` (ch12 Thrift client).
+- `com.h2database:h2:2.3.232` through `spark.jars.packages` (ch15 catalogs).
+- `pyhive[hive_pure_sasl]` through `uv run --with` (ch15 Thrift client).
 - Spark source: `~/repos/spark` at tag `v4.3.0` (also v3.5.0, v4.0.0, v4.1.0, v4.2.0 for the "new in" checks).
 - No timings are quoted in the text, so no run took the bench lock. The `Time taken` lines in `sql_cli.txt` are shown as output only.
 
@@ -104,7 +104,7 @@ Rules broken on purpose: none flagged. Output blocks, error messages, config key
 
 ## Open findings
 
-1. **SDP per-flow `spark_conf` does not reach the plan of a batch materialized view (4.3.0).** Repro: `code/ch08/sdp_conf/` without the `configuration` key (two MVs over `spark.range(1000).groupBy(id % 10).count()`, the second with `@dp.materialized_view(spark_conf={"spark.sql.shuffle.partitions": "5"})`). Run with `EVENTLOG=1 common/pipeline.sh`. The event log shows `hashpartitioning(..., 200)` for both flows (with the spec value 7: 7 for both). Possible cause, not verified: `BatchTableWrite.executeInternal` (`sql/pipelines/.../FlowExecution.scala`) wraps only the creation of a `Future` in `SparkSessionUtils.withSqlConf`. The write runs inside the Future, possibly after the conf is restored. Check with `spark-bug` before filing. Chapter 49 says that `spark_conf` "sets configurations for the flow of that dataset only": the integrator may want a caution there.
+1. **SDP per-flow `spark_conf` does not reach the plan of a batch materialized view (4.3.0).** Repro: `code/ch08/sdp_conf/` without the `configuration` key (two MVs over `spark.range(1000).groupBy(id % 10).count()`, the second with `@dp.materialized_view(spark_conf={"spark.sql.shuffle.partitions": "5"})`). Run with `EVENTLOG=1 common/pipeline.sh`. The event log shows `hashpartitioning(..., 200)` for both flows (with the spec value 7: 7 for both). Possible cause, not verified: `BatchTableWrite.executeInternal` (`sql/pipelines/.../FlowExecution.scala`) wraps only the creation of a `Future` in `SparkSessionUtils.withSqlConf`. The write runs inside the Future, possibly after the conf is restored. Check with `spark-bug` before filing. Chapter 59 says that `spark_conf` "sets configurations for the flow of that dataset only": the integrator may want a caution there.
 2. **`TIME` type name needs an internal flag in 4.3.0.** `CAST(x AS TIME)` and DDL with `TIME` raise `UNSUPPORTED_TIME_TYPE` unless `spark.sql.timeType.enabled=true` (default `Utils.isTesting`). `TIME'10:07:00'` literals work. Chapter 9 presents `TIME(p)` in its type table without the flag. Not a bug claim: possibly intended (the type is still in development); a doc gap at least.
 3. **The Spark Connect JDBC driver has no page in the 4.3.0 docs.** To run it outside a build tool you need the JDBC jar, the JVM client jar, Spark's common jars (`spark-common-utils`, `network-common`, Scala library) and `--add-opens=java.base/java.nio=ALL-UNNAMED`. `prepareStatement` raises `SQLFeatureNotSupportedException`.
 4. Not a finding, a documented behavior shown in ch08: in client mode a builder value for `spark.driver.memory` can show in the SparkConf without effect on the heap (the docs warn about it).
@@ -123,16 +123,16 @@ Nav (Part I after ch07, and the first entry of the Spark SQL part):
   - Getting started:
       - chapters/ch07-quick-start.md
       - chapters/ch08-setting-configurations.md
-      - chapters/ch18-spark-connect.md
+      - chapters/ch24-spark-connect.md
   - Spark SQL:
-      - chapters/ch12-spark-sql.md
-      - chapters/ch13-spark-sql-in-depth.md
-      - chapters/ch14-procedural-sql.md
+      - chapters/ch15-spark-sql.md
+      - chapters/ch18-spark-sql-in-depth.md
+      - chapters/ch20-procedural-sql.md
 ```
 
 Roadmap rows:
 
 ```markdown
 | 74 | [Setting Spark configurations](chapters/ch08-setting-configurations.md) | Every source of a config and which one wins, static vs runtime, SQL vs core, finding configs (`SET -v`, Environment tab, REST, `buildConf`), Classic vs Connect, SDP `configuration`, a reference table of defaults. **4.3:** Connect hides redacted configs |
-| 75 | [Spark SQL: the language, the catalog and the tools](chapters/ch12-spark-sql.md) | `spark-sql`, the Thrift server, the Connect JDBC driver, catalogs and three-part names, managed and external tables, views, the 4.x type system, the function library by group, ANSI mode, one plan for SQL and DataFrames. **4.3:** `SHOW ... AS JSON`, nanosecond types (preview) |
+| 75 | [Spark SQL: the language, the catalog and the tools](chapters/ch15-spark-sql.md) | `spark-sql`, the Thrift server, the Connect JDBC driver, catalogs and three-part names, managed and external tables, views, the 4.x type system, the function library by group, ANSI mode, one plan for SQL and DataFrames. **4.3:** `SHOW ... AS JSON`, nanosecond types (preview) |
 ```

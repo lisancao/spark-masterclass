@@ -1,0 +1,23 @@
+key                                                  value  isModifiable
+spark.sql.shuffle.partitions                           200  True
+spark.sql.files.maxPartitionBytes               134217728b  True
+spark.sql.adaptive.enabled                            true  True
+spark.sql.autoBroadcastJoinThreshold             10485760b  True
+spark.sql.execution.arrow.maxRecordsPerBatch         10000  True
+spark.executor.memory                            (not set)  False
+spark.driver.memory                                     4g  False
+spark.memory.fraction                            (not set)  False
+spark.default.parallelism                        (not set)  False
+spark.serializer                                 (not set)  False
+spark.python.worker.reuse                        (not set)  False
+
+set spark.sql.shuffle.partitions=64 -> 64
+set spark.memory.fraction=0.8 -> [CANNOT_MODIFY_CONFIG] Cannot modify the value of the Spark config: "spark.memory.fraction".
+set spark.executor.memory=8g -> [CANNOT_MODIFY_CONFIG] Cannot modify the value of the Spark config: "spark.executor.memory".
+
+spark.sparkContext.getConf() entries that the book's session sets:
+  spark.app.name = ch42-config
+  spark.driver.memory = 4g
+  spark.master = local[*]
+  spark.ui.port = 4054
+  spark.ui.showConsoleProgress = false

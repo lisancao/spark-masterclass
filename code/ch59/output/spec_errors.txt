@@ -1,0 +1,24 @@
+== an unknown key
+name: retail_demo
+owner: data-team
+storage: file://~/spark-masterclass/data/work/part06/ch59-spec/pipeline-storage
+libraries:
+  - glob:
+      include: transformations/**
+--
+pyspark.errors.exceptions.base.PySparkException: [PIPELINE_SPEC_UNEXPECTED_FIELD] Pipeline spec field `owner` is unexpected.
+
+== no storage
+name: retail_demo
+libraries:
+  - glob:
+      include: transformations/**
+--
+pyspark.errors.exceptions.base.PySparkException: [PIPELINE_SPEC_MISSING_REQUIRED_FIELD] Pipeline spec missing required field `storage`.
+
+== no libraries
+name: retail_demo
+storage: file://~/spark-masterclass/data/work/part06/ch59-spec/pipeline-storage
+--
+pyspark.errors.exceptions.connect.AnalysisException: [RUN_EMPTY_PIPELINE] Pipelines are expected to have at least one non-temporary dataset defined (tables, persisted views) but no non-temporary datasets were found in your pipeline.
+

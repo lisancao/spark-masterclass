@@ -1,68 +1,22 @@
-# Spark Masterclass, Chapter 26. Clips for the book page.
+# Spark Masterclass, Chapter 26: Session observability. Storyboard: notes/v2-connect-core.md.
 #   film render code/film/ch26.tape --format chapter
-Set TypingSpeed 35ms
+Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data CONNECT_PORT=15105 CONNECT_UI_PORT=4145 PROXY_PORT=25105 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: ch26-quarantine | A quarantine that balances
+# beat: stop | Find what a client runs, and stop it from a second process
 Hide
-Type "nvim +/'quarantine: parsed' ch26/logs.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
+Type "rm -rf ../data/ch26-events; mkdir -p ../data/ch26-events; ch24/server.sh start --conf spark.eventLog.enabled=true --conf spark.eventLog.dir=file://$PWD/../data/ch26-events >/dev/null; clear" Enter
+Wait@120s
 Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
-Type "clear" Enter
+Type "# an agent runs a long query: find it in the REST API, then interrupt it" Enter
 Sleep 500ms
-Show
-Type "# every input line is parsed or rejected, and the counts agree" Enter
-Sleep 500ms
-Type "python ch26/logs.py 2>/dev/null | sed -n '/quarantine: parsed/,/sessions from/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
-
-# beat: ch26-decimal | Decimal commas and locales
-Hide
-Type "nvim +/'decimal commas' ch26/csv_options.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
-Type "clear" Enter
-Sleep 500ms
-Show
-Type "# a European amount, read as DECIMAL and DOUBLE with two locales" Enter
-Sleep 500ms
-Type "python ch26/csv_options.py 2>/dev/null | sed -n '/decimal commas/,/== encodings/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
-
-# beat: ch26-modes | Parse modes
-Hide
-Type "nvim +/'parse modes and the corrupt' ch26/csv_drift.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
-Sleep 7s
-Hide
-Type ":qa!" Enter
-Type "clear" Enter
-Sleep 500ms
-Show
-Type "# the corrupt record column, and DROPMALFORMED gives three answers" Enter
-Sleep 500ms
-Type "python ch26/csv_drift.py 2>/dev/null | sed -n '/count the corrupt/,/a folder whose/p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+Type "python ch26/observe.py 2>/dev/null | sed -n '/== 2/,/== 5/p' | cut -c1-92" Enter
+Wait@180s
+Sleep 12s

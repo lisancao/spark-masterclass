@@ -1,48 +1,39 @@
-# Spark Masterclass, Chapter 39: Structured Streaming fundamentals. Storyboard: storyboard-part05.md.
-#   flock ~/spark-masterclass/data/.bench.lock film render code/film/ch39.tape --format chapter
+# Spark Masterclass, Chapter 39: Databases over JDBC.
+#   code/ch39/pg.sh up && uv run python ch39/load.py   (PostgreSQL in Docker with the taxi month)
+#   film render code/film/ch39.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4025 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4155 SPARK_LOCAL_IP=127.0.0.1 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: ticking | A stream that ticks
-Type "# a file of trips arrives every 4 s; the query runs a micro-batch every 2 s" Enter
+# beat: pushdown | The same GROUP BY through the jdbc format and through the JDBC catalog
+Type "# One GROUP BY, two read paths. What does PostgreSQL receive?" Enter
 Sleep 500ms
-Type "python ch39/s3_ticking.py 2>/dev/null" Enter
-Wait@180s
-Sleep 8s
-
-# beat: watermark | A watermark that advances over late trips
-Type "# count trips by pickup time, 10-minute windows, watermark 15 minutes behind" Enter
-Sleep 500ms
-Type "python ch39/s6_watermark.py 2>/dev/null | head -16" Enter
-Wait@180s
-Sleep 12s
-
-# beat: crash | The driver dies inside batch 3
-Type "# count trips per zone; the driver dies after the sink writes batch 3" Enter
-Sleep 500ms
-Type "python ch39/s7_restart.py crash 2>/dev/null" Enter
-Wait@180s
-Sleep 4s
-Type "ls ../data/work/ch39/s7-restart/checkpoint/{offsets,commits}" Enter
-Sleep 7s
-
-# beat: resume | Restart from the checkpoint
-Type "# same checkpoint, new process: batch 3 runs again with the same input" Enter
-Sleep 500ms
-Type "python ch39/s7_restart.py resume 2>/dev/null" Enter
-Wait@180s
+Type "python ch39/show_sql.py 2>/dev/null" Enter
+Wait@300s
 Sleep 10s
 
-# beat: manager | Three queries, one session, one listener
-Type "# three queries share a session; one has a UDF that fails on a negative fare" Enter
+# beat: append | Each task commits its own transaction
+Hide
+Type "clear" Enter
+Show
+Type "# 8 tasks append 800 rows. Task 7 hits a duplicate key. What stays?" Enter
 Sleep 500ms
-Type "python ch39/s13_manager.py 2>/dev/null | head -22" Enter
-Wait@240s
-Sleep 12s
+Type "python ch39/writes.py 2>/dev/null | sed -n '/append 800/,/(8 rows)/p' | cut -c1-94" Enter
+Wait@400s
+Sleep 10s
+
+# beat: catalog | A JDBC catalog: Spark SQL statements become PostgreSQL DDL
+Hide
+Type "clear" Enter
+Show
+Type "# CREATE NAMESPACE and CREATE TABLE in Spark, through JDBCTableCatalog:" Enter
+Sleep 500ms
+Type "python ch39/catalog.py 2>/dev/null | sed -n '/CREATE NAMESPACE/,/^spark-sql> INSERT/p' | cut -c1-94" Enter
+Wait@300s
+Sleep 10s

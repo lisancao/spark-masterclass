@@ -1,0 +1,5 @@
+{"source": "code/ch38/output/committers.txt (32 files of the taxi month to MinIO, local[4], median of 3 writes after a warm-up)",
+ "files": 32,
+ "file_v1": {"copy": 64, "job_commit_s": 2.00},
+ "magic": {"copy": 0, "multipart_uploads": 32, "job_commit_s": 0.21},
+ "timing": "schematic"}

@@ -1,0 +1,26 @@
+key store and trust store: keystore.p12 spark.pem truststore.p12 
+--- UI with spark.ssl.enabled=true (the ui namespace inherits it)
+http://localhost:4151/jobs/      -> 302 https://localhost:4551/jobs/
+https://localhost:4551/jobs/     -> 200 (trusted with spark.pem)
+https, no trust store            -> 000 curl exit 60
+subject=CN = localhost
+issuer=CN = localhost
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+RPC SSL disabled
+--- RPC with spark.ssl.rpc.enabled=true (not inherited, must be set) on local-cluster
+ch71-ssl-rpc: ok, 10 groups, executors 2
+RPC SSL enabled
+Successfully created connection to /127.0.0.1:35369 after 150 ms (0 ms spent in bootstraps)
+Successfully created connection to /127.0.0.1:35369 after 171 ms (0 ms spent in bootstraps)
+--- UI ACLs: spark.acls.enable=true, view: alice, admin: ops, a header filter for the user
+(no user)      GET /jobs/                 -> 200
+(no user)      GET /api/v1/applications/  -> 200
+alice          GET /jobs/                 -> 200
+alice          GET /api/v1/applications/  -> 200
+bob            GET /jobs/                 -> 403
+bob            GET /api/v1/applications/  -> 403
+ops            GET /jobs/                 -> 200
+ops            GET /api/v1/applications/  -> 200
+owner          GET /jobs/                 -> 200
+owner          GET /api/v1/applications/  -> 200
+ui acls enabled; users with view permissions: ops, <owner>, alice groups with view permissions: EMPTY; users with modify permissions: ops, <owner>

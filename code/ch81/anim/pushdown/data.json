@@ -1,0 +1,6 @@
+{"source": "code/ch81/output/files_pushdown.txt (query table, explain formatted, Filter column)",
+ "where": "WHERE kind = 'image' AND width > 12",
+ "filters": [{"f": "IsNotNull(kind)", "keep": false}, {"f": "EqualTo(kind, 'image')", "keep": true},
+             {"f": "IsNotNull(width)", "keep": false}, {"f": "GreaterThan(width, 12)", "keep": false}],
+ "files": 26, "opened": 5, "rows": 3,
+ "sparkFilter": "isnotnull(kind) AND isnotnull(width) AND width > 12"}

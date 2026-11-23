@@ -1,12 +1,12 @@
-# v2-geospatial notes: Chapter 16 (Geospatial data in Spark 4.3) and the Chapter 15 split
+# v2-geospatial notes: Chapter 22 (Geospatial data in Spark 4.3) and the Chapter 21 split
 
 Branch `v2-geospatial`, worktree `~/spark-masterclass-parts/geospatial`. Ports: `SPARK_UI_PORT=4143`, Connect gRPC 15103 (UI 4144).
 
 ## Scope and changes
 
-- **New:** `book/chapters/ch16-geospatial.md` (provisional number 76, for the new Spark SQL part). Code in `code/ch16/`, film tape `code/film/ch16.tape`, clips `book/media/clips/ch16-*`, cut list `book/media/clips/clips-ch16.tsv`, figures `book/media/figures/ch16-*.svg`, animation source `code/ch16/anim/bbox-prefilter/` (renders ignored).
-- **Changed, Chapter 15:** Steps 8 to 15 (geospatial) moved into Chapter 16 (as Steps 2, 3, 10, 12, 13, 14). Chapter 15 is now "Time series": new title line, new opening paragraph and thesis (the geospatial sentences removed, a sentence on `ROWS` frames added), a pointer to Chapter 16 under the script list and before the Part II closing line, geospatial bullets and further-reading links removed. The file name stays `ch15-time-series.md` so that links do not break; the integrator may rename it to `ch15-time-series.md`.
-- **Moved code:** `code/ch15/geo.py` -> `code/ch16/geo_points.py`, `code/ch15/output/geo.txt` -> `code/ch16/output/geo_points.txt` (re-run on 4.3.0 after the move: output byte-identical). `code/film/ch15.tape` beat `nearest` now runs `ch16/geo_points.py`. The clip keeps its name `ch15-nearest.mp4`, and Chapter 16 Step 13 embeds it (the caption says it was filmed as `ch15/geo.py`). The integrator can rename it to `ch16-nearest` with the cut list.
+- **New:** `book/chapters/ch22-geospatial.md` (provisional number 76, for the new Spark SQL part). Code in `code/ch22/`, film tape `code/film/ch22.tape`, clips `book/media/clips/ch22-*`, cut list `book/media/clips/clips-ch22.tsv`, figures `book/media/figures/ch22-*.svg`, animation source `code/ch22/anim/bbox-prefilter/` (renders ignored).
+- **Changed, Chapter 21:** Steps 8 to 15 (geospatial) moved into Chapter 22 (as Steps 2, 3, 10, 12, 13, 14). Chapter 21 is now "Time series": new title line, new opening paragraph and thesis (the geospatial sentences removed, a sentence on `ROWS` frames added), a pointer to Chapter 22 under the script list and before the Part II closing line, geospatial bullets and further-reading links removed. The file name stays `ch21-time-series.md` so that links do not break; the integrator may rename it to `ch21-time-series.md`.
+- **Moved code:** `code/ch21/geo.py` -> `code/ch22/geo_points.py`, `code/ch21/output/geo.txt` -> `code/ch22/output/geo_points.txt` (re-run on 4.3.0 after the move: output byte-identical). `code/film/ch21.tape` beat `nearest` now runs `ch22/geo_points.py`. The clip keeps its name `ch21-nearest.mp4`, and Chapter 22 Step 13 embeds it (the caption says it was filmed as `ch21/geo.py`). The integrator can rename it to `ch22-nearest` with the cut list.
 
 ## Lisa's premise ("Spark now has more geospatial functions"): not true for 4.3.0
 
@@ -25,8 +25,8 @@ The chapter says this plainly in the opening note and builds the missing operati
 
 - TN: GEOMETRY, GEOGRAPHY, SRID, CRS, WKB, WKT, GeoJSON, NDR, XDR, `POINT EMPTY`, ring, edge, polygon, multipolygon, line string, vertex, bounding box (bbox), grid, cell, grid key, ray, even-odd rule, shoelace formula, haversine formula, great circle, projection, Lambert conformal conic, standard parallel, State Plane, EPSG, OGC, PROJ, shapefile, `.shp`, `.dbf`, `.prj`, registry, logical type, geospatial statistics, column chunk, footer, format version, metadata table, lower bound, upper bound, service area, null island, validation ladder, Arrow cache serializer, `InMemoryRelation`, `BroadcastHashJoin`, `BroadcastNestedLoopJoin`, `Generate`, Citi Bike, TLC, PyArrow, pyproj, shapely, Apache Sedona, PostGIS, PR build.
 - TV: parse, cast, project (a point onto a plane), explode, join, broadcast, cache, collect, validate, serialize, write, read, filter, group.
-- `scripts/ste-check book/chapters/ch16-geospatial.md --allow bounding crossings`: **0 findings**. `bounding` (bounding box) and `crossings` (edge crossings) are technical names, never verbs.
-- `scripts/ste-check book/chapters/ch15-time-series.md --allow running sliding tumbling moving docstring`: **0 findings** (the same words Part II allowlists).
+- `scripts/ste-check book/chapters/ch22-geospatial.md --allow bounding crossings`: **0 findings**. `bounding` (bounding box) and `crossings` (edge crossings) are technical names, never verbs.
+- `scripts/ste-check book/chapters/ch21-time-series.md --allow running sliding tumbling moving docstring`: **0 findings** (the same words Part II allowlists).
 - Deliberate rule breaks: "Thus" starts sentences, as in Part I. Parentheses hold JIRA numbers, SRIDs and units. Admonition titles are commands in the STE caution form. Code-format identifiers make some list items long, but each sentence stays within 25 words.
 
 ## Claim-to-source
@@ -68,33 +68,33 @@ The chapter says this plainly in the opening note and builds the missing operati
 | Parquet refusals; partition refusal only in v4.3.0 (SPARK-60518) | `output/storage.txt` §2; `git tag --contains 8ad5faba783` = v4.3.0 only |
 | Hive SerDe refusal (SPARK-60519) | commit 215dda27a39, only in v4.3.0. Not tested in the chapter (said so). |
 | Iceberg v3 schema strings, v2 and ANY refusals, file bounds | `output/storage.txt` §3 |
-| Iceberg runtime build | `notes/ch45.md` (PR #18749, commit b1eab64) |
+| Iceberg runtime build | `notes/ch55.md` (PR #18749, commit b1eab64) |
 | ORDER BY/=/JOIN fail, GROUP BY/DISTINCT MatchError, max_by/collect_list work, cache fails, show() prints BinaryView, to_json fails | `output/limits.txt` |
-| show() prints BinaryView also on 4.2.0 | manual run with `~/spark-masterclass/data/ch38/venv-4.2.0` (pyspark 4.2.0), 2026-11-22; not saved as output |
+| show() prints BinaryView also on 4.2.0 | manual run with `~/spark-masterclass/data/ch47/venv-4.2.0` (pyspark 4.2.0), 2026-11-22; not saved as output |
 | Arrow cache serializer lists geo types, static conf | `docs/sql-arrow-cache-format.md` v4.3.0 lines 41-57, 184; `output/limits.txt` (--arrow-cache) |
-| Haversine, nearest store, NEAREST BY | `output/geo_points.txt` §7-8 (moved from Chapter 15) |
+| Haversine, nearest store, NEAREST BY | `output/geo_points.txt` §7-8 (moved from Chapter 21) |
 | Validation ladder | `output/geo_points.txt` §4-6 |
 
 ## Environment
 
 - Linux 7.0.0, 16 cores, OpenJDK 17, Python 3.12.3, `pyspark==4.3.0` and pyarrow 26.0.1 from `code/uv.lock`. Local mode `local[*]`, `spark.sql.shuffle.partitions=64` for `pip.py` and `pip_bench.py`.
 - Reference check only (not book dependencies): `uv run --with shapely==2.1.2 --with pyproj==3.7.2` (PROJ 9.5.1 inside pyproj).
-- Iceberg: `$BOOK_DATA/jars/iceberg-spark-runtime-4.3_2.13-b1eab64.jar` (PR #18749 build from Chapter 45), Hadoop catalog in `data/work/ch16/warehouse`.
-- Connect: `code/ch16/connect_server.sh start|stop` (gRPC 15103, UI 4144, pid and logs under `$BOOK_DATA/pids-ch16`, `logs-ch16`). Stopped after the run.
+- Iceberg: `$BOOK_DATA/jars/iceberg-spark-runtime-4.3_2.13-b1eab64.jar` (PR #18749 build from Chapter 55), Hadoop catalog in `data/work/ch22/warehouse`.
+- Connect: `code/ch22/connect_server.sh start|stop` (gRPC 15103, UI 4144, pid and logs under `$BOOK_DATA/pids-ch22`, `logs-ch22`). Stopped after the run.
 - Data (outside git):
   - `$BOOK_DATA/nyc-taxi/zones/taxi_zones.zip` and `taxi_zones/` from `https://d37ci6vzurychx.cloudfront.net/misc/taxi_zones.zip` (1.0 MB). Suggested addition to `code/common/get_data.sh`.
   - `$BOOK_DATA/citibike/raw/202606-citibike-tripdata_{1..6}.csv` from `https://s3.amazonaws.com/tripdata/202606-citibike-tripdata.zip` (1.05 GB, zip removed after unzip).
   - June 2026 yellow trips (existing).
-- Scratch outputs: `data/work/ch16/` in the worktree (gitignored): `zones.parquet`, `points.parquet`, `pip.parquet`, `month_rows.parquet`, `geo_zones/`, `geo_stations/`, `warehouse/`.
+- Scratch outputs: `data/work/ch22/` in the worktree (gitignored): `zones.parquet`, `points.parquet`, `pip.parquet`, `month_rows.parquet`, `geo_zones/`, `geo_stations/`, `warehouse/`.
 - Bench: `pip_bench.py` ran under `flock ~/spark-masterclass/data/.bench.lock`, median of 3 after 1 warmup, a new DataFrame per run. Other writers' unlocked work may have shared the machine.
-- Shared helpers: none added to `common/book.py`. Chapter helpers in `code/ch16/geo76.py` (shapefile reader, WKB writer, EPSG:2263 projection, error text).
+- Shared helpers: none added to `common/book.py`. Chapter helpers in `code/ch22/geo76.py` (shapefile reader, WKB writer, EPSG:2263 projection, error text).
 
 ## Open findings
 
 1. **PySpark 4.3.0 knows only SRIDs 0, 3857 and 4326; the JVM registry has 10,713.** Any DataFrame with `GEOMETRY(srid)` for another registry SRID (2263, 32618, 4269, ...) fails in `df.schema` / `collect()` with `CANNOT_PARSE_DATATYPE [ST_INVALID_CRS_VALUE]` (Classic) or `ST_INVALID_SRID_VALUE` (Connect). Same on upstream/master (`python/pyspark/sql/geo_utils.py`, comment says "will be updated soon"). The docs page says GEOMETRY accepts any registry SRID. Repro: `spark.sql("SELECT st_geomfromwkb(X'0101000000000000000000F03F0000000000000040', 2263) g").schema`. Candidate JIRA (spark-bug skill first). Not called a bug in the book; the book gives a caution and the workaround.
 2. **`GROUP BY` / `DISTINCT` on a geo column fails at run time with `scala.MatchError: ...BinaryView`** (already Part II open finding 3; still in 4.3.0, re-confirmed here).
 3. **`df.show()` prints `org.apache.spark.unsafe.types.BinaryView@<hash>` for geo columns, and `to_json` fails with `_LEGACY_ERROR_TEMP_2026`.** Also on 4.2.0. Possibly a side effect of SPARK-57058 (BinaryView migration). Repro: `spark.sql("SELECT st_geogfromwkb(X'0101000000000000000000F03F0000000000000040') h").show()`.
-4. **Iceberg PR #18749 (build b1eab64): `SELECT readable_metrics.geom.lower_bound FROM t.files` fails** with `IllegalStateException: Unknown type for binary field. Type name: org.apache.iceberg.geospatial.GeospatialBound` in `StructInternalRow.toByteArray`. Raw `lower_bounds[3]` works. Not Spark. Worth a review comment on the PR. Repro: `code/ch16/storage.py` §3.
+4. **Iceberg PR #18749 (build b1eab64): `SELECT readable_metrics.geom.lower_bound FROM t.files` fails** with `IllegalStateException: Unknown type for binary field. Type name: org.apache.iceberg.geospatial.GeospatialBound` in `StructInternalRow.toByteArray`. Raw `lower_bounds[3]` works. Not Spark. Worth a review comment on the PR. Repro: `code/ch22/storage.py` §3.
 5. Doc gap: `sql-ref-geospatial-types.md` "PROJ Version by Spark Release" table lists only 4.2.0 in the 4.3.0 docs.
 6. Not verified: Apache Sedona support for Spark 4.3; the Hive SerDe refusal (SPARK-60519) was not run; GeoParquet metadata (the `geo` key-value metadata) is not written by Spark (not checked beyond the logical type).
 
@@ -102,27 +102,27 @@ The chapter says this plainly in the opening note and builds the missing operati
 
 | File | What |
 |---|---|
-| `book/media/clips/ch16-inventory.mp4/.webp` | beat `inventory` of `ch16-chapter.mp4` (0-23.7 s), jump cut keeps 0-8.6 and 13.6-23.7 |
-| `book/media/clips/ch16-pip.mp4/.webp` | beat `pip` (23.7-76.4 s), jump cut keeps 23.7-32.7 and 66.2-76.4 (the wait for Spark removed) |
-| `book/media/clips/ch16-anim-bbox.mp4/.webp` | HyperFrames animation (create-animation kit, paper theme, landscape, 31.5 s), real zones and stations of lower Manhattan from `anim_data.py`; numbers from `pip.txt` and `pip_bench.txt`. Storyboard `code/ch16/anim/bbox-prefilter/storyboard.md`. Two storyboard beats are 0.2 s under the read-twice time (minor). Pacing not watched at 1x by a person. |
-| `book/media/figures/ch16-types.svg` | hand-drawn type system figure (checked as PNG on light and dark) |
-| `book/media/figures/ch16-map.svg` | two choropleth maps (bike starts by PIP, taxi pickups by zone ID), drawn by `render_map.py` from `trips_per_zone.csv` (164 KiB, checked on light and dark) |
-| `book/media/figures/ch16-pairs.svg` | edge tests per method, log scale, from `pip.txt`, medians from `pip_bench.txt` |
+| `book/media/clips/ch22-inventory.mp4/.webp` | beat `inventory` of `ch22-chapter.mp4` (0-23.7 s), jump cut keeps 0-8.6 and 13.6-23.7 |
+| `book/media/clips/ch22-pip.mp4/.webp` | beat `pip` (23.7-76.4 s), jump cut keeps 23.7-32.7 and 66.2-76.4 (the wait for Spark removed) |
+| `book/media/clips/ch22-anim-bbox.mp4/.webp` | HyperFrames animation (create-animation kit, paper theme, landscape, 31.5 s), real zones and stations of lower Manhattan from `anim_data.py`; numbers from `pip.txt` and `pip_bench.txt`. Storyboard `code/ch22/anim/bbox-prefilter/storyboard.md`. Two storyboard beats are 0.2 s under the read-twice time (minor). Pacing not watched at 1x by a person. |
+| `book/media/figures/ch22-types.svg` | hand-drawn type system figure (checked as PNG on light and dark) |
+| `book/media/figures/ch22-map.svg` | two choropleth maps (bike starts by PIP, taxi pickups by zone ID), drawn by `render_map.py` from `trips_per_zone.csv` (164 KiB, checked on light and dark) |
+| `book/media/figures/ch22-pairs.svg` | edge tests per method, log scale, from `pip.txt`, medians from `pip_bench.txt` |
 
-Film: `film render code/film/ch16.tape --format chapter`, no bench lock. Encoding libx264 crf 28, yuv420p, faststart, no audio, poster 1.5 s before the end. Mermaid diagrams: 3 (WKB bytes, zones pipeline, grid PIP flow).
+Film: `film render code/film/ch22.tape --format chapter`, no bench lock. Encoding libx264 crf 28, yuv420p, faststart, no audio, poster 1.5 s before the end. Mermaid diagrams: 3 (WKB bytes, zones pipeline, grid PIP flow).
 
 ## Nav and roadmap rows for the integrator
 
 ```yaml
-      - "10. Time series": chapters/ch15-time-series.md
-      - "76. Geospatial data in Spark 4.3": chapters/ch16-geospatial.md
+      - "10. Time series": chapters/ch21-time-series.md
+      - "76. Geospatial data in Spark 4.3": chapters/ch22-geospatial.md
 ```
 
 Roadmap rows:
 
 | # | Chapter | Covers |
 |---|---|---|
-| 10 | [Time series](chapters/ch15-time-series.md) | `time_bucket`, gaps, sessions, percentiles. Geospatial moved to Chapter 16 |
-| 76 | [Geospatial data in Spark 4.3](chapters/ch16-geospatial.md) | GEOMETRY and GEOGRAPHY, SRIDs, the five ST functions and what 4.3.0 does not have, WKB/WKT/GeoJSON by hand, point in polygon with a grid key and a bounding box on Citi Bike and the taxi zones, Parquet and Iceberg v3 geo types |
+| 10 | [Time series](chapters/ch21-time-series.md) | `time_bucket`, gaps, sessions, percentiles. Geospatial moved to Chapter 22 |
+| 76 | [Geospatial data in Spark 4.3](chapters/ch22-geospatial.md) | GEOMETRY and GEOGRAPHY, SRIDs, the five ST functions and what 4.3.0 does not have, WKB/WKT/GeoJSON by hand, point in polygon with a grid key and a bounding box on Citi Bike and the taxi zones, Parquet and Iceberg v3 geo types |
 
-Coverage: WN05 geospatial and the geo half of MD21 move from Chapter 15 to Chapter 16 (Part II notes rows "Steps 8-15" now map to Chapter 16 Steps 2, 3, 10, 12, 13, 14). Suggested `get_data.sh` additions: the taxi zones zip and, optionally, the Citi Bike June 2026 zip.
+Coverage: WN05 geospatial and the geo half of MD21 move from Chapter 21 to Chapter 22 (Part II notes rows "Steps 8-15" now map to Chapter 22 Steps 2, 3, 10, 12, 13, 14). Suggested `get_data.sh` additions: the taxi zones zip and, optionally, the Citi Bike June 2026 zip.

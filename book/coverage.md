@@ -11,17 +11,17 @@ Spark Masterclass covers all that SparkTutor teaches, on Spark 4.3. This page ma
 |---|---|---|
 | I | 1-4 | MD01 why_spark, WN01 spark4_at_a_glance; new: MapReduce history, internals, Spark's evolution, the module map |
 | II | 5-8 | LS01 getting_started, MD02 setup_and_tour; new: setting configurations |
-| III | 9-11 | LS02 dataframes_schemas, LS07 join_strategies, MD03 schemas, MD04 cleaning_values, WN08 cdc_nearest_metrics (NEAREST BY) |
-| IV | 12-17 | LS05 spark_sql_deep_dive, MD21 whats_new_4x (SQL parts), WN03 pipe_syntax_qualify, WN04 sql_scripting, WN05 geospatial, WN08 cdc_nearest_metrics (metric views); new: the SQL tools and catalog |
-| V | 18-24 | LS11 spark_connect (client and server side); new: the protocol, session observability, clients in other languages, building and writing a client, deployment patterns |
-| VI | 25-31 | LS03 data_sources, LS04 external_sources_hof, MD05 files_as_files, MD06 text_and_logs, MD07 csv_and_delimited, MD08 json_drift, MD09 complex_types, MD10 variant_basics, MD11 xml, MD12 avro_and_protobuf, MD13 documents_to_rows, MD14 images_and_audio, MD31 variant_shredding, MD47 blob_table_design, WN02 variant |
-| VII | 32-38 | LS06 optimization_tuning, MD16 plans_partitions_caching, MD24 arrow_performance, MD30 python_udtfs, MD32 tuning_python, MD41 memory_and_blobs, MD45 parquet_internals; Project Feather (new in 4.3); acceleration engines |
-| VIII | 39-43 | LS08 structured_streaming, MD17 streaming_files, MD33 streaming_messy_data, MD51 streaming_internals, WN07 transform_with_state; Real-time Mode (4.3) |
-| IX | 44-45 | LS09 data_lakes, MD18 landing_in_delta; new: the Iceberg runtime and catalogs |
-| X | 46-52 | MD34 production_ingestion, SDP01-SDP09 (all nine), WN08 cdc_nearest_metrics (Auto CDC); new: first ETL pipeline, the CLI and project, configuring a pipeline |
-| XI | 53-58 | LS10 mllib, MD19 text_analytics, MD20 inference_with_pandas_udfs, MD35 similarity_search, MD36 entity_resolution, MD37 inference_in_production, MD38 capstone_intermediate, MD48 lsh_and_ivf, MD49 connected_components, MD50 sketches |
-| XII | 59-64 | MD52 determinism_retries, MD53 shipping_dependencies, MD54 observability; new: the Spark Kubernetes Operator, orchestration, writing pipelines with agents (OSA Con 2026) |
-| XIII | 65-73 | MD15 first_python_data_source, MD22 custom_file_format, MD23 api_source, MD25 filter_pushdown, MD26 database_source, MD27 writers, MD28 streaming_sources, MD29 packaging_testing, MD42 java_dsv2_connector, MD43 session_extensions, MD44 connect_plugins, MD56 final_project, WN06 python_data_sources |
-| XIV | 74-77 | MD39 catalyst_python_plans, MD40 python_worker_protocol, MD46 variant_binary_format, MD55 upstream_case_study |
+| III | 9-14 | LS02 dataframes_schemas, LS07 join_strategies, MD03 schemas, MD04 cleaning_values, WN08 cdc_nearest_metrics (NEAREST BY) |
+| IV | 15-23 | LS05 spark_sql_deep_dive, MD21 whats_new_4x (SQL parts), WN03 pipe_syntax_qualify, WN04 sql_scripting, WN05 geospatial, WN08 cdc_nearest_metrics (metric views); new: the SQL tools and catalog |
+| V | 24-30 | LS11 spark_connect (client and server side); new: the protocol, session observability, clients in other languages, building and writing a client, deployment patterns |
+| VI | 31-39 | LS03 data_sources, LS04 external_sources_hof, MD05 files_as_files, MD06 text_and_logs, MD07 csv_and_delimited, MD08 json_drift, MD09 complex_types, MD10 variant_basics, MD11 xml, MD12 avro_and_protobuf, MD13 documents_to_rows, MD14 images_and_audio, MD31 variant_shredding, MD47 blob_table_design, WN02 variant |
+| VII | 40-47 | LS06 optimization_tuning, MD16 plans_partitions_caching, MD24 arrow_performance, MD30 python_udtfs, MD32 tuning_python, MD41 memory_and_blobs, MD45 parquet_internals; Project Feather (new in 4.3); acceleration engines |
+| VIII | 48-53 | LS08 structured_streaming, MD17 streaming_files, MD33 streaming_messy_data, MD51 streaming_internals, WN07 transform_with_state; Real-time Mode (4.3) |
+| IX | 54-55 | LS09 data_lakes, MD18 landing_in_delta; new: the Iceberg runtime and catalogs |
+| X | 56-62 | MD34 production_ingestion, SDP01-SDP09 (all nine), WN08 cdc_nearest_metrics (Auto CDC); new: first ETL pipeline, the CLI and project, configuring a pipeline |
+| XI | 63-69 | LS10 mllib, MD19 text_analytics, MD20 inference_with_pandas_udfs, MD35 similarity_search, MD36 entity_resolution, MD37 inference_in_production, MD38 capstone_intermediate, MD48 lsh_and_ivf, MD49 connected_components, MD50 sketches |
+| XII | 70-78 | MD52 determinism_retries, MD53 shipping_dependencies, MD54 observability; new: the Spark Kubernetes Operator, orchestration, writing pipelines with agents (OSA Con 2026) |
+| XIII | 79-87 | MD15 first_python_data_source, MD22 custom_file_format, MD23 api_source, MD25 filter_pushdown, MD26 database_source, MD27 writers, MD28 streaming_sources, MD29 packaging_testing, MD42 java_dsv2_connector, MD43 session_extensions, MD44 connect_plugins, MD56 final_project, WN06 python_data_sources |
+| XIV | 88-92 | MD39 catalyst_python_plans, MD40 python_worker_protocol, MD46 variant_binary_format, MD55 upstream_case_study |
 
 The repo keeps the notes of each writer. The first edition has `notes/partNN.md`, and the second edition has `notes/v2-*.md`. The notes give each topic of each lesson, and the section that covers it. They also list the topics that the book does not cover, with the reason. The first-edition notes use the old part numbers, but the new chapter numbers.

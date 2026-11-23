@@ -1,0 +1,79 @@
+> CREATE DATABASE taxi
+> USE taxi
+== 1. LOAD DATA LOCAL INPATH copies a file into the table folder
+> CREATE TABLE zones (id INT, borough STRING, zone STRING)
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE
+> LOAD DATA LOCAL INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones
+  inbox:
+    zones_1.csv  (42 B)
+    zones_2.csv  (58 B)
+    zones_3.csv  (30 B)
+  table folder:
+    zones_1.csv  (42 B)
+> SELECT * FROM zones ORDER BY id
++---+-------+--------------+
+|id |borough|zone          |
++---+-------+--------------+
+|1  |EWR    |Newark Airport|
+|2  |Queens |Jamaica Bay   |
++---+-------+--------------+
+
+== 2. LOAD DATA INPATH (no LOCAL) moves the file
+> LOAD DATA INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_2.csv' INTO TABLE zones
+  inbox:
+    zones_1.csv  (42 B)
+    zones_3.csv  (30 B)
+  table folder:
+    zones_1.csv  (42 B)
+    zones_2.csv  (58 B)
+
+== 3. OVERWRITE replaces the files of the table
+> LOAD DATA LOCAL INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_3.csv' OVERWRITE INTO TABLE zones
+  table folder:
+    zones_3.csv  (30 B)
+> SELECT * FROM zones
++---+-------------+-------------+
+|id |borough      |zone         |
++---+-------------+-------------+
+|5  |Staten Island|Arden Heights|
++---+-------------+-------------+
+
+== 4. into one partition, and into a data source table
+> CREATE TABLE zones_p (id INT, borough STRING, zone STRING) PARTITIONED BY (load_day STRING)
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE
+> LOAD DATA LOCAL INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones_p PARTITION (load_day = '2026-06-01')
+  table folder:
+    load_day=2026-06-01/zones_1.csv  (42 B)
+> CREATE TABLE zones_ds (id INT, borough STRING, zone STRING) USING csv
+> LOAD DATA LOCAL INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones_ds
+  AnalysisException: LOAD DATA is not supported for datasource tables:
+  `spark_catalog`.`taxi`.`zones_ds`.
+> CREATE TABLE zones_pq (id INT, borough STRING, zone STRING) STORED AS PARQUET
+> LOAD DATA LOCAL INPATH '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/inbox/zones_1.csv' INTO TABLE zones_pq
+> SELECT * FROM zones_pq
+  Py4JJavaError: An error occurred while calling o93.showString. :
+  org.apache.spark.SparkException: [FAILED_READ_FILE.NO_HINT] Encountered error while ...
+== 5. INSERT OVERWRITE DIRECTORY: the Hive form and the data source form
+> INSERT OVERWRITE LOCAL DIRECTORY '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/export/hive_delimited'
+     ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'
+     SELECT * FROM zones_p
+  command: InsertIntoHiveDirCommand
+  hive_delimited:
+    _SUCCESS  (0 B)
+    part-00000-<uuid>-c000  (64 B)
+> INSERT OVERWRITE LOCAL DIRECTORY '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/export/hive_parquet'
+     STORED AS PARQUET
+     SELECT * FROM zones_p
+  command: InsertIntoDataSourceDirCommand
+  hive_parquet:
+    _SUCCESS  (0 B)
+    part-00000-<uuid>-c000.snappy.parquet  (1324 B)
+> INSERT OVERWRITE DIRECTORY '~/spark-masterclass-parts/sql-ddl/data/work/ch17-load/export/ds_json'
+     USING json OPTIONS (compression 'none')
+     SELECT * FROM zones_p
+  command: InsertIntoDataSourceDirCommand
+  ds_json:
+    _SUCCESS  (0 B)
+    part-00000-<uuid>-c000.json  (146 B)
+  one file of hive_delimited: '1|EWR|Newark Airport|2026-06-01\n2|Queens|Jamaica Bay|2026-06-01\n'
+  with spark.sql.hive.convertMetastoreInsertDir=false, STORED AS PARQUET runs: InsertIntoHiveDirCommand

@@ -1,31 +1,28 @@
-# Spark Masterclass, Chapter 46: your first ETL pipeline. Storyboard: notes/v2-sdp.md (films).
+# Spark Masterclass, Chapter 46: Project Feather.
 #   film render code/film/ch46.tape --format chapter
-Set TypingSpeed 35ms
-Set WaitPattern /❯ ?$/
+Set TypingSpeed 40ms
+Set WaitPattern /❯$/
 
+# Setup, off camera at the start of every clip.
 Hide
-Type "bash --norc" Enter
-Sleep 500ms
-Type "export BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} CONNECT_PORT=15104 SPARK_UI_PORT=4144; . $FILM_DEMO/film/sdp-film.sh" Enter
-Sleep 2s
-Type "sdp_film_prepare ch46; spark-pipelines run $R >/dev/null 2>&1; PS1=$'\e[35m❯\e[0m '; clear" Enter
-Wait@240s
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4139 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: day2 | A second day arrives; the next run reads only the new file
-Type "counts      # after the first run: one day of trips" Enter
-Wait@60s
-Sleep 3s
-Type "python make_days.py data/trips 2026-06-02" Enter
-Wait@60s
-Sleep 2s
-Type "spark-pipelines run $R 2>&1 | ev" Enter
-Wait@120s
-Sleep 3s
-Type "counts      # raw_trips = 111,546 + 126,260: the old file was not read again" Enter
-Wait@60s
-Sleep 8s
+# beat: feather | Single-task execution off and on
+Type "# a small query and the 62 MB June file, single-task execution off and on" Enter
+Sleep 500ms
+Type "python ch46/demo.py 2>/dev/null" Enter
+Wait@300s
+Sleep 12s
+
+# beat: connect | A per-session setting on a Connect server
 Hide
-Type "sdp_film_end" Enter
-Wait@60s
+Type "clear" Enter
+Show
+Type "# over Spark Connect: session a turns it on, session b keeps the default" Enter
+Sleep 500ms
+Type "python ch46/connect.py brief 2>/dev/null" Enter
+Wait@300s
+Sleep 10s

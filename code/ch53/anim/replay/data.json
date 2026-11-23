@@ -1,0 +1,7 @@
+{
+ "source": "code/ch53/output/k7_sink.txt",
+ "batches": [[0, 498], [1, 498], [2, 449]],
+ "published": 1445,
+ "topic_after": 1894,
+ "distinct_keys": 1445
+}

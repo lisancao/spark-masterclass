@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13.5" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Task times and log lines from dag_submit.txt. Clip times are chosen to read.
+      const D = {"source": "code/ch77/output/dag_submit.txt", "t1": {"id": "zone_revenue", "op": "SparkSubmitOperator", "start": "09:53:11", "end": "09:53:41", "secs": 30}, "t2": {"id": "top_zones", "op": "SparkSqlOperator", "start": "09:53:41", "end": "09:54:05", "secs": 24}, "run": "54.3", "log1": ["ZONE_REVENUE Manhattan  3,374,269 trips", "ZONE_REVENUE Queens  319,164 trips", "ZONE_REVENUE 8 rows written"], "log2": ["Manhattan  3374269  90000789", "Queens  319164  22374570", "Brooklyn  106652  4107067"]}; // data.json
+      A.mount();
+      A.title("An Airflow DAG hands off to Spark", "SparkSubmitOperator, then SparkSqlOperator");
+      // DAG on the left
+      const n1g = A.box({ x: 0.14, y: 0.30, w: 330, h: 100, kind: "ghost", title: D.t1.id, sub: D.t1.op, size: 28 });
+      const n1r = A.box({ x: 0.14, y: 0.30, w: 330, h: 100, kind: "accent", title: D.t1.id, sub: "running", size: 28 });
+      const n1s = A.box({ x: 0.14, y: 0.30, w: 330, h: 100, kind: "ok", title: D.t1.id, sub: "success, " + D.t1.secs + " s", size: 28 });
+      const ar = A.line({ x1: 0.14, y1: 0.30 + A.dy(52), x2: 0.14, y2: 0.52 - A.dy(52), width: 4 });
+      const n2g = A.box({ x: 0.14, y: 0.52, w: 330, h: 100, kind: "ghost", title: D.t2.id, sub: D.t2.op, size: 28 });
+      const n2r = A.box({ x: 0.14, y: 0.52, w: 330, h: 100, kind: "accent", title: D.t2.id, sub: "running", size: 28 });
+      const n2s = A.box({ x: 0.14, y: 0.52, w: 330, h: 100, kind: "ok", title: D.t2.id, sub: "success, " + D.t2.secs + " s", size: 28 });
+      [n1r, n1s, n2r, n2s].forEach((e) => gsap.set(e, { opacity: 0 }));
+      const dagl = A.text("DAG", { x: 0.14, y: 0.20, size: 26, color: "var(--a-mute)" });
+      // worker in the middle
+      const wk = A.box({ x: 0.47, y: 0.39, w: 520, h: 340, kind: "ghost", radius: 18 });
+      const wkl = A.text("Airflow worker", { x: 0.47, y: 0.39 - A.dy(145), size: 26, color: "var(--a-mute)" });
+      const j1 = A.box({ x: 0.47, y: 0.36, w: 440, h: 130, kind: "soft", title: "spark-submit JVM", sub: "driver, local[2]", size: 30 });
+      const j2 = A.box({ x: 0.47, y: 0.36, w: 440, h: 130, kind: "soft", title: "spark-sql JVM", sub: "a new application", size: 30 });
+      gsap.set([j1, j2], { opacity: 0 });
+      // storage at the bottom middle
+      const st = A.box({ x: 0.47, y: 0.68, w: 440, h: 90, kind: "paper", title: "Parquet: out/zone_revenue", sub: "8 rows", size: 26 });
+      gsap.set(st, { opacity: 0 });
+      // task log on the right
+      const lg = A.box({ x: 0.81, y: 0.43, w: 560, h: 440, kind: "ghost", radius: 12 });
+      const lgl = A.text("task log", { x: 0.81, y: 0.43 - A.dy(195), size: 26, color: "var(--a-mute)" });
+      A.in([dagl, n1g, ar, n2g, wk, wkl, lg, lgl], 0.2, { stagger: 0.05 });
+      const L = (s, i, t) => { const e = A.text(s, { x: 0.81 - A.dx(260), y: 0.43 - A.dy(150) + i * A.dy(44), size: 21, mono: true, anchor: "left", color: "var(--a-code-fg)" }); A.in(e, t, { rise: 0, dur: 0.3 }); return e; };
+      // beat task 1 (0.8)
+      A.in(n1r, 0.8, { rise: 0 }); A.in(j1, 1.3);
+      const s1 = [L(D.t1.start + "  running task " + D.t1.id, 0, 1.0)];
+      D.log1.forEach((s, i) => s1.push(L(s, i + 1, 3.0 + i * 0.6)));
+      // beat end of task 1 (5.6)
+      A.in(st, 5.4); A.tl.to(j1, { opacity: 0, duration: 0.4 }, 6.0);
+      A.in(n1s, 6.0, { rise: 0 }); s1.push(L(D.t1.end + "  task state -> success", 4, 6.0));
+      // beat task 2 (7.4)
+      A.out(s1, 7.2, { dur: 0.3 });
+      A.in(n2r, 7.4, { rise: 0 }); A.in(j2, 7.7);
+      const rd = A.line({ x1: 0.47, y1: 0.68 - A.dy(46), x2: 0.47, y2: 0.36 + A.dy(66), width: 5, color: "var(--a-ok)" });
+      A.in(rd, 8.3);
+      const s2 = [L(D.t2.start + "  running task " + D.t2.id, 0, 7.5)];
+      D.log2.forEach((s, i) => s2.push(L(s, i + 1, 8.8 + i * 0.4)));
+      A.tl.to(j2, { opacity: 0, duration: 0.4 }, 10.6);
+      A.in(n2s, 10.6, { rise: 0 }); s2.push(L(D.t2.end + "  DagRun success, " + D.run + " s", 4, 10.6));
+      const caps = [
+        [0.5, "Airflow runs the first task. Its worker starts spark-submit."],
+        [2.9, "The driver runs in that child JVM. Its log goes to the task log."],
+        [5.4, "The job writes Parquet files, and the task ends with success."],
+        [7.4, "The next task starts a new JVM, and it reads those files."],
+        [10.4, "Data moves between the tasks through storage, not through Airflow."],
+      ];
+      caps.forEach(([t, s], i) => { const c = A.text(s, { y: 0.88, size: 36, weight: 600 }); A.in(c, t); if (i < caps.length - 1) A.out(c, caps[i + 1][0] - 0.3); });
+      A.in(A.note("log lines and task times from one DAG run; the clip times are not to scale"), 0.5);
+      A.finish(13.5);
+    </script>
+  </body>
+</html>

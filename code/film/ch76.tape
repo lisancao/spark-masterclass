@@ -1,28 +1,30 @@
-# Spark Masterclass, Chapter 76: the VARIANT binary format. Storyboard: storyboard-part10.md.
+# Spark Masterclass, Chapter 76: the Spark Kubernetes Operator. Storyboard: notes/part08.md.
+#   needs the kind cluster from ch76/cluster.sh up
 #   film render code/film/ch76.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4031 && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4028 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: layout | One event, byte by byte
-Type "# one event as a VARIANT: the value bytes, field by field" Enter
+# beat: app | A SparkApplication through the operator's states
+Type "# a PySpark SparkApplication on kind, followed through the operator's states" Enter
 Sleep 500ms
-Type "python ch76/layout.py 2>/dev/null | sed -n '/^--- value/,/user_id  at/p' | cut -c1-92" Enter
-Wait@180s
+Type "python ch76/run_app.py zones-app.yaml 2>/dev/null | cut -c1-94" Enter
+Wait@300s
 Sleep 12s
 
-# beat: handmade | Unsorted field ids, made by hand
+# beat: connect | A Connect server in the cluster, a client on the laptop, a driver restart
 Hide
-Type "clear" Enter
+Type "kubectl --context kind-part08 delete sparkapp connect --wait=true >/dev/null; kubectl --context kind-part08 apply -f ch76/connect-server.yaml >/dev/null; until kubectl --context kind-part08 get sparkapp connect -o jsonpath='{.status.currentState.currentStateSummary}' | grep -q RunningHealthy; do sleep 2; done; sleep 5; clear" Enter
+Wait@300s
 Show
-Type "# bytes made in Python: an object whose field ids break the sort rule" Enter
+Type "# a laptop client, a Connect server in the cluster, then the driver pod dies" Enter
 Sleep 500ms
-Type "python ch76/handmade.py 2>/dev/null | sed -n '/^hand-made/,/40 fields/p'" Enter
-Wait@180s
+Type "python ch76/connect_k8s.py 2>/dev/null | cut -c1-94" Enter
+Wait@400s
 Sleep 12s

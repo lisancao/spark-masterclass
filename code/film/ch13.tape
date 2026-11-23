@@ -1,31 +1,47 @@
-# Spark Masterclass, Chapter 13: Spark SQL in depth. VO lines: notes/part02.md.
+# Spark Masterclass, Chapter 13: pandas API on Spark. Needs the Connect server: ch12/connect_server.sh start
 #   film render code/film/ch13.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4122 BOOK_NO_LOCK=1 PYTHONUNBUFFERED=1 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4157 SPARK_LOCAL_IP=127.0.0.1 PYTHONHASHSEED=0 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: frames | The default frame includes ties
+
+# beat: layers | A pandas-on-Spark DataFrame, opened
 Hide
 Type "clear" Enter
 Show
-Type "# the default frame is RANGE ... CURRENT ROW: watch the two 30s" Enter
+Type "# the layers of a pandas-on-Spark DataFrame, and the plan of the default index" Enter
 Sleep 500ms
-Type "python ch13/windows.py 2>/dev/null | sed -n '/== 4/,/== 5/{/== 5/q;p}' | cut -c1-92" Enter
-Wait@300s
+Type "python ch13/internals.py 2>/dev/null | sed -n '/== 1/,/== 3/p' | grep -v spark_frame | cut -c1-94 | head -24" Enter
+Hide
+Wait@600s
+Show
 Sleep 10s
 
-# beat: topn | QUALIFY and WindowGroupLimit
+# beat: compare | pandas, pandas API on Spark, PySpark
 Hide
 Type "clear" Enter
 Show
-Type "# top-N per group: which filters get a WindowGroupLimit?" Enter
+Type "# five operations in three APIs, on 3.8 million trips" Enter
 Sleep 500ms
-Type "python ch13/qualify.py 2>/dev/null | sed -n '/== 3/,/== 5/{/== 5/q;p}' | cut -c1-92" Enter
-Wait@300s
+Type "python ch13/compare.py 2>/dev/null" Enter
+Hide
+Wait@600s
+Show
+Sleep 10s
+
+# beat: connect | The same API over Spark Connect
+Hide
+Type "clear" Enter
+Show
+Type "# the pandas API on Spark over Spark Connect" Enter
+Sleep 500ms
+Type "SPARK_REMOTE=sc://localhost:15117 python ch13/api.py 2>/dev/null | sed -n '1p;/== 2/,/== 4/p' | cut -c1-94" Enter
+Hide
+Wait@600s
+Show
 Sleep 10s

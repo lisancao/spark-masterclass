@@ -6,21 +6,21 @@ Branch `v3-sql-ddl`, worktree `~/spark-masterclass-parts/sql-ddl`. Ports: Spark 
 
 Two new chapters in Part IV (Spark SQL), from the gap audit rows "DDL" (Hive-format tables, CREATE TABLE LIKE, REPAIR TABLE/MSCK, TRUNCATE, DEFAULT columns, constraints, ALTER TABLE, view schema binding, COMMENT ON), "DML" (INSERT INTO/OVERWRITE, INSERT OVERWRITE DIRECTORY, LOAD DATA), "Hive tables", "Hive UDF" and items 10 and 18 of the recommendations.
 
-- `book/chapters/ch84-tables-ddl-writes.md`: Tables, DDL and writes.
-- `book/chapters/ch85-hive-tables-metastore.md`: Hive tables and the metastore.
+- `book/chapters/ch16-tables-ddl-writes.md`: Tables, DDL and writes.
+- `book/chapters/ch17-hive-tables-metastore.md`: Hive tables and the metastore.
 
-Changes to existing chapters: `ch12-spark-sql.md` only, links to the new chapters (two bullets in the opening list, one sentence after Step 1's paragraph on the Hive catalog, one sentence at the end of Step 5). No other existing chapter was edited.
+Changes to existing chapters: `ch15-spark-sql.md` only, links to the new chapters (two bullets in the opening list, one sentence after Step 1's paragraph on the Hive catalog, one sentence at the end of Step 5). No other existing chapter was edited.
 
-Cross-references use current numbers: Chapter 8, 12, 14, 34, 36, 44, 45 and the two new chapters as 84 and 85. Chapter 84 ends with "The next chapter, Chapter 85": correct after renumbering only if ch85 directly follows ch84 in Part IV.
+Cross-references use current numbers: Chapter 8, 15, 20, 43, 45, 54, 55 and the two new chapters as 84 and 85. Chapter 16 ends with "The next chapter, Chapter 17": correct after renumbering only if ch17 directly follows ch16 in Part IV.
 
-Not repeated from ch12: managed against external tables, the three kinds of view, CHAR/VARCHAR, `storeAssignmentPolicy`, the Thrift server and `spark-sql`. Ch84 Step 7 goes deeper into `WITH SCHEMA` than ch12 Step 6 (all four modes against five table changes).
+Not repeated from ch15: managed against external tables, the three kinds of view, CHAR/VARCHAR, `storeAssignmentPolicy`, the Thrift server and `spark-sql`. Ch84 Step 7 goes deeper into `WITH SCHEMA` than ch15 Step 6 (all four modes against five table changes).
 
 ## Files
 
-- `code/ch84/`: `ddl.py` (helpers), `create_variants.py`, `defaults_constraints.py`, `alter_comment.py`, `view_schema.py`, `writers.py`, `partition_overwrite.py`, `insert_forms.py`, `figures/make_figures.py`, `anim/overwrite/`, `output/*.txt`.
-- `code/ch85/`: `hive.py` (helpers), `hive_session.py`, `metastore_versions.py`, `serde_tables.py`, `partitions.py`, `derby_rows.sh`, `load_and_dirs.py`, `hive_udf/` (`BoroughCode.java`, `Initials.java`, `build.sh`; the jar is gitignored and built by `build.sh`), `hive_udf.py`, `transform.py`, `zone_short.py`, `standalone_metastore.sh`, `remote_metastore.py`, `figures/make_figures.py`, `anim/msck/`, `output/*.txt`.
-- Figures (rendered to PNG with headless Chrome and checked): `book/media/figures/ch84-partition-overwrite-{light,dark}.svg`, `ch84-view-modes-*`, `ch85-serde-paths-*`, `ch85-metastore-rows-*`.
-- Animations (HyperFrames, paper theme, 1280x720, `code/common/build_anim.sh`): `book/media/clips/ch84-anim-overwrite.{mp4,webp}`, `ch85-anim-msck.{mp4,webp}`. Storyboards next to the sources.
+- `code/ch16/`: `ddl.py` (helpers), `create_variants.py`, `defaults_constraints.py`, `alter_comment.py`, `view_schema.py`, `writers.py`, `partition_overwrite.py`, `insert_forms.py`, `figures/make_figures.py`, `anim/overwrite/`, `output/*.txt`.
+- `code/ch17/`: `hive.py` (helpers), `hive_session.py`, `metastore_versions.py`, `serde_tables.py`, `partitions.py`, `derby_rows.sh`, `load_and_dirs.py`, `hive_udf/` (`BoroughCode.java`, `Initials.java`, `build.sh`; the jar is gitignored and built by `build.sh`), `hive_udf.py`, `transform.py`, `zone_short.py`, `standalone_metastore.sh`, `remote_metastore.py`, `figures/make_figures.py`, `anim/msck/`, `output/*.txt`.
+- Figures (rendered to PNG with headless Chrome and checked): `book/media/figures/ch16-partition-overwrite-{light,dark}.svg`, `ch16-view-modes-*`, `ch17-serde-paths-*`, `ch17-metastore-rows-*`.
+- Animations (HyperFrames, paper theme, 1280x720, `code/common/build_anim.sh`): `book/media/clips/ch16-anim-overwrite.{mp4,webp}`, `ch17-anim-msck.{mp4,webp}`. Storyboards next to the sources.
 - Film clips (VHS, `film render code/film/chNN.tape --format chapter --demo code`): see "Clips" below. Cut list `book/media/clips/clips-v3-sql-ddl.tsv`.
 - No shared helper was added to `code/common/`.
 
@@ -36,9 +36,9 @@ STE allowlist for these chapters (passed with `--allow`): `staging docstring wor
 
 | Chapter | Command | Findings |
 |---|---|---|
-| ch84 | `scripts/ste-check book/chapters/ch84-tables-ddl-writes.md --allow staging docstring` | 0 |
-| ch85 | `scripts/ste-check book/chapters/ch85-hive-tables-metastore.md --allow staging docstring working` | 0 |
-| ch12 (after the link edits) | `scripts/ste-check book/chapters/ch12-spark-sql.md` | 0 |
+| ch16 | `scripts/ste-check book/chapters/ch16-tables-ddl-writes.md --allow staging docstring` | 0 |
+| ch17 | `scripts/ste-check book/chapters/ch17-hive-tables-metastore.md --allow staging docstring working` | 0 |
+| ch15 (after the link edits) | `scripts/ste-check book/chapters/ch15-spark-sql.md` | 0 |
 
 Rules bent on purpose: none flagged. Output blocks, error messages, config keys and SQL stay as code. Figure alt texts were shortened so the checker does not join them with the caption into one long sentence. Sentences that start with a link were reworded ("For ..., read [Chapter N]"), because the checker joins a sentence that starts with `[` to the previous one.
 
@@ -46,9 +46,9 @@ Rules bent on purpose: none flagged. Output blocks, error messages, config keys 
 
 - pyspark 4.3.0 (pip, `code/.venv` from `uv sync`), OpenJDK 17.0.21.1, Python 3.12.
 - Spark source: `~/repos/spark` at `v4.3.0` (also `v3.3.0`, `v3.4.0`, `v3.5.0`, `v4.0.0`, `v4.1.0`, `v4.2.0` for the "since" checks), read with `git show` and `git grep` only.
-- Iceberg: unreleased runtime `$BOOK_DATA/jars/iceberg-spark-runtime-4.3_2.13-b1eab64.jar`, built from apache/iceberg PR #18749 at commit `b1eab64` (the same jar as ch45 and ch31; sha256 `f915c7b075e58012f6a9ee2e34dffcccac9a5715816e01738ff5560efe6dc4d5` per ch45 notes). Hadoop catalog `lake`. Labelled in ch84 as not a release.
-- Hive client: built-in Hive 2.3.10 jars of the pyspark wheel. For ch85 Step 12, Hive 4.0.1 client jars from Maven (`spark.sql.hive.metastore.jars=maven`), cached in `~/.ivy2.5.2`.
-- Hive Metastore: Docker image `apache/hive:4.0.1`, `SERVICE_NAME=metastore`, embedded Derby inside the container, container `sm-ch85-hms` on port 19113. Removed at the end (`ch85/standalone_metastore.sh down`).
+- Iceberg: unreleased runtime `$BOOK_DATA/jars/iceberg-spark-runtime-4.3_2.13-b1eab64.jar`, built from apache/iceberg PR #18749 at commit `b1eab64` (the same jar as ch55 and ch37; sha256 `f915c7b075e58012f6a9ee2e34dffcccac9a5715816e01738ff5560efe6dc4d5` per ch55 notes). Hadoop catalog `lake`. Labelled in ch16 as not a release.
+- Hive client: built-in Hive 2.3.10 jars of the pyspark wheel. For ch17 Step 12, Hive 4.0.1 client jars from Maven (`spark.sql.hive.metastore.jars=maven`), cached in `~/.ivy2.5.2`.
+- Hive Metastore: Docker image `apache/hive:4.0.1`, `SERVICE_NAME=metastore`, embedded Derby inside the container, container `sm-ch17-hms` on port 19113. Removed at the end (`ch17/standalone_metastore.sh down`).
 - Derby `ij`: the `derby-10.16.1.1`, `derbyshared` and `derbytools` jars of the pyspark wheel.
 - Hive UDF jar: `javac --release 17` against the pyspark jars.
 - No timings are quoted in the text, so no run took the bench lock.
@@ -57,7 +57,7 @@ Rules bent on purpose: none flagged. Output blocks, error messages, config keys 
 
 | Claim | Source |
 |---|---|
-| `OPTIONS` become storage properties, `TBLPROPERTIES` table properties; bucket files `_00000`..`_00003`, zstd names | `code/ch84/output/create_variants.txt` section 1 |
+| `OPTIONS` become storage properties, `TBLPROPERTIES` table properties; bucket files `_00000`..`_00003`, zstd names | `code/ch16/output/create_variants.txt` section 1 |
 | No `USING` gives `parquet` (`spark.sql.sources.default`); Hive before 4.0, `spark.sql.legacy.createHiveTableByDefault` | `create_variants.txt` section 2; SQL migration guide v4.3.0 "Upgrading from Spark SQL 3.5 to 4.0" |
 | CTAS with a column list is a ParseException; `LIKE ... USING json`; `IF NOT EXISTS` no compare; REPLACE refused; EXTERNAL needs LOCATION; MSCK on external table 0 -> 3 rows | `create_variants.txt` sections 3 to 7 |
 | `INSERT` with fewer values fails; defaults filled with a column list or `DEFAULT` | `defaults_constraints.txt` section 1 |
@@ -89,7 +89,7 @@ Rules bent on purpose: none flagged. Output blocks, error messages, config keys 
 | Static/dynamic file results | `partition_overwrite.txt` sections 1 to 5 |
 | Static deletes first, dynamic writes to staging | `InsertIntoHadoopFsRelationCommand.scala` v4.3.0 (`deleteMatchingPartitions` before the write, `dynamicPartitionOverwrite`); `HadoopMapReduceCommitProtocol.scala` (`.spark-staging-{jobId}`); `partition_overwrite.txt` section 8 |
 | Writer option ignored by insertInto; WITH options and session conf work; path option works | `partition_overwrite.txt` sections 6 and 7; `DataFrameWriter.scala` v4.3.0 lines 360 to 400 (open finding 2) |
-| Hive SerDe tables not affected by partitionOverwriteMode | config doc of `spark.sql.sources.partitionOverwriteMode`; `ch85/output/partitions.txt` section 6 |
+| Hive SerDe tables not affected by partitionOverwriteMode | config doc of `spark.sql.sources.partitionOverwriteMode`; `ch17/output/partitions.txt` section 6 |
 | BY NAME since 3.5 | `SqlBaseParser.g4` v3.4.0 (no `BY NAME`) and v3.5.0 |
 | REPLACE WHERE before 4.0 | `REPLACE whereClause` in grammar at v3.4.0, v3.5.0, v4.0.0 |
 | WITH SCHEMA EVOLUTION, REPLACE ON/USING added in 4.2 | grammar v4.1.0 (only REPLACE whereClause) against v4.2.0 |
@@ -97,7 +97,7 @@ Rules bent on purpose: none flagged. Output blocks, error messages, config keys 
 | INSERT ... WITH (options) since 4.0 | `optionsClause` in `insertInto` rule at v4.0.0, absent at v3.5.0 |
 | Command per INSERT form | `insert_forms.txt` section 2 |
 | REPLACE WHERE accepted rows outside the condition | `insert_forms.txt` section 3 (open finding 5) |
-| `enableHiveSupport` folder contents, 174 Derby files, Hive configs, `HiveExternalCatalog`, XSDB6 | `ch85/output/hive_session.txt` |
+| `enableHiveSupport` folder contents, 174 Derby files, Hive configs, `HiveExternalCatalog`, XSDB6 | `ch17/output/hive_session.txt` |
 | Metastore versions per release | `metastore_versions.txt` section 1 (from `sql/hive/src/main/scala/org/apache/spark/sql/hive/client/package.scala` at each tag); docs `sql-data-sources-hive-tables.md` v4.3.0 |
 | Below 2.0 dropped in 4.0 because they need JDK 8 | SQL migration guide v4.3.0, "Upgrading from Spark SQL 3.5 to 4.0" |
 | Hive jars in the wheel; errors for 1.2.1 and 3.1.3 builtin | `metastore_versions.txt` sections 2 and 3 |
@@ -133,13 +133,13 @@ Rules bent on purpose: none flagged. Output blocks, error messages, config keys 
    print(spark.table("t2").count())  # 0 (1 with enableHiveSupport())
    ```
 
-2. **`DataFrameWriter.insertInto` ignores the writer option `partitionOverwriteMode` (4.3.0).** Session `STATIC` plus `.option("partitionOverwriteMode", "dynamic").mode("overwrite").insertInto(t)` deleted the other partitions. The V1 `insertIntoCommand(tableIdent)` builds `UnresolvedRelation(tableIdent)` with no options; the V2 branch reads only `conf.partitionOverwriteMode`. The SQL `INSERT OVERWRITE ... WITH ('partitionOverwriteMode' = 'dynamic')` and a path write with the option do work. The config doc says the option "takes precedence over this setting" with a `save(path)` example. At least a doc gap; possibly a bug. Repro: `code/ch84/partition_overwrite.py` section 6. Chapter 84 states the behavior and the source lines, not "bug".
+2. **`DataFrameWriter.insertInto` ignores the writer option `partitionOverwriteMode` (4.3.0).** Session `STATIC` plus `.option("partitionOverwriteMode", "dynamic").mode("overwrite").insertInto(t)` deleted the other partitions. The V1 `insertIntoCommand(tableIdent)` builds `UnresolvedRelation(tableIdent)` with no options; the V2 branch reads only `conf.partitionOverwriteMode`. The SQL `INSERT OVERWRITE ... WITH ('partitionOverwriteMode' = 'dynamic')` and a path write with the option do work. The config doc says the option "takes precedence over this setting" with a `save(path)` example. At least a doc gap; possibly a bug. Repro: `code/ch16/partition_overwrite.py` section 6. Chapter 16 states the behavior and the source lines, not "bug".
 
-3. **`SHOW CREATE TABLE` on a delimited Hive text table gives Spark DDL that cannot run.** For `ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE` with an `INT` column, the output is `CREATE TABLE ... USING text` with the typed columns. Running it fails with `UNSUPPORTED_DATA_TYPE_FOR_DATASOURCE`, and the field separator is lost. `AS SERDE` gives correct Hive DDL. Possibly intended (the 3.0 migration note says Spark DDL is always returned), but the result is not usable. Repro: `code/ch85/serde_tables.py` section 5.
+3. **`SHOW CREATE TABLE` on a delimited Hive text table gives Spark DDL that cannot run.** For `ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE` with an `INT` column, the output is `CREATE TABLE ... USING text` with the typed columns. Running it fails with `UNSUPPORTED_DATA_TYPE_FOR_DATASOURCE`, and the field separator is lost. `AS SERDE` gives correct Hive DDL. Possibly intended (the 3.0 migration note says Spark DDL is always returned), but the result is not usable. Repro: `code/ch17/serde_tables.py` section 5.
 
-4. **Misleading error for a Hive UDF class in a session without Hive support.** `CREATE TEMPORARY FUNCTION f AS '<GenericUDF class>' USING JAR ...` then `SELECT f(...)` raises `[NO_HANDLER_FOR_UDAF] No handler for UDAF '<class>'`, although the class is a UDF. Repro: `code/ch85/hive_udf.py` step 5. Error message gap only.
+4. **Misleading error for a Hive UDF class in a session without Hive support.** `CREATE TEMPORARY FUNCTION f AS '<GenericUDF class>' USING JAR ...` then `SELECT f(...)` raises `[NO_HANDLER_FOR_UDAF] No handler for UDAF '<class>'`, although the class is a UDF. Repro: `code/ch17/hive_udf.py` step 5. Error message gap only.
 
-5. **`INSERT INTO ... REPLACE WHERE` does not check that the new rows match the condition (Iceberg build b1eab64 on 4.3.0).** `REPLACE WHERE borough = 'Bronx' VALUES (9, 'Astoria', 'Queens')` deleted the Bronx rows and inserted a Queens row. Not known whether Spark or the connector is expected to check; Delta has such a check for `replaceWhere`. Observation for the integrator, not a bug claim. Repro: `code/ch84/insert_forms.py` section 3.
+5. **`INSERT INTO ... REPLACE WHERE` does not check that the new rows match the condition (Iceberg build b1eab64 on 4.3.0).** `REPLACE WHERE borough = 'Bronx' VALUES (9, 'Astoria', 'Queens')` deleted the Bronx rows and inserted a Queens row. Not known whether Spark or the connector is expected to check; Delta has such a check for `replaceWhere`. Observation for the integrator, not a bug claim. Repro: `code/ch16/insert_forms.py` section 3.
 
 6. **Doc gap: `REPLACE ON` / `REPLACE USING` are in the 4.3.0 grammar but always refused.** `docs/sql-ref-syntax-dml-insert-table.md` lists only `REPLACE WHERE`, which matches the behavior. No action needed unless the grammar is meant to be documented.
 
@@ -155,13 +155,13 @@ Rules bent on purpose: none flagged. Output blocks, error messages, config keys 
 
 | Clip | Beat | Caption claim |
 |---|---|---|
-| `ch84-overwrite` | `partition_overwrite.py`, sections 1 and 2 | static deletes June 1 and 3, dynamic keeps them |
-| `ch85-msck` | `partitions.py`, section 2 | two folders invisible until MSCK REPAIR TABLE |
-| `ch85-hms` | `remote_metastore.py` | builtin client fails, 4.0.1 client works, second process adds a partition |
-| `ch84-anim-overwrite` | animation | static deletes first, dynamic stages then replaces one partition |
-| `ch85-anim-msck` | animation | ADD then SYNC brings folders and partitions together |
+| `ch16-overwrite` | `partition_overwrite.py`, sections 1 and 2 | static deletes June 1 and 3, dynamic keeps them |
+| `ch17-msck` | `partitions.py`, section 2 | two folders invisible until MSCK REPAIR TABLE |
+| `ch17-hms` | `remote_metastore.py` | builtin client fails, 4.0.1 client works, second process adds a partition |
+| `ch16-anim-overwrite` | animation | static deletes first, dynamic stages then replaces one partition |
+| `ch17-anim-msck` | animation | ADD then SYNC brings folders and partitions together |
 
-The `writers` beat of `ch84.tape` was rendered but is not embedded (Step 9 already shows the output as text). It can become a clip later.
+The `writers` beat of `ch16.tape` was rendered but is not embedded (Step 9 already shows the output as text). It can become a clip later.
 
 VO lines (drafts, checked against the output):
 
@@ -171,21 +171,21 @@ VO lines (drafts, checked against the output):
 
 ## Nav entries and roadmap rows for the integrator
 
-Nav (Part IV, Spark SQL, after ch12 or after ch17; ch84 before ch85):
+Nav (Part IV, Spark SQL, after ch15 or after ch23; ch16 before ch17):
 
 ```yaml
   - Spark SQL:
-      - chapters/ch12-spark-sql.md
-      - chapters/ch84-tables-ddl-writes.md
-      - chapters/ch85-hive-tables-metastore.md
-      - chapters/ch13-spark-sql-in-depth.md
+      - chapters/ch15-spark-sql.md
+      - chapters/ch16-tables-ddl-writes.md
+      - chapters/ch17-hive-tables-metastore.md
+      - chapters/ch18-spark-sql-in-depth.md
 ```
 
-(Or at the end of Part IV, after `ch17-metric-views.md`. The text of both chapters works in either position.)
+(Or at the end of Part IV, after `ch23-metric-views.md`. The text of both chapters works in either position.)
 
 Roadmap rows:
 
 ```markdown
-| 84 | [Tables, DDL and writes](chapters/ch84-tables-ddl-writes.md) | CREATE TABLE variants, CTAS, LIKE, DEFAULT values, NOT NULL and constraints, ALTER TABLE on the session catalog, TRUNCATE, view schema modes, DataFrameWriter against DataFrameWriterV2, static and dynamic partition overwrite, the forms of INSERT. **4.3:** COMMENT ON COLUMN |
-| 85 | [Hive tables and the metastore](chapters/ch85-hive-tables-metastore.md) | enableHiveSupport and the Derby metastore, metastore versions and client jars, SerDe against data source tables, partitions, MSCK REPAIR TABLE, LOAD DATA, INSERT OVERWRITE DIRECTORY, Hive UDFs, script TRANSFORM, a Hive Metastore 4.0.1 in Docker |
+| 84 | [Tables, DDL and writes](chapters/ch16-tables-ddl-writes.md) | CREATE TABLE variants, CTAS, LIKE, DEFAULT values, NOT NULL and constraints, ALTER TABLE on the session catalog, TRUNCATE, view schema modes, DataFrameWriter against DataFrameWriterV2, static and dynamic partition overwrite, the forms of INSERT. **4.3:** COMMENT ON COLUMN |
+| 85 | [Hive tables and the metastore](chapters/ch17-hive-tables-metastore.md) | enableHiveSupport and the Derby metastore, metastore versions and client jars, SerDe against data source tables, partitions, MSCK REPAIR TABLE, LOAD DATA, INSERT OVERWRITE DIRECTORY, Hive UDFs, script TRANSFORM, a Hive Metastore 4.0.1 in Docker |
 ```

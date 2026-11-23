@@ -1,0 +1,17 @@
+Main class:
+org.apache.spark.deploy.PythonRunner
+Arguments:
+file:~/spark-masterclass-parts/ops/code/ch70/app.py
+null
+~/spark-masterclass/data/nyc-taxi/yellow
+Spark config:
+(spark.app.name,ch70-verbose)
+(spark.app.submitTime,1795388192788)
+(spark.eventLog.enabled,false)
+(spark.executor.cores,1)
+(spark.executor.memory,1g)
+(spark.master,spark://127.0.0.1:7151)
+(spark.submit.deployMode,client)
+(spark.submit.pyFiles,)
+(spark.ui.port,4151)
+Classpath elements:

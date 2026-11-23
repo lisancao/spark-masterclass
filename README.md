@@ -1,6 +1,6 @@
 # Spark Masterclass
 
-An open, in-depth book on Apache Spark 4.3, in fourteen parts and 77 chapters, with figures and animations for each mechanism, written in ASD-STE100 Simplified Technical English. Every example runs on a laptop, and every number in the text comes from a script in this repository and its saved output.
+An open, in-depth book on Apache Spark 4.3, in fourteen parts and 92 chapters, with figures and animations for each mechanism, written in ASD-STE100 Simplified Technical English. Every example runs on a laptop, and every number in the text comes from a script in this repository and its saved output.
 
 **Read it online:** https://lisancao.github.io/spark-masterclass/
 

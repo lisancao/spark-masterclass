@@ -123,7 +123,7 @@ docker run --rm -e SPARK_NO_DAEMONIZE=1 -p 15002:15002 \
   apache/spark:4.3.0-python3 /opt/spark/sbin/start-connect-server.sh
 ```
 
-That server answered a thin client a few seconds after it started. [Chapter 18](ch18-spark-connect.md) runs the same server from the pip install (`code/ch18/server.sh`). With that server, the data paths are identical on the two sides.
+That server answered a thin client a few seconds after it started. [Chapter 24](ch24-spark-connect.md) runs the same server from the pip install (`code/ch24/server.sh`). With that server, the data paths are identical on the two sides.
 
 ## Option 4: Spark Connect with the thin client
 
@@ -142,7 +142,7 @@ thin client: python 3.12.3, server spark 4.3.0, 3,837,248 trips
 
 `pyspark-client` is PySpark without the JVM. It contains the DataFrame, SQL, streaming and ML APIs. These APIs are a client that serializes each query to a protobuf plan, and sends the plan to a Connect server. The client does not need Java, and it starts immediately. A crash in your code cannot stop the driver.
 
-But the thin client has two costs. First, no JVM objects exist on your side: `spark.sparkContext`, RDDs and `df._jdf` are not available. Second, the server decides which Spark version and which jars your queries use, not you. [Chapter 18](ch18-spark-connect.md) shows what this changes. Most code that uses DataFrames sees no difference.
+But the thin client has two costs. First, no JVM objects exist on your side: `spark.sparkContext`, RDDs and `df._jdf` are not available. Second, the server decides which Spark version and which jars your queries use, not you. [Chapter 24](ch24-spark-connect.md) shows what this changes. Most code that uses DataFrames sees no difference.
 
 !!! warning "Do not use `python -c` with the thin client"
     Do not paste thin-client code into `python -c "..."`. With `pyspark-client` 4.3.0, Python prints *"Could not find valid SPARK_HOME"* and stops with status 255.

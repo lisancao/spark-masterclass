@@ -1,0 +1,100 @@
+== 1. save modes on a path
+  first write (default mode): rows at path: 2
+  -- mode errorifexists
+  day1.write.mode('errorifexists').parquet(out) failed
+  AnalysisException: [PATH_ALREADY_EXISTS] Path file:~/spark-masterclass-
+  parts/sql-ddl/data/work/ch16-writers/paths/daily already exists. Set mode as ...
+     rows at path: 2
+  -- mode append
+  day1.write.mode('append').parquet(out)       ok
+     rows at path: 4
+  -- mode overwrite
+  day1.write.mode('overwrite').parquet(out)    ok
+     rows at path: 2
+  -- mode ignore
+  day1.write.mode('ignore').parquet(out)       ok
+     rows at path: 2
+
+== 2. save modes on a table name (saveAsTable)
+  first saveAsTable('daily'): rows in daily: 2
+  saveAsTable('daily', mode='errorifexists')   failed
+  AnalysisException: [TABLE_OR_VIEW_ALREADY_EXISTS] Cannot create table or view
+  `spark_catalog`.`default`.`daily` because it already exists. Choose a different name, ...
+     rows in daily: 2
+  saveAsTable('daily', mode='append')          ok
+     rows in daily: 4
+  saveAsTable('daily', mode='overwrite')       ok
+     rows in daily: 2
+  saveAsTable('daily', mode='ignore')          ok
+     rows in daily: 2
+
+== 3. insertInto matches columns by position, saveAsTable(append) by name
+  table columns:   ['day', 'vendor', 'trips']
+  swapped columns: ['day', 'trips', 'vendor']
+  swapped.write.insertInto('daily')            ok
+  swapped.write.saveAsTable('daily', mode='append') ok
+> SELECT * FROM daily ORDER BY day, vendor
++----------+------+------+
+|day       |vendor|trips |
++----------+------+------+
+|2026-06-01|1     |111546|
+|2026-06-01|2     |9000  |
+|2026-06-02|1     |126260|
+|2026-06-02|126260|1     |
++----------+------+------+
+
+  small.write.insertInto('daily') (STRING into BIGINT) failed
+  AnalysisException: [INCOMPATIBLE_DATA_FOR_TABLE.CANNOT_SAFELY_CAST] Cannot write
+  incompatible data for the table `spark_catalog`.`default`.`daily`: Cannot safely cast ...
+
+== 4. DataFrameWriterV2 on the session catalog (a V1 parquet table)
+  day1.writeTo('daily2').using('parquet').create() ok
+  day2.writeTo('daily2').append()              failed
+  AnalysisException: Cannot write into v1 table: `spark_catalog`.`default`.`daily2`.
+  day2.writeTo('daily2').overwritePartitions() failed
+  AnalysisException: Cannot write into v1 table: `spark_catalog`.`default`.`daily2`.
+  day2.writeTo('daily2').createOrReplace()     failed
+  AnalysisException: [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported:
+  Table `spark_catalog`.`default`.`daily2` does not support REPLACE TABLE AS SELECT. ...
+  daily2 columns: ['vendor', 'trips', 'day'] (partition column last)
+  day2.select(vendor, trips, day).write.insertInto ok
+> SELECT * FROM daily2 ORDER BY day, vendor
++------+------+----------+
+|vendor|trips |day       |
++------+------+----------+
+|1     |111546|2026-06-01|
+|2     |9000  |2026-06-01|
+|1     |126260|2026-06-02|
++------+------+----------+
+
+== 5. DataFrameWriterV2 on a V2 catalog (Iceberg)
+  create()                   rows: [('2026-06-01', 1, 111546), ('2026-06-01', 2, 9000)]
+                             last snapshot operation: append
+  append()                   rows: [('2026-06-01', 1, 111546), ('2026-06-01', 2, 9000), ('2026-06-02', 1, 126260)]
+                             last snapshot operation: append
+  overwritePartitions()      rows: [('2026-06-01', 1, 111547), ('2026-06-02', 1, 126260)]
+                             last snapshot operation: overwrite
+  overwrite(vendor = 1)      rows: [('2026-06-01', 1, 111547)]
+                             last snapshot operation: overwrite
+  createOrReplace()          rows: [('2026-06-02', 1, 126260)]
+                             last snapshot operation: overwrite
+  day2.writeTo(T).create() again               failed
+  AnalysisException: [TABLE_OR_VIEW_ALREADY_EXISTS] Cannot create table or view
+  `taxi`.`daily` because it already exists. Choose a different name, drop or replace the ...
+> SELECT snapshot_id IS NOT NULL AS has_id, operation FROM lake.taxi.daily.snapshots ORDER BY committed_at
++------+---------+
+|has_id|operation|
++------+---------+
+|true  |append   |
+|true  |append   |
+|true  |overwrite|
+|true  |overwrite|
+|true  |overwrite|
++------+---------+
+
+  Iceberg metadata files:
+    v1.metadata.json  (1952 B)
+    v2.metadata.json  (3117 B)
+    v3.metadata.json  (4352 B)
+    v4.metadata.json  (5558 B)
+    v5.metadata.json  (6674 B)

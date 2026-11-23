@@ -1058,7 +1058,7 @@ Spark keeps nanoseconds when it writes the data back to Parquet:
 time_bucket on nanos: ERROR [DATATYPE_MISMATCH.UNEXPECTED_INPUT_TYPE] Cannot resolve "ti
 ```
 
-Thus a SQL job can read nanosecond Parquet, transform it and write it with no loss. `time_bucket` does not accept the nanosecond types in 4.3.0 ([Chapter 15](ch15-time-series.md)). The preview is not ready for Python code that collects the values. Use it in SQL jobs, and test each function that you need.
+Thus a SQL job can read nanosecond Parquet, transform it and write it with no loss. `time_bucket` does not accept the nanosecond types in 4.3.0 ([Chapter 21](ch21-time-series.md)). The preview is not ready for Python code that collects the values. Use it in SQL jobs, and test each function that you need.
 
 ## Step 17: Catch errors by condition and SQLSTATE
 
@@ -1209,7 +1209,7 @@ The same `select("revenue")` fails at a different line on each side:
       raised by: collect() -> UNRESOLVED_COLUMN.WITH_SUGGESTION
     ```
 
-Classic analyzes each new DataFrame at once, so `select` fails. Connect sends the plan to the server only at the action, so `collect()` fails ([Chapter 18](ch18-spark-connect.md)). Put the `try` block around the action, and the handler works on the two sides.
+Classic analyzes each new DataFrame at once, so `select` fails. Connect sends the plan to the server only at the action, so `collect()` fails ([Chapter 24](ch24-spark-connect.md)). Put the `try` block around the action, and the handler works on the two sides.
 
 ### The error-conditions catalog
 
@@ -1250,7 +1250,7 @@ The same catalog is on the web as the [error conditions reference](https://spark
 - **Nanosecond timestamps (4.3 preview) work in SQL and Parquet, not in PySpark.** Cast them before they go to Python.
 - **Handle errors by condition, then by SQLSTATE class.** The same `pyspark.errors` classes catch errors on Classic and Connect. Some errors have no condition. Put the `try` around the action.
 
-These rules all have one source. ANSI mode makes errors visible, and a `try_` function makes them data. Some values convert to a wrong value with no error. These values still need a test. [Chapter 13](ch13-spark-sql-in-depth.md) uses these clean values in SQL, with window functions, pipe syntax and `QUALIFY`.
+These rules all have one source. ANSI mode makes errors visible, and a `try_` function makes them data. Some values convert to a wrong value with no error. These values still need a test. [Chapter 18](ch18-spark-sql-in-depth.md) uses these clean values in SQL, with window functions, pipe syntax and `QUALIFY`.
 
 ## Further reading
 

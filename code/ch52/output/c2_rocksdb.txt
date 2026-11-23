@@ -1,0 +1,45 @@
+1. spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled = false (default)
+1.zip  (3775 B)
+2.zip  (3870 B)
+3.zip  (3954 B)
+4.zip  (4038 B)
+SSTs/000008-26f213a0-e61b-465e-b354-499a8f2b92d4.sst  (1249 B)
+SSTs/000009-e39b7904-e766-4a5c-9f5a-91902fe12822.sst  (1251 B)
+SSTs/000010-ef6c6f2f-d414-4f14-832d-365f8e250b03.sst  (1264 B)
+SSTs/000011-f687fba3-fefd-4cb3-bed5-d3032748d7e2.sst  (1251 B)
+_metadata/schema  (195 B)
+
+4.zip holds: ['000004.log', 'CURRENT', 'MANIFEST-000005', 'OPTIONS-000007', 'metadata']
+its metadata file: v1
+  numKeys 4, columnFamilyMapping {}, sstFiles:
+    000008.sst -> SSTs/000008-26f213a0-e61b-465e-b354-499a8f2b92d4.sst  (1249 B)
+    000009.sst -> SSTs/000009-e39b7904-e766-4a5c-9f5a-91902fe12822.sst  (1251 B)
+    000010.sst -> SSTs/000010-ef6c6f2f-d414-4f14-832d-365f8e250b03.sst  (1264 B)
+    000011.sst -> SSTs/000011-f687fba3-fefd-4cb3-bed5-d3032748d7e2.sst  (1251 B)
+
+2. spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled = true
+1.changelog  (95 B)
+2.changelog  (95 B)
+3.changelog  (95 B)
+4.changelog  (96 B)
+_metadata/schema  (195 B)
+
+3. spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled = true and spark.sql.streaming.stateStore.checkpointFormatVersion = 2
+1_05b26bf2-acf6-4fdd-a735-accf5547ad66.changelog  (103 B)
+2_6402497a-3820-4b4a-a4a8-830dcaeebad7.changelog  (186 B)
+3_3355fc5a-61fa-4459-8a89-20ae7331c76a.changelog  (225 B)
+4_84e140b0-d1e9-4c9c-bb6f-2bdee7ef839f.changelog  (271 B)
+_metadata/schema  (195 B)
+commits/3: v2 | {"nextBatchWatermarkMs":0,"stateUniqueIds":{"0":[["84e140b0-d1e9-4c9c-bb6f-2bdee7ef839f"],["7ed6b745-eb47-404c-af72-b6935ce548b1"]]}}
+
+4. The transformWithState checkpoint of Chapter 50 (t2_sessions.py), partition 0:
+  5.zip: numKeys 4
+  columnFamilyMapping: {"$eventTimers_keyToTimestamp": 4, "$eventTimers_timestampToKey": 5, "default": 1, "seen": 3, "session": 2}
+  operator files outside the partitions:
+    state/0/_metadata/v2/0  (713 B)
+    state/0/_stateSchema/default/0_4902d7e8-dcc3-4b55-9e1b-f72b606f6414  (2049 B)
+  _metadata/v2/0: timeMode EventTime, outputMode Append
+    session                        ValueState  ttl False
+    $eventTimers_keyToTimestamp    TimerState  ttl False
+    seen                           MapState    ttl False
+    schema file: 0/_stateSchema/default/0_4902d7e8-dcc3-4b55-9e1b-f72b606f6414

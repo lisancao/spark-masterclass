@@ -1,0 +1,118 @@
+> CREATE NAMESPACE taxi
+> USE taxi
+== 1. a managed table: CTAS into the warehouse
+> CREATE TABLE daily USING parquet AS
+     SELECT to_date(tpep_pickup_datetime) AS day, count(*) AS trips, round(sum(fare_amount), 2) AS fares
+     FROM trips_raw
+     WHERE tpep_pickup_datetime >= '2026-06-01' AND tpep_pickup_datetime < '2026-07-01'
+     GROUP BY 1
+> SELECT * FROM daily ORDER BY day LIMIT 3
++----------+------+----------+
+|day       |trips |fares     |
++----------+------+----------+
+|2026-06-01|111546|2398758.25|
+|2026-06-02|126260|2646475.71|
+|2026-06-03|140184|2974062.81|
++----------+------+----------+
+
+== 2. an external table: the files stay where you put them
+> CREATE TABLE daily_ext USING parquet LOCATION '~/spark-masterclass-parts/config-sql/data/work/ch15-tables/external/daily_copy'
+> SELECT count(*) AS days FROM daily_ext
++----+
+|days|
++----+
+|30  |
++----+
+
+== 3. DESCRIBE TABLE EXTENDED, the rows that differ
+  daily
+    Catalog   spark_catalog
+    Database  taxi
+    Table     daily
+    Type      MANAGED
+    Provider  parquet
+    Location  file:~/spark-masterclass-parts/config-sql/data/work/ch15-tables/warehouse/taxi.db/daily
+  daily_ext
+    Catalog   spark_catalog
+    Database  taxi
+    Table     daily_ext
+    Type      EXTERNAL
+    Provider  parquet
+    Location  file:~/spark-masterclass-parts/config-sql/data/work/ch15-tables/external/daily_copy
+
+== 4. DESCRIBE TABLE ... AS JSON (a document a program can read)
+  keys: ['catalog_name', 'collation', 'columns', 'created_by', 'created_time', 'last_access', 'location', 'namespace', 'provider', 'schema_name', 'table_name', 'type']
+  columns: [('day', 'date'), ('trips', 'bigint'), ('fares', 'double')]
+
+== 5. SHOW TABLES ... AS JSON (new in 4.3)
+  {"tables":[{"name":"daily","namespace":["taxi"],"isTemporary":false},{"name":"daily_ext","namespace":["taxi"],"isTemporary":false},{"name":"trips_raw","namespace":[],"isTemporary":true}]}
+
+== 6. DROP TABLE: managed deletes the data, external keeps it
+  daily     before: exists, 1 parquet files
+  daily_ext before: exists, 1 parquet files
+> DROP TABLE daily
+> DROP TABLE daily_ext
+  daily     after : gone, 0 parquet files
+  daily_ext after : exists, 1 parquet files
+
+== 7. three kinds of view
+> CREATE OR REPLACE TEMPORARY VIEW june AS
+     SELECT * FROM trips_raw
+     WHERE tpep_pickup_datetime >= '2026-06-01' AND tpep_pickup_datetime < '2026-07-01'
+> CREATE OR REPLACE GLOBAL TEMPORARY VIEW june_g AS SELECT * FROM june
+> CREATE TABLE zones_t USING parquet AS SELECT 1 AS LocationID, 'x' AS Zone
+> CREATE OR REPLACE VIEW zone_names AS SELECT LocationID, upper(Zone) AS zone FROM zones_t
+> SHOW VIEWS IN taxi
++---------+----------+-----------+
+|namespace|viewName  |isTemporary|
++---------+----------+-----------+
+|taxi     |zone_names|false      |
+|         |june      |true       |
+|         |trips_raw |true       |
++---------+----------+-----------+
+
+> SHOW VIEWS IN global_temp
++-----------+---------+-----------+
+|namespace  |viewName |isTemporary|
++-----------+---------+-----------+
+|global_temp|june_df  |true       |
+|global_temp|june_g   |true       |
+|           |june     |true       |
+|           |trips_raw|true       |
++-----------+---------+-----------+
+
+== 8. which session can see which view
+  newSession() reads june                 no: [TABLE_OR_VIEW_NOT_FOUND]
+  newSession() reads global_temp.june_g   no: [TABLE_OR_VIEW_NOT_FOUND]
+  newSession() reads global_temp.june_df  yes
+  newSession() reads taxi.zone_names      yes
+
+== 9. a persistent view stores text, not data
+  Type                       VIEW
+  View Text                  SELECT LocationID, upper(Zone) AS zone FROM zones_t
+  View Original Text         SELECT LocationID, upper(Zone) AS zone FROM zones_t
+  View Schema Mode           COMPENSATION
+  View Query Output Columns  [`LocationID`, `zone`]
+  a persistent view cannot use a temporary view:
+  AnalysisException: [INVALID_TEMP_OBJ_REFERENCE] Cannot create the persistent object
+  `spark_catalog`.`taxi`.`bad` of the type VIEW because it references to the temporary ...
+
+== 10. WITH SCHEMA EVOLUTION: the view follows a changed table (new in 4.0)
+> CREATE OR REPLACE VIEW zones_all WITH SCHEMA EVOLUTION AS SELECT * FROM zones_t
+> CREATE OR REPLACE VIEW zones_bound AS SELECT * FROM zones_t
+> DROP TABLE zones_t
+> CREATE TABLE zones_t USING parquet AS SELECT 1 AS LocationID, 'x' AS Zone, 'EWR' AS Borough
+> SELECT * FROM zones_all
++----------+----+-------+
+|LocationID|Zone|Borough|
++----------+----+-------+
+|1         |x   |EWR    |
++----------+----+-------+
+
+> SELECT * FROM zones_bound
++----------+----+
+|LocationID|Zone|
++----------+----+
+|1         |x   |
++----------+----+
+

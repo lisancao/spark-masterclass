@@ -1,0 +1,9 @@
+15:00:26 INFO Client: Deployed Spark application ch70-no-rbac with application ID spark-2ba84a418c6849328e4ab81563953dad and submission ID spark-apps:ch70-no-rbac-aaa624a2057d38fb-driver into Kubernetes
+--- driver log
+Failure executing: GET at: 
+https://kubernetes.default.svc/api/v1/namespaces/spark-apps/pods/ch70-no-rbac-aaa624a2057d38
+fb-driver.
+Message: pods "ch70-no-rbac-aaa624a2057d38fb-driver" is forbidden: User 
+"system:serviceaccount:spark-apps:default" cannot get resource "pods" in API group "" in 
+the namespace "spark-apps".
+--- driver pod: Running  service account: default

@@ -1,30 +1,42 @@
-# Spark Masterclass, Chapter 29. Clips for the book page.
+# Spark Masterclass, Chapter 29: writing a Spark Connect client.
 #   film render code/film/ch29.tape --format chapter
+# Needs: ch27/server.sh start (the last beat restarts it with small streams, then normally).
 Set TypingSpeed 35ms
 Set WaitPattern /❯$/
 
-# Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4023 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && setopt interactivecomments" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: ch29-edit | Edit VARIANT values in place
-Hide
-Type "nvim +/'^v = F.col' ch29/edit.py" Enter
-Sleep 2.5s
-Type ":noh" Enter
-Type "zt" Ctrl+L
-Show
+# beat: bytes | The smallest ExecutePlanRequest, byte by byte
+Type "# no pyspark: build an ExecutePlanRequest and read its 84 bytes" Enter
+Sleep 400ms
+Type "ch29/step.sh step1_bytes" Enter
+Wait@60s
 Sleep 7s
+
+# beat: stream | Send it, and read the response stream
 Hide
-Type ":qa!" Enter
 Type "clear" Enter
-Sleep 500ms
 Show
-Type "# new in 4.3: edit VARIANT values in place" Enter
-Sleep 500ms
-Type "python ch29/edit.py 2>/dev/null | sed -n '/the five edit/,/variant_strip_nulls(v) /p' | cut -c1-92" Enter
-Wait@300s
-Sleep 10s
+Type "# one gRPC call: ExecutePlan, then a stream of responses with Arrow batches" Enter
+Sleep 400ms
+Type "ch29/step.sh step2_execute" Enter
+Wait@60s
+Sleep 7s
+
+# beat: reattach | The server ends the stream early; the client reattaches
+Hide
+Type "ch27/server.sh small-streams >/dev/null; until nc -z localhost 15106 2>/dev/null; do sleep 0.3; done; clear" Enter
+Wait@120s
+Show
+Type "# the server ends each stream after 1 MiB: ReattachExecute until ResultComplete" Enter
+Sleep 400ms
+Type "ch29/step.sh step6_reattach | sed -n '1,3p;14,$p'" Enter
+Wait@60s
+Sleep 6s
+Hide
+Type "ch27/server.sh start >/dev/null" Enter
+Wait@120s

@@ -1,46 +1,75 @@
-"""Figures for Chapter 92. Plans and times from code/ch92/output/datasets.txt.
+"""Chapter 92 figures: the build time of each Maven module, and what a hadoop-provided build leaves out.
+Reads code/ch92/output/reactor.txt and inspect.txt.
 
-Run from code/:  uv run python ch92/figures.py
+Run from code/:  FIG_CHECK_DIR=<scratch> uv run python ch92/figures.py
 """
+import re
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "code" / "common"))
-from svgfig import Fig
 
-# 1. the physical plans of sections 3 and 4, node by node
-f = Fig(800, 360, "Typed and untyped plans for the same logic")
-f.text(20, 28, "trips.filter(t => t.fare_amount > 0).map(...)  against  where(...).select(...)", 14, 700, anchor="start", mono=True)
-typed = [("SerializeFromObject", "Tuple2 -> row", "acc"), ("MapElements", "lambda on a Trip object", "acc"),
-         ("Filter", "invoke(lambda.apply(obj))", "acc"), ("DeserializeToObject", "row -> new Trip(...)", "acc"),
-         ("ColumnarToRow", "", "n"), ("FileScan parquet", "6 columns, DataFilters: []", "n")]
-untyped = [("Project", "PULocationID, tip_amount / fare_amount", "blue"),
-           ("Filter", "isnotnull(fare_amount) AND fare_amount > 0.0", "blue"),
-           ("ColumnarToRow", "", "n"), ("FileScan parquet", "3 columns", "n")]
-for col, (x, title, nodes) in enumerate(((30, "typed (Dataset[Trip])", typed), (430, "untyped (DataFrame)", untyped))):
-    f.text(x, 62, title, 13, 700, anchor="start", c="acc" if col == 0 else "blue")
-    for i, (n, sub, k) in enumerate(nodes):
-        y = 74 + i * 46
-        f.box(x, y, 340, 38, n, sub, kind=k, size=12.5, subsize=10.5, mono=True)
-        if i:
-            f.line(x + 170, y - 8, x + 170, y, c="line")
-f.text(430, 290, "the lambda is a black box: no pushdown,", 12, 600, anchor="start", c="mute")
-f.text(430, 308, "and each row becomes a JVM object and back", 12, 600, anchor="start", c="mute")
-f.text(780, 350, "physical plans from datasets.txt, Spark 4.3.0 Classic", 11, 400, anchor="end", c="mute", italic=True)
-f.save("ch92-plans")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common.svgfig import Fig  # noqa: E402
 
-# 2. times (section 5 and the end of section 7), median of 5 after a warmup, under the bench lock
-rows = [("typed filter + map", 0.21, "acc"), ("select first, then typed", 0.16, "acc"), ("untyped where + select", 0.11, "blue"),
-        ("groupByKey + TipShare Aggregator", 0.63, "acc"), ("groupBy + avg(when(...))", 0.12, "blue"),
-        ("mean_of: Aggregator through udaf()", 0.39, "acc"), ("avg (built-in)", 0.10, "blue")]
-f = Fig(800, 360, "Typed against untyped, measured")
-f.text(20, 28, "Seconds over 3,837,248 trips: typed code in orange, untyped in blue", 15, 700, anchor="start")
-X0 = 300
-for i, (n, v, k) in enumerate(rows):
-    y = 52 + i * 36 + (14 if i >= 3 else 0) + (14 if i >= 5 else 0)
-    f.text(X0 - 12, y + 18, n, 12.5, 600, anchor="end", mono=True)
-    w = 420 * v / 0.7
-    f.rect(X0, y + 4, w, 22, k, r=3)
-    f.text(X0 + w + 8, y + 20, f"{v:.2f} s", 12, 700, anchor="start", c=k)
-f.text(20, 350, "median of 5 runs after a warmup, local[*], 16 cores, under the bench lock", 11, 400, anchor="start",
-       c="mute", italic=True)
-f.save("ch92-times")
+OUT = Path(__file__).resolve().parent / "output"
+
+
+def secs(s):
+    m = re.match(r"(\d+):(\d+) min", s)
+    return int(m[1]) * 60 + int(m[2]) if m else float(s.split()[0])
+
+
+def modules():
+    rows = [(m[1].strip(" ."), secs(m[2])) for m in re.finditer(r"^(.*?) \.+ SUCCESS \[\s*(.*?)\]", (OUT / "reactor.txt").read_text(), re.M)]
+    total = sum(s for _, s in rows)
+    top = sorted(rows, key=lambda r: -r[1])[:12]
+    rest = total - sum(s for _, s in top)
+    f = Fig(940, 520, "Maven modules by build time")
+    f.text(20, 28, f"Build time of each Maven module, v4.3.0, JDK 17 in Docker (reactor.txt, {len(rows)} modules)", 17, 700, anchor="start")
+    x0, w = 300, 560
+    mx = top[0][1]
+    for i, (name, s) in enumerate(top + [(f"the other {len(rows) - len(top)} modules", rest)]):
+        y = 50 + i * 34
+        f.text(x0 - 10, y + 20, name, 12.5, 500, anchor="end")
+        kind = "acc" if i < 3 else ("ghost" if i == len(top) else "blue")
+        f.rect(x0, y + 6, max(2, w * s / max(mx, rest)), 22, kind, r=3)
+        f.text(x0 + w * s / max(mx, rest) + 8, y + 22, f"{s:.0f} s", 12, 600, anchor="start", c="mute")
+    f.text(20, 505, f"Sum of the module times: {total / 60:.1f} min. Maven reported \"Total time: 26:43 min\" for the run.",
+           12.5, 400, anchor="start", c="mute")
+    f.save("ch92-module-times")
+
+
+def jars():
+    t = (OUT / "inspect.txt").read_text()
+    off = int(re.search(r"jars/\s+(\d+) jars", t)[1])
+    ours = int(re.search(r"jars/\s+\d+ jars\s+(\d+) jars", t)[1])
+    missing = int(re.search(r"not in this build: (\d+)", t)[1])
+    hive = int(re.search(r"Hive and its dependencies: (\d+) jars", t)[1])
+    spark_mods = len(re.findall(r"^    spark-", t, re.M))
+    other = missing - hive - spark_mods
+    f = Fig(940, 300, "Jars: official tarball and this build")
+    f.text(20, 28, "The jars/ folder: the official -bin-hadoop3 tarball and this build (inspect.txt)", 17, 700, anchor="start")
+    x0, W = 200, 700
+    sc = W / off
+    f.text(190, 82, f"official, {off} jars", 13, 600, anchor="end")
+    segs = [(ours, "in both", "blue"), (hive, "Hive + deps", "purple"), (other, "Hadoop client, slf4j, ...", "acc"),
+            (spark_mods, "", "bad")]
+    x = x0
+    for n, lab, k in segs:
+        f.rect(x, 60, n * sc, 34, k, r=2)
+        if lab:
+            f.text(x + n * sc / 2, 82, f"{lab} ({n})" if n > 20 else f"{n}", 12, 600, c=k)
+        x += n * sc
+    f.text(190, 152, f"this build, {ours} jars", 13, 600, anchor="end")
+    f.rect(x0, 130, ours * sc, 34, "blue", r=2)
+    f.text(x0 + ours * sc / 2, 152, f"in both ({ours})", 12, 600, c="blue")
+    f.text(x0, 200, f"Missing from this build: {hive} Hive jars and their libraries and {spark_mods} Spark modules (no -Phive,"
+           " -Phive-thriftserver, -Pyarn),", 12.5, 400, anchor="start", c="mute")
+    f.text(x0, 218, f"and {other} other jars: the Hadoop client, ZooKeeper, Curator, Guava, slf4j-api and more"
+           " (-Phadoop-provided).", 12.5, 400, anchor="start", c="mute")
+    f.text(x0, 250, "SPARK_DIST_CLASSPATH puts them back at run time. Without it, the build fails with"
+           " NoClassDefFoundError.", 12.5, 600, anchor="start")
+    f.save("ch92-jars")
+
+
+modules()
+jars()

@@ -1,8 +1,8 @@
 clip	source	start	end	poster_at	chapter
-ch74-twice	ch74-chapter.mp4	0	35.8	30	ch74
-ch74-transpile	ch74-chapter.mp4	35.8	64.4	25	ch74
-ch75-tap	ch75-chapter.mp4	0	25.6	22	ch75
-ch75-failures	ch75-chapter.mp4	25.6	61.5	32	ch75
-ch76-handmade	ch76-chapter.mp4	41.4	88.9	43	ch76
-ch77-repro	ch77-chapter.mp4	0	35.4	30	ch77
-ch77-fix	ch77-chapter.mp4	35.4	139.9	34	ch77
+ch88-twice	ch88-chapter.mp4	0	35.8	30	ch88
+ch88-transpile	ch88-chapter.mp4	35.8	64.4	25	ch88
+ch89-tap	ch89-chapter.mp4	0	25.6	22	ch89
+ch89-failures	ch89-chapter.mp4	25.6	61.5	32	ch89
+ch90-handmade	ch90-chapter.mp4	41.4	88.9	43	ch90
+ch91-repro	ch91-chapter.mp4	0	35.4	30	ch91
+ch91-fix	ch91-chapter.mp4	35.4	139.9	34	ch91

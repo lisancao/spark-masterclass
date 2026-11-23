@@ -1,0 +1,3 @@
+{"source": "code/ch91/output/repro.txt and test_fix.txt",
+ "default": "(east, 10), (west, 20)", "other": "(east, 999)",
+ "bug": "(east, 999)", "fixed": "(east, 10), (west, 20)"}

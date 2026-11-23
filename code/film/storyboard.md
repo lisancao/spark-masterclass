@@ -12,7 +12,7 @@ scripts' output; the clips are muted in the book and the VO guide is for a narra
 | tasks | the scan stage, task by task | Sixteen tasks scan the file, and only four of them read rows, because the file has four row groups. | the four non-zero rows, `4 of 16`, `4 row groups` |
 | feather | single-task execution off and on | On a small query, Spark 4.3's single-task execution drops the shuffles: two jobs instead of five, and about forty percent faster here. | both ms figures, `5.0 jobs` and `2.0 jobs` |
 
-## ch18.tape
+## ch24.tape
 
 | Beat | On screen | VO (draft) | Has to be readable |
 |---|---|---|---|

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 16: static against dynamic partition overwrite. Folders from code/ch16/output/partition_overwrite.txt.
+      A.mount();
+      A.title("INSERT OVERWRITE, no PARTITION clause");
+      const LANES = [["STATIC", 0.34], ["DYNAMIC", 0.66]];
+      const XS = [0.30, 0.47, 0.64];
+      const DAYS = ["day=06-01", "day=06-02", "day=06-03"];
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.89, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      const lanes = LANES.map(([name, y]) => {
+        const l = A.text(name, { x: 0.12, y, size: 40, weight: 700, mono: true, color: name === "STATIC" ? "var(--a-acc)" : "var(--a-ok)" });
+        const boxes = DAYS.map((d, i) => A.box({ x: XS[i], y, w: 290, h: 110, kind: "soft", title: d, sub: "1 file", size: 32 }));
+        A.in([l, ...boxes], 0.3);
+        return boxes;
+      });
+      cap("The table has three day partitions. The job computes June 2 again.", 0.3, 1.5);
+      // static: delete first
+      cap("STATIC: Spark deletes the partitions first (no PARTITION clause: all of them)", 1.6, 3.9);
+      lanes[0].forEach((b, i) => {
+        A.tl.to(b, { borderColor: "#d63c3c", duration: 0.3 }, 1.9 + i * 0.25);
+        A.tl.to(b, { opacity: 0.12, duration: 0.5 }, 2.8 + i * 0.1);
+      });
+      // static: write June 2
+      cap("Then the job writes June 2. June 1 and June 3 are gone.", 4.0, 6.1);
+      const sNew = A.box({ x: XS[1], y: 0.34, w: 290, h: 110, kind: "accent", title: "day=06-02", sub: "new file", size: 32 });
+      A.in(sNew, 4.3, { rise: -60 });
+      // dynamic: staging
+      cap("DYNAMIC: the tasks write into .spark-staging-{jobId}", 6.2, 8.9);
+      const stage = A.box({ x: 0.85, y: 0.66, w: 330, h: 150, kind: "ghost", title: ".spark-staging-{jobId}", sub: "day=06-02/part-00000...", size: 26 });
+      A.in(stage, 6.5);
+      const dot = A.dot({ x: 0.85, y: 0.50, r: 18 });
+      A.tl.to(dot, { opacity: 1, duration: 0.2 }, 7.2);
+      A.tl.to(dot, { y: A.Y(0.70) - A.Y(0.50), duration: 0.8, ease: "power2.inOut" }, 7.4);
+      A.tl.to(dot, { opacity: 0, duration: 0.2 }, 8.3);
+      // dynamic: commit
+      cap("The commit replaces only day=06-02. The other partitions stay.", 9.0, 11.1);
+      A.tl.to(lanes[1][1], { opacity: 0.12, duration: 0.4 }, 9.3);
+      A.tl.to(stage, { x: A.X(XS[1]) - A.X(0.85), scale: 0.9, duration: 0.9, ease: "power2.inOut" }, 9.6);
+      A.tl.to(stage, { opacity: 0, duration: 0.3 }, 10.5);
+      const dNew = A.box({ x: XS[1], y: 0.66, w: 290, h: 110, kind: "accent", title: "day=06-02", sub: "new file", size: 32 });
+      A.in(dNew, 10.5, { rise: 0 });
+      // end
+      const r1 = A.text("partitions after: 1 of 3", { x: 0.85, y: 0.34, size: 34, weight: 700, color: "#d63c3c" });
+      const r2 = A.text("partitions after: 3 of 3", { x: 0.85, y: 0.66, size: 34, weight: 700, color: "var(--a-ok)" });
+      A.in([r1, r2], 11.2);
+      cap("Use DYNAMIC, or a static PARTITION value, to compute some days again", 11.2);
+      A.in(A.note("folders from partition_overwrite.py on Spark 4.3.0. Timing is schematic."), 0.4);
+      A.finish(14);
+    </script>
+  </body>
+</html>

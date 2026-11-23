@@ -1,71 +1,52 @@
-"""Figures for Chapter 76. Bytes from code/ch76/output/layout.txt, numbers from bench.txt."""
+"""Figures for Chapter 76. Numbers and names from code/ch76/output/*.txt."""
 from svgkit import *
 
-# 1. The value and the metadata of the first event of day 1 (layout.txt)
-s = Svg(780, 420, "The 27 bytes of metadata and the 44 bytes of value of one event")
-def bytes_row(x, y, items, w=26):
-    pos = []
-    for b, c in items:
-        s.box(x, y, w - 2, 26, b, c, 11, mono=True, r=3)
-        pos.append(x)
-        x += w
-    return pos
-s.text(12, 22, "metadata (27 bytes): header 01, size 04, five offsets, then the names with no separators", 12, ACC, "start", 700)
-meta = [("01", ORANGE), ("04", GRAY)] + [(h, BLUE) for h in ["00", "05", "0c", "12", "14"]]
-mp = bytes_row(12, 32, meta)
-names = [("event", 5), ("user_id", 7), ("amount", 6), ("ts", 2)]
-x = mp[-1] + 34
-npos = []
-for k, (n, ln) in enumerate(names):
-    w = max(ln * 14, 36)
-    s.box(x, 32, w - 2, 26, n, GREEN, 11, mono=True, r=3)
-    s.text(x + w / 2, 74, f"id {k}", 10, MUTE)
-    npos.append(x + w / 2)
-    x += w
-val = [("02", ORANGE), ("04", GRAY)] + [(h, PURPLE) for h in ["02", "00", "03", "01"]] + [(h, BLUE) for h in ["07", "00", "0d", "05", "21"]]
-vp = bytes_row(12, 150, val)
-lx = vp[-1] + 40
-s.text(lx, 142, "value (44 bytes)", 12, ACC, "start", 700)
-for j, (t, c) in enumerate([("02: OBJECT, 1-byte widths;  04: four fields", MUTE), ("purple: field ids, in the sort of the names", PURPLE), ("blue: offsets into the data (the last is its length, 33)", BLUE)]):
-    s.text(lx, 158 + j * 15, t, 10, MUTE, "start", 600)
-s.text(530, 272, "data (33 bytes),", 12, ACC, "start", 700)
-s.text(530, 288, "in the order of the JSON text", 11, MUTE, "start", 600)
-data = [("11 view", "event = 'view'", 76, 0), ("0c 00", "user_id = 0", 60, 5), ("20 02 65 02 00 00", "amount = 6.13", 150, 7), ("4d 2026-10-01T10:00:00", "ts: a short string of 19 bytes", 210, 13)]
-x = 12
-dpos = {}
-for txt, lab, w, off in data:
-    s.box(x, 262, w - 3, 26, txt, TEAL, 10, mono=True, r=3)
-    s.text(x + w / 2, 304, lab, 10, MUTE)
-    s.text(x + 2, 258, f"+{off}", 9, MUTE, "start")
-    dpos[off] = x + w / 2
-    x += w
-ids = [2, 0, 3, 1]
-offs = [7, 0, 13, 5]
-for k in range(4):
-    xi = vp[2 + k] + 12
-    s.path(f"M{xi},150 C{xi},115 {npos[ids[k]]},115 {npos[ids[k]]},82", PURPLE, 1.2)
-for k in range(4):
-    xo = vp[6 + k] + 12
-    s.path(f"M{xo},177 C{xo},225 {dpos[offs[k]]},215 {dpos[offs[k]]},260", BLUE, 1.2)
-s.text(12, 340, "Field k: its name is the metadata entry of id k, and its data starts at offset k.", 11, MUTE, "start", italic=True)
-s.text(12, 356, "The ids and offsets follow the sort of the names (amount, event, ts, user_id). The data keeps the JSON order.", 11, MUTE, "start", italic=True)
-s.text(12, 384, "Header bytes: low 2 bits = basic type, high 6 bits = type info. 0x11 = SHORT_STR, length 4.", 11, MUTE, "start")
-s.text(12, 400, "0x0c = PRIMITIVE INT1. 0x20 = PRIMITIVE DECIMAL4 (scale 2, unscaled 613). 0x4d = SHORT_STR, length 19.", 11, MUTE, "start")
-s.save(FIG + "ch76-bytes.svg")
+# 1. Restart timeline of flaky (failing-app.txt)
+s = Svg(780, 250, "Three attempts of the flaky application under restartPolicy OnFailure")
+X0, SC = 110, 6.6   # px per second
+ev = [  # attempt, start, end of the RunningHealthy span (next state), from failing-app.txt
+    (0, 1.2, 16.0, 30.4), (1, 36.2, 46.5, 61.2), (2, 66.1, 76.5, 90.5)]
+for t in range(0, 100, 10):
+    s.line(X0 + t * SC, 30, X0 + t * SC, 200, MUTE, 0.6, dash=True, arrow=False)
+    s.text(X0 + t * SC, 216, f"{t} s", 11, MUTE)
+for a, st, rh, end in ev:
+    y = 40 + a * 52
+    s.text(X0 - 12, y + 22, f"attempt {a}", 13, MUTE, "end", 600)
+    s.text(X0 - 12, y + 37, f"flaky-{a}-driver", 10, MUTE, "end", mono=True)
+    s.box(X0 + st * SC, y + 6, (rh - st) * SC, 26, "driver start", GRAY, 11)
+    s.box(X0 + rh * SC, y + 6, (end - rh) * SC, 26, "RunningHealthy", BLUE, 11)
+    if a < 2:
+        s.text(X0 + end * SC + 5, y + 23, f"ScheduledToRestart {end} s", 11, MUTE, "start", 600)
+    else:
+        s.text(X0 + end * SC, y + 46, f"ResourceReleased {end} s: no restart left", 11, RED, "end", 600)
+    if a < 2:
+        nxt = ev[a + 1][1]
+        s.box(X0 + end * SC, y + 32 + 20, (nxt - end) * SC, 0.1, "", ORANGE)
+        s.path(f"M{X0 + end * SC},{y + 32} C{X0 + end * SC + 10},{y + 70} {X0 + nxt * SC - 10},{y + 40} {X0 + nxt * SC},{y + 58}", ORANGE, 1.5)
+        s.text((X0 + (end + nxt) / 2 * SC) + 2, y + 66, "backoff", 10, ACC, "middle", 600)
+s.text(390, 240, "restartPolicy OnFailure, maxRestartAttempts 2, restartBackoffMillis 5000 (states polled once a second)", 11, MUTE, italic=True)
+s.save(FIG + "ch76-restart-timeline.svg")
 
-# 2. bench.txt
-rows = [("JSON text, get_json_object", 6.35, GRAY), ("JSON text, parse_json + variant_get", 9.43, RED), ("VARIANT, variant_get", 1.98, BLUE),
-        ("VARIANT shredded, variant_get", 0.68, GREEN), ("VARIANT, to_json of the whole value", 8.91, ORANGE)]
-s = Svg(780, 290, "Median seconds of five queries over one million trips, and the file sizes")
-X0, SC = 280, 48
-for t in range(0, 11, 2):
-    s.line(X0 + t * SC, 16, X0 + t * SC, 216, MUTE, 0.6, dash=True, arrow=False)
-    s.text(X0 + t * SC, 230, f"{t} s", 10, MUTE)
-for i, (lab, v, c) in enumerate(rows):
-    y = 20 + i * 38
-    s.text(X0 - 8, y + 16, lab, 12, MUTE, "end", 600)
-    s.rect(X0, y + 4, v * SC, 18, c, 1, 3)
-    s.text(X0 + v * SC + 6, y + 18, f"{v} s", 12, MUTE, "start", 700)
-s.text(12, 256, "Files: JSON text 59.6 MiB, VARIANT 41.6 MiB, VARIANT shredded 20.4 MiB.", 12, MUTE, "start", 600)
-s.text(12, 276, "One warm-up run, then the median of five, local[*] on 16 cores. Use the ratios, not the absolute times.", 11, MUTE, "start", italic=True)
-s.save(FIG + "ch76-bench.svg")
+# 2. Where the executors run: k8s master against SparkCluster (zones-app.txt, run_cluster.txt, zones-on-cluster.txt)
+s = Svg(780, 300, "Pods of the zones application in the two modes")
+def pod(x, y, w, name, fill, sub=None, h=40):
+    s.box(x, y, w, h, name, fill, 12, mono=True, sub=sub, subsize=11)
+s.frame(10, 10, 370, 280, "SparkApplication, master k8s://", MUTE, 13)
+pod(30, 50, 330, "zones-0-driver", ORANGE, "driver pod (the operator made it)")
+s.line(195, 92, 85, 150); s.line(195, 92, 305, 150)
+s.text(195, 122, "the driver asks the\nKubernetes API", 11, MUTE)
+pod(30, 152, 160, "zones-exec-1", BLUE, "1,000,000 rows", 46)
+pod(200, 152, 160, "zones-exec-2", BLUE, "1,000,000 rows", 46)
+s.text(195, 230, "executor pods: created and deleted", 12, MUTE)
+s.text(195, 246, "for each application", 12, MUTE)
+s.frame(400, 10, 370, 280, "SparkApplication on SparkCluster book", MUTE, 13)
+pod(420, 50, 160, "zones-standalone-\n0-driver", ORANGE, None, 46)
+pod(590, 50, 160, "book-master-0", GRAY, "spark://...:7077", 46)
+s.line(580, 73, 590, 73, MUTE, 2)
+for i, x in enumerate([420, 590]):
+    s.frame(x, 118, 160, 110, f"book-worker-{i}", MUTE, 12, 8, dash=False, anchor="middle")
+    s.box(x + 14, 152, 132, 58, "executor process", BLUE, 11, sub="1,000,000 rows", subsize=11)
+s.line(670, 98, 500, 118); s.line(670, 98, 670, 118)
+s.text(585, 250, "no executor pods: executors run inside", 12, MUTE)
+s.text(585, 266, "the long-lived worker pods (spark.cores.max 4)", 12, MUTE)
+s.save(FIG + "ch76-executor-placement.svg")

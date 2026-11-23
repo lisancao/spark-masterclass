@@ -1,45 +1,27 @@
-# Spark Masterclass, Chapter 60: shipping Python dependencies. Storyboard: notes/part08.md.
-#   flock $HOME/spark-masterclass/data/.bench.lock film render code/film/ch60.tape --format chapter
+# Spark Masterclass, Chapter 60: medallion. Storyboard: notes/part06.md (film section).
+#   film render code/film/ch60.tape --format chapter (after ch60/two_runs.sh and ch60/gate.sh)
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4028 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
-Type "source ch60/film_setup.sh" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} SPARK_UI_PORT=4026 W=${BOOK_DATA:-$HOME/spark-masterclass/data}/work/part06 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: where | What a worker sees, from two folders
-Type "# a UDF prints its worker's interpreter, folder and sys.path" Enter
+# beat: incremental | The second run read only the new file
+Type "# each pipeline run is one Spark event log: read the streaming progress of bronze" Enter
 Sleep 500ms
-Type "python ch60/where.py 2>/dev/null | short" Enter
-Wait@180s
-Sleep 4s
-Type "# the same script, started in a folder that holds messytools/" Enter
-Sleep 500ms
-Type "(cd /tmp/pkg && $CODE/.venv/bin/python $CODE/ch60/where.py 2>/dev/null | short | tail -6)" Enter
-Wait@180s
-Sleep 10s
+Type "python ch60/progress.py $W/ch60-shop | cut -c1-92" Enter
+Sleep 12s
 
-# beat: includes | A UDF records its include list one time
+# beat: gate | The gate stopped silver, and silver is empty
 Hide
 Type "clear" Enter
 Show
-Type "# make a UDF, use it, then addPyFile: which UDF finds the module?" Enter
+Type "# day 3 broke the gate: what is left in each table?" Enter
 Sleep 500ms
-Type "python ch60/pyfiles.py 2>/dev/null | sed -n '5,11p;11q' | sed 's#<userFiles>/messytools.zip/messytools/__init__.py#zip#g'" Enter
-Wait@240s
-Sleep 12s
-
-# beat: artifacts | Two Connect sessions, two versions of one module
-Hide
-Type "ch59/server.sh start >/dev/null; clear" Enter
-Wait@180s
-Show
-Type "# two Connect sessions on one server ship two versions of messytools" Enter
-Sleep 500ms
-Type "python ch60/artifacts.py 2>/dev/null | cut -c1-92" Enter
-Wait@180s
-Sleep 12s
+Type "SHOW=1 python ch59/show_tables.py $W/ch60-quality quality_report silver_orders 2>/dev/null | grep -v tables" Enter
+Wait@120s
+Sleep 10s

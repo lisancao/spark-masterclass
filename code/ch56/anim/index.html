@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="14" data-width="1080" data-height="1920">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Order of flows from code/ch56/output/07-run1.txt, row counts
+      // from 08-look1.txt. Time between events is schematic.
+      const D = {"raw": "111,546", "clean": "104,952", "zones": "265", "agg": "7"};
+      A.mount();
+      // beat open (0.0)
+      const [title, sub] = A.title("A pipeline run", "spark-pipelines run, the taxi_etl project");
+      const N = {
+        files: {x: 0.12, y: 0.36, t: "data/trips", s: "Parquet files"},
+        csv:   {x: 0.12, y: 0.62, t: "zones CSV", s: "lookup file"},
+        raw:   {x: 0.38, y: 0.36, t: "raw_trips", s: "streaming table"},
+        zones: {x: 0.38, y: 0.62, t: "zones", s: "materialized view"},
+        clean: {x: 0.63, y: 0.36, t: "clean_trips", s: "streaming table"},
+        agg:   {x: 0.87, y: 0.49, t: "borough_daily", s: "materialized view"},
+      };
+      const W = 300, H = 120;
+      const ghost = {}, run = {}, done = {};
+      for (const [k, n] of Object.entries(N)) {
+        ghost[k] = A.box({x: n.x, y: n.y, w: W, h: H, kind: (k === "files" || k === "csv") ? "soft" : "ghost", title: n.t, sub: n.s, size: 30});
+        if (k !== "files" && k !== "csv") {
+          run[k] = A.box({x: n.x, y: n.y, w: W, h: H, kind: "accent", title: n.t, sub: "RUNNING", size: 30});
+          done[k] = A.box({x: n.x, y: n.y, w: W, h: H, kind: "ok", title: n.t, sub: "+" + D[k] + " rows", size: 30});
+          gsap.set([run[k], done[k]], {opacity: 0});
+        }
+      }
+      const edges = [["files","raw"],["csv","zones"],["raw","clean"],["clean","agg"],["zones","agg"]].map(([a,b]) => {
+        const p = N[a], q = N[b];
+        return A.line({x1: p.x + A.dx(W/2), y1: p.y, x2: q.x - A.dx(W/2), y2: q.y});
+      });
+      gsap.set(edges, {opacity: 0});
+      const cap = (s, t0, t1) => { const c = A.text(s, {y: 0.86, size: 40, weight: 500}); A.in(c, t0); if (t1) A.out(c, t1); return c; };
+      // beat resolve (1.2)
+      cap("First, the server resolves the whole graph.", 1.2, 3.6);
+      A.tl.to(edges, {opacity: 1, duration: 0.5, stagger: 0.25}, 1.4);
+      // beat flows (4.0)
+      cap("Each flow starts when its inputs are complete.", 4.0, 9.6);
+      const step = (k, t) => { A.tl.to(run[k], {opacity: 1, duration: 0.3}, t); A.tl.to(done[k], {opacity: 1, duration: 0.3}, t + 1.3); };
+      step("raw", 4.2); step("zones", 4.2);
+      step("clean", 6.0);
+      step("agg", 7.8);
+      // beat tables (10.0)
+      cap("Each table now holds its rows. The next run reads only new files.", 10.0);
+      A.in(A.note("flow order from a real run; time between events is schematic"), 0.0);
+      A.finish(14);
+    </script>
+  </body>
+</html>

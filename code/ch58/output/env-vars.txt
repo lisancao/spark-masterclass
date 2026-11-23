@@ -1,0 +1,22 @@
+$ sed -i 's/WHERE fare_amount > ${taxi.min_fare}/WHERE fare_amount > 0/' transformations/clean_trips.sql
+$ printf 'name: taxi_etl\nstorage: ${PIPELINE_STORAGE}\nlibraries:\n  - glob:\n      include: transformations/**\n' > /tmp/sdp-env.yml && cat /tmp/sdp-env.yml
+name: taxi_etl
+storage: ${PIPELINE_STORAGE}
+libraries:
+  - glob:
+      include: transformations/**
+$ cp /tmp/sdp-env.yml ./spark-pipeline.env.yml
+$ PIPELINE_STORAGE=file://~/spark-masterclass/data/work/sdp/ch58/taxi_etl/storage/env spark-pipelines run --remote sc://localhost:15104 --spec spark-pipeline.env.yml 2>&1 | grep -E 'Run is|Exception|Error' -A2 | cut -c1-160 | head -6
+pyspark.errors.exceptions.connect.SparkException: [PIPELINE_STORAGE_ROOT_INVALID] Pipeline storage root must be an absolute path with a URI scheme (e.g., file:/
+$ ls -d storage/env "\${PIPELINE_STORAGE}" 2>&1
+ls: cannot access 'storage/env': No such file or directory
+ls: cannot access '${PIPELINE_STORAGE}': No such file or directory
+$ rm -rf "\${PIPELINE_STORAGE}" spark-pipeline.env.yml
+$ PIPELINE_STORAGE=file://~/spark-masterclass/data/work/sdp/ch58/taxi_etl/storage/env envsubst < /tmp/sdp-env.yml > spark-pipeline.env.yml && grep storage spark-pipeline.env.yml
+storage: file://~/spark-masterclass/data/work/sdp/ch58/taxi_etl/storage/env
+$ TAXI_ENV=ci spark-pipelines run --remote sc://localhost:15104 --spec spark-pipeline.env.yml 2>&1 | grep -E 'TAXI_ENV|Run is'
+probe: TAXI_ENV in the CLI process    = ci
+2026-11-22 18:23:46: Run is COMPLETED.
+$ ls storage/env/_checkpoints/spark_catalog
+default
+$ rm spark-pipeline.env.yml /tmp/sdp-env.yml

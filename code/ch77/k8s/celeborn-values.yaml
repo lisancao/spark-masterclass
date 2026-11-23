@@ -1,0 +1,28 @@
+# Helm values for Apache Celeborn 0.7.0 in Chapter 77's kind cluster (chart: charts/celeborn at tag v0.7.0).
+# One master (no HA) and two workers, one worker on each kind worker node, each with one small disk.
+image: {tag: "0.7.0", pullPolicy: IfNotPresent}
+celeborn:
+  celeborn.master.ha.enabled: false
+  celeborn.worker.storage.dirs: /mnt/disk1:disktype=HDD:capacity=10Gi
+  celeborn.worker.monitor.disk.enabled: false
+  celeborn.metrics.enabled: false
+  celeborn.worker.fetch.io.threads: 4
+  celeborn.worker.push.io.threads: 4
+  celeborn.rpc.io.serverThreads: 8
+  celeborn.rpc.io.clientThreads: 8
+master:
+  replicas: 1
+  env:
+    - {name: CELEBORN_MASTER_MEMORY, value: 512m}
+    - {name: CELEBORN_NO_DAEMONIZE, value: "true"}
+worker:
+  replicas: 2
+  env:
+    - {name: CELEBORN_WORKER_MEMORY, value: 512m}
+    - {name: CELEBORN_WORKER_OFFHEAP_MEMORY, value: 1g}
+    - {name: CELEBORN_NO_DAEMONIZE, value: "true"}
+  volumeMounts:
+    - {name: disk1, mountPath: /mnt/disk1}
+  volumes:
+    - name: disk1
+      hostPath: {type: DirectoryOrCreate, path: /mnt/celeborn-disk1}

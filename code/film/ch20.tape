@@ -1,22 +1,31 @@
-# Spark Masterclass, Chapter 20: Session observability. Storyboard: notes/v2-connect-core.md.
+# Spark Masterclass, Chapter 20: Procedural SQL. VO lines: notes/part02.md.
 #   film render code/film/ch20.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data CONNECT_PORT=15105 CONNECT_UI_PORT=4145 PROXY_PORT=25105 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4122 BOOK_NO_LOCK=1 PYTHONUNBUFFERED=1 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: stop | Find what a client runs, and stop it from a second process
+# beat: loop | One script, many queries
 Hide
-Type "rm -rf ../data/ch20-events; mkdir -p ../data/ch20-events; ch18/server.sh start --conf spark.eventLog.enabled=true --conf spark.eventLog.dir=file://$PWD/../data/ch20-events >/dev/null; clear" Enter
-Wait@120s
+Type "clear" Enter
 Show
-Type "# an agent runs a long query: find it in the REST API, then interrupt it" Enter
+Type "# a 5-pass loop in one SQL script: how many queries and jobs?" Enter
 Sleep 500ms
-Type "python ch20/observe.py 2>/dev/null | sed -n '/== 2/,/== 5/p' | cut -c1-92" Enter
-Wait@180s
-Sleep 12s
+Type "python ch20/scripting.py 2>/dev/null | sed -n '/== 4/,/== 6/{/== 6/q;p}' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s
+
+# beat: udf | A SQL UDF is inlined
+Hide
+Type "clear" Enter
+Show
+Type "# the same function in SQL and in Python: what is in the plan?" Enter
+Sleep 500ms
+Type "python ch20/functions.py 2>/dev/null | sed -n '/analyzed plan/,/== 3/{/== 3/q;p}' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s

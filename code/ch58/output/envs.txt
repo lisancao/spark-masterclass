@@ -1,0 +1,66 @@
+$ cat envs/dev.yml
+name: taxi_etl
+storage: file://~/spark-masterclass/data/work/sdp/ch58/taxi_etl/storage/dev
+database: taxi_dev
+libraries:
+  - glob:
+      include: ../transformations/**
+configuration:
+  spark.sql.shuffle.partitions: "4"
+  taxi.min_fare: "0"
+$ diff envs/dev.yml envs/prod.yml
+2,3c2,3
+< storage: file://~/spark-masterclass/data/work/sdp/ch58/taxi_etl/storage/dev
+< database: taxi_dev
+---
+> storage: file://~/spark-masterclass/data/work/sdp/ch58/taxi_etl/storage/prod
+> database: taxi_prod
+8,9c8,9
+<   spark.sql.shuffle.partitions: "4"
+<   taxi.min_fare: "0"
+---
+>   spark.sql.shuffle.partitions: "16"
+>   taxi.min_fare: "2.50"
+$ python - 15104 <<'PY'
+import sys
+from pyspark.sql import SparkSession
+s = SparkSession.builder.remote(f'sc://localhost:{sys.argv[1]}').getOrCreate()
+for db in ['taxi_dev', 'taxi_prod']:
+    s.sql(f'CREATE DATABASE IF NOT EXISTS {db}')
+print([d.name for d in s.catalog.listDatabases()])
+PY
+['default', 'taxi_dev', 'taxi_prod']
+$ spark-pipelines run --remote sc://localhost:15104 --spec envs/dev.yml 2>&1 | ev
+probe: spark.sql.shuffle.partitions   = 4
+probe: spark.sql.adaptive.enabled     = true
+probe: taxi.min_fare                  = 0
+probe: spark.sql.catalogImplementation = hive
+probe: current catalog and database   = spark_catalog taxi_dev
+probe: TAXI_ENV in the CLI process    = <not set>
+Run is COMPLETED.
+$ spark-pipelines run --remote sc://localhost:15104 --spec envs/prod.yml 2>&1 | ev
+probe: spark.sql.shuffle.partitions   = 16
+probe: spark.sql.adaptive.enabled     = true
+probe: taxi.min_fare                  = 2.50
+probe: spark.sql.catalogImplementation = hive
+probe: current catalog and database   = spark_catalog taxi_prod
+probe: TAXI_ENV in the CLI process    = <not set>
+Run is COMPLETED.
+$ python - 15104 <<'PY'
+import sys
+from pyspark.sql import SparkSession
+s = SparkSession.builder.remote(f'sc://localhost:{sys.argv[1]}').getOrCreate()
+for db in ['taxi_dev', 'taxi_prod']:
+    n = s.table(f'{db}.clean_trips').count()
+    print(f'{db}.clean_trips: {n:,} rows   tables:', sorted(t.name for t in s.catalog.listTables(db)))
+PY
+taxi_dev.clean_trips: 223,444 rows   tables: ['borough_daily', 'clean_trips', 'raw_trips', 'zones', 'zones_by_borough']
+taxi_prod.clean_trips: 223,408 rows   tables: ['borough_daily', 'clean_trips', 'raw_trips', 'zones', 'zones_by_borough']
+$ ls storage storage/*/_checkpoints/spark_catalog
+storage:
+dev
+prod
+storage/dev/_checkpoints/spark_catalog:
+taxi_dev
+storage/prod/_checkpoints/spark_catalog:
+taxi_prod

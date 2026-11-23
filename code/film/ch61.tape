@@ -1,28 +1,18 @@
-# Spark Masterclass, Chapter 61: observability. Storyboard: notes/part08.md.
-#   film render code/film/ch61.tape --format chapter
+# Spark Masterclass, Chapter 61: Auto CDC. Storyboard: notes/part06.md (film section).
+#   film render code/film/ch61.tape --format chapter (after ch61/drops.sh)
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4028 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 BOOK_DATA=${BOOK_DATA:-$HOME/spark-masterclass/data} SPARK_UI_PORT=4026 W=${BOOK_DATA:-$HOME/spark-masterclass/data}/work/part06 && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: connect | Connect operations in the REST API, live and in the History Server
-Type "# two Connect sessions, then the 4.3 REST endpoints, live and from the History Server" Enter
+# beat: history | Toronto, Ottawa, Hanoi: the late event in the history
+Type "# three change files applied: the SCD Type 2 history, read from Iceberg" Enter
 Sleep 500ms
-Type "python ch61/connect_obs.py 2>/dev/null | grep -v 'jobTag:\|statement:\|their tags\|the tag as' | cut -c1-94" Enter
-Wait@300s
-Sleep 12s
-
-# beat: listener | A Python streaming listener sees the drift in each batch
-Hide
-Type "clear" Enter
-Show
-Type "# a StreamingQueryListener with observe(): nulls in each micro-batch" Enter
-Sleep 500ms
-Type "python ch61/stream_listener.py 2>/dev/null | grep -v durationMs | cut -c1-94" Enter
-Wait@180s
+Type "python ch61/show_targets.py 2>/dev/null | sed -n '/customers_history/,/^$/p'" Enter
+Wait@120s
 Sleep 12s

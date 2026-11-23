@@ -6,7 +6,7 @@
 
 This chapter runs one question in the two styles and measures them. Then it opens each layer: the plans, the bytes of a row and the generated Java.
 
-Part VII teaches how to read and tune plans in depth, from [Chapter 32](ch32-query-plans.md) on. This chapter links to it, and it does not repeat it. The scripts are in [`code/ch03`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch03), and each number comes from `code/ch03/output/`.
+Part VII teaches how to read and tune plans in depth, from [Chapter 40](ch40-query-plans.md) on. This chapter links to it, and it does not repeat it. The scripts are in [`code/ch03`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch03), and each number comes from `code/ch03/output/`.
 
 ## Step 1: The history in five releases
 
@@ -157,7 +157,7 @@ The block above shortens the column list of `Relation` and the end of `FileScan`
 
 None of this is possible with the RDD version. A rule cannot add a null check to a lambda. A planner cannot push a lambda into a Parquet reader.
 
-To read each plan in detail, use [Chapter 32](ch32-query-plans.md). It also prints the optimizer rules that fired, one by one.
+To read each plan in detail, use [Chapter 40](ch40-query-plans.md). It also prints the optimizer rules that fired, one by one.
 
 ## Step 4: Tungsten, the row as bytes
 
@@ -205,7 +205,7 @@ sum(fare_amount) over each cache, median of 5 runs:
   dataframe cache              0.05 s   (5x faster)
 ```
 
-The columnar cache is larger than the pickled Python cache here. Doubles and timestamps do not compress much in the cache encodings. But the DataFrame cache is five times faster to scan in all three runs, because the scan reads one column vector in the JVM. The Python scan must unpickle every tuple to read one field. Size is not the only cost of a cache, and [Chapter 33](ch33-partitions-caching-memory.md) measures the storage levels in more detail.
+The columnar cache is larger than the pickled Python cache here. Doubles and timestamps do not compress much in the cache encodings. But the DataFrame cache is five times faster to scan in all three runs, because the scan reads one column vector in the JVM. The Python scan must unpickle every tuple to read one field. Size is not the only cost of a cache, and [Chapter 42](ch42-partitions-caching-memory.md) measures the storage levels in more detail.
 
 ## Step 5: Whole-stage code generation
 
@@ -283,7 +283,7 @@ How much does codegen save? Step 2 had a surprise. On the taxi query, `spark.sql
 range(400M), filter, sum:  codegen on  0.14 s   off  1.52 s   11.0x slower without it
 ```
 
-The query has a filter and a sum over 400 million generated rows. Codegen made it 11.0 times faster in this run, and between 4.5 and 11.0 times faster in three runs. The release notes of 2.0 promised "2 - 10X". Codegen helps when the CPU evaluates many expressions on each row. It does not make a scan faster. [Chapter 32](ch32-query-plans.md) explains the limits of generated methods, such as `spark.sql.codegen.hugeMethodLimit`.
+The query has a filter and a sum over 400 million generated rows. Codegen made it 11.0 times faster in this run, and between 4.5 and 11.0 times faster in three runs. The release notes of 2.0 promised "2 - 10X". Codegen helps when the CPU evaluates many expressions on each row. It does not make a scan faster. [Chapter 40](ch40-query-plans.md) explains the limits of generated methods, such as `spark.sql.codegen.hugeMethodLimit`.
 
 ## Step 6: Adaptive query execution
 
@@ -304,7 +304,7 @@ AdaptiveSparkPlan isFinalPlan=true
 
 Each `ShuffleQueryStage` is a stage that AQE ran and measured. Each `AQEShuffleRead coalesced` replaced 200 planned partitions with fewer partitions, because the data was small. AQE can also change a sort-merge join into a broadcast join, and divide a skewed partition into smaller partitions.
 
-The extra jobs that AQE creates are in [Chapter 5](ch05-how-spark-runs.md). One complete explanation of AQE and all its settings is in [Chapter 32](ch32-query-plans.md).
+The extra jobs that AQE creates are in [Chapter 5](ch05-how-spark-runs.md). One complete explanation of AQE and all its settings is in [Chapter 40](ch40-query-plans.md).
 
 ## Step 7: The direction since then
 
@@ -312,10 +312,10 @@ After 2.0, the changes to the engine followed one idea. Keep data in a columnar,
 
 | Change | Where it shows | Chapter |
 |---|---|---|
-| Vectorized Parquet and ORC readers | `Batched: true` and `ColumnarToRow` in the plan | [Chapter 36](ch36-parquet-inside.md) |
-| Apache Arrow between the JVM and Python | `toPandas()`, pandas UDFs, `ArrowEvalPython` | [Chapter 34](ch34-python-udfs-arrow.md) |
-| Columnar plugins and native engines | `SparkSessionExtensions.injectColumnar`, `ColumnarRule` | [Chapter 38](ch38-acceleration.md) |
-| Project Feather (4.3) | single-task execution for small queries, an Arrow-native cache | [Chapter 37](ch37-project-feather.md) |
+| Vectorized Parquet and ORC readers | `Batched: true` and `ColumnarToRow` in the plan | [Chapter 45](ch45-parquet-inside.md) |
+| Apache Arrow between the JVM and Python | `toPandas()`, pandas UDFs, `ArrowEvalPython` | [Chapter 43](ch43-python-udfs-arrow.md) |
+| Columnar plugins and native engines | `SparkSessionExtensions.injectColumnar`, `ColumnarRule` | [Chapter 47](ch47-acceleration.md) |
+| Project Feather (4.3) | single-task execution for small queries, an Arrow-native cache | [Chapter 46](ch46-project-feather.md) |
 
 **Arrow for Python.** The release notes of 2.3 describe "fast data serialization and vectorized execution" for Python. In Spark 4.3, `spark.sql.execution.arrow.pyspark.enabled` falls back to `spark.sql.execution.arrow.enabled`, which is true by default (`SQLConf.scala:4969`). Python UDFs also use Arrow by default (`spark.sql.execution.pythonUDF.arrow.enabled`). `arrow.py` measures the boundary with `toPandas()`:
 
@@ -328,10 +328,10 @@ Arrow made the transfer of one million rows 18 times faster. In three runs, the 
 
 **Native acceleration.** `SparkSessionExtensions.injectColumnar` (`SparkSessionExtensions.scala:168`) lets a plugin add a `ColumnarRule`. The rule replaces parts of the physical plan with operators that work on column batches. Apache Gluten with Velox, Apache DataFusion Comet and NVIDIA RAPIDS use these hooks. They run Spark plans in native code or on a GPU, with no change to your query.
 
-The measurements of these engines are in [Chapter 38](ch38-acceleration.md).
+The measurements of these engines are in [Chapter 47](ch47-acceleration.md).
 
 !!! note "New in 4.3: Project Feather"
-    The 4.3 release notes describe an opt-in single-task execution for small queries, and an opt-in Arrow-native cache for Datasets. With `spark.sql.optimizer.singleTaskExecution.enabled`, the planner runs a small query in one task and removes its shuffles. This is the same SQL engine, with less distributed overhead for data that does not need it. [Chapter 37](ch37-project-feather.md) measures the crossover.
+    The 4.3 release notes describe an opt-in single-task execution for small queries, and an opt-in Arrow-native cache for Datasets. With `spark.sql.optimizer.singleTaskExecution.enabled`, the planner runs a small query in one task and removes its shuffles. This is the same SQL engine, with less distributed overhead for data that does not need it. [Chapter 46](ch46-project-feather.md) measures the crossover.
 
 ## The whole chapter, on one page
 

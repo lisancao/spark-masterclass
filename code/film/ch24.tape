@@ -1,38 +1,42 @@
-# Spark Masterclass, Chapter 24: Spark Connect in production. Storyboard: notes/part08.md.
+# Spark Masterclass, Chapter 24: Spark Connect. Storyboard: storyboard.md.
 #   film render code/film/ch24.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data SPARK_UI_PORT=4028 PATH=$FILM_DEMO/.venv/bin:$PATH && setopt interactivecomments && alias python=.venv/bin/python" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 BOOK_DATA=$HOME/spark-masterclass/data CONNECT_PORT=15105 CONNECT_UI_PORT=4145 && setopt interactivecomments && alias nvim='nvim -u $FILM_KIT/nvim-film.lua' && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: isolation | Two sessions on one server: what is isolated, what is shared
-Type "# session A sets state; what does session B on the same server see?" Enter
-Sleep 500ms
-Type "python ch24/isolation.py 2>/dev/null" Enter
-Wait@240s
-Sleep 12s
-
-# beat: lifecycle | Idle timeout, release, restart, interrupt
+# beat: connect | A query and a mistake, over Spark Connect
 Hide
-Type "clear" Enter
+Type "ch24/server.sh start >/dev/null; rm -f ../data/failed_op; clear" Enter
+Wait@120s
 Show
-Type "# how a session ends: timeout, release, server restart, interruptTag" Enter
+Type "# the same DataFrame code, sent to a Connect server as a plan" Enter
 Sleep 500ms
-Type "python ch24/lifecycle.py 2>/dev/null | cut -c1-94" Enter
-Wait@240s
-Sleep 12s
+Type "python ch24/connect.py 2>/dev/null | sed -n '/busiest/,/SQLSTATE/p'" Enter
+Wait@120s
+Sleep 10s
 
-# beat: feather | Single-task execution in one session of a shared server
+# beat: rest | The failed operation, from the server's REST API
 Hide
-Type "clear" Enter
+Type "export API=localhost:$CONNECT_UI_PORT/api/v1/applications/$(curl -s localhost:$CONNECT_UI_PORT/api/v1/applications | jq -r '.[0].id') OP=$(cat ../data/failed_op); clear" Enter
+Sleep 1s
 Show
-Type "# new in 4.3: one session turns on single-task execution" Enter
+Type "# new in 4.3: look the operation up by the ID the client printed" Enter
 Sleep 500ms
-Type "python ch24/feather_server.py 2>/dev/null" Enter
-Wait@240s
-Sleep 12s
+Type "curl -s $API/connect/operations | jq '.[] | select(.operationId == env.OP) | {operationId, state, executionTime, sqlExecIds, detail: .detail[0:120]}'" Enter
+Sleep 10s
+
+# beat: thin | The same server from pyspark-client: no jars, no Py4J
+Hide
+Type "export THIN=/tmp/claude-1000/-home-lnc-repos/ba9be504-7f98-4ba6-9537-bf1ce27aaf62/scratchpad/connect-core; clear" Enter
+Show
+Type "# a client environment with only pyspark-client 4.3.0: how big, and does it work?" Enter
+Sleep 500ms
+Type "ch24/sizes.sh $THIN" Enter
+Wait@180s
+Sleep 10s

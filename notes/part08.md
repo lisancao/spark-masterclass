@@ -4,17 +4,17 @@ Chapters (old numbers in the file names; final numbers in brackets, from `notes/
 
 | File | Final | Title |
 |---|---|---|
-| `book/chapters/ch59-determinism-retries.md` | 43 | Determinism, retries and fault injection |
-| `book/chapters/ch60-shipping-dependencies.md` | 44 | Shipping Python dependencies |
-| `book/chapters/ch61-observability.md` | 45 | Observability: listeners, event logs, metrics and profilers |
-| `book/chapters/ch24-connect-in-production.md` | 46 | Spark Connect in production: deployment patterns |
-| `book/chapters/ch62-kubernetes-operator.md` | 47 | Spark on Kubernetes with the Spark Kubernetes Operator |
-| `book/chapters/ch64-pipelines-with-agents.md` | 49 | Writing Spark pipelines with agents |
+| `book/chapters/ch72-determinism-retries.md` | 43 | Determinism, retries and fault injection |
+| `book/chapters/ch73-shipping-dependencies.md` | 44 | Shipping Python dependencies |
+| `book/chapters/ch74-observability.md` | 45 | Observability: listeners, event logs, metrics and profilers |
+| `book/chapters/ch30-connect-in-production.md` | 46 | Spark Connect in production: deployment patterns |
+| `book/chapters/ch76-kubernetes-operator.md` | 47 | Spark on Kubernetes with the Spark Kubernetes Operator |
+| `book/chapters/ch78-pipelines-with-agents.md` | 49 | Writing Spark pipelines with agents |
 
 ## Cross-references (for the integrator)
 
-- References inside Part VIII use the old numbers and file names (`ch59-...` to `ch64-...`, "Chapter 59" to "Chapter 64"). Rename them with the map.
-- References to other parts use the **final** numbers, as `assignments.md` says, and link to `../roadmap.md` (the files do not exist in this worktree): Chapter 34 (Python UDFs, transpiler), Chapter 37 (Project Feather), Chapter 44 (tables, in ch59), Chapter 49 (SDP model and CLI), Chapter 17 (metric views), Chapter 63 (orchestration), Chapter 64 (agents, from ch24). **Do not apply the old-to-new map to these.** Exception: "Chapter 64" in ch24 Step 9 means old ch64 (final 49) and is already final; and "Chapter 5" and "Chapter 18" are Part I (unchanged).
+- References inside Part VIII use the old numbers and file names (`ch72-...` to `ch78-...`, "Chapter 72" to "Chapter 78"). Rename them with the map.
+- References to other parts use the **final** numbers, as `assignments.md` says, and link to `../roadmap.md` (the files do not exist in this worktree): Chapter 43 (Python UDFs, transpiler), Chapter 46 (Project Feather), Chapter 54 (tables, in ch72), Chapter 59 (SDP model and CLI), Chapter 23 (metric views), Chapter 77 (orchestration), Chapter 78 (agents, from ch30). **Do not apply the old-to-new map to these.** Exception: "Chapter 78" in ch30 Step 9 means old ch78 (final 49) and is already final; and "Chapter 5" and "Chapter 24" are Part I (unchanged).
 
 ## Technical names and verbs
 
@@ -27,29 +27,29 @@ Chapters (old numbers in the file names; final numbers in brackets, from `notes/
 
 | Chapter | Findings | What is left, and why |
 |---|---|---|
-| ch59 | 0 (allow: `attempt`, `transpiled`) | `attempt` is the Spark technical name (task attempt, `attemptNumber`) |
-| ch60 | 2 (allow: `packaging`, `planner`) | a 7-sentence paragraph the lint counts from version dots (`pandas>=2.2.0` list); the doc title "Running Spark on Kubernetes" |
-| ch61 | 1 (allow: `planner`) | doc title "Debugging PySpark" |
-| ch24 | 2 | `running` in pasted script output that the prep script does not strip; doc title "Job scheduling" |
-| ch62 | 1 (allow: `attempt`, `attempts`) | doc title "Running Spark on Kubernetes" |
-| ch64 | 4 | talk title "Getting your agents ..." (two times), a quoted slide sentence with "was removed", doc title "programming guide" |
+| ch72 | 0 (allow: `attempt`, `transpiled`) | `attempt` is the Spark technical name (task attempt, `attemptNumber`) |
+| ch73 | 2 (allow: `packaging`, `planner`) | a 7-sentence paragraph the lint counts from version dots (`pandas>=2.2.0` list); the doc title "Running Spark on Kubernetes" |
+| ch74 | 1 (allow: `planner`) | doc title "Debugging PySpark" |
+| ch30 | 2 | `running` in pasted script output that the prep script does not strip; doc title "Job scheduling" |
+| ch76 | 1 (allow: `attempt`, `attempts`) | doc title "Running Spark on Kubernetes" |
+| ch78 | 4 | talk title "Getting your agents ..." (two times), a quoted slide sentence with "was removed", doc title "programming guide" |
 
-Rules broken on purpose: quotations of the talk's slides keep their wording (ch64), and the tables of study numbers keep the slides' text in quotes.
+Rules broken on purpose: quotations of the talk's slides keep their wording (ch78), and the tables of study numbers keep the slides' text in quotes.
 
 ## Environment
 
 - pyspark 4.3.0 (`pyspark[connect]==4.3.0` from `code/pyproject.toml`), OpenJDK 17.0.21.1, Python 3.12.3, uv 0.11.10, a 16-core Linux machine.
-- Ports: `SPARK_UI_PORT=4028`; Connect server 10280 (UI 4128) via `code/ch59/server.sh`; flaky proxy 10281; Envoy TLS 10282; sandbox servers 10284/10285 (UI 4129/4130); ch64 scope server 10286 (UI 4131); kind port-forward 10283 (UI 4129); History Server 18028. The 4.3 persistent local server (ch24 Step 7) and `spark-pipelines` (ch64) use their default port 15002.
+- Ports: `SPARK_UI_PORT=4028`; Connect server 10280 (UI 4128) via `code/ch72/server.sh`; flaky proxy 10281; Envoy TLS 10282; sandbox servers 10284/10285 (UI 4129/4130); ch78 scope server 10286 (UI 4131); kind port-forward 10283 (UI 4129); History Server 18028. The 4.3 persistent local server (ch30 Step 7) and `spark-pipelines` (ch78) use their default port 15002.
 - `server.sh` moved from 15058/4158 to the assigned 10280/4128.
-- ch60: `apache/spark:4.3.0-python3` image (Ubuntu 22.04.5, Python 3.10.12, OpenJDK 21.0.13, no PyArrow/pandas); `venv-pack` from PyPI; `ujson` 6.1.0 and `tabulate` 0.10.0 wheels (manylinux2014, cp312).
-- ch24: Envoy `envoyproxy/envoy:v1.31.5` in Docker; self-signed certificate made by `openssl` in each run.
-- ch62: kind with `kindest/node:v1.37.0` (cluster name `part08`, 1 control plane + 2 workers); Helm chart `spark-kubernetes-operator/spark-kubernetes-operator` **1.9.0** = operator image `apache/spark-kubernetes-operator:1.1.0` (its `gradle/libs.versions.toml` pins `spark = "4.3.0"`); book image `spark-masterclass/spark:4.3.0-book` = `apache/spark:4.3.0-python3` + `pyarrow==18.1.0` + `pandas==2.2.3` (`code/ch62/Dockerfile`). The cluster was deleted at the end (`ch62/cluster.sh down`).
-- ch64: `spark-pipelines` needs PyYAML, which `pyproject.toml` does not list; `dryrun.sh` runs it with `uv run --with pyyaml` instead of editing the shared `pyproject.toml`. Metric view data and YAML copied from `~/spark-demos/demos/01_metrics_views/` (1 MB).
-- Timings quoted (all under `flock .../data/.bench.lock`, new DataFrame for each timed run): ch61 `profilers.py` (median of 5 after a warmup), ch24 `feather_server.py` (median of 20 after a warmup), ch24 `local_reuse.py` (single process start times). ch24 `contention.py` and `sandbox.py` ran without the lock (their numbers are sleep-dominated or start-up times; the text gives them as approximate, with all runs shown). The ch24 Feather clip ran while other renders used the machine, and its caption says so.
+- ch73: `apache/spark:4.3.0-python3` image (Ubuntu 22.04.5, Python 3.10.12, OpenJDK 21.0.13, no PyArrow/pandas); `venv-pack` from PyPI; `ujson` 6.1.0 and `tabulate` 0.10.0 wheels (manylinux2014, cp312).
+- ch30: Envoy `envoyproxy/envoy:v1.31.5` in Docker; self-signed certificate made by `openssl` in each run.
+- ch76: kind with `kindest/node:v1.37.0` (cluster name `part08`, 1 control plane + 2 workers); Helm chart `spark-kubernetes-operator/spark-kubernetes-operator` **1.9.0** = operator image `apache/spark-kubernetes-operator:1.1.0` (its `gradle/libs.versions.toml` pins `spark = "4.3.0"`); book image `spark-masterclass/spark:4.3.0-book` = `apache/spark:4.3.0-python3` + `pyarrow==18.1.0` + `pandas==2.2.3` (`code/ch76/Dockerfile`). The cluster was deleted at the end (`ch76/cluster.sh down`).
+- ch78: `spark-pipelines` needs PyYAML, which `pyproject.toml` does not list; `dryrun.sh` runs it with `uv run --with pyyaml` instead of editing the shared `pyproject.toml`. Metric view data and YAML copied from `~/spark-demos/demos/01_metrics_views/` (1 MB).
+- Timings quoted (all under `flock .../data/.bench.lock`, new DataFrame for each timed run): ch74 `profilers.py` (median of 5 after a warmup), ch30 `feather_server.py` (median of 20 after a warmup), ch30 `local_reuse.py` (single process start times). ch30 `contention.py` and `sandbox.py` ran without the lock (their numbers are sleep-dominated or start-up times; the text gives them as approximate, with all runs shown). The ch30 Feather clip ran while other renders used the machine, and its caption says so.
 
 ## Coverage
 
-### MD52 determinism_retries (ch59)
+### MD52 determinism_retries (ch72)
 
 | Topic | Section |
 |---|---|
@@ -67,7 +67,7 @@ Rules broken on purpose: quotations of the talk's slides keep their wording (ch6
 | Fault injection toolkit; checkout exercise (fragile vs correct job) | Step 11, toolkit table |
 | Gotchas: DDL return type at import, UDF pickles globals once | Step 3 |
 
-### MD53 shipping_dependencies (ch60)
+### MD53 shipping_dependencies (ch73)
 
 | Topic | Section |
 |---|---|
@@ -83,9 +83,9 @@ Rules broken on purpose: quotations of the talk's slides keep their wording (ch6
 | Connect artifacts: per-session folders and workers, immutability, refusals; Classic `addArtifacts` | Step 9 |
 | Kubernetes image facts (4.3.0 image re-read) | Step 10 |
 | Decision table and checklist | "Choose a method" |
-| Left out: notebook-scoped libraries (Databricks feature, not OSS Spark); Connect lifecycle gotchas `CANNOT_CONFIGURE_SPARK_CONNECT_MASTER` and in-process `stop()` (covered in Part I ch18 and ch24 Step 6 for the server side) | |
+| Left out: notebook-scoped libraries (Databricks feature, not OSS Spark); Connect lifecycle gotchas `CANNOT_CONFIGURE_SPARK_CONNECT_MASTER` and in-process `stop()` (covered in Part I ch24 and ch30 Step 6 for the server side) | |
 
-### MD54 observability (ch61)
+### MD54 observability (ch74)
 
 | Topic | Section |
 |---|---|
@@ -103,110 +103,110 @@ Rules broken on purpose: quotations of the talk's slides keep their wording (ch6
 | UDF profiler overhead; data source profiler covers planning | Step 10 |
 | py-spy with `--subprocesses`, ptrace_scope | Step 10 |
 | Structured logging JVM vs Python | Step 11 |
-| Left out: accumulators as custom counters (ch59 Step 6 covers them); custom metrics API for Python data sources (Part IX) | |
+| Left out: accumulators as custom counters (ch72 Step 6 covers them); custom metrics API for Python data sources (Part IX) | |
 
-### LS11 spark_connect, server side (ch24, with ch18 for the client)
+### LS11 spark_connect, server side (ch30, with ch24 for the client)
 
 | Topic | Section |
 |---|---|
-| Server starts, `remote()` vs `spark.api.mode`, `local*` embedded server | ch18; ch24 Step 7 (persistent local server, 4.3) |
-| Connection string params (`token`, `use_ssl`, `user_id`) | ch24 Steps 4, 5 |
-| Sessions, per-session config, isolation | ch24 Steps 1, 2 |
-| `addArtifacts` | ch60 Step 9 |
-| `addTag`/`interruptTag`/`interruptAll` | ch24 Step 6 |
-| Remote UDFs need the server's libraries and Python | ch60 Steps 3, 9; ch62 Step 5 |
-| Listeners run client-side | ch61 Step 9 |
-| 4.3 operation IDs and REST endpoints | ch59 Step 10, ch61 Step 7 |
-| Left out (client-side, covered in Part I ch18 or Part II): Classic-only API table, `zipWithIndex`, `toJSON`, local relation limits | |
+| Server starts, `remote()` vs `spark.api.mode`, `local*` embedded server | ch24; ch30 Step 7 (persistent local server, 4.3) |
+| Connection string params (`token`, `use_ssl`, `user_id`) | ch30 Steps 4, 5 |
+| Sessions, per-session config, isolation | ch30 Steps 1, 2 |
+| `addArtifacts` | ch73 Step 9 |
+| `addTag`/`interruptTag`/`interruptAll` | ch30 Step 6 |
+| Remote UDFs need the server's libraries and Python | ch73 Steps 3, 9; ch76 Step 5 |
+| Listeners run client-side | ch74 Step 9 |
+| 4.3 operation IDs and REST endpoints | ch72 Step 10, ch74 Step 7 |
+| Left out (client-side, covered in Part I ch24 or Part II): Classic-only API table, `zipWithIndex`, `toJSON`, local relation limits | |
 
 ### New topics
 
-- Connect deployment patterns: ch24 (patterns, isolation, scheduler contention, token, TLS proxy, lifecycle, persistent local server, Feather on the server, sandbox per agent, two client traps).
-- Spark Kubernetes Operator: ch62 (install, `SparkApplication`, restart policy, `SparkCluster`, Connect server on Kubernetes), run on kind.
-- Writing pipelines with agents (OSA Con 2026): ch64 (study, four checks, ANSI, dry-run, what dry-run misses, scope, version-pinned skill, metric views, costs).
+- Connect deployment patterns: ch30 (patterns, isolation, scheduler contention, token, TLS proxy, lifecycle, persistent local server, Feather on the server, sandbox per agent, two client traps).
+- Spark Kubernetes Operator: ch76 (install, `SparkApplication`, restart policy, `SparkCluster`, Connect server on Kubernetes), run on kind.
+- Writing pipelines with agents (OSA Con 2026): ch78 (study, four checks, ANSI, dry-run, what dry-run misses, scope, version-pinned skill, metric views, costs).
 
 ## Claim-to-source table (selected; every number in the text is in the named output file)
 
 | Claim | Source |
 |---|---|
-| ch59 all numbers | `code/ch59/output/*.txt`; scheduler source paths in the text |
-| ch60 worker paths, versions, errors | `code/ch60/output/workers.txt`, `pyfiles.txt`, `archives.txt`, `artifacts.txt`, `transpile.txt`, `image.txt` |
+| ch72 all numbers | `code/ch72/output/*.txt`; scheduler source paths in the text |
+| ch73 worker paths, versions, errors | `code/ch73/output/workers.txt`, `pyfiles.txt`, `archives.txt`, `artifacts.txt`, `transpile.txt`, `image.txt` |
 | pyspark 4.3.0 `python_requires=">=3.11"`; minimums pandas 2.2.0, pyarrow 18.0.0, numpy 1.23.2 | `python/packaging/classic/setup.py` at v4.3.0 |
 | `PACKAGE_EXTENSIONS`, `pythonExec` line 341 | `python/pyspark/core/context.py` at v4.3.0 |
 | Transpiler runs at UDF creation; conditions | `python/pyspark/sql/udf.py` lines 209-297 at v4.3.0; `transpile.txt` |
 | `SPARK_JOB_ARTIFACT_UUID`, per-session worker cwd | `PythonRunner.scala` 627, `PythonWorkerFactory.scala` 272 at v4.3.0 |
-| ch61 stage/REST/event log numbers | `code/ch61/output/observed_app.txt`, `eventlog.txt` (same application run) |
+| ch74 stage/REST/event log numbers | `code/ch74/output/observed_app.txt`, `eventlog.txt` (same application run) |
 | Event log defaults (rolling 128m, compress, zstd); queue capacity 10000 | `core/.../internal/config/package.scala` at v4.3.0; `docs/core-migration-guide.md` |
 | `spark.ui.prometheus.enabled` internal, default true | `core/.../internal/config/UI.scala` line 127 at v4.3.0 |
 | Connect REST endpoints | `ConnectResource.scala` at v4.3.0; `connect_obs.txt` |
 | Profiler ratios 21.4/4.2/0.8 | `profilers.txt` (lock held, median of 5) |
 | `wrap_perf_profiler` per-call wrapping | `python/pyspark/worker.py` line 519 at v4.3.0 |
 | Connect listener bus in the client | `python/pyspark/sql/connect/streaming/query.py` line 267; `stream_listener_connect.txt` |
-| ch24 isolation/contention/auth/lifecycle/Feather/reuse/sandbox numbers | `code/ch24/output/*.txt` |
+| ch30 isolation/contention/auth/lifecycle/Feather/reuse/sandbox numbers | `code/ch30/output/*.txt` |
 | Token interceptor, `defaultSessionTimeout` 60m, tombstones 1000 | `SparkConnectService.scala` 444, `Connect.scala` 134-170, 389 at v4.3.0 |
 | Token forces TLS for non-localhost hosts | `python/pyspark/sql/connect/client/core.py` 596-643 at v4.3.0 |
 | SESSION_CHANGED then NO_ACTIVE_SESSION | `core.py` 2429 and 964 at v4.3.0 |
 | Tags are per thread | `python/pyspark/sql/session.py` 2492 docstring at v4.3.0 |
 | `F.udf` reads the active session's Arrow config | `python/pyspark/sql/connect/udf.py` 50-73 at v4.3.0 |
-| ch62 states, pods, logs | `code/ch62/output/*.txt` |
+| ch76 states, pods, logs | `code/ch76/output/*.txt` |
 | Operator adds `spark.authenticate`, `spark.io.encryption.enabled`, master | operator 1.1.0 `SparkAppSubmissionWorker.java` 166-183; `inspect.txt` |
 | Restart config semantics | operator 1.1.0 `docs/spark_custom_resources.md` |
-| ch64 study numbers | OSA Con 2026 deck `~/Documents/spark_content/decks/osa-con-2026/index.html` (slides 3, 4, 6, 8, 16, 17, 27, 28, 29, 30, 38), quoted as stated |
-| ch64 ANSI, dry-run, epoch, idioms, scope, metric view outputs | `code/ch64/output/*.txt` on 4.3.0 (metric view numbers equal the deck's 4.2 numbers) |
+| ch78 study numbers | OSA Con 2026 deck `~/Documents/spark_content/decks/osa-con-2026/index.html` (slides 3, 4, 6, 8, 16, 17, 27, 28, 29, 30, 38), quoted as stated |
+| ch78 ANSI, dry-run, epoch, idioms, scope, metric view outputs | `code/ch78/output/*.txt` on 4.3.0 (metric view numbers equal the deck's 4.2 numbers) |
 
-Left out of ch64 on purpose: the deck's executor-second figures ("up to about 521 executor-seconds", "about 34x", appendix "596 / 17", "~1000×"). The deck labels the appendix as "A separate 48-cell sweep on EKS", but the memory note `h3-compute-provenance` says these numbers were measured in-process, not on live EKS, and `h3-compute-waste-methodology` says the metric is under redesign. The chapter quotes no compute numbers until the study settles them.
+Left out of ch78 on purpose: the deck's executor-second figures ("up to about 521 executor-seconds", "about 34x", appendix "596 / 17", "~1000×"). The deck labels the appendix as "A separate 48-cell sweep on EKS", but the memory note `h3-compute-provenance` says these numbers were measured in-process, not on live EKS, and `h3-compute-waste-methodology` says the metric is under redesign. The chapter quotes no compute numbers until the study settles them.
 
 ## Open findings
 
-1. **ch60: the official `apache/spark:4.3.0-python3` image ships Python 3.10.12, but `pyspark==4.3.0` requires Python >=3.11** (`setup.py`). PySpark runs in the image from `pyspark.zip`, so nothing checks it. Repro: `docker run --rm --entrypoint python3 apache/spark:4.3.0-python3 --version`. Possibly a doc/packaging gap in apache/spark-docker; not filed. Also: no PyArrow/pandas in the "python3" image while Arrow UDFs are the default.
-2. **ch60: the 4.3 packaging guide's `uv run` recipe** works in local mode only because executors inherit the driver's `VIRTUAL_ENV`; with `spark.executorEnv.VIRTUAL_ENV=''` (as on a remote executor), the worker runs a uv-managed Python without the script's dependencies (`archives.txt`). Not verified on a real cluster.
-3. **ch24: Connect `F.udf` without `useArrow` calls `SparkSession.active().conf.get(...)`** (`connect/udf.py`): with sessions from `.create()` (no active session) the UDF silently becomes non-Arrow, and when the active session is dead or unauthenticated, UDF creation blocks while the client retries. Repro: create session A with no token against a token server, session B with the token, then `F.udf(f, StringType())` hangs. Possible bug or doc gap.
-4. **ch24/ch62: a client whose server went away keeps a non-daemon retry thread** that keeps the Python process alive at exit (scripts use `os._exit`). Not minimized.
-5. **ch61: a Python `QueryExecutionListener` through Py4J** (`ensure_callback_server_started` + `listenerManager().register`) hung on the second query in a local test (`collect()` then a `noop` write). Not investigated; the chapter does not show it. Repro script was in the scratchpad only.
-6. **ch59: `DataFrame.sample(0.001, seed=7)`** ignores the keyword seed when the first positional argument is a float (`_preapare_args_for_sample`, dataframe.py 2187); recorded by the earlier writer (`writes.txt`).
-7. **ch62: operator 1.1.0 sets `spark.authenticate=true` by default**, which breaks applications on a `SparkCluster` without a shared secret (`A secret key must be specified via the spark.authenticate.secret config`). Documented behavior? Not found in the operator docs; possible doc gap.
-8. **ch62: `SparkCluster` workers report all host cores (16)**; `spark.worker.cores` in `sparkConf` had no effect in a test (removed from the YAML). Not investigated.
+1. **ch73: the official `apache/spark:4.3.0-python3` image ships Python 3.10.12, but `pyspark==4.3.0` requires Python >=3.11** (`setup.py`). PySpark runs in the image from `pyspark.zip`, so nothing checks it. Repro: `docker run --rm --entrypoint python3 apache/spark:4.3.0-python3 --version`. Possibly a doc/packaging gap in apache/spark-docker; not filed. Also: no PyArrow/pandas in the "python3" image while Arrow UDFs are the default.
+2. **ch73: the 4.3 packaging guide's `uv run` recipe** works in local mode only because executors inherit the driver's `VIRTUAL_ENV`; with `spark.executorEnv.VIRTUAL_ENV=''` (as on a remote executor), the worker runs a uv-managed Python without the script's dependencies (`archives.txt`). Not verified on a real cluster.
+3. **ch30: Connect `F.udf` without `useArrow` calls `SparkSession.active().conf.get(...)`** (`connect/udf.py`): with sessions from `.create()` (no active session) the UDF silently becomes non-Arrow, and when the active session is dead or unauthenticated, UDF creation blocks while the client retries. Repro: create session A with no token against a token server, session B with the token, then `F.udf(f, StringType())` hangs. Possible bug or doc gap.
+4. **ch30/ch76: a client whose server went away keeps a non-daemon retry thread** that keeps the Python process alive at exit (scripts use `os._exit`). Not minimized.
+5. **ch74: a Python `QueryExecutionListener` through Py4J** (`ensure_callback_server_started` + `listenerManager().register`) hung on the second query in a local test (`collect()` then a `noop` write). Not investigated; the chapter does not show it. Repro script was in the scratchpad only.
+6. **ch72: `DataFrame.sample(0.001, seed=7)`** ignores the keyword seed when the first positional argument is a float (`_preapare_args_for_sample`, dataframe.py 2187); recorded by the earlier writer (`writes.txt`).
+7. **ch76: operator 1.1.0 sets `spark.authenticate=true` by default**, which breaks applications on a `SparkCluster` without a shared secret (`A secret key must be specified via the spark.authenticate.secret config`). Documented behavior? Not found in the operator docs; possible doc gap.
+8. **ch76: `SparkCluster` workers report all host cores (16)**; `spark.worker.cores` in `sparkConf` had no effect in a test (removed from the YAML). Not investigated.
 
 ## Not verified
 
-- Speculation behavior on a real cluster (ch59 states only the source condition).
-- `venv-pack` and `uv run` recipes on YARN/Kubernetes (ch60).
-- History Server for a Connect server on Kubernetes (ch62 used port-forwarded live REST only).
-- A catalog with grants enforcing `sandbox_<id>` (ch64 shows that the built-in catalog does not).
+- Speculation behavior on a real cluster (ch72 states only the source condition).
+- `venv-pack` and `uv run` recipes on YARN/Kubernetes (ch73).
+- History Server for a Connect server on Kubernetes (ch76 used port-forwarded live REST only).
+- A catalog with grants enforcing `sandbox_<id>` (ch78 shows that the built-in catalog does not).
 
 ## Nav entries
 
 ```yaml
   - "Part VIII: Running Spark in production":
-    - chapters/ch61-determinism-retries.md
-    - chapters/ch24-shipping-dependencies.md
-    - chapters/ch62-observability.md
-    - chapters/ch64-connect-in-production.md
-    - chapters/ch62-kubernetes-operator.md
-    - chapters/ch64-pipelines-with-agents.md
+    - chapters/ch74-determinism-retries.md
+    - chapters/ch30-shipping-dependencies.md
+    - chapters/ch76-observability.md
+    - chapters/ch78-connect-in-production.md
+    - chapters/ch76-kubernetes-operator.md
+    - chapters/ch78-pipelines-with-agents.md
 ```
 
-(After renaming: ch59→ch61, ch60→ch24, ch61→ch62, ch24→ch64, ch62→ch62, ch64→ch64; ch63 orchestration belongs to another writer.)
+(After renaming: ch72→ch74, ch73→ch30, ch74→ch76, ch30→ch78, ch76→ch76, ch78→ch78; ch77 orchestration belongs to another writer.)
 
 ## Clips and storyboard
 
-Cut list: `book/media/clips/clips-part08.tsv`. Tapes: `code/film/ch59.tape` to `ch64.tape`, `--format chapter`. VO lines are drafts.
+Cut list: `book/media/clips/clips-part08.tsv`. Tapes: `code/film/ch72.tape` to `ch78.tape`, `--format chapter`. VO lines are drafts.
 
 | Clip | On screen | VO (draft) |
 |---|---|---|
-| ch59-attempts | `attempts.py` under `local[4]` and `local[4,2]` | Local mode never retries a task; `local[4,2]` gives two attempts, and `rand(7)` repeats while Python's random does not. |
-| ch59-shuffle | `lost_shuffle.py` | A deleted map output: deterministic code recovers, random code changes the answer, and the 4.3 checksum stops the job. |
-| ch59-reattach | `reattach.py` through the flaky proxy | The client reattaches to the same operation; without reattach, the operation ID refuses a second execution. |
-| ch59-fragile | `fragile_job.py` | The fragile job duplicates under chaos; the correct job gives the same output. |
-| ch60-where | `where.py` from two folders | A worker starts in the driver's folder in local mode, so a package there imports without shipping. |
-| ch60-includes | `pyfiles.py` Step 5 | A UDF records its include list once; the old UDF never sees the new zip. |
-| ch60-artifacts | `artifacts.py` | Two Connect sessions ship two versions of one module, each in its own folder and workers. |
-| ch61-connect | `connect_obs.py` | The 4.3 REST API lists Connect sessions and operations, and the History Server keeps them after the server stops. |
-| ch61-listener | `stream_listener.py` | `observe()` in a stream shows the drift in each batch. |
-| ch24-isolation | `isolation.py` | What a session isolates, and what all sessions share. |
-| ch24-lifecycle | `lifecycle.py` | How a session ends, and a tagged query interrupted. |
-| ch24-feather | `feather_server.py` | One session turns on single-task execution on a shared server. |
-| ch62-app | `run_app.py zones-app.yaml` | The operator follows a SparkApplication from request to success. |
-| ch62-connect | `connect_k8s.py` | A laptop client uses a Connect server in the cluster; the operator replaces the driver, and the sessions do not survive. |
-| ch64-dryrun | `dryrun.sh` | The dry-run refuses three agent errors before any data; the epoch error passes. |
-| ch64-metrics | `metric_view.py` | By-hand SQL and `MEASURE()` give different answers, and both exit 0. |
+| ch72-attempts | `attempts.py` under `local[4]` and `local[4,2]` | Local mode never retries a task; `local[4,2]` gives two attempts, and `rand(7)` repeats while Python's random does not. |
+| ch72-shuffle | `lost_shuffle.py` | A deleted map output: deterministic code recovers, random code changes the answer, and the 4.3 checksum stops the job. |
+| ch72-reattach | `reattach.py` through the flaky proxy | The client reattaches to the same operation; without reattach, the operation ID refuses a second execution. |
+| ch72-fragile | `fragile_job.py` | The fragile job duplicates under chaos; the correct job gives the same output. |
+| ch73-where | `where.py` from two folders | A worker starts in the driver's folder in local mode, so a package there imports without shipping. |
+| ch73-includes | `pyfiles.py` Step 5 | A UDF records its include list once; the old UDF never sees the new zip. |
+| ch73-artifacts | `artifacts.py` | Two Connect sessions ship two versions of one module, each in its own folder and workers. |
+| ch74-connect | `connect_obs.py` | The 4.3 REST API lists Connect sessions and operations, and the History Server keeps them after the server stops. |
+| ch74-listener | `stream_listener.py` | `observe()` in a stream shows the drift in each batch. |
+| ch30-isolation | `isolation.py` | What a session isolates, and what all sessions share. |
+| ch30-lifecycle | `lifecycle.py` | How a session ends, and a tagged query interrupted. |
+| ch30-feather | `feather_server.py` | One session turns on single-task execution on a shared server. |
+| ch76-app | `run_app.py zones-app.yaml` | The operator follows a SparkApplication from request to success. |
+| ch76-connect | `connect_k8s.py` | A laptop client uses a Connect server in the cluster; the operator replaces the driver, and the sessions do not survive. |
+| ch78-dryrun | `dryrun.sh` | The dry-run refuses three agent errors before any data; the epoch error passes. |
+| ch78-metrics | `metric_view.py` | By-hand SQL and `MEASURE()` give different answers, and both exit 0. |

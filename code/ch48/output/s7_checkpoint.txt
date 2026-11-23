@@ -1,0 +1,81 @@
+run 1 batches (id, rows): [(0, 487), (1, 0)]
+run 2 batches (id, rows): [(2, 508), (3, 0)]
+
+The checkpoint (.crc checksum files left out):
+commits/0  (41 B)
+commits/1  (41 B)
+commits/2  (41 B)
+commits/3  (41 B)
+metadata  (45 B)
+offsets/0  (1170 B)
+offsets/1  (1182 B)
+offsets/2  (1182 B)
+offsets/3  (1182 B)
+sources/0/0  (140 B)
+sources/0/1  (140 B)
+state/0/0/1.delta  (141 B)
+state/0/0/2.delta  (106 B)
+state/0/0/3.delta  (91 B)
+state/0/0/4.delta  (84 B)
+state/0/0/_metadata/schema  (402 B)
+state/0/1/1.delta  (118 B)
+state/0/1/2.delta  (105 B)
+state/0/1/3.delta  (46 B)
+state/0/1/4.delta  (46 B)
+state/0/2/1.delta  (137 B)
+state/0/2/2.delta  (84 B)
+state/0/2/3.delta  (112 B)
+state/0/2/4.delta  (46 B)
+state/0/3/1.delta  (91 B)
+state/0/3/2.delta  (84 B)
+state/0/3/3.delta  (46 B)
+state/0/3/4.delta  (46 B)
+state/0/_metadata/metadata  (150 B)
+
+--- metadata
+{"id":"feb5e1da-8143-4f89-994a-697efa58cb25"}
+
+--- offsets/2 (line 2 pretty-printed)
+v1
+{
+ "batchWatermarkMs": 1781077781000,
+ "batchTimestampMs": 1795337199406,
+ "conf": {
+  "spark.sql.streaming.stateStore.providerClass": "org.apache.spark.sql.execution.streaming.state.HDFSBackedStateStoreProvider",
+  "spark.sql.dropDuplicates.deterministicKeyOrder.enabled": "true",
+  "spark.sql.streaming.stateStore.rocksdb.mergeOperatorVersion": "2",
+  "spark.sql.streaming.stateStore.rocksdb.formatVersion": "5",
+  "spark.sql.streaming.queryEvolution.enableSourceEvolution": "false",
+  "spark.sql.streaming.stateStore.encodingFormat": "unsaferow",
+  "spark.sql.streaming.statefulOperator.useStrictDistribution": "true",
+  "spark.sql.streaming.flatMapGroupsWithState.stateFormatVersion": "2",
+  "spark.sql.streaming.multipleWatermarkPolicy": "min",
+  "spark.sql.streaming.stateStore.rowChecksum.enabled": "false",
+  "spark.sql.streaming.statefulOperator.alwaysNullableOutput.enabled": "true",
+  "spark.sql.streaming.aggregation.stateFormatVersion": "2",
+  "spark.sql.function.protobufExtensions.enabled": "false",
+  "spark.sql.shuffle.partitions": "4",
+  "spark.sql.streaming.join.stateFormatVersion": "2",
+  "spark.sql.streaming.stateStore.compression.codec": "lz4",
+  "spark.sql.optimizer.pruneFiltersCanPruneStreamingSubplan": "false"
+ }
+}
+{"logOffset":1}
+batchWatermarkMs = 2026-06-10 07:49:41 UTC
+
+--- commits/2
+v1
+{"nextBatchWatermarkMs":1781078086000}
+nextBatchWatermarkMs = 2026-06-10 07:54:46 UTC
+
+--- sources/0/1
+v1
+{"path":"file://~/spark-masterclass-parts/part05/data/work/ch48/s7/inbox/trips_0805.jsonl","timestamp":1795337199171,"batchId":1}
+
+The sink's own log, next to the Parquet files:
+0  (266 B)
+1  (1058 B)
+2  (266 B)
+3  (266 B)
+v1
+{"path":"file://~/spark-masterclass-parts/part05/data/work/ch48/s7/out/part-00000-2f970f60-d4e5-4433-98cc-6108379b17a1-c000.snappy.parquet","size":384,"isDir":false,"modificationTime":1795337200088,"blockReplication":1,"blockSize":33554432,"action":"add"}

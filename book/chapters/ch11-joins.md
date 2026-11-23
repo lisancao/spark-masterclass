@@ -226,7 +226,7 @@ BROADCAST(t) on a FULL join -> ['SortMergeJoin']
 
 ## Step 7: AQE changes the strategy at run time
 
-The estimates come before the query runs. AQE ([Chapter 32](ch32-query-plans.md)) plans again after each shuffle stage, with the real sizes. To show this, `strategies.py` turns off the broadcast for the static planner (`spark.sql.autoBroadcastJoinThreshold = -1`). It gives AQE its own threshold of 10 MB (`spark.sql.adaptive.autoBroadcastJoinThreshold`). Then it joins the trips to two small results:
+The estimates come before the query runs. AQE ([Chapter 40](ch40-query-plans.md)) plans again after each shuffle stage, with the real sizes. To show this, `strategies.py` turns off the broadcast for the static planner (`spark.sql.autoBroadcastJoinThreshold = -1`). It gives AQE its own threshold of 10 MB (`spark.sql.adaptive.autoBroadcastJoinThreshold`). Then it joins the trips to two small results:
 
 ```python
 def busy_join():   # zones with more than 100,000 pickups: the HAVING runs in the same stage as the join
@@ -349,7 +349,7 @@ A bucketed table keeps its rows partitioned by a key in the files. `skew.py` wri
 
 The two tables have the same number of buckets on the same key. Thus each task reads one bucket of each table, and the rows of one key are already together. The bucketed join took 0.16 seconds against 0.35 seconds.
 
-Buckets cost work when you write the data, and they help only joins and aggregates on the bucket key. Table formats such as Iceberg give the same effect with storage-partitioned joins ([Chapter 45](ch45-iceberg.md)).
+Buckets cost work when you write the data, and they help only joins and aggregates on the bucket key. Table formats such as Iceberg give the same effect with storage-partitioned joins ([Chapter 55](ch55-iceberg.md)).
 
 ## Step 12: ASOF JOIN
 
@@ -451,7 +451,7 @@ Before 4.3, the same answer needed a window or a range join. `asof.py` runs thre
 The three methods are:
 
 1. **`ASOF JOIN`**, as in Step 12.
-2. **A window over a union.** Put the drop-offs and the pickups in one stream, and sort by zone and time. Carry the last drop-off time forward with `last(..., ignorenulls=True)`, over a frame that ends one row before the current row ([Chapter 13](ch13-spark-sql-in-depth.md)).
+2. **A window over a union.** Put the drop-offs and the pickups in one stream, and sort by zone and time. Carry the last drop-off time forward with `last(..., ignorenulls=True)`, over a frame that ends one row before the current row ([Chapter 18](ch18-spark-sql-in-depth.md)).
 3. **A range join and a `max`.** Join each pickup to the drop-offs in the same zone in the 10 minutes before it, and keep the latest.
 
 The window gives the same 109,379 matches and the same sum of waits as `ASOF JOIN`. The range join gives a different answer, for two reasons. It misses each wait of more than 10 minutes. It also groups by zone and time, so two pickups at the same second become one row.
@@ -506,7 +506,7 @@ DataFrame API: [(30.0, 'crosstown', Decimal('25.0')), (95.0, 'airport', Decimal(
 
 Each fare gets its two nearest rules. The plan is a `BroadcastNestedLoopJoin` and a `SortAggregate` with `min_by(..., k)` for each left row: all pairs, and then a top-K. `APPROX` and `EXACT` give the same plan. The PySpark docstring of `nearestByJoin` says it directly: "The current implementation evaluates the full cross-product of left and right." The rewrite is `RewriteNearestByJoin.scala`. `k` must be from 1 to 100,000. Only inner and left joins work.
 
-Thus `NEAREST BY` on two large sides is a Cartesian product. For "the nearest time", use `ASOF JOIN`, which uses the order of the time. Use `NEAREST BY` for a small right side, or for a distance that has no order, such as the geographic distance in [Chapter 15](ch15-time-series.md).
+Thus `NEAREST BY` on two large sides is a Cartesian product. For "the nearest time", use `ASOF JOIN`, which uses the order of the time. Use `NEAREST BY` for a small right side, or for a distance that has no order, such as the geographic distance in [Chapter 21](ch21-time-series.md).
 
 ## Step 16: LATERAL
 
@@ -539,7 +539,7 @@ ORDER BY z.Zone, l.trip_distance DESC
 +-----------------+-------------+-----------+
 ```
 
-The same result comes from `QUALIFY row_number() ... <= 3` ([Chapter 13](ch13-spark-sql-in-depth.md)). The `LATERAL` form reads as "for each zone, a query", and it can use a different `LIMIT` or filter for each row. The filter on the fare and the distance removes rows with errors in the source data, such as negative fares.
+The same result comes from `QUALIFY row_number() ... <= 3` ([Chapter 18](ch18-spark-sql-in-depth.md)). The `LATERAL` form reads as "for each zone, a query", and it can use a different `LIMIT` or filter for each row. The filter on the fare and the distance removes rows with errors in the source data, such as negative fares.
 
 ## The whole chapter, on one page
 
@@ -555,7 +555,7 @@ The same result comes from `QUALIFY row_number() ... <= 3` ([Chapter 13](ch13-sp
 - **`NEAREST BY` (4.2) compares all pairs and keeps the top K.** Use it for a small right side.
 - **`LATERAL` runs a subquery for each left row.**
 
-All these rules come from one question. How many rows must move, and how many pairs must Spark compare? [Chapter 15](ch15-time-series.md) uses the same question for time buckets and spatial joins.
+All these rules come from one question. How many rows must move, and how many pairs must Spark compare? [Chapter 21](ch21-time-series.md) uses the same question for time buckets and spatial joins.
 
 ## Further reading
 

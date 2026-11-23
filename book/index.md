@@ -24,18 +24,18 @@ The book is for people who can read Python and SQL. These readers want to unders
 |---|---|---|
 | I. [Background](chapters/ch01-mapreduce-to-spark.md) | 1 to 4 | How Spark came to be, how it runs, and how it became a batch and streaming platform |
 | II. [Getting started](chapters/ch05-how-spark-runs.md) | 5 to 8 | Your first application, the install, a quick start and configurations |
-| III. [DataFrames](chapters/ch09-dataframes-columns-schemas.md) | 9 to 11 | Columns and schemas, cleaning values, joins |
-| IV. [Spark SQL](chapters/ch12-spark-sql.md) | 12 to 17 | The language and its tools, windows and pipe syntax, procedural SQL, time series, geospatial, metric views |
-| V. [Spark Connect](chapters/ch18-spark-connect.md) | 18 to 24 | Why Connect, the protocol, observability, clients in other languages, building and writing clients, production |
-| VI. [Files, formats and messy data](chapters/ch25-files-as-files.md) | 25 to 31 | Files, logs, CSV, JSON, complex types, VARIANT, XML, Avro, Protobuf and blobs |
-| VII. [Performance](chapters/ch32-query-plans.md) | 32 to 38 | Plans, partitions and memory, Python and Arrow, Parquet, Project Feather, acceleration |
-| VIII. [Streaming](chapters/ch39-structured-streaming.md) | 39 to 43 | Structured Streaming, messy streams, transformWithState, Real-time Mode, checkpoints |
-| IX. [Lakehouse tables](chapters/ch44-tables-delta-iceberg.md) | 44 to 45 | Delta and Iceberg, the Iceberg runtime and catalogs |
-| X. [Declarative Pipelines](chapters/ch46-first-etl-pipeline.md) | 46 to 52 | Your first ETL pipeline, the CLI and project, configuration, the model, medallion, CDC, how SDP runs |
-| XI. [Machine learning and applied algorithms](chapters/ch53-mllib-mlflow.md) | 53 to 58 | MLlib and MLflow, text, similarity search, entity resolution, sketches, calling models |
-| XII. [Running Spark in production](chapters/ch59-determinism-retries.md) | 59 to 64 | Determinism, dependencies, observability, Kubernetes, orchestration, agents |
-| XIII. [Extending Spark](chapters/ch65-python-data-sources-readers.md) | 65 to 73 | Python data sources, DSv2 in Java, Catalyst extensions, Connect plugins, a capstone |
-| XIV. [Internals](chapters/ch74-catalyst-plans-python.md) | 74 to 77 | Catalyst and Python, the worker protocol, VARIANT bytes, an upstream case study |
+| III. [DataFrames and the other APIs](chapters/ch09-dataframes-columns-schemas.md) | 9 to 14 | Columns and schemas, cleaning values, joins, RDDs, the pandas API on Spark, typed Datasets |
+| IV. [Spark SQL](chapters/ch15-spark-sql.md) | 15 to 23 | The language and its tools, tables and DDL, Hive, windows and pipe syntax, aggregation, procedural SQL, time series, geospatial, metric views |
+| V. [Spark Connect](chapters/ch24-spark-connect.md) | 24 to 30 | Why Connect, the protocol, observability, clients in other languages, building and writing clients, production |
+| VI. [Files, formats and data sources](chapters/ch31-files-as-files.md) | 31 to 39 | Files, logs, CSV, JSON, complex types, VARIANT, XML, Avro, Protobuf, blobs, object storage, JDBC |
+| VII. [Performance](chapters/ch40-query-plans.md) | 40 to 47 | Plans, statistics and the optimizer, partitions and memory, Python and Arrow, Parquet and ORC, Project Feather, acceleration |
+| VIII. [Streaming](chapters/ch48-structured-streaming.md) | 48 to 53 | Structured Streaming, messy streams, transformWithState, Real-time Mode, checkpoints, Kafka |
+| IX. [Lakehouse tables](chapters/ch54-tables-delta-iceberg.md) | 54 to 55 | Delta and Iceberg, the Iceberg runtime and catalogs |
+| X. [Declarative Pipelines](chapters/ch56-first-etl-pipeline.md) | 56 to 62 | Your first ETL pipeline, the CLI and project, configuration, the model, medallion, CDC, how SDP runs |
+| XI. [Machine learning and applied algorithms](chapters/ch63-mllib-mlflow.md) | 63 to 69 | MLlib and MLflow, clustering, recommendation and patterns, text, similarity search, entity resolution, sketches, calling models |
+| XII. [Running Spark in production](chapters/ch70-submitting-applications.md) | 70 to 78 | Submitting applications, security, determinism, dependencies, observability, testing, Kubernetes, orchestration, agents |
+| XIII. [Extending Spark](chapters/ch79-python-data-sources-readers.md) | 79 to 87 | Python data sources, DSv2 in Java, Catalyst extensions, Connect plugins, a capstone |
+| XIV. [Internals](chapters/ch88-catalyst-plans-python.md) | 88 to 92 | Catalyst and Python, the worker protocol, VARIANT bytes, an upstream case study, building Spark |
 
 The [coverage](coverage.md) page shows where each SparkTutor lesson is in the book.
 

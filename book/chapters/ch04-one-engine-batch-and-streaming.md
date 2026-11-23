@@ -194,7 +194,7 @@ flowchart LR
 
 The bottom of the two plans is the same: a scan, the filter, a partial aggregate and an exchange. The streaming planner adds a `StateStoreRestore` to read the totals of earlier micro-batches, and a `StateStoreSave` to write the new totals. Catalyst, Tungsten and codegen also work on streaming queries. The numbered star marks are the same whole-stage codegen as in a batch plan.
 
-For all of Structured Streaming, read [Chapter 39](ch39-structured-streaming.md). For the checkpoint and the state store, read [Chapter 43](ch43-checkpoints-and-state-store.md).
+For all of Structured Streaming, read [Chapter 48](ch48-structured-streaming.md). For the checkpoint and the state store, read [Chapter 52](ch52-checkpoints-and-state-store.md).
 
 ## Step 4: From micro-batches to Real-time Mode
 
@@ -210,7 +210,7 @@ The release notes of 4.1 call Real-time Mode the "first official support" for it
 
 Real-time Mode is a different execution of the same API. The query is still a DataFrame query, and a change of trigger selects the mode.
 
-[Chapter 42](ch42-real-time-mode.md) runs it against Kafka and measures the latency of the two modes.
+[Chapter 51](ch51-real-time-mode.md) runs it against Kafka and measures the latency of the two modes.
 
 ## Step 5: The modules of Spark 4.3
 
@@ -278,16 +278,16 @@ This table gives each module, the layer that it runs on, and the chapters that t
 
 | Module | Package | Runs on | In this book |
 |---|---|---|---|
-| Spark SQL and DataFrames | `pyspark.sql` | the SQL engine | Part III ([Chapter 9](ch09-dataframes-columns-schemas.md) to [Chapter 11](ch11-joins.md)), the Spark SQL part (Part IV, [Chapter 12](ch12-spark-sql.md) to [Chapter 17](ch17-metric-views.md)), files and messy data in Part VI ([Chapter 25](ch25-files-as-files.md) to [Chapter 31](ch31-documents-images-audio.md)), plans and performance in Part VII ([Chapter 32](ch32-query-plans.md) to [Chapter 38](ch38-acceleration.md)) |
-| Structured Streaming | `pyspark.sql.streaming` | the SQL engine, incrementally | Part VIII ([Chapter 39](ch39-structured-streaming.md) to [Chapter 43](ch43-checkpoints-and-state-store.md)) |
-| MLlib (`spark.ml`) | `pyspark.ml` | DataFrames | Part XI ([Chapter 53](ch53-mllib-mlflow.md) to [Chapter 56](ch56-entity-resolution.md)) |
+| Spark SQL and DataFrames | `pyspark.sql` | the SQL engine | Part III ([Chapter 9](ch09-dataframes-columns-schemas.md) to [Chapter 11](ch11-joins.md)), the Spark SQL part (Part IV, [Chapter 15](ch15-spark-sql.md) to [Chapter 23](ch23-metric-views.md)), files and messy data in Part VI ([Chapter 31](ch31-files-as-files.md) to [Chapter 37](ch37-documents-images-audio.md)), plans and performance in Part VII ([Chapter 40](ch40-query-plans.md) to [Chapter 47](ch47-acceleration.md)) |
+| Structured Streaming | `pyspark.sql.streaming` | the SQL engine, incrementally | Part VIII ([Chapter 48](ch48-structured-streaming.md) to [Chapter 52](ch52-checkpoints-and-state-store.md)) |
+| MLlib (`spark.ml`) | `pyspark.ml` | DataFrames | Part XI ([Chapter 63](ch63-mllib-mlflow.md) to [Chapter 67](ch67-entity-resolution.md)) |
 | MLlib (`spark.mllib`, RDD-based) | `pyspark.mllib` | RDDs | not covered: the 4.3 docs say that it "is now in maintenance mode" |
 | GraphX | none (Scala and Java) | RDDs | Step 6 of this chapter |
-| GraphFrames | `graphframes` (separate package) | DataFrames | Step 6 of this chapter, label propagation in [Chapter 56](ch56-entity-resolution.md) |
-| pandas API on Spark | `pyspark.pandas` | DataFrames | [Chapter 91](ch91-pandas-api-on-spark.md) |
-| PySpark | `pyspark` | the driver JVM through Py4J, or Spark Connect | Part II ([Chapter 5](ch05-how-spark-runs.md) to [Chapter 8](ch08-setting-configurations.md)), Python workers in [Chapter 34](ch34-python-udfs-arrow.md) and [Chapter 75](ch75-python-worker-protocol.md) |
-| Spark Connect | `pyspark.sql.connect` | a gRPC server in the driver | Part V ([Chapter 18](ch18-spark-connect.md) to [Chapter 24](ch24-connect-in-production.md)), plugins in [Chapter 72](ch72-connect-plugins.md) |
-| Declarative Pipelines | `pyspark.pipelines` | DataFrame queries in a dataflow graph | Part X ([Chapter 46](ch46-first-etl-pipeline.md) to [Chapter 52](ch52-pipeline-end-to-end.md)) |
+| GraphFrames | `graphframes` (separate package) | DataFrames | Step 6 of this chapter, label propagation in [Chapter 67](ch67-entity-resolution.md) |
+| pandas API on Spark | `pyspark.pandas` | DataFrames | [Chapter 13](ch13-pandas-api-on-spark.md) |
+| PySpark | `pyspark` | the driver JVM through Py4J, or Spark Connect | Part II ([Chapter 5](ch05-how-spark-runs.md) to [Chapter 8](ch08-setting-configurations.md)), Python workers in [Chapter 43](ch43-python-udfs-arrow.md) and [Chapter 89](ch89-python-worker-protocol.md) |
+| Spark Connect | `pyspark.sql.connect` | a gRPC server in the driver | Part V ([Chapter 24](ch24-spark-connect.md) to [Chapter 30](ch30-connect-in-production.md)), plugins in [Chapter 86](ch86-connect-plugins.md) |
+| Declarative Pipelines | `pyspark.pipelines` | DataFrame queries in a dataflow graph | Part X ([Chapter 56](ch56-first-etl-pipeline.md) to [Chapter 62](ch62-pipeline-end-to-end.md)) |
 | Spark Streaming (DStreams) | `pyspark.streaming` | RDDs | Step 2 of this chapter only: deprecated since 3.4 |
 
 Two notes on the table:
@@ -379,7 +379,7 @@ The two libraries agree, and the differences come from the input:
 - **The vertices are different.** GraphX made its vertices from the edges, so it has 249. GraphFrames took its vertices from the zone lookup file, so it has 265. Sixteen zones have no route with ten trips, and each one is a component of its own.
 - **PageRank gives the same top five zones in the same order.** The values are different because the number of vertices is different.
 
-A graph chapter can start from this step. The graph algorithms that this book uses now are in [Chapter 56](ch56-entity-resolution.md), which writes label propagation with DataFrames and measures the cost of each round.
+A graph chapter can start from this step. The graph algorithms that this book uses now are in [Chapter 67](ch67-entity-resolution.md), which writes label propagation with DataFrames and measures the cost of each round.
 
 ## The whole chapter, on one page
 

@@ -1,5 +1,0 @@
-{"source": "code/ch17/output/grains.txt (the month, by borough, the second aggregation) and define.txt (the expression)",
- "formula": "SUM(fare_amount) / SUM(trip_distance)",
- "month": "6.3138",
- "borough": [["Manhattan","7.0777"],["Queens","4.5503"],["Brooklyn","6.1579"],["Bronx","5.138"],["Staten Island","4.1866"],["EWR","42.1885"]],
- "avg_of_measures": "11.5498"}

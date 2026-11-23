@@ -1,0 +1,4 @@
+{"source": "code/ch39/output/partitions.txt (partitionColumn=tpep_pickup_datetime, numPartitions=6)",
+ "min_max": {"lower": "2008-12-31 23:03:25", "upper": "2026-06-30 23:59:59", "rows": [1, 0, 0, 0, 0, 3837247]},
+ "june": {"lower": "2026-06-01", "upper": "2026-07-01", "rows": [668590, 668254, 683915, 642060, 599563, 574866]},
+ "timing": "schematic"}

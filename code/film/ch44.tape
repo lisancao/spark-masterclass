@@ -1,32 +1,28 @@
-# Spark Masterclass, Chapter 44: tables. Storyboard: notes/part06.md (film section).
-#   film render code/film/ch44.tape --format chapter   (after ch44/delta_log.py and ch44/iceberg_log.py ran)
+# Spark Masterclass, Chapter 44: Python UDTFs.
+#   film render code/film/ch44.tape --format chapter
 Set TypingSpeed 40ms
 Set WaitPattern /❯$/
 
 # Setup, off camera at the start of every clip.
 Hide
-Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 W=${BOOK_DATA:-$HOME/spark-masterclass/data}/work/part06 && setopt interactivecomments" Enter
+Type "cd $FILM_DEMO && export VIRTUAL_ENV_DISABLE_PROMPT=1 FILM_RUN_QUIET=1 FILM_RUN_PYTHON=.venv/bin/python SPARK_LOCAL_IP=127.0.0.1 SPARK_UI_PORT=4139 BOOK_DATA=$HOME/spark-masterclass/data && setopt interactivecomments && alias python=.venv/bin/python" Enter
 Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: delta | The Delta log: one JSON file per commit
-Type "cd $W/ch44-delta/employees && ls _delta_log | head -4" Enter
-Sleep 2s
-Type "# version 1 was the MERGE: which actions did it write?" Enter
+# beat: lifecycle | One instance per partition, terminate at the end
+Type "# a UDTF that logs its own lifecycle: __init__, eval, terminate, cleanup" Enter
 Sleep 500ms
-Type "jq -c 'keys[0]' _delta_log/00000000000000000001.json" Enter
-Sleep 2s
-Type `jq -c '(.add // .remove) | select(.) | {path: .path[0:22], dataChange, rows: (.stats // "{}" | fromjson | .numRecords)}' _delta_log/00000000000000000001.json` Enter
-Sleep 9s
+Type "python ch44/udtf_core.py lifecycle 2>/dev/null | cut -c1-94" Enter
+Wait@180s
+Sleep 10s
 
-# beat: iceberg | The Iceberg tree: metadata file, snapshots, manifests
+# beat: jsontable | JSON_TABLE against a parsing UDTF
 Hide
 Type "clear" Enter
 Show
-Type `cd $W/ch44-iceberg/hr/employees/metadata && echo "version-hint: $(cat version-hint.text)  avro files: $(ls | grep -c avro)"` Enter
-Sleep 2s
-Type "# the root of the tree: every snapshot, and its parent" Enter
+Type "# 20,000 JSON orders to item rows: a Python UDTF, JSON_TABLE, from_json" Enter
 Sleep 500ms
-Type `jq -c '.snapshots[0:3][] | {id: ."snapshot-id", parent: ."parent-snapshot-id", op: .summary.operation, files: .summary."total-data-files"}' v$(cat version-hint.text).metadata.json` Enter
+Type "ORDERS=20000 RUNS=3 python ch44/json_table.py 2>/dev/null | cut -c1-94" Enter
+Wait@300s
 Sleep 10s

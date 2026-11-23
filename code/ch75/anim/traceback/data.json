@@ -1,0 +1,3 @@
+{"source": "code/ch75/output/tracebacks.txt and crash.txt (Classic session, pyspark 4.3.0). Motion and timing are schematic.",
+ "default_lines": 6, "default_frames": 1, "full_lines": 26, "full_frames": 9,
+ "locals": ["fare = 0.0", "tip = 1.0"], "crash_frames": 16, "condition": "PYTHON_EXCEPTION", "sqlstate": "38000"}

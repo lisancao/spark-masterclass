@@ -10,9 +10,9 @@ Type "[[ -n $FILM_REAL ]] || PROMPT='%F{magenta}❯%f '; clear" Enter
 Sleep 1s
 Show
 
-# beat: ch31-forget | A delete leaves the bytes
+# beat: ch31-bytes | Metadata without content, then magic bytes
 Hide
-Type "nvim +/'forget one file' ch31/blobs.py" Enter
+Type "nvim +/'content is read only when' ch31/bytes.py" Enter
 Sleep 2.5s
 Type ":noh" Enter
 Type "zt" Ctrl+L
@@ -23,8 +23,27 @@ Type ":qa!" Enter
 Type "clear" Enter
 Sleep 500ms
 Show
-Type "# delete one e-mail: the rows go at once, the bytes go later" Enter
+Type "# a metadata query reads no content; a content read checks maxLength" Enter
 Sleep 500ms
-Type "python ch31/blobs.py 2>/dev/null | sed -n '/forget one file/,/the blob in the store/p' | cut -c1-92" Enter
+Type "python ch31/bytes.py 2>/dev/null | sed -n '/content is read only/,/magic bytes, not/p' | cut -c1-92" Enter
+Wait@300s
+Sleep 10s
+
+# beat: ch31-archives | The archive reader, off and on
+Hide
+Type "nvim +/'archive.reader.enabled' ch31/archives.py" Enter
+Sleep 2.5s
+Type ":noh" Enter
+Type "zt" Ctrl+L
+Show
+Sleep 7s
+Hide
+Type ":qa!" Enter
+Type "clear" Enter
+Sleep 500ms
+Show
+Type "# new in 4.3: read the files inside a zip, entry by entry" Enter
+Sleep 500ms
+Type "python ch31/archives.py 2>/dev/null | sed -n '/before 4.3/,/archivePathFilter picks/p' | cut -c1-92" Enter
 Wait@300s
 Sleep 10s

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="13" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Chapter 14: typed operations deserialize and serialize each row. Numbers: code/ch14/output/datasets.txt.
+      const D = { typed: "0.21 s", untyped: "0.11 s", vals: ["140", "1", "1", "2.9", "16.3", "6.4"] };
+      A.mount();
+      // beat open (0.0)
+      A.title("What a typed map costs for each row");
+      const TY = 0.33, UY = 0.70;
+      const lt = A.text("typed: filter(t => ...).map(t => ...)", { x: 0.05, y: TY - A.dy(110), size: 30, weight: 700, mono: true, anchor: "left", color: "var(--a-acc)" });
+      const lu = A.text("untyped: where(...).select(...)", { x: 0.05, y: UY - A.dy(110), size: 30, weight: 700, mono: true, anchor: "left" });
+      function row(y) { return D.vals.map((v, i) => A.box({ x: 0.08 + i * A.dx(84), y, w: 78, h: 64, kind: "paper", radius: 6, title: v, size: 22 })); }
+      const r1 = row(TY), r2 = row(UY);
+      const rl1 = A.text("binary row", { x: 0.08 + 2.5 * A.dx(84), y: TY + A.dy(60), size: 22, color: "var(--a-mute)" });
+      const rl2 = A.text("binary row", { x: 0.08 + 2.5 * A.dx(84), y: UY + A.dy(60), size: 22, color: "var(--a-mute)" });
+      A.in([lt, lu, ...r1, ...r2, rl1, rl2], 0.2, { stagger: 0.02 });
+      function cap(s, t0, t1) { const c = A.text(s, { y: 0.93, size: 38, weight: 600 }); A.in(c, t0); if (t1) A.out(c, t1); return c; }
+      cap("One row, two ways to filter and compute", 0.3, 1.3);
+      // beat deser (1.4): DeserializeToObject builds a Trip
+      cap("A typed filter first builds a Trip object", 1.4, 3.9);
+      const a1 = A.text("DeserializeToObject →", { x: 0.47, y: TY - A.dy(40), size: 24, mono: true, color: "var(--a-mute)" });
+      const obj = A.box({ x: 0.66, y: TY, w: 470, h: 90, kind: "accent", radius: 12, title: "Trip(140, Some(1), Some(1), 2.9, 16.3, 6.4)", size: 22 });
+      A.in(a1, 1.6); A.in(obj, 2.2, { dur: 0.6 });
+      // beat lambda (4.0): the lambda runs, Tuple2, SerializeFromObject
+      cap("The lambda runs, then Spark encodes the result", 4.0, 6.7);
+      const lam = A.text("t.fare_amount > 0  ·  (t.PULocationID, t.tip_amount / t.fare_amount)", { x: 0.66, y: TY + A.dy(80), size: 20, mono: true, color: "var(--a-acc)" });
+      A.in(lam, 4.2);
+      const tup = A.box({ x: 0.66, y: TY + A.dy(170), w: 300, h: 64, kind: "soft", radius: 10, title: "Tuple2(140, 0.3926)", size: 22 });
+      A.in(tup, 5.0);
+      const out1 = [A.box({ x: 0.88, y: TY + A.dy(170), w: 78, h: 64, kind: "paper", radius: 6, title: "140", size: 22 }),
+                    A.box({ x: 0.88 + A.dx(84), y: TY + A.dy(170), w: 96, h: 64, kind: "paper", radius: 6, title: "0.39…", size: 22 })];
+      const a2 = A.text("SerializeFromObject →", { x: 0.80, y: TY + A.dy(120), size: 20, mono: true, color: "var(--a-mute)" });
+      A.in([a2, ...out1], 5.8);
+      // beat expr (6.8): untyped expressions read slots 0, 4 and 5 in place
+      cap("Untyped expressions read the binary row in place", 6.8, 9.3);
+      const hi = [0, 4, 5].map((i) => A.box({ x: 0.08 + i * A.dx(84), y: UY, w: 78, h: 64, kind: "accent", radius: 6 }));
+      hi.forEach((b) => A.tl.set(b, { opacity: 0 }, 0));
+      A.tl.to(hi, { opacity: 0.45, duration: 0.3, stagger: 0.15 }, 7.0);
+      const ex = A.text("fare_amount > 0.0  ·  tip_amount / fare_amount", { x: 0.66, y: UY, size: 24, mono: true });
+      A.in(ex, 7.4);
+      const out2 = [A.box({ x: 0.88, y: UY + A.dy(100), w: 78, h: 64, kind: "paper", radius: 6, title: "140", size: 22 }),
+                    A.box({ x: 0.88 + A.dx(84), y: UY + A.dy(100), w: 96, h: 64, kind: "paper", radius: 6, title: "0.39…", size: 22 })];
+      A.in(out2, 8.0);
+      // beat cost (9.4)
+      const t1 = A.text(D.typed, { x: 0.93, y: TY - A.dy(100), size: 48, weight: 700, color: "var(--a-acc)" });
+      const t2 = A.text(D.untyped, { x: 0.93, y: UY - A.dy(100), size: 48, weight: 700 });
+      A.in([t1, t2], 9.5, { stagger: 0.2 });
+      cap("Measured on 3.8 million trips", 9.6);
+      A.in(A.note("The row slots are schematic. The values are the first trip, and the times are measured."), 0.5);
+      A.finish(13);
+    </script>
+  </body>
+</html>
