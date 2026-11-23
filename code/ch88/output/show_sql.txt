@@ -1,0 +1,8 @@
+== spark.read.jdbc(...)       (DSv1)
+   postgres> SELECT "payment_type","fare_amount" FROM trips
+   rows sent to Spark: about 3,837,000 (3837 fetches of 1000)
+
+== spark.table('pg.public.trips') (DSv2)
+   postgres> SELECT "payment_type",AVG("fare_amount") FROM "public"."trips" GROUP BY "payment_typ
+   rows sent to Spark: 6
+

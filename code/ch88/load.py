@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from jdbc import PROPS, URL, Log, pg_session, psql  # noqa: E402
+from jdbc import log_level, PROPS, URL, Log, pg_session, psql  # noqa: E402
 from common.book import TRIPS, ZONES  # noqa: E402
 
 spark = pg_session("ch88-load")
@@ -17,13 +17,13 @@ trips = trips.toDF(*[c.lower() for c in trips.columns])          # plain names, 
 zones = spark.read.option("header", True).option("inferSchema", True).csv(str(ZONES))
 zones = zones.toDF(*[c.lower() for c in zones.columns])
 
-psql("ALTER SYSTEM SET log_statement = 'ddl'; SELECT pg_reload_conf();")
+log_level("ddl")
 with Log() as log:
     t = time.perf_counter()
     trips.repartition(8).write.jdbc(URL, "trips", mode="overwrite", properties=PROPS)
     load_s = time.perf_counter() - t
     zones.write.jdbc(URL, "zones", mode="overwrite", properties=PROPS)
-psql("ALTER SYSTEM SET log_statement = 'all'; SELECT pg_reload_conf();")
+log_level("all")
 
 print("== the DDL that Spark sent (server log)")
 for s in log.lines:

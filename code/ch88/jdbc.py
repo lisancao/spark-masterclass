@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import uuid
 from pathlib import Path
 
@@ -49,23 +50,36 @@ def psql(sql):
     return r.stdout
 
 
+def log_level(level):
+    """Set log_statement on the server (all, ddl or none) and reload the configuration."""
+    psql(f"ALTER SYSTEM SET log_statement = '{level}'")
+    psql("SELECT pg_reload_conf()")
+
+
 class Log:
     """The statements that PostgreSQL logged while the block ran (from `docker logs`)."""
 
     def __enter__(self):
         self.tag = "mark_" + uuid.uuid4().hex[:8]
-        psql(f"SELECT 1 AS {self.tag}")
+        self.since = f"{time.time() - 1:.3f}"     # read only the log lines after this moment
+        psql(f"DO $$ BEGIN RAISE LOG '{self.tag} start'; END $$")   # logged at any log_statement
         return self
 
     def __exit__(self, *exc):
-        psql(f"SELECT 2 AS {self.tag}")
-        out = subprocess.run(["docker", "logs", CONTAINER], capture_output=True, text=True)
+        psql(f"DO $$ BEGIN RAISE LOG '{self.tag} end'; END $$")
+        out = subprocess.run(["docker", "logs", "--since", self.since, CONTAINER], capture_output=True, text=True)
         text = out.stdout + out.stderr
         lines = text.splitlines()
         idx = [i for i, ln in enumerate(lines) if self.tag in ln]
         body = lines[idx[0] + 1: idx[-1]] if len(idx) >= 2 else []
         self.lines = []
+        self.fetches = 0          # "execute fetch from": one more batch of fetchsize rows from a cursor
         for ln in body:
+            if "LOG:  execute fetch from" in ln:
+                self.fetches += 1
+                continue
+            if self.tag in ln or ln.rstrip().endswith("RAISE"):        # the markers themselves
+                continue
             m = re.search(r"LOG:  (?:execute [^:]+|statement): (.*)$", ln)
             if m:
                 self.lines.append(m.group(1))
@@ -76,7 +90,7 @@ class Log:
     def selects(self, table=None):
         """The SELECT statements, without the metadata queries that the driver sends."""
         out = [s for s in self.lines if s.upper().startswith("SELECT") and "pg_catalog" not in s
-               and "information_schema" not in s.lower()]
+               and "information_schema" not in s.lower() and "WHERE 1=0" not in s]
         if table:
             out = [s for s in out if table in s]
         return out

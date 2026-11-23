@@ -30,8 +30,8 @@ def show(title, df, table="trips"):
     with Log() as log:
         rows = df.collect()
     for s in log.selects(table):
-        print("   SQL:   " + s[:330])
-    print(f"   rows back to Spark's result: {len(rows)}")
+        print("   SQL:   " + " ".join(s.split())[:900])
+    print(f"   cursor fetches of 1000 rows: {log.fetches}, rows in the result: {len(rows)}")
     print()
 
 
@@ -57,9 +57,9 @@ show("JDBC catalog (DSv2)", spark.sql("SELECT trip_id FROM pg.public.trips TABLE
 print("== join of trips and zones")
 q = """SELECT z.borough, count(*) AS n FROM pg.public.trips t JOIN pg.public.zones z
        ON t.pulocationid = z.locationid WHERE t.fare_amount > 200 GROUP BY z.borough"""
-show("spark.sql.optimizer.datasourceV2JoinPushdown=false (the default)", spark.sql(q))
+show("spark.sql.optimizer.datasourceV2JoinPushdown=false (the default)", spark.sql(q), None)
 spark.conf.set("spark.sql.optimizer.datasourceV2JoinPushdown", "true")
-show("spark.sql.optimizer.datasourceV2JoinPushdown=true", spark.sql(q))
+show("spark.sql.optimizer.datasourceV2JoinPushdown=true", spark.sql(q), None)
 spark.conf.set("spark.sql.optimizer.datasourceV2JoinPushdown", "false")
 
 print("== turn a pushdown off")

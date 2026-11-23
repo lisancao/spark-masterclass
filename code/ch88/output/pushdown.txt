@@ -1,0 +1,98 @@
+== filter and column pruning
+-- jdbc format (DSv1)
+   PushedFilters: [*IsNotNull(fare_amount), *IsNotNull(payment_type), *GreaterThan(fare_amount,300.0), *EqualTo(payment_type,1)]
+   SQL:   SELECT "trip_id","fare_amount" FROM trips WHERE ("fare_amount" IS NOT NULL) AND ("payment_type" IS NOT NULL) AND ("fare_amount" > 300.0) AND ("payment_type" = 1)
+   cursor fetches of 1000 rows: 0, rows in the result: 287
+
+-- JDBC catalog (DSv2)
+   PushedFilters: [fare_amount IS NOT NULL, payment_type IS NOT NULL, fare_amount > 300.0, payment_type = 1]
+   SQL:   SELECT "fare_amount","trip_id" FROM "public"."trips" WHERE ("fare_amount" IS NOT NULL) AND ("payment_type" IS NOT NULL) AND ("fare_amount" > 300.0) AND ("payment_type" = 1)
+   cursor fetches of 1000 rows: 0, rows in the result: 287
+
+== a filter with a function (upper)
+-- jdbc format (DSv1)
+   PushedFilters: [*IsNotNull(store_and_fwd_flag)]
+   SQL:   SELECT "trip_id","store_and_fwd_flag" FROM trips WHERE ("store_and_fwd_flag" IS NOT NULL)
+   cursor fetches of 1000 rows: 2823, rows in the result: 4541
+
+-- JDBC catalog (DSv2)
+   PushedFilters: [store_and_fwd_flag IS NOT NULL]
+   SQL:   SELECT "store_and_fwd_flag","trip_id" FROM "public"."trips" WHERE ("store_and_fwd_flag" IS NOT NULL)
+   cursor fetches of 1000 rows: 2823, rows in the result: 4541
+
+== aggregate: average fare by payment type
+-- jdbc format (DSv1)
+   SQL:   SELECT "payment_type","fare_amount" FROM trips
+   cursor fetches of 1000 rows: 3837, rows in the result: 6
+
+-- JDBC catalog (DSv2)
+   PushedAggregates: [COUNT(*), AVG(fare_amount)]
+   PushedGroupByExpressions: [payment_type]
+   SQL:   SELECT "payment_type",COUNT(*),AVG("fare_amount") FROM "public"."trips" GROUP BY "payment_type"
+   cursor fetches of 1000 rows: 0, rows in the result: 6
+
+== limit
+-- jdbc format (DSv1)
+   SQL:   SELECT "trip_id","fare_amount" FROM trips
+   cursor fetches of 1000 rows: 0, rows in the result: 5
+
+-- JDBC catalog (DSv2)
+   PushedLimit: LIMIT 5
+   SQL:   SELECT "fare_amount","trip_id" FROM "public"."trips" LIMIT 5
+   cursor fetches of 1000 rows: 0, rows in the result: 5
+
+== offset and limit
+-- jdbc format (DSv1)
+   SQL:   SELECT "trip_id" FROM trips
+   cursor fetches of 1000 rows: 3837, rows in the result: 3
+
+-- JDBC catalog (DSv2)
+   PushedOffset: OFFSET 10
+   PushedTopN: ORDER BY [trip_id ASC NULLS FIRST] LIMIT 13
+   SQL:   SELECT "trip_id" FROM "public"."trips" ORDER BY "trip_id" ASC NULLS FIRST LIMIT 3 OFFSET 10
+   cursor fetches of 1000 rows: 0, rows in the result: 3
+
+== top-N: the five highest fares
+-- jdbc format (DSv1)
+   SQL:   SELECT "trip_id","fare_amount" FROM trips
+   cursor fetches of 1000 rows: 3837, rows in the result: 5
+
+-- JDBC catalog (DSv2)
+   PushedTopN: ORDER BY [fare_amount DESC NULLS LAST] LIMIT 5
+   SQL:   SELECT "fare_amount","trip_id" FROM "public"."trips" ORDER BY "fare_amount" DESC NULLS LAST LIMIT 5
+   cursor fetches of 1000 rows: 0, rows in the result: 5
+
+== TABLESAMPLE (SQL)
+-- JDBC catalog (DSv2)
+   PushedSample: BERNOULLI SAMPLE (0.01) false SEED(5795039031906651214)
+   SQL:   SELECT "trip_id" FROM "public"."trips" TABLESAMPLE BERNOULLI (0.01) REPEATABLE (5795039031906651214)
+   cursor fetches of 1000 rows: 0, rows in the result: 389
+
+== join of trips and zones
+-- spark.sql.optimizer.datasourceV2JoinPushdown=false (the default)
+   PushedFilters: [fare_amount IS NOT NULL, fare_amount > 200.0, pulocationid IS NOT NULL]
+   PushedFilters: [locationid IS NOT NULL]
+   SQL:   SELECT "locationid","borough" FROM "public"."zones" WHERE ("locationid" IS NOT NULL)
+   SQL:   SELECT "pulocationid" FROM "public"."trips" WHERE ("fare_amount" IS NOT NULL) AND ("fare_amount" > 200.0) AND ("pulocationid" IS NOT NULL)
+   cursor fetches of 1000 rows: 1, rows in the result: 8
+
+-- spark.sql.optimizer.datasourceV2JoinPushdown=true
+   PushedAggregates: [COUNT(*)]
+   PushedFilters: [pulocationid = locationid]
+   PushedGroupByExpressions: [borough]
+   PushedJoins:
+   PushedFilters: [fare_amount IS NOT NULL, fare_amount > 200.0, pulocationid IS NOT NULL]
+   PushedFilters: [locationid IS NOT NULL]
+   SQL:   SELECT "borough",COUNT(*) FROM (SELECT "pulocationid","locationid","borough" FROM ( SELECT "pulocationid","locationid","borough" FROM (SELECT "pulocationid" FROM "public"."trips" WHERE ("fare_amount" IS NOT NULL) AND ("fare_amount" > 200.0) AND ("pulocationid" IS NOT NULL) ) join_subquery_0 INNER JOIN (SELECT "locationid","borough" FROM "public"."zones" WHERE ("locationid" IS NOT NULL) ) join_subquery_1 ON "pulocationid" = "locationid" ) join_subquery_2) SPARK_GEN_SUBQ_0 GROUP BY "borough"
+   cursor fetches of 1000 rows: 0, rows in the result: 8
+
+== turn a pushdown off
+-- catalog pg_noagg with pushDownAggregate=false
+   SQL:   SELECT "payment_type" FROM "public"."trips"
+   cursor fetches of 1000 rows: 3837, rows in the result: 6
+
+-- jdbc format with pushDownPredicate=false
+   PushedFilters: [IsNotNull(fare_amount), GreaterThan(fare_amount,300.0)]
+   SQL:   SELECT "trip_id","fare_amount" FROM trips
+   cursor fetches of 1000 rows: 3837, rows in the result: 537
+

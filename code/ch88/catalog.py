@@ -22,7 +22,7 @@ def run(sql, show_rows=True, n=8):
         if len(rows) > n:
             print(f"  ... ({len(rows)} rows)")
     for s in log.lines:
-        if "pg_catalog" in s or "information_schema" in s.lower() or s.startswith("SELECT 1 AS mark"):
+        if "pg_catalog" in s or "information_schema" in s.lower():
             continue
         if s.upper().startswith(("SELECT", "CREATE", "ALTER", "DROP", "INSERT", "COMMENT", "TRUNCATE")):
             print("  postgres> " + s[:200])

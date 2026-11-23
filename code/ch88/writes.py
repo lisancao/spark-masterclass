@@ -18,15 +18,15 @@ def statements(log, skip_insert_after=2):
     """The statements of one write, with repeated INSERT lines folded."""
     shown, inserts = [], 0
     for s in log.lines:
-        if s.startswith("SELECT 1 AS mark") or "pg_catalog" in s:
+        if "pg_catalog" in s or s.startswith("SET application_name"):
             continue
-        if s.upper().startswith("INSERT"):
+        if s.upper().startswith("INSERT") and "VALUES" in s:
             inserts += 1
             if inserts > skip_insert_after:
                 continue
         shown.append(s)
     for s in shown:
-        print("   " + s[:240])
+        print("   " + s.strip()[:240])
     if inserts > skip_insert_after:
         print(f"   ... ({inserts} INSERT executions in all)")
 
@@ -71,8 +71,10 @@ print("== append 800 rows in 8 tasks to a table that has id 700 (in task 7)")
 try:
     rows.write.jdbc(URL, "keyed", mode="append", properties={**PROPS, "batchsize": "50"})
 except Exception as e:
-    msg = [ln for ln in str(e).splitlines() if "duplicate key" in ln]
-    print("   the job failed: " + (msg[0].strip()[:140] if msg else str(e).splitlines()[0][:140]))
+    import re
+    m = re.search(r"ERROR: (duplicate key value violates unique constraint \"\w+\")", str(e))
+    t = re.search(r"(Task \d+ in stage [\d.]+ failed \d+ times)", str(e))
+    print("   the job failed: " + (t.group(1) if t else "?") + ": " + (m.group(1) if m else "?"))
 print("   rows in keyed after the failed job, by task range:")
 print("\n".join("   " + ln for ln in psql(
     "SELECT id / 100 AS task, count(*) FROM keyed GROUP BY 1 ORDER BY 1").splitlines()))

@@ -1,0 +1,25 @@
+== the DDL that Spark sent (server log)
+  CREATE TABLE trips ("vendorid" INTEGER , "tpep_pickup_datetime" TIMESTAMP , "tpep_dropoff_datetime" TIMESTAMP , "passenger_count" BIGINT , "trip_distance" FLOAT8 , "ratecodeid" BIGINT , "store_and_fwd_flag" TEXT , "pulocationid" INTEGER , "dolocationid" INTEGER , "payment_type" BIGINT , "fare_amount" FLOAT8 , "extra" FLOAT8 , "mta_tax" FLOAT8 , "tip_amount" FLOAT8 , "tolls_amount" FLOAT8 , "improv
+  CREATE TABLE zones ("locationid" INTEGER , "borough" TEXT , "zone" TEXT , "service_zone" TEXT ) 
+
+loaded 3,837,248 trips with 8 tasks in 17.0 s (batchsize 1000, not a benchmark)
+
+== the table in PostgreSQL (psql \d trips, first columns)
+                                           Table "public.trips"
+        Column         |            Type             | Collation | Nullable |           Default            
+-----------------------+-----------------------------+-----------+----------+------------------------------
+ vendorid              | integer                     |           |          | 
+ tpep_pickup_datetime  | timestamp without time zone |           |          | 
+ tpep_dropoff_datetime | timestamp without time zone |           |          | 
+ passenger_count       | bigint                      |           |          | 
+ trip_distance         | double precision            |           |          | 
+ ratecodeid            | bigint                      |           |          | 
+ store_and_fwd_flag    | text                        |           |          | 
+ pulocationid          | integer                     |           |          | 
+ dolocationid          | integer                     |           |          | 
+  trips  | min |   max   | first_day  |  last_day  
+---------+-----+---------+------------+------------
+ 3837248 |   1 | 3837248 | 2008-12-31 | 2026-06-30
+(1 row)
+
+

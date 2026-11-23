@@ -15,21 +15,20 @@ from pyspark.sql import functions as F  # noqa: E402
 
 
 def tasks(df):
-    rows = df.groupBy(F.spark_partition_id().alias("task")).count().orderBy("task").collect()
-    have = {r["task"]: r["count"] for r in rows}
-    n = df.rdd.getNumPartitions()
-    return [have.get(i, 0) for i in range(n)]
+    """Rows that each task read (the rows go through Python, so the SELECT keeps its columns)."""
+    return df.rdd.mapPartitions(lambda it: [sum(1 for _ in it)]).collect()
 
 
 def show(title, df, table="trips"):
     print(f"== {title}")
-    scan = [ln for ln in plan(df, "formatted").splitlines() if ln.strip().startswith("Scan JDBCRelation")]
-    print("  plan: " + (scan[0].strip()[:150] if scan else "?"))
+    scan = [ln for ln in plan(df, "simple").splitlines() if "JDBCRelation" in ln]
+    print("  plan: " + (scan[0].strip().lstrip("+- *(0123456789)")[:150] if scan else "?"))
     with Log() as log:
         counts = tasks(df)
     print(f"  tasks: {len(counts)}, rows per task: {counts}")
     for s in log.selects(table):
-        print("  SQL: " + s[:200])
+        print("  SQL: " + s.strip()[:200])
+    print(f"  cursor fetches (execute fetch from ...): {log.fetches}")
     print()
 
 
@@ -72,4 +71,4 @@ try:
         .option("lowerBound", 1).option("upperBound", 10).option("numPartitions", 2).load()
 except Exception as e:
     print("== query together with partitionColumn")
-    print("  " + str(e).splitlines()[0][:200])
+    print("  " + " ".join(str(e).split())[:230])

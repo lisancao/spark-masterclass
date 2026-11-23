@@ -1,0 +1,56 @@
+== no partition options
+  plan: Scan JDBCRelation(trips) [numPartitions=1] [trip_id#21L,tpep_pickup_datetime#1] PushedFilters: [], ReadSchema: struct<trip_id:bigint,tpep_pickup_datet
+  tasks: 1, rows per task: [3837248]
+  SQL: SELECT "trip_id","tpep_pickup_datetime" FROM trips
+  cursor fetches (execute fetch from ...): 3837
+
+== partitionColumn=trip_id, lowerBound=1, upperBound=3837248, numPartitions=8
+  plan: Scan JDBCRelation(trips) [numPartitions=8] [trip_id#43L] PushedFilters: [], ReadSchema: struct<trip_id:bigint>
+  tasks: 8, rows per task: [479658, 479655, 479655, 479655, 479655, 479655, 479655, 479660]
+  SQL: SELECT "trip_id" FROM trips  WHERE "trip_id" >= 959314 AND "trip_id" < 1438969
+  SQL: SELECT "trip_id" FROM trips  WHERE "trip_id" >= 1438969 AND "trip_id" < 1918624
+  SQL: SELECT "trip_id" FROM trips  WHERE "trip_id" >= 479659 AND "trip_id" < 959314
+  SQL: SELECT "trip_id" FROM trips  WHERE "trip_id" < 479659 or "trip_id" is null
+  SQL: SELECT "trip_id" FROM trips  WHERE "trip_id" >= 1918624 AND "trip_id" < 2398279
+  SQL: SELECT "trip_id" FROM trips  WHERE "trip_id" >= 2398279 AND "trip_id" < 2877934
+  SQL: SELECT "trip_id" FROM trips  WHERE "trip_id" >= 2877934 AND "trip_id" < 3357589
+  SQL: SELECT "trip_id" FROM trips  WHERE "trip_id" >= 3357589
+  cursor fetches (execute fetch from ...): 3832
+
+== the pickup times in the table: min 2008-12-31 23:03:25, max 2026-06-30 23:59:59
+
+== partitionColumn=tpep_pickup_datetime, bounds from min and max
+  plan: Scan JDBCRelation(trips) [numPartitions=6] [trip_id#119L] PushedFilters: [], ReadSchema: struct<trip_id:bigint>
+  tasks: 6, rows per task: [1, 0, 0, 0, 0, 3837247]
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2014-11-01 00:02:16.333334' AND "tpep_pickup_datetime" < '2017-10-01 00:01:42'
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2017-10-01 00:01:42' AND "tpep_pickup_datetime" < '2020-08-31 00:01:07.666666'
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2011-12-01 23:02:50.666668' AND "tpep_pickup_datetime" < '2014-11-01 00:02:16.333334'
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" < '2011-12-01 23:02:50.666668' or "tpep_pickup_datetime" is null
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2020-08-31 00:01:07.666666' AND "tpep_pickup_datetime" < '2023-08-01 00:00:33.333332'
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2023-08-01 00:00:33.333332'
+  cursor fetches (execute fetch from ...): 3837
+
+== partitionColumn=tpep_pickup_datetime, bounds 2026-06-01 to 2026-07-01
+  plan: Scan JDBCRelation(trips) [numPartitions=6] [trip_id#141L] PushedFilters: [], ReadSchema: struct<trip_id:bigint>
+  tasks: 6, rows per task: [668590, 668254, 683915, 642060, 599563, 574866]
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2026-06-06 00:00:00' AND "tpep_pickup_datetime" < '2026-06-11 00:00:00'
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2026-06-11 00:00:00' AND "tpep_pickup_datetime" < '2026-06-16 00:00:00'
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2026-06-16 00:00:00' AND "tpep_pickup_datetime" < '2026-06-21 00:00:00'
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" < '2026-06-06 00:00:00' or "tpep_pickup_datetime" is null
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2026-06-21 00:00:00' AND "tpep_pickup_datetime" < '2026-06-26 00:00:00'
+  SQL: SELECT "trip_id" FROM trips  WHERE "tpep_pickup_datetime" >= '2026-06-26 00:00:00'
+  cursor fetches (execute fetch from ...): 3834
+
+== predicates: four week ranges that you write
+  plan: Scan JDBCRelation(trips) [numPartitions=4] [trip_id#163L] PushedFilters: [], ReadSchema: struct<trip_id:bigint>
+  tasks: 4, rows per task: [953424, 957821, 861538, 1064465]
+  SQL: SELECT "trip_id" FROM trips  WHERE tpep_pickup_datetime >= '2026-06-08' AND tpep_pickup_datetime < '2026-06-15'
+  SQL: SELECT "trip_id" FROM trips  WHERE tpep_pickup_datetime >= '2026-06-15' AND tpep_pickup_datetime < '2026-06-22'
+  SQL: SELECT "trip_id" FROM trips  WHERE tpep_pickup_datetime >= '2026-06-22' OR tpep_pickup_datetime IS NULL
+  SQL: SELECT "trip_id" FROM trips  WHERE tpep_pickup_datetime < '2026-06-08'
+  cursor fetches (execute fetch from ...): 3835
+
+== bounds 1 to 4 with numPartitions=8 gives 3 partitions
+
+== query together with partitionColumn
+  requirement failed: Options 'query' and 'partitionColumn' can not be specified together. Please define the query using `dbtable` option instead and make sure to qualify the partition columns using the supplied subquery alias to re

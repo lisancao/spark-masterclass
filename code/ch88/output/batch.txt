@@ -1,0 +1,11 @@
+1,000,000 rows, 4 tasks, local[4], PostgreSQL 16 in Docker; median of 3 writes
+
+setting                                         median s    rows/s   runs
+batchsize=10                                        4.84   206,646   4.84 4.94 3.85
+batchsize=100                                       2.74   365,126   3.02 2.74 2.41
+batchsize=1000 (default)                            2.22   450,459   2.56 2.12 2.22
+batchsize=10000                                     3.12   320,149   2.65 3.55 3.12
+batchsize=1000, reWriteBatchedInserts=true          1.83   546,253   1.83 1.95 1.63
+batchsize=10000, reWriteBatchedInserts=true         1.48   676,898   1.48 1.49 1.34
+
+rows in batch_test: 1000000

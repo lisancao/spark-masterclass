@@ -1,6 +1,6 @@
 """Write speed by batchsize, and with the driver's reWriteBatchedInserts, into PostgreSQL.
 
-Run under the bench lock. 200,000 taxi rows in 4 tasks into a new table, one warm-up write,
+Run under the bench lock. 1,000,000 taxi rows in 4 tasks into a new table, one warm-up write,
 then the median of three writes for each setting. The server logs no statements during the runs.
 """
 import statistics
@@ -9,9 +9,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from jdbc import PROPS, URL, pg_session, psql  # noqa: E402
+from jdbc import log_level, PROPS, URL, pg_session, psql  # noqa: E402
 
-ROWS, TASKS, RUNS = 200_000, 4, 3
+ROWS, TASKS, RUNS = 1_000_000, 4, 3
 spark = pg_session("ch88-batch")
 df = spark.table("pg.public.trips").drop("trip_id").limit(ROWS).repartition(TASKS).cache()
 df.count()
@@ -25,7 +25,7 @@ settings = [
     ("batchsize=10000, reWriteBatchedInserts=true", URL + "?reWriteBatchedInserts=true", {"batchsize": "10000"}),
 ]
 
-psql("ALTER SYSTEM SET log_statement = 'none'; SELECT pg_reload_conf();")
+log_level("none")
 try:
     df.write.jdbc(URL, "batch_test", mode="overwrite", properties=PROPS)        # warm-up
     print(f"{ROWS:,} rows, {TASKS} tasks, local[4], PostgreSQL 16 in Docker; median of {RUNS} writes\n")
@@ -39,5 +39,5 @@ try:
         med = statistics.median(times)
         print(f"{name:46} {med:9.2f} {ROWS / med:9,.0f}   " + " ".join(f"{x:.2f}" for x in times))
 finally:
-    psql("ALTER SYSTEM SET log_statement = 'all'; SELECT pg_reload_conf();")
+    log_level("all")
 print("\nrows in batch_test:", psql("SELECT count(*) FROM batch_test").split()[2])
