@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export SPARK_HOME=$(uv run python -c "import pyspark, os; print(os.path.dirname(pyspark.__file__))")
-export SPARK_LOG_DIR=${BOOK_DATA:-$PWD/../data}/logs-v3apis SPARK_PID_DIR=${BOOK_DATA:-$PWD/../data}/pids-v3apis
+export SPARK_LOG_DIR=${BOOK_DATA:-$HOME/spark-masterclass/data}/logs-v3apis SPARK_PID_DIR=${BOOK_DATA:-$HOME/spark-masterclass/data}/pids-v3apis
 export SPARK_LOCAL_IP=127.0.0.1 SPARK_IDENT_STRING=v3apis
 mkdir -p "$SPARK_LOG_DIR" "$SPARK_PID_DIR"
 "$SPARK_HOME/sbin/stop-connect-server.sh" >/dev/null 2>&1 || true
