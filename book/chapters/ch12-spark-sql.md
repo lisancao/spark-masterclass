@@ -11,6 +11,8 @@ This chapter opens the Spark SQL part of the book. The next chapters teach the q
 - [Chapter 13](ch13-spark-sql-in-depth.md) teaches windows, pipe syntax and `QUALIFY`.
 - [Chapter 14](ch14-procedural-sql.md) teaches SQL scripts, SQL functions and recursive CTEs.
 - [Chapter 15](ch15-time-series.md) teaches the geospatial types.
+- [Chapter 84](ch84-tables-ddl-writes.md) teaches table DDL and writes: `ALTER TABLE`, defaults, view schema modes, `writeTo` and partition overwrite.
+- [Chapter 85](ch85-hive-tables-metastore.md) teaches Hive tables and the Hive metastore.
 
 The scripts are in [`code/ch12`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch12), and each output block below comes from `code/ch12/output/`.
 
@@ -99,7 +101,7 @@ Location            	file:~/spark-masterclass/data/nyc-taxi/taxi_zone_lookup.csv
 Time taken: 0.463 seconds, Fetched 20 row(s)
 ```
 
-The table stays because the shell uses the Hive catalog. `SparkSQLEnv.scala` calls `enableHiveSupport()` unless you set `spark.sql.catalogImplementation=in-memory`. The Hive metastore keeps its data in an embedded Derby database, here `metastore_db`. A PySpark session uses the `in-memory` catalog by default ([Chapter 8](ch08-setting-configurations.md)), and its tables disappear when the session stops.
+The table stays because the shell uses the Hive catalog. `SparkSQLEnv.scala` calls `enableHiveSupport()` unless you set `spark.sql.catalogImplementation=in-memory`. The Hive metastore keeps its data in an embedded Derby database, here `metastore_db`. A PySpark session uses the `in-memory` catalog by default ([Chapter 8](ch08-setting-configurations.md)), and its tables disappear when the session stops. For the Hive catalog and the metastore in detail, read [Chapter 85](ch85-hive-tables-metastore.md).
 
 The table is `EXTERNAL`, because the `CREATE TABLE` statement gave a `path`. Step 5 explains managed and external tables.
 
@@ -471,7 +473,7 @@ The two types are different when you drop them:
   {"tables":[{"name":"daily","namespace":["taxi"],"isTemporary":false},{"name":"daily_ext","namespace":["taxi"],"isTemporary":false},{"name":"trips_raw","namespace":[],"isTemporary":true}]}
 ```
 
-The session catalog is not a table format. It does not give transactions, time travel or `MERGE` to a Parquet table. For these features, use Delta Lake or Apache Iceberg ([Chapter 44](ch44-tables-delta-iceberg.md)). In this session, `CREATE OR REPLACE TABLE` on a Parquet table failed with `UNSUPPORTED_FEATURE.TABLE_OPERATION`, so `tables_views.py` uses `DROP TABLE` and `CREATE TABLE`.
+The session catalog is not a table format. It does not give transactions, time travel or `MERGE` to a Parquet table. For these features, use Delta Lake or Apache Iceberg ([Chapter 44](ch44-tables-delta-iceberg.md)). In this session, `CREATE OR REPLACE TABLE` on a Parquet table failed with `UNSUPPORTED_FEATURE.TABLE_OPERATION`, so `tables_views.py` uses `DROP TABLE` and `CREATE TABLE`. For the DDL and writes that the session catalog supports, read [Chapter 84](ch84-tables-ddl-writes.md).
 
 ## Step 6: Views, temporary views and global temporary views
 

@@ -1,0 +1,71 @@
+== 1. one table, four views
+> CREATE TABLE zones (id INT, borough STRING) USING parquet
+> INSERT INTO zones VALUES (1, 'EWR'), (2, 'Queens')
+> CREATE VIEW v_binding WITH SCHEMA BINDING AS SELECT * FROM zones
+> CREATE VIEW v_comp  AS SELECT * FROM zones
+> CREATE VIEW v_type WITH SCHEMA TYPE EVOLUTION AS SELECT * FROM zones
+> CREATE VIEW v_evo WITH SCHEMA EVOLUTION AS SELECT * FROM zones
+  v_binding  View Schema Mode = BINDING
+  v_comp     View Schema Mode = COMPENSATION
+  v_type     View Schema Mode = TYPE EVOLUTION
+  v_evo      View Schema Mode = EVOLUTION
+
+== 2. the table changes, the views are read again
+  -- no change
+  v_binding  ok    id int, borough string                   first row [(1, 'EWR')]
+  v_comp     ok    id int, borough string                   first row [(1, 'EWR')]
+  v_type     ok    id int, borough string                   first row [(1, 'EWR')]
+  v_evo      ok    id int, borough string                   first row [(1, 'EWR')]
+> zones is now (id BIGINT, borough STRING)
+  -- id INT -> BIGINT (a widening)
+  v_binding  error CANNOT_UP_CAST_DATATYPE
+  v_comp     ok    id int, borough string                   first row [(1, 'EWR')]
+  v_type     ok    id bigint, borough string                first row [(1, 'EWR')]
+  v_evo      ok    id bigint, borough string                first row [(1, 'EWR')]
+> zones is now (id STRING, borough STRING)
+  -- id INT -> STRING, with a value that is not a number
+  v_binding  error CANNOT_UP_CAST_DATATYPE
+  v_comp     error CAST_INVALID_INPUT
+  v_type     ok    id string, borough string                first row [('1', 'EWR')]
+  v_evo      ok    id string, borough string                first row [('1', 'EWR')]
+> zones is now (id INT, borough STRING, zone STRING)
+  -- a column is added
+  v_binding  ok    id int, borough string                   first row [(1, 'EWR')]
+  v_comp     ok    id int, borough string                   first row [(1, 'EWR')]
+  v_type     ok    id int, borough string                   first row [(1, 'EWR')]
+  v_evo      ok    id int, borough string, zone string      first row [(1, 'EWR', 'Newark Airport')]
+> zones is now (id INT)
+  -- a column is dropped
+  v_binding  error INCOMPATIBLE_VIEW_SCHEMA_CHANGE
+  v_comp     error INCOMPATIBLE_VIEW_SCHEMA_CHANGE
+  v_type     error INCOMPATIBLE_VIEW_SCHEMA_CHANGE
+  v_evo      ok    id int                                   first row [(1,)]
+
+== 3. what EVOLUTION wrote back to the catalog
+  v_comp  View Query Output Columns = [`id`, `borough`]
+  v_evo   View Query Output Columns = [`id`]
+
+== 4. ALTER VIEW ... WITH SCHEMA changes the mode, not the text
+> ALTER VIEW v_comp WITH SCHEMA EVOLUTION
+  -- after ALTER VIEW v_comp WITH SCHEMA EVOLUTION
+  v_binding  error INCOMPATIBLE_VIEW_SCHEMA_CHANGE
+  v_comp     ok    id int                                   first row [(1,)]
+  v_type     error INCOMPATIBLE_VIEW_SCHEMA_CHANGE
+  v_evo      ok    id int                                   first row [(1,)]
+
+== 5. a column list makes EVOLUTION act as TYPE EVOLUTION
+> zones is now (id INT, borough STRING)
+> CREATE VIEW v_list (zone_id, zone_borough) WITH SCHEMA EVOLUTION AS SELECT * FROM zones
+  v_list View Schema Mode = TYPE EVOLUTION
+> zones is now (id INT, borough STRING, zone STRING)
+  v_list columns after a column is added: ['zone_id', 'zone_borough']
+> CREATE TEMPORARY VIEW t_v WITH SCHEMA EVOLUTION AS SELECT * FROM zones
+  ParseException: [UNSUPPORTED_FEATURE.TEMPORARY_VIEW_WITH_SCHEMA_BINDING_MODE] The
+  feature is not supported: Temporary views cannot be created with the WITH SCHEMA ...
+> SET spark.sql.legacy.viewSchemaCompensation
++---------------------------------------+-----+
+|key                                    |value|
++---------------------------------------+-----+
+|spark.sql.legacy.viewSchemaCompensation|true |
++---------------------------------------+-----+
+

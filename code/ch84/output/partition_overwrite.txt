@@ -1,0 +1,129 @@
+== the table before each run: three days, one partition folder per day
+> SELECT day, count(*) AS boroughs, sum(trips) AS trips FROM by_day GROUP BY day ORDER BY day
++----------+--------+------+
+|day       |boroughs|trips |
++----------+--------+------+
+|2026-06-01|8       |111546|
+|2026-06-02|8       |126260|
+|2026-06-03|8       |140184|
++----------+--------+------+
+
+> SET spark.sql.sources.partitionOverwriteMode
++----------------------------------------+------+
+|key                                     |value |
++----------------------------------------+------+
+|spark.sql.sources.partitionOverwriteMode|STATIC|
++----------------------------------------+------+
+
+
+== 1. INSERT OVERWRITE with no PARTITION clause, static mode
+   partitionOverwriteMode = STATIC
+> INSERT OVERWRITE TABLE by_day SELECT z.Borough AS borough, count(*) AS trips, to_date(t.tpep_pickup_datetime) AS day
+     FROM trips_raw t JOIN zones z ON t.PULocationID = z.LocationID
+     WHERE t.tpep_pickup_datetime >= '2026-06-02' AND t.tpep_pickup_datetime < '2026-06-03'
+     GROUP BY z.Borough, to_date(t.tpep_pickup_datetime)
+    day=2026-06-01  files before 1  after 0  -> deleted
+    day=2026-06-02  files before 1  after 1  -> replaced
+    day=2026-06-03  files before 1  after 0  -> deleted
++----------+--------+------+
+|day       |boroughs|trips |
++----------+--------+------+
+|2026-06-02|8       |126260|
++----------+--------+------+
+
+
+== 2. the same statement, dynamic mode
+   partitionOverwriteMode = DYNAMIC
+> INSERT OVERWRITE TABLE by_day SELECT z.Borough AS borough, count(*) AS trips, to_date(t.tpep_pickup_datetime) AS day
+     FROM trips_raw t JOIN zones z ON t.PULocationID = z.LocationID
+     WHERE t.tpep_pickup_datetime >= '2026-06-02' AND t.tpep_pickup_datetime < '2026-06-03'
+     GROUP BY z.Borough, to_date(t.tpep_pickup_datetime)
+    day=2026-06-01  files before 1  after 1  -> kept
+    day=2026-06-02  files before 1  after 1  -> replaced
+    day=2026-06-03  files before 1  after 1  -> kept
++----------+--------+------+
+|day       |boroughs|trips |
++----------+--------+------+
+|2026-06-01|8       |111546|
+|2026-06-02|8       |126260|
+|2026-06-03|8       |140184|
++----------+--------+------+
+
+
+== 3. a static PARTITION value: the same result in the two modes
+   partitionOverwriteMode = STATIC
+> INSERT OVERWRITE TABLE by_day PARTITION (day = '2026-06-02') SELECT z.Borough AS borough, count(*) AS trips
+     FROM trips_raw t JOIN zones z ON t.PULocationID = z.LocationID
+     WHERE t.tpep_pickup_datetime >= '2026-06-02' AND t.tpep_pickup_datetime < '2026-06-03'
+     GROUP BY z.Borough, to_date(t.tpep_pickup_datetime)
+    day=2026-06-01  files before 1  after 1  -> kept
+    day=2026-06-02  files before 1  after 1  -> replaced
+    day=2026-06-03  files before 1  after 1  -> kept
++----------+--------+------+
+|day       |boroughs|trips |
++----------+--------+------+
+|2026-06-01|8       |111546|
+|2026-06-02|8       |126260|
+|2026-06-03|8       |140184|
++----------+--------+------+
+
+
+== 4. an empty result, dynamic mode: no partition changes
+   partitionOverwriteMode = DYNAMIC
+> INSERT OVERWRITE TABLE by_day SELECT z.Borough AS borough, count(*) AS trips, to_date(t.tpep_pickup_datetime) AS day
+     FROM trips_raw t JOIN zones z ON t.PULocationID = z.LocationID
+     WHERE t.tpep_pickup_datetime >= '2027-01-01' AND t.tpep_pickup_datetime < '2027-01-02'
+     GROUP BY z.Borough, to_date(t.tpep_pickup_datetime)
+    day=2026-06-01  files before 1  after 1  -> kept
+    day=2026-06-02  files before 1  after 1  -> kept
+    day=2026-06-03  files before 1  after 1  -> kept
++----------+--------+------+
+|day       |boroughs|trips |
++----------+--------+------+
+|2026-06-01|8       |111546|
+|2026-06-02|8       |126260|
+|2026-06-03|8       |140184|
++----------+--------+------+
+
+
+== 5. an empty result, static mode: the table is empty
+   partitionOverwriteMode = STATIC
+> INSERT OVERWRITE TABLE by_day SELECT z.Borough AS borough, count(*) AS trips, to_date(t.tpep_pickup_datetime) AS day
+     FROM trips_raw t JOIN zones z ON t.PULocationID = z.LocationID
+     WHERE t.tpep_pickup_datetime >= '2027-01-01' AND t.tpep_pickup_datetime < '2027-01-02'
+     GROUP BY z.Borough, to_date(t.tpep_pickup_datetime)
+    day=2026-06-01  files before 1  after 0  -> deleted
+    day=2026-06-02  files before 1  after 0  -> deleted
+    day=2026-06-03  files before 1  after 0  -> deleted
++---+--------+-----+
+|day|boroughs|trips|
++---+--------+-----+
++---+--------+-----+
+
+
+== 6. the DataFrame API: insertInto and the partitionOverwriteMode option
+   session: STATIC, writer option: dynamic
+    day=2026-06-01  files before 1  after 0  -> deleted
+    day=2026-06-02  files before 1  after 1  -> replaced
+    day=2026-06-03  files before 1  after 0  -> deleted
+   session: DYNAMIC, writer option: None
+    day=2026-06-01  files before 1  after 1  -> kept
+    day=2026-06-02  files before 1  after 1  -> replaced
+    day=2026-06-03  files before 1  after 1  -> kept
+> INSERT OVERWRITE TABLE by_day WITH ('partitionOverwriteMode' = 'dynamic') SELECT z.Borough AS borough, count(*) AS trips, to_date(t.tpep_pickup_datetime) AS day
+     FROM trips_raw t JOIN zones z ON t.PULocationID = z.LocationID
+     WHERE t.tpep_pickup_datetime >= '2026-06-02' AND t.tpep_pickup_datetime < '2026-06-03'
+     GROUP BY z.Borough, to_date(t.tpep_pickup_datetime)
+   session: STATIC, INSERT ... WITH ('partitionOverwriteMode' = 'dynamic')
+    day=2026-06-01  files before 1  after 1  -> kept
+    day=2026-06-02  files before 1  after 1  -> replaced
+    day=2026-06-03  files before 1  after 1  -> kept
+
+== 7. a path with partitionBy, mode('overwrite')
+   option static   folders after: ['day=2026-06-02']
+   option dynamic  folders after: ['day=2026-06-01', 'day=2026-06-02', 'day=2026-06-03']
+
+== 8. during a dynamic overwrite: the new files wait in a staging folder
+  files seen under the table folder while the job ran (outside _temporary):
+    .spark-staging-<id>/day=2026-06-02/part-00000-<id>.c000.snappy.parquet
+  after the commit: ['._SUCCESS.crc', '_SUCCESS', 'day=2026-06-01', 'day=2026-06-02', 'day=2026-06-03']

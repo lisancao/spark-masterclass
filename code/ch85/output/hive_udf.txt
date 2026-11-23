@@ -1,0 +1,88 @@
+== 1. temporary functions from a jar
+> CREATE DATABASE taxi
+> CREATE TABLE taxi.zones (id INT, borough STRING, zone STRING) STORED AS PARQUET
+> CREATE TEMPORARY FUNCTION borough_code AS 'book.udf.BoroughCode' USING JAR '~/spark-masterclass-parts/sql-ddl/code/ch85/hive_udf/book-hive-udf.jar'
+> CREATE TEMPORARY FUNCTION initials AS 'book.udf.Initials' USING JAR '~/spark-masterclass-parts/sql-ddl/code/ch85/hive_udf/book-hive-udf.jar'
+> SELECT id, borough, borough_code(borough) AS code, zone, initials(zone) AS short FROM taxi.zones ORDER BY id
++---+---------+----+---------------------+-----+
+|id |borough  |code|zone                 |short|
++---+---------+----+---------------------+-----+
+|1  |EWR      |NULL|Newark Airport       |NA   |
+|4  |Manhattan|MN  |Alphabet City        |AC   |
+|7  |Queens   |QN  |Astoria              |A    |
+|24 |Manhattan|MN  |Bloomingdale         |B    |
+|238|Manhattan|MN  |Upper West Side North|UWSN |
++---+---------+----+---------------------+-----+
+
+  wrapper in the physical plan:
+    borough_code -> ['HiveGenericUDF']
+    initials     -> ['HiveSimpleUDF']
+
+== 2. a persistent function: the class name and the jar go into the metastore
+> CREATE FUNCTION taxi.borough_code AS 'book.udf.BoroughCode' USING JAR '~/spark-masterclass-parts/sql-ddl/code/ch85/hive_udf/book-hive-udf.jar'
+> SHOW USER FUNCTIONS IN taxi
++-------------------------------+
+|function                       |
++-------------------------------+
+|borough_code                   |
+|initials                       |
+|spark_catalog.taxi.borough_code|
++-------------------------------+
+
+  Function: spark_catalog.taxi.borough_code
+  Class: book.udf.BoroughCode
+  Usage: N/A.
+  Extended Usage:
+    No example/argument for borough_code.
+
+
+== 3. Hive's own UDAF and UDTF classes, from the hive-exec jar that Spark ships
+> CREATE TEMPORARY FUNCTION hive_std AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDAFStd'
+> CREATE TEMPORARY FUNCTION hive_stack AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDTFStack'
+> SELECT borough, round(hive_std(id), 2) AS std_id, round(stddev_pop(id), 2) AS spark_std FROM taxi.zones GROUP BY borough ORDER BY borough
++---------+------+---------+
+|borough  |std_id|spark_std|
++---------+------+---------+
+|EWR      |0.0   |0.0      |
+|Manhattan|105.91|105.91   |
+|Queens   |0.0   |0.0      |
++---------+------+---------+
+
+> SELECT hive_stack(2, 'Bronx', 'BX', 'Brooklyn', 'BK') AS (borough, code)
++--------+----+
+|borough |code|
++--------+----+
+|Bronx   |BX  |
+|Brooklyn|BK  |
++--------+----+
+
+  wrapper in the physical plan:
+    hive_std   -> ['ObjectHashAggregate']
+    hive_stack -> ['HiveGenericUDTF']
+
+== 4. a new process: the persistent function works with no CREATE in this session
+> SELECT id, taxi.borough_code(borough) AS code FROM taxi.zones ORDER BY id
++---+----+
+|id |code|
++---+----+
+|1  |NULL|
+|4  |MN  |
+|7  |QN  |
+|24 |MN  |
+|238|MN  |
++---+----+
+
+> SELECT initials('Upper West Side')
+  AnalysisException: [UNRESOLVED_ROUTINE] Cannot resolve routine `initials` on search
+  path [`system`.`builtin`, `system`.`session`, `spark_catalog`.`default`]. SQLSTATE: ...
+  jars that the session added for the function: ['book-hive-udf.jar']
+
+== 5. a session without Hive support (the in-memory catalog)
+> CREATE TEMPORARY FUNCTION borough_code AS 'book.udf.BoroughCode' USING JAR '~/spark-masterclass-parts/sql-ddl/code/ch85/hive_udf/book-hive-udf.jar'
+> SELECT borough_code('Queens') AS code
+  AnalysisException: [NO_HANDLER_FOR_UDAF] No handler for UDAF 'book.udf.BoroughCode'.
+  Use sparkSession.udf.register(...) instead. SQLSTATE: 42000; line 1 pos 7
+> CREATE FUNCTION borough_code2 AS 'book.udf.BoroughCode' USING JAR '~/spark-masterclass-parts/sql-ddl/code/ch85/hive_udf/book-hive-udf.jar'
+> SELECT borough_code2('Queens') AS code
+  AnalysisException: [NO_HANDLER_FOR_UDAF] No handler for UDAF 'book.udf.BoroughCode'.
+  Use sparkSession.udf.register(...) instead. SQLSTATE: 42000; line 1 pos 7

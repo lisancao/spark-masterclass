@@ -1,0 +1,149 @@
+== 1. DEFAULT values in CREATE TABLE
+> CREATE TABLE fares (
+     trip_id BIGINT,
+     fare DECIMAL(10,2),
+     currency STRING DEFAULT 'USD',
+     source STRING DEFAULT 'meter',
+     loaded DATE DEFAULT current_date())
+     USING parquet
+> INSERT INTO fares (trip_id, fare) VALUES (1, 12.50)
+> INSERT INTO fares VALUES (2, 8.00, DEFAULT, 'app', DEFAULT)
+> INSERT INTO fares VALUES (3, 30.25)
+  AnalysisException: [INSERT_COLUMN_ARITY_MISMATCH.NOT_ENOUGH_DATA_COLUMNS] Cannot write
+  to `spark_catalog`.`default`.`fares`, the reason is not enough data columns: Table ...
+> SELECT trip_id, fare, currency, source, loaded = current_date() AS loaded_today FROM fares ORDER BY trip_id
++-------+-----+--------+------+------------+
+|trip_id|fare |currency|source|loaded_today|
++-------+-----+--------+------+------------+
+|1      |12.50|USD     |meter |true        |
+|2      |8.00 |USD     |app   |true        |
++-------+-----+--------+------+------------+
+
+== 2. ADD COLUMNS with a DEFAULT: old files stay, old rows read the default
+  files before:
+    part-00000-<uuid>-c000.snappy.parquet  (1630 B)
+    part-00000-<uuid>-c000.snappy.parquet  (1645 B)
+> ALTER TABLE fares ADD COLUMNS (tip DECIMAL(10,2) DEFAULT 0.00)
+  files after:
+    part-00000-<uuid>-c000.snappy.parquet  (1630 B)
+    part-00000-<uuid>-c000.snappy.parquet  (1645 B)
+> SELECT trip_id, fare, tip FROM fares ORDER BY trip_id
++-------+-----+----+
+|trip_id|fare |tip |
++-------+-----+----+
+|1      |12.50|0.00|
+|2      |8.00 |0.00|
++-------+-----+----+
+
+== 3. SET DEFAULT changes new rows only. DROP DEFAULT goes back to NULL
+> ALTER TABLE fares ALTER COLUMN currency SET DEFAULT 'CAD'
+> INSERT INTO fares (trip_id, fare) VALUES (4, 5.00)
+> ALTER TABLE fares ALTER COLUMN source DROP DEFAULT
+> INSERT INTO fares (trip_id, fare) VALUES (5, 6.00)
+> SELECT trip_id, currency, source FROM fares ORDER BY trip_id
++-------+--------+------+
+|trip_id|currency|source|
++-------+--------+------+
+|1      |USD     |meter |
+|2      |USD     |app   |
+|4      |CAD     |meter |
+|5      |CAD     |NULL  |
++-------+--------+------+
+
+> DESCRIBE TABLE fares
++-----------------------+-------------+--------------+
+|col_name               |data_type    |comment       |
++-----------------------+-------------+--------------+
+|trip_id                |bigint       |NULL          |
+|fare                   |decimal(10,2)|NULL          |
+|currency               |string       |NULL          |
+|source                 |string       |NULL          |
+|loaded                 |date         |NULL          |
+|tip                    |decimal(10,2)|NULL          |
+|                       |             |              |
+|# Column Default Values|             |              |
+|currency               |string       |'CAD'         |
+|loaded                 |date         |current_date()|
+|tip                    |decimal(10,2)|0.00          |
++-----------------------+-------------+--------------+
+
+== 4. Which defaults Spark accepts
+> CREATE TABLE d_bad (id INT, r DOUBLE DEFAULT rand()) USING parquet
+  AnalysisException: [INVALID_DEFAULT_VALUE.NON_DETERMINISTIC] Failed to execute CREATE
+  TABLE command because the destination column or variable `r` has a DEFAULT value ...
+> CREATE TABLE d_sub (id INT, n INT DEFAULT (SELECT 1)) USING parquet
+  AnalysisException: [INVALID_DEFAULT_VALUE.SUBQUERY_EXPRESSION] Failed to execute
+  CREATE TABLE command because the destination column or variable `n` has a DEFAULT ...
+> SET spark.sql.defaultColumn.allowedProviders
++----------------------------------------+--------------------+
+|key                                     |value               |
++----------------------------------------+--------------------+
+|spark.sql.defaultColumn.allowedProviders|csv,json,orc,parquet|
++----------------------------------------+--------------------+
+
+> CREATE TABLE d_csv (id INT, c STRING DEFAULT 'x') USING csv
+> CREATE TABLE d_text (value STRING DEFAULT 'x') USING text
+  AnalysisException: [DEFAULT_UNSUPPORTED] Failed to execute CREATE TABLE command
+  because DEFAULT values are not supported for target data source with table provider: ...
+== 5. NOT NULL on a file source table
+> CREATE TABLE nn_off (id INT NOT NULL, v INT) USING parquet
+> INSERT INTO nn_off VALUES (NULL, 1)
+> SELECT * FROM nn_off
++----+---+
+|id  |v  |
++----+---+
+|NULL|1  |
++----+---+
+
+  [('id', True), ('v', True)]
+> SET spark.sql.fileSource.insert.enforceNotNull = true
++------------------------------------------+-----+
+|key                                       |value|
++------------------------------------------+-----+
+|spark.sql.fileSource.insert.enforceNotNull|true |
++------------------------------------------+-----+
+
+> CREATE TABLE nn_on (id INT NOT NULL, v INT) USING parquet
+  [('id', True), ('v', True)]
+> INSERT INTO nn_on VALUES (NULL, 1)
+  SparkRuntimeException: [NOT_NULL_ASSERT_VIOLATION] NULL value appeared in non-nullable
+  field: id If the schema is inferred from a Scala tuple/case class, or a Java bean, ...
+> INSERT INTO nn_on VALUES (7, 1)
+> SELECT * FROM nn_on
++---+---+
+|id |v  |
++---+---+
+|7  |1  |
++---+---+
+
+> SET spark.sql.fileSource.insert.enforceNotNull = false
++------------------------------------------+-----+
+|key                                       |value|
++------------------------------------------+-----+
+|spark.sql.fileSource.insert.enforceNotNull|false|
++------------------------------------------+-----+
+
+== 6. Generated columns, identity columns and constraints: the parser accepts them
+  -- catalog: spark_catalog (parquet)
+  generated    AnalysisException: does not support generated columns
+  identity     AnalysisException: does not support identity columns
+  check        AnalysisException: does not support CONSTRAINT
+  primary key  AnalysisException: does not support CONSTRAINT
+  -- catalog: lake (Iceberg)
+  generated    AnalysisException: does not support generated columns
+  identity     AnalysisException: does not support identity column
+  check        AnalysisException: does not support table constraint
+  primary key  AnalysisException: does not support table constraint
+> ALTER TABLE fares ADD CONSTRAINT positive CHECK (fare > 0)
+  AnalysisException: [UNSUPPORTED_FEATURE.TABLE_OPERATION] The feature is not supported:
+  Table `spark_catalog`.`default`.`fares` does not support ADD CONSTRAINT. Please check ...
+
+== 7. NOT NULL and DEFAULT on the Iceberg table (format version 2)
+> CREATE TABLE lake.db.nn (id INT NOT NULL, v INT)
+> INSERT INTO lake.db.nn VALUES (NULL, 1)
+  SparkRuntimeException: [NOT_NULL_ASSERT_VIOLATION] NULL value appeared in non-nullable
+  field: id If the schema is inferred from a Scala tuple/case class, or a Java bean, ...
+> CREATE TABLE lake.db.dflt (id INT, c STRING DEFAULT 'x')
+  Py4JJavaError: An error occurred while calling o39.sql. :
+  java.lang.IllegalStateException: Invalid schema for v2: - Invalid initial default for
+  c: non-null default (x) is not supported until v3 at ...

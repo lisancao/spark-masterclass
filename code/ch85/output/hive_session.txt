@@ -1,0 +1,27 @@
+== 1. the folder before the session starts
+  contents:
+    (empty)
+
+== 2. a table, and the folder after the first statement
+> CREATE DATABASE taxi
+> CREATE TABLE taxi.zones (id INT, borough STRING) STORED AS PARQUET
+> INSERT INTO taxi.zones VALUES (1, 'EWR'), (2, 'Queens')
+  top level: ['derby.log', 'metastore_db', 'warehouse']
+  warehouse:
+    taxi.db/zones/_SUCCESS  (0 B)
+    taxi.db/zones/part-00000-<uuid>-c000.snappy.parquet  (684 B)
+    taxi.db/zones/part-00001-<uuid>-c000.snappy.parquet  (706 B)
+  metastore_db: a Derby database, 174 files, for example ['README_DO_NOT_TOUCH_FILES.txt', 'db.lck', 'dbex.lck', 'log', 'seg0']
+
+== 3. the catalog, and the Hive client that Spark uses
+  spark.sql.catalogImplementation              hive
+  spark.sql.hive.metastore.version             2.3.10
+  spark.sql.hive.metastore.jars                builtin
+  spark.sql.hive.convertMetastoreParquet       true
+  spark.sql.hive.convertMetastoreOrc           true
+  spark.sql.legacy.createHiveTableByDefault    false
+  external catalog class: HiveExternalCatalog
+
+== 4. a second process on the same Derby folder, while this one runs
+  ERROR XSDB6: Another instance of Derby may have already booted the database <folder>/metastore_db.
+  exit code: 1
