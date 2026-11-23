@@ -164,4 +164,23 @@ Rules broken on purpose:
 
 ## Clips and media
 
-<<CLIPS>>
+Film clips (VHS, `film render <tape> --format chapter --demo code`, cut list `book/media/clips/clips-v3-perf.tsv`, cut with `code/common/cut_clips.sh`; renders were moved out after each cut because the three tapes share `code/film/renders/chapter/`):
+
+| Clip | Tape | Shows | VO draft |
+|---|---|---|---|
+| `ch86-estimates` | `code/film/ch86.tape` | `stats.py`: CBO off/on, estimated against real rows | Without a histogram, the estimates miss by orders of magnitude. With one, they land close. |
+| `ch86-dpp` | `ch86.tape` | `dpp.py` with `BOOK_RUNS=1 BOOK_NO_LOCK=1` | Twenty-six of 181 partitions with DPP. All 181 without it, or without a broadcast. |
+| `ch86-hints` | `ch86.tape` | `hints.py` section 5 | Each partitioning hint, its exchange, and the files that the write made. |
+| `ch33-locality` | `code/film/ch33.tape` | `locality.py`, first two settings | The idle executor waits for the locality timer, or takes a task at once. |
+| `ch36-orc` | `code/film/ch36-orc.tape` | `orc.py dump` | The last byte, the postscript, the layout of an ORC file. |
+| `ch36-crypto` | `ch36-orc.tape` | `crypto_rebase.py crypto` | PARE at both ends; without the keys, only the plaintext columns of a plaintext footer can be read. |
+
+The film runs had no bench lock. Their on-screen times differ from the saved outputs, and the captions say so.
+
+Animations (HyperFrames, paper theme, 1280x720, `code/common/build_anim.sh`): `ch86-anim-dpp` (storyboard `code/ch86/anim/dpp/`), `ch33-anim-locality` (storyboard `code/ch33/anim/locality/`). Numbers from `dpp.txt` and `locality.txt`; layouts labelled schematic.
+
+Figures (SVG light/dark from `code/ch86/figures.py`, `code/ch33/figures_tuning.py`, `code/ch36/figures_orc.py`, each rendered to PNG with headless Chrome and checked): `ch86-estimates`, `ch86-dpp`, `ch86-joins`, `ch33-serialization`, `ch33-locality`, `ch36-orc-bytemap`, `ch36-orc-compare`. Screenshots (PNG, pngquant): `ch33-ui-{jobs,stages,stage-detail,storage,environment,executors,sql,sql-detail,streaming,streaming-detail,connect}.png` from `code/film/ch33_ui_tabs.py`; `ch33-ui-stages.png`, `ch33-ui-sql.png` and `ch33-ui-streaming.png` are made but not embedded.
+
+## Ports
+
+Final runs of the ch86 scripts, `ui_tabs.py` and `orc.py compare` used 4154 and 15114. Before I noticed that other writers use the neighbouring ports, some runs used 4155 to 4159: `serialization.sh` (4157), `gc.sh` and `sizes.scala` (4158), `locality.py` (4156), `crypto_rebase.py` and `orc.py dump` (4157). Spark moves to the next free port if a port is taken, and these scripts read no REST data except `locality.py`, which reads its own application. One run of `cbo_join.py` read the REST API of the film's application on 4154 and failed; it was run again.
