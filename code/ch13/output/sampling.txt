@@ -1,0 +1,63 @@
+== 1. UNNEST in pipe syntax
++---+---------+-----+
+|pos|     name|zones|
++---+---------+-----+
+|  1|Manhattan|   69|
+|  2|   Queens|   69|
+|  3|    Bronx|   43|
++---+---------+-----+
+
+alias column named borough: [AMBIGUOUS_REFERENCE] Reference `borough` is ambiguous, coul
++----------+---------------+-------+---+
+|LocationID|Zone           |word   |n  |
++----------+---------------+-------+---+
+|2         |Jamaica Bay    |Jamaica|1  |
+|2         |Jamaica Bay    |Bay    |2  |
+|129       |Jackson Heights|Jackson|1  |
+|129       |Jackson Heights|Heights|2  |
+|130       |Jamaica        |Jamaica|1  |
+|131       |Jamaica Estates|Jamaica|1  |
+|131       |Jamaica Estates|Estates|2  |
+|132       |JFK Airport    |JFK    |1  |
+|132       |JFK Airport    |Airport|2  |
++----------+---------------+-------+---+
+
+LEFT JOIN LATERAL in a pipe: [Row(id=1, arr=[10, 20], x=10), Row(id=1, arr=[10, 20], x=20), Row(id=2, arr=[], x=None)]
+
+== 2. TABLESAMPLE forms on 3,837,248 trips
+  TABLESAMPLE (1 PERCENT)                            rows: 38,394 then 38,468  scan returned: 3,837,248
+                                                     plan: ['Sample 0.0, 0.01, false']
+  TABLESAMPLE (1 PERCENT) REPEATABLE (42)            rows: 38,421 then 38,421  scan returned: 3,837,248
+                                                     plan: ['Sample 0.0, 0.01, false, 42']
+  TABLESAMPLE BERNOULLI (1 PERCENT) REPEATABLE (42)  rows: 38,421 then 38,421  scan returned: 3,837,248
+                                                     plan: ['Sample 0.0, 0.01, false, 42']
+  TABLESAMPLE (BUCKET 1 OUT OF 100)                  rows: 38,069 then 38,394  scan returned: 3,837,248
+                                                     plan: ['Sample 0.0, 0.01, false']
+  TABLESAMPLE (1000 ROWS)                            rows:  1,000 then  1,000  scan returned:    16,384
+                                                     plan: ['CollectLimit 1000']
+
+== 3. forms that Spark refuses
+  TABLESAMPLE SYSTEM (1 PERCENT)                   -> [UNSUPPORTED_FEATURE.TABLESAMPLE_SYSTEM_NO_SCAN] The feature is not supported: TABLESAMPLE SYSTE
+  TABLESAMPLE (100M)                               -> TABLESAMPLE(byteLengthLiteral) is not supported.
+  TABLESAMPLE (BUCKET 1 OUT OF 4 ON PULocationID)  -> TABLESAMPLE(BUCKET x OUT OF y ON colname) is not supported.
+  TABLESAMPLE (150 PERCENT)                        -> [INVALID_TABLESAMPLE_FRACTION] Sampling fraction (1.5) must be on interval [0, 1]. SQLSTATE: 220
+
+== 4. sample after a filter: Parquet pushdown still applies
+  rows: 1211  scan returned: 3,145,728  plan: ['Sample 0.0, 0.1, false, 7', 'Filter (isnotnull(payment_type) AND (payment_type = 3))']
+
+== 5. DataFrame.sample and sampleBy
+  sample(0.01, seed=42): 38,421 and 38,421   TABLESAMPLE (1 PERCENT) REPEATABLE (42): 38,421
+  plan of sample: ['Sample 0.0, 0.01, false, 42']
+  sample(withReplacement=True, 0.01): 38,090 rows, 181 rows that occur more than one time
+  sample(withReplacement=True, fraction=2.0): 7,674,756
+  sampleBy('payment_type', ...) plan: ['Filter UDF(payment_type, rand(1))']
+  type  all rows fraction  sampled  expected
+     0 1,013,500    0.001    1,089      1014
+     1 2,432,871    0.001    2,387      2433
+     2   357,804     0.01    3,535      3578
+     3    11,205      0.1    1,112      1120
+     4    21,866      0.1    2,216      2187
+     5         2      0.0        0         0
+
+== 6. TABLESAMPLE as a pipe operator
+[Row(n=3610, avg_fare=19.98)]

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 330" width="820" height="330" role="img"><title>Rows that the Parquet scan returned against rows that the sample kept</title><defs></defs><text x="20" y="26.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#8a919e" text-anchor="start" font-weight="600">rows read by the scan (gray) and rows kept (orange), linear scale</text>
+<text x="318" y="66.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="600">TABLESAMPLE (1 PERCENT)</text>
+<text x="318" y="84.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="end" font-weight="400">plan: Sample</text>
+<rect x="330" y="52" width="420.0" height="20" rx="3" fill="#4b5563" fill-opacity="0.9"/>
+<text x="756.0" y="67.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">3,837,248</text>
+<rect x="330" y="76" width="4.202355438063946" height="14" rx="3" fill="#c0661a" fill-opacity="1"/>
+<text x="340.20235543806393" y="88.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#d9661f" text-anchor="start" font-weight="600">38,394</text>
+<text x="318" y="132.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="600">TABLESAMPLE (BUCKET 1 OUT OF 100)</text>
+<text x="318" y="150.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="end" font-weight="400">plan: Sample</text>
+<rect x="330" y="118" width="420.0" height="20" rx="3" fill="#4b5563" fill-opacity="0.9"/>
+<text x="756.0" y="133.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">3,837,248</text>
+<rect x="330" y="142" width="4.166783069533166" height="14" rx="3" fill="#c0661a" fill-opacity="1"/>
+<text x="340.16678306953315" y="154.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#d9661f" text-anchor="start" font-weight="600">38,069</text>
+<text x="318" y="198.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="600">TABLESAMPLE (1000 ROWS)</text>
+<text x="318" y="216.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="end" font-weight="400">plan: CollectLimit</text>
+<rect x="330" y="184" width="3" height="20" rx="3" fill="#4b5563" fill-opacity="0.9"/>
+<text x="339" y="199.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">16,384</text>
+<rect x="330" y="208" width="3" height="14" rx="3" fill="#c0661a" fill-opacity="1"/>
+<text x="339" y="220.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#d9661f" text-anchor="start" font-weight="600">1,000</text>
+<text x="318" y="264.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="600">WHERE payment_type = 3, then 10 PERCENT</text>
+<text x="318" y="282.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="end" font-weight="400">plan: Filter, Sample</text>
+<rect x="330" y="250" width="344.31075604182996" height="20" rx="3" fill="#4b5563" fill-opacity="0.9"/>
+<text x="680.31075604183" y="265.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#8a919e" text-anchor="start" font-weight="400">3,145,728</text>
+<rect x="330" y="274" width="3" height="14" rx="3" fill="#c0661a" fill-opacity="1"/>
+<text x="339" y="286.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#d9661f" text-anchor="start" font-weight="600">1,211</text>
+<text x="410" y="318.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#d9661f" text-anchor="middle" font-weight="400">A percent or bucket sample reads every row. ROWS is a limit, and it stops early.</text></svg>

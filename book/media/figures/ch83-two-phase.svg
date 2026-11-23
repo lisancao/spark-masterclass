@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 400" width="820" height="400" role="img"><title>Rows out of each node: a key that repeats and a key that hardly repeats</title><defs></defs><text x="20" y="26.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#8a919e" text-anchor="start" font-weight="600">rows out of each node, June 2026 trips (log scale bars)</text>
+<text x="20" y="60.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" fill="#8a919e" text-anchor="start" font-weight="700">GROUP BY payment_type</text>
+<text x="178" y="90.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="400">scan</text>
+<rect x="190" y="76" width="470.00000000000006" height="20" rx="3" fill="#3a5f96" fill-opacity="0.9"/>
+<text x="668.0" y="91.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">3,837,248</text>
+<text x="178" y="118.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="400">filter + join</text>
+<rect x="190" y="104" width="468.56085783482314" height="20" rx="3" fill="#3a5f96" fill-opacity="0.9"/>
+<text x="666.5608578348231" y="119.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">3,663,191</text>
+<text x="178" y="146.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="400">partial agg</text>
+<rect x="190" y="132" width="83.95522694375383" height="20" rx="3" fill="#3a5f96" fill-opacity="1.0"/>
+<text x="281.9552269437538" y="147.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="600">14</text>
+<text x="178" y="174.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="400">final agg</text>
+<rect x="190" y="160" width="55.548295525110774" height="20" rx="3" fill="#3a5f96" fill-opacity="0.9"/>
+<text x="253.54829552511077" y="175.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">5</text>
+<text x="20" y="212.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" fill="#d9661f" text-anchor="start" font-weight="700">GROUP BY tpep_pickup_datetime</text>
+<text x="178" y="242.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="400">scan</text>
+<rect x="190" y="228" width="470.00000000000006" height="20" rx="3" fill="#c0661a" fill-opacity="0.9"/>
+<text x="668.0" y="243.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">3,837,248</text>
+<text x="178" y="270.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="400">filter + join</text>
+<rect x="190" y="256" width="468.56085783482314" height="20" rx="3" fill="#c0661a" fill-opacity="0.9"/>
+<text x="666.5608578348231" y="271.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">3,663,191</text>
+<text x="178" y="298.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="400">partial agg</text>
+<rect x="190" y="284" width="453.15066375347567" height="20" rx="3" fill="#c0661a" fill-opacity="1.0"/>
+<text x="651.1506637534757" y="299.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="600">2,228,358</text>
+<text x="178" y="326.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="end" font-weight="400">final agg</text>
+<rect x="190" y="312" width="445.89979117072437" height="20" rx="3" fill="#c0661a" fill-opacity="0.9"/>
+<text x="643.8997911707244" y="327.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="start" font-weight="400">1,763,643</text>
+<text x="410" y="360.0" font-family="Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8a919e" text-anchor="middle" font-weight="400">Few keys: the partial step sends 14 rows to the shuffle. Unique keys: it removes only 39%.</text></svg>

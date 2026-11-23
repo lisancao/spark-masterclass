@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <script src="data.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <!-- `anim render` rewrites data-width/data-height per format; leave them as they are. -->
+    <div id="main" data-composition-id="main" data-start="0" data-duration="26" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Numbers from data.js (code/ch83/output/sets.txt, sections 1 and 2).
+      const D = window.DATA;
+      const fmt = (n) => n.toLocaleString("en-US");
+      A.mount();
+
+      // beat open (0.0): title and the input row on screen at frame 0
+      A.title("ROLLUP(Borough, pay) in one pass", "Expand, then a hash aggregate");
+      const CX = 0.12, rowY = 0.42;
+      const inRow = A.box({ x: CX, y: rowY, w: 300, h: 90, kind: "ink", title: "Manhattan · card", size: 30 });
+      const inLab = A.text("one input row", { x: CX, y: rowY + A.dy(80), size: 26, color: "var(--a-mute)" });
+      const caps = [], CAPY = 0.86;
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: CAPY, size: 38, weight: 500, maxw: 1500 });
+        gsap.set(c, { opacity: 0 }); A.tl.to(c, { opacity: 1, duration: 0.3 }, t0);
+        if (t1) A.tl.to(c, { opacity: 0, duration: 0.3 }, t1); return c; };
+      const c0 = cap("ROLLUP asks for three levels of totals.", 0, 4.5);
+      gsap.set(c0, { opacity: 1 });
+
+      // beat expand (4.5): the row becomes three copies, one per grouping set
+      const EX = 0.40;
+      const exp = A.box({ x: EX - 0.13, y: rowY, w: 170, h: 90, kind: "accent", title: "Expand", size: 30 });
+      A.in(exp, 4.5);
+      const copies = [
+        ["Manhattan · card · 0", "set (Borough, pay)"],
+        ["Manhattan · NULL · 1", "set (Borough)"],
+        ["NULL · NULL · 3", "set ()"],
+      ].map(([t, s], i) => A.box({ x: EX + 0.08, y: 0.27 + i * 0.15, w: 360, h: 92, kind: "paper", title: t, sub: s, size: 27 }));
+      A.in(copies, 5.2, { stagger: 0.35 });
+      cap("Expand copies each row once for each grouping set.", 4.5, 9.5);
+      const gidNote = A.text("the last value is spark_grouping_id", { x: EX + 0.08, y: 0.27 + 3 * 0.15 - A.dy(20), size: 24, color: "var(--a-mute)" });
+      A.in(gidNote, 6.6);
+
+      // beat count (9.5): the row counts from the SQL metrics
+      const MX = 0.80;
+      const lab1 = A.text("rows into Expand", { x: MX, y: 0.26, size: 28, color: "var(--a-mute)" });
+      const n1 = A.text(fmt(D.rows_in), { x: MX, y: 0.26 + A.dy(56), size: 60, weight: 700, mono: true });
+      const lab2 = A.text("rows out of Expand", { x: MX, y: 0.45, size: 28, color: "var(--a-mute)" });
+      const n2 = A.text(fmt(D.expand_out), { x: MX, y: 0.45 + A.dy(56), size: 60, weight: 700, mono: true, color: "var(--a-acc)" });
+      A.in([lab1, n1], 9.5); A.in([lab2, n2], 10.3);
+      cap("Three copies of 2.7 million rows: the aggregate sees 8.2 million.", 9.5, 14.5);
+
+      // beat agg (14.5): the hash aggregate groups by (Borough, pay, id)
+      A.out([inRow, inLab, exp, gidNote], 14.5);
+      A.tl.to(copies, { opacity: 0.35, duration: 0.4 }, 14.5);
+      const lab3 = A.text("rows to the shuffle (partial aggregate)", { x: MX, y: 0.64, size: 28, color: "var(--a-mute)" });
+      const n3 = A.text(fmt(D.partial_out), { x: MX, y: 0.64 + A.dy(56), size: 60, weight: 700, mono: true });
+      A.in([lab3, n3], 15.0);
+      const agg = A.box({ x: 0.13, y: rowY, w: 330, h: 110, kind: "accent", title: "HashAggregate", sub: "keys: Borough, pay, id", size: 30 });
+      A.in(agg, 14.8);
+      cap("Grouping by the keys and the id keeps each level apart.", 14.5, 20.0);
+
+      // beat result (20.0): the ten result rows, three levels
+      A.out([agg], 20.0);
+      A.tl.to(copies, { opacity: 1, duration: 0.4 }, 20.0);
+      const res = A.text(`${D.groups} result rows: Manhattan card ${fmt(D.manhattan_card)}, ` +
+        `Manhattan ${fmt(D.manhattan_all)}, all ${fmt(D.total)}`, { x: 0.40, y: 0.73, size: 30, weight: 600, color: "var(--a-acc)", maxw: 1000 });
+      A.in(res, 20.2);
+      cap("One scan and one shuffle give all three levels.", 20.0);
+      A.in(A.note("June 2026 taxi trips, card and cash, three boroughs, Spark 4.3.0 SQL metrics"), 20.0);
+      A.finish(26);
+    </script>
+  </body>
+</html>

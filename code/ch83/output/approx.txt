@@ -1,0 +1,24 @@
+== 1. distinct pickup times for each borough: exact against approximate
+  Borough        exact   hll++ 5%    err   hll++ 1%    err    ds hll    err
+  Manhattan  1,659,303  1,775,233 +6.99%  1,650,614 -0.52% 1,672,284 +0.78%
+  Queens       282,944    296,419 +4.76%    283,776 +0.29%   285,143 +0.78%
+  Brooklyn      95,456    101,776 +6.62%     96,254 +0.84%    91,240 -4.42%
+  Bronx         13,562     13,906 +2.54%     13,515 -0.35%    13,510 -0.38%
+
+== 2. what each one shuffles
+  count(DISTINCT)         aggregates: 4  shuffle records written: [2448981, 127]
+  approx_count_distinct   aggregates: 2  shuffle records written: [31]
+
+== 3. the median fare for each borough
++---------+-----+----------+------------+-----+
+|  Borough|exact|approx_100|approx_10000|  kll|
++---------+-----+----------+------------+-----+
+|    Bronx| 24.4|     24.24|       24.39|24.58|
+| Brooklyn|29.21|     29.18|       29.21|29.19|
+|Manhattan| 14.2|      14.9|        14.2| 14.2|
+|   Queens| 48.5|      48.5|        48.5| 49.2|
++---------+-----+----------+------------+-----+
+
+  percentile(fare_amount, 0.5)           -> ObjectHashAggregate
+  percentile_approx(fare_amount, 0.5)    -> ObjectHashAggregate
+  median(fare_amount)                    -> ObjectHashAggregate
