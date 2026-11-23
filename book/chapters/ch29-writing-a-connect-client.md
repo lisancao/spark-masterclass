@@ -4,7 +4,7 @@
 
 **A useful Spark Connect client is about 200 lines of code on three libraries: gRPC, protobuf and Arrow. Those libraries exist for most languages, so the protocol does not need a Spark library in the language of the client. The code that you write is the plan builder and the code around the RPCs. What makes a client complete is not the first query. It is the rest of the protocol: sessions, reattach, release, errors and artifacts.**
 
-The code is in [`code/ch29`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch29). The client is one file, `miniconnect.py` (212 lines). Each step of the chapter is a script that uses it. The scripts run in an environment that has only these packages (`requirements.txt`). pyspark is not importable in it (`output/env.txt`):
+The code is in [`code/ch29`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch29). The client is one file, `miniconnect.py` (212 lines). Each step of the chapter is a script that uses it. The scripts run in an environment that has only these packages (`requirements.txt`). pyspark is not importable in it (`output/env.txt`):
 
 ```text
 pyspark importable: False

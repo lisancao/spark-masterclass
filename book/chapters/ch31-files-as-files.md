@@ -6,7 +6,7 @@ Before Spark parses a record, it lists files, selects some of them, and puts the
 
 **Every file read in Spark starts with a listing, and the listing controls the cost and the correctness of the read. The listing decides which files Spark reads, how Spark packs the files into tasks, and which file each row comes from. The `binaryFile` source, the hidden `_metadata` column and the new archive reader in Spark 4.3 let you see and control the listing directly.**
 
-The data is SparkTutor's messy sample set: small images, WAV recordings, PDFs, e-mails, JSON events and CSV exports, copied into [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy). Step 2 also uses one million NYC taxi trips. The scripts are in [`code/ch31`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch31). All output in this chapter comes from `code/ch31/output/`, from runs on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
+The data is SparkTutor's messy sample set: small images, WAV recordings, PDFs, e-mails, JSON events and CSV exports, copied into [`code/data/messy`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/data/messy). Step 2 also uses one million NYC taxi trips. The scripts are in [`code/ch31`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch31). All output in this chapter comes from `code/ch31/output/`, from runs on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
 
 ## How a read starts
 

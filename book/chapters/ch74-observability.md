@@ -4,7 +4,7 @@ A job that ran slowly yesterday leaves no trace in your terminal today. The Spar
 
 **Each number that Spark shows comes from one of two systems. The listener bus carries events (jobs, stages, tasks, SQL executions, Connect operations) to the UI, to the event log and to your listeners. The metrics system samples counters and gauges for Prometheus and other sinks. The REST API, the History Server and the event log are three views of the same events. Learn to read the events directly, and you can examine an application that stopped hours ago with Spark itself.**
 
-The code for this chapter is in [`code/ch74`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch74). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. Each output block comes from `code/ch74/output/`. The workload in Steps 1 to 6 is the SparkTutor exercise for this chapter. It has a skewed aggregation through a slow Python UDF, and a sort that Spark must spill.
+The code for this chapter is in [`code/ch74`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch74). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. Each output block comes from `code/ch74/output/`. The workload in Steps 1 to 6 is the SparkTutor exercise for this chapter. It has a skewed aggregation through a slow Python UDF, and a sort that Spark must spill.
 
 ## Where the numbers come from
 

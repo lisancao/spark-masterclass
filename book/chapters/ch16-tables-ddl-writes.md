@@ -10,7 +10,7 @@ The session catalog stores plain Parquet, ORC, CSV and JSON tables through the o
 
 This chapter runs each statement on Spark 4.3.0 and lists the files after it. For Hive tables and the metastore, read [Chapter 17](ch17-hive-tables-metastore.md). For the table formats, read [Chapter 54](ch54-tables-delta-iceberg.md) and [Chapter 55](ch55-iceberg.md).
 
-The scripts are in [`code/ch16`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch16), and each output block below comes from `code/ch16/output/`.
+The scripts are in [`code/ch16`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch16), and each output block below comes from `code/ch16/output/`.
 
 | Script | What it shows |
 |---|---|

@@ -6,7 +6,7 @@ Before Spark 4, this logic went into Python, and SQL was only a string inside it
 
 **SQL scripting moves control flow into SQL, but not into the engine. The driver runs a script one statement at a time. Each query in the script has its own plan and jobs. SQL functions and recursive CTEs stay inside one plan. Thus the rule for fast procedural SQL is the same as for Python. Use the procedural parts for control, and put the work on the data into as few queries as possible.**
 
-The scripts are in [`code/ch20`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch20), and each output block below comes from `code/ch20/output/`. They use the June 2026 taxi trips and the zone lookup.
+The scripts are in [`code/ch20`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch20), and each output block below comes from `code/ch20/output/`. They use the June 2026 taxi trips and the zone lookup.
 
 - `scripting.py`: variables, control flow, `FOR`, handlers, cursors, `EXECUTE IMMEDIATE`, and the jobs that a script runs.
 - `functions.py`: SQL UDFs, the plans that they make, the SQL path and recursive CTEs.

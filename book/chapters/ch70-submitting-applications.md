@@ -10,7 +10,7 @@ Most chapters of this book start a session in Python and let `local[*]` do the r
 
 This chapter runs a standalone cluster for real on one machine: a master, two workers and high availability with a recovery folder. It also runs native Kubernetes without an operator on a local `kind` cluster. YARN did not run for this chapter. The YARN step explains YARN from the source of `v4.3.0`. [Chapter 76](ch76-kubernetes-operator.md) runs the Spark Kubernetes Operator on the same kind of cluster. The last step compares the two ways.
 
-The code is in [`code/ch70`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch70). Each output block comes from `code/ch70/output/`. The versions are:
+The code is in [`code/ch70`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch70). Each output block comes from `code/ch70/output/`. The versions are:
 
 | Part | Version |
 |---|---|
@@ -23,7 +23,7 @@ The scripts replace the home folder with `~` and the host name with `laptop` in 
 
 ## Step 1: The master URL and the deploy mode select everything
 
-Every submit in this chapter sends the same application, [`app.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch70/app.py). It prints the host of its driver, its master and its deploy mode. Then it prints its executors from the REST API and one aggregation over the taxi month.
+Every submit in this chapter sends the same application, [`app.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch70/app.py). It prints the host of its driver, its master and its deploy mode. Then it prints its executors from the REST API and one aggregation over the taxi month.
 
 `spark-submit` takes two values that decide the rest. The master URL selects the cluster manager. The deploy mode selects the place of the driver:
 
@@ -325,7 +325,7 @@ the namespace "spark-apps".
 --- driver pod: Running  service account: default
 ```
 
-The driver could not even read its own pod. [`k8s/rbac.yaml`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch70/k8s/rbac.yaml) creates a service account `spark-driver`, a `Role` and a `RoleBinding`:
+The driver could not even read its own pod. [`k8s/rbac.yaml`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch70/k8s/rbac.yaml) creates a service account `spark-driver`, a `Role` and a `RoleBinding`:
 
 ```yaml
 rules:
@@ -465,7 +465,7 @@ executor driver  172.30.0.1:7179        cores 0
 23:19:30 WARN NettyRpcEnv: Ignored failure: java.io.IOException: Connecting to /172.30.0.1:7178 timed out (120000 ms)
 ```
 
-That is the usual result of a laptop driver against a remote cluster: the pods have no route back. The documented form of client mode runs the driver in a pod of its own. This pod can be a notebook, a Connect server or a job runner. [`k8s/client-driver.yaml`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch70/k8s/client-driver.yaml) is a bare pod that runs `spark-submit --deploy-mode client`. A headless service gives it a DNS name:
+That is the usual result of a laptop driver against a remote cluster: the pods have no route back. The documented form of client mode runs the driver in a pod of its own. This pod can be a notebook, a Connect server or a job runner. [`k8s/client-driver.yaml`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch70/k8s/client-driver.yaml) is a bare pod that runs `spark-submit --deploy-mode client`. A headless service gives it a DNS name:
 
 ```yaml
     - --master=k8s://https://kubernetes.default.svc

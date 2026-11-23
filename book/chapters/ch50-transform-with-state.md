@@ -10,7 +10,7 @@ For these rules, Spark gives you `transformWithState`. You write a small class, 
 
 This chapter writes three processors against one stream of checkout events. It shows the state that each processor keeps, read back from the checkpoint, and the exact batches in which Spark calls each method.
 
-The scripts are in [`code/ch50`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch50), and each number in the chapter comes from their saved output in `code/ch50/output/`. All of them use the file source on Spark 4.3.0, so no other service is necessary.
+The scripts are in [`code/ch50`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch50), and each number in the chapter comes from their saved output in `code/ch50/output/`. All of them use the file source on Spark 4.3.0, so no other service is necessary.
 
 ## The data: four drops from a checkout service
 

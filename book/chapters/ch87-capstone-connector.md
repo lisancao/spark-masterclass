@@ -19,7 +19,7 @@ The connector is a Python data source, because the Python API covers each capabi
 
 Partitions follow the bytes that each task reads. Pushdown is exact or absent. A write is invisible until one atomic step. A stream reads only complete lines. Tests prove all of this, and tests are only as good as the broken code that they catch.**
 
-The code is in [`code/ch87`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch87):
+The code is in [`code/ch87`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch87):
 
 - `casefile.py` is the connector.
 - `demo.py` shows each table, plan and file of this chapter.

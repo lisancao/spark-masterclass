@@ -10,7 +10,7 @@ This chapter only does the work, one short step at a time. The next chapters exp
 - [Chapter 58](ch58-configuring-pipelines.md): the configuration.
 - [Chapter 59](ch59-declarative-pipelines.md): the model of tables and flows.
 
-The code is in [`code/ch56`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch56). `tutorial.sh` does each step of this chapter in a new folder. It saves the commands and their output in `code/ch56/output/`. Each output block below comes from these files. The runs use `pyspark==4.3.0`, Python 3.12 and Java 17.
+The code is in [`code/ch56`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch56). `tutorial.sh` does each step of this chapter in a new folder. It saves the commands and their output in `code/ch56/output/`. Each output block below comes from these files. The runs use `pyspark==4.3.0`, Python 3.12 and Java 17.
 
 ## What you build
 

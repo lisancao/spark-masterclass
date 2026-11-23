@@ -4,7 +4,7 @@ A support team has four policy pages, a few hundred tickets and a folder of e-ma
 
 **Search and near-duplicate detection need only tokens, counts and hashes. Spark MLlib has each part as a separate stage. Each stage makes one decision that changes the result. The decisions are the tokens, the weight of each word, the vector for the words, and the comparison of two vectors. If you can see each decision, you can test it.**
 
-This chapter builds a TF-IDF search index and a MinHash index for near-duplicates. Then it builds one catalog of mixed documents (PDF pages, e-mails, logs and text files) and puts the search index on top of it. The data is the SparkTutor sample data in [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy): four policy pages, four e-mails, 160 labelled tickets and 240 tickets in an inbox. The scripts are in [`code/ch65`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch65). They ran on `pyspark==4.3.0` in local mode, and each output block comes from `code/ch65/output/`.
+This chapter builds a TF-IDF search index and a MinHash index for near-duplicates. Then it builds one catalog of mixed documents (PDF pages, e-mails, logs and text files) and puts the search index on top of it. The data is the SparkTutor sample data in [`code/data/messy`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/data/messy): four policy pages, four e-mails, 160 labelled tickets and 240 tickets in an inbox. The scripts are in [`code/ch65`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch65). They ran on `pyspark==4.3.0` in local mode, and each output block comes from `code/ch65/output/`.
 
 ## Step 1: Read the text, and count words without MLlib
 

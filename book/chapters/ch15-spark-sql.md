@@ -14,7 +14,7 @@ This chapter opens the Spark SQL part of the book. The next chapters teach the q
 - [Chapter 16](ch16-tables-ddl-writes.md) teaches table DDL and writes: `ALTER TABLE`, defaults, view schema modes, `writeTo` and partition overwrite.
 - [Chapter 17](ch17-hive-tables-metastore.md) teaches Hive tables and the Hive metastore.
 
-The scripts are in [`code/ch15`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch15), and each output block below comes from `code/ch15/output/`.
+The scripts are in [`code/ch15`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch15), and each output block below comes from `code/ch15/output/`.
 
 | Script | What it shows |
 |---|---|

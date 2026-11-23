@@ -6,7 +6,7 @@ This is an open, example-driven book about Apache Spark 4.3: how a DataFrame bec
 
 Every technical result is tied to runnable code and saved output in this repository. Figures and short animations make invisible mechanisms visible. Every example is designed to run on a laptop.
 
-**[Read the book online](https://lisancao.github.io/spark-masterclass/)** · **[Browse all 92 chapters](mkdocs.yml)** · **[Run the first example](#run-an-example)**
+**[Read the book online](https://open-lakehouse.github.io/spark-masterclass/)** · **[Browse all 92 chapters](mkdocs.yml)** · **[Run the first example](#run-an-example)**
 
 ## ✨ What makes this different
 
@@ -73,7 +73,7 @@ python -m venv .docs-venv
 .docs-venv/bin/mkdocs serve
 ```
 
-Open <http://127.0.0.1:8000>. GitHub Actions publishes `main` to the [public site](https://lisancao.github.io/spark-masterclass/).
+Open <http://127.0.0.1:8000>. GitHub Actions publishes `main` to the [public site](https://open-lakehouse.github.io/spark-masterclass/).
 
 ## 🗺️ Repository layout
 

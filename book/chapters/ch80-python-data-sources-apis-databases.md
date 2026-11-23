@@ -9,7 +9,7 @@ This chapter builds two sources against local servers that the scripts start the
 - `tickets`, a source over a paginated REST API.
 - `sqlite`, a source over a SQLite table, with key ranges like the JDBC source of Spark.
 
-Between the two sources, the chapter looks at what Spark does with the values that `read()` yields, and when to yield Arrow batches. The scripts are in [`code/ch80`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch80). All output comes from `code/ch80/output/`, from runs on `pyspark==4.3.0` in local mode on a 16-core machine.
+Between the two sources, the chapter looks at what Spark does with the values that `read()` yields, and when to yield Arrow batches. The scripts are in [`code/ch80`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch80). All output comes from `code/ch80/output/`, from runs on `pyspark==4.3.0` in local mode on a 16-core machine.
 
 !!! note "New in 4.3"
     The Python Data Source API did not change in 4.3.0 (see the note in [Chapter 79](ch79-python-data-sources-readers.md)). The `VARIANT` output in Step 6 needs Spark 4.1 or later. The JDBC source of Spark 4.3.0 includes ten built-in dialects (`JdbcDialects.scala` at `v4.3.0`). They are MySQL, PostgreSQL, DB2, SQL Server, Derby, Oracle, Teradata, H2, Snowflake and Databricks. It has no SQLite dialect. Spark 4.2 deprecated the Derby dialect (Step 11).

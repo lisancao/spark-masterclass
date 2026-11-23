@@ -63,7 +63,7 @@ pip install "pyspark[connect]==4.3.0"     # (1)!
 
 1.  The `[connect]` extra adds pandas, pyarrow and grpcio. The Connect client and the pandas API need these packages.
 
-The [`code/`](https://github.com/lisancao/spark-masterclass/tree/main/code) folder of the book is a uv project that pins exactly this version. Thus, from a clone, the full install is `cd code && uv sync`. PySpark 4.3.0 needs Python 3.11 or newer. uv did not resolve the project until the book increased `requires-python` from 3.10. PySpark also needs a JDK on your `PATH` or in `JAVA_HOME`. Spark 4.x supports Java 17, 21 and 25, and it does not run on Java 8 or 11.
+The [`code/`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code) folder of the book is a uv project that pins exactly this version. Thus, from a clone, the full install is `cd code && uv sync`. PySpark 4.3.0 needs Python 3.11 or newer. uv did not resolve the project until the book increased `requires-python` from 3.10. PySpark also needs a JDK on your `PATH` or in `JAVA_HOME`. Spark 4.x supports Java 17, 21 and 25, and it does not run on Java 8 or 11.
 
 With this install, you get all the jars of the Spark distribution in a Python package. You also get a `SparkSession` that starts a driver JVM as a child process of your Python. The session communicates with the JVM through Py4J. That is why the first `getOrCreate()` takes a few seconds. It is also why this install can do everything: your Python can use JVM objects (`spark.sparkContext`, `df._jdf`) directly. `code/ch06/check_env.py` prints what you have:
 

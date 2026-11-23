@@ -8,7 +8,7 @@ Spark 4.1 added **Real-time Mode** to remove that floor. Spark 4.3 extended it f
 
 This chapter turns Real-time Mode on and finds its limits. Then it looks at a stateful query while it runs, and it measures the latency of the same queries in both engines.
 
-The scripts are in [`code/ch51`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch51), and each number in the chapter comes from their saved output in `code/ch51/output/`. Real-time Mode reads only from Kafka. Thus, all scripts use the Kafka broker of [Chapter 48](ch48-structured-streaming.md), `apache/kafka:4.0.0` in Docker, and the connector `org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0`.
+The scripts are in [`code/ch51`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch51), and each number in the chapter comes from their saved output in `code/ch51/output/`. Real-time Mode reads only from Kafka. Thus, all scripts use the Kafka broker of [Chapter 48](ch48-structured-streaming.md), `apache/kafka:4.0.0` in Docker, and the connector `org.apache.spark:spark-sql-kafka-0-10_2.13:4.3.0`.
 
 ## The setup: a broker and a paced producer
 

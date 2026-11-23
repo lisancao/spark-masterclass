@@ -4,7 +4,7 @@ Most users never build Spark. The pip package, the tarball and the Docker image 
 
 **A Spark build is a Maven build of the tag, with profiles that add or remove modules and dependencies. `dev/make-distribution.sh` runs that build and copies the jars into a folder that looks like the official tarball. A `hadoop-provided` build leaves out Hadoop and its libraries, and it starts only when `SPARK_DIST_CLASSPATH` gives them back.**
 
-This short chapter built the `v4.3.0` tag for real in a Docker container, with the profiles `-Phadoop-provided -Pkubernetes`. Then it compared the result with the official tarball, and it ran the result. The code is in [`code/ch92`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch92). Each output block comes from `code/ch92/output/`.
+This short chapter built the `v4.3.0` tag for real in a Docker container, with the profiles `-Phadoop-provided -Pkubernetes`. Then it compared the result with the official tarball, and it ran the result. The code is in [`code/ch92`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch92). Each output block comes from `code/ch92/output/`.
 
 ## Step 1: The profiles
 
@@ -27,7 +27,7 @@ The `RELEASE` file of a distribution records its flags. The official 4.3.0 tarba
 
 ## Step 2: The build in Docker
 
-[`build.sh`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch92/build.sh) exports the tag with `git archive v4.3.0`, and it runs `make-distribution.sh` in a JDK 17 container as your user:
+[`build.sh`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch92/build.sh) exports the tag with `git archive v4.3.0`, and it runs `make-distribution.sh` in a JDK 17 container as your user:
 
 ```bash
 docker run --rm --user "$(id -u):$(id -g)" \
@@ -49,7 +49,7 @@ The first try used the image `maven:3.9-eclipse-temurin-17`. Maven succeeded, th
 [INFO] Total time:  27:21 min
 ```
 
-`make-distribution.sh` removes one class from `datasketches-memory-3.0.2.jar` after the build. Spark has its own copy of that class, which works on Java 25 (SPARK-53327, in a comment in the script). The removal uses `zip`, and the Maven image has no `zip`. The [`Dockerfile`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch92/Dockerfile) adds it:
+`make-distribution.sh` removes one class from `datasketches-memory-3.0.2.jar` after the build. Spark has its own copy of that class, which works on Java 25 (SPARK-53327, in a comment in the script). The removal uses `zip`, and the Maven image has no `zip`. The [`Dockerfile`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch92/Dockerfile) adds it:
 
 ```text
 FROM maven:3.9-eclipse-temurin-17

@@ -8,7 +8,7 @@ In both cases, the question is the same: which items are almost the same as this
 
 The data is the SparkTutor sample data. `media_library` has 43 image files and 40 WAV clips in families of near-copies, and `labels.csv` gives the family of each file. `listings.jsonl` has 424 marketplace listings with reposts. The IVF part uses 20,000 synthetic vectors.
 
-The scripts are in [`code/ch66`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch66). They ran on `pyspark==4.3.0` in local mode. Each number comes from `code/ch66/output/vectors.txt` or `indexes.txt`.
+The scripts are in [`code/ch66`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch66). They ran on `pyspark==4.3.0` in local mode. Each number comes from `code/ch66/output/vectors.txt` or `indexes.txt`.
 
 ```mermaid
 flowchart LR

@@ -6,7 +6,7 @@ Structured Streaming is the part of Spark that does this work. It uses the same 
 
 **A streaming query is a batch query that Spark runs again and again, each time on the input that arrived since the last run. The checkpoint makes the sequence of runs into one query. It records which input each run read, which runs completed, and the state that one run gives to the next. Output modes, triggers, watermarks and restarts are all rules about that sequence.** This chapter follows one stream of real taxi trips through each of these rules. It shows the files and the progress reports that prove each rule.
 
-All the code runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch48`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch48), and each number in the chapter comes from their saved output in `code/ch48/output/`. Most steps use the file source, because it needs no other service. Steps 9 and 15 use Kafka, with a broker in Docker.
+All the code runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch48`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch48), and each number in the chapter comes from their saved output in `code/ch48/output/`. Most steps use the file source, because it needs no other service. Steps 9 and 15 use Kafka, with a broker in Docker.
 
 ## The data: a morning of trips that arrive late
 

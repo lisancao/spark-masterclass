@@ -6,11 +6,11 @@ A common first plan is to flatten everything at once: `explode` each array, then
 
 **A nested value in Spark is a typed value, and Spark checks each operation on it in the analyzer, before a task starts. A Python lambda in a higher-order function is not Python code that runs on the data. PySpark calls it one time on the driver, and the result is a Catalyst expression. Most of the rules and errors in this chapter follow from these two facts.** In Spark 4.3, the array higher-order functions also take part in whole-stage code generation, and SQL has a standard `UNNEST` clause.
 
-The data is SparkTutor's `nested/orders.json` in [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy): 24 web orders. Each order has a `customer` struct with an address, an array of order `lines`, `tags`, `payments` and a `status_history`.
+The data is SparkTutor's `nested/orders.json` in [`code/data/messy`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/data/messy): 24 web orders. Each order has a `customer` struct with an address, an array of order `lines`, `tags`, `payments` and a `status_history`.
 
 SparkTutor put problems into the data on purpose. Some tags have different letter case. Some arrays are empty, and some are not there. One quantity is `NULL`, one `geo` struct is not there, and some status entries are not in time order.
 
-The scripts are [`code/ch34/nested.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch34), `lambdas.py` and `unnest.py`. All output is from `code/ch34/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
+The scripts are [`code/ch34/nested.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch34), `lambdas.py` and `unnest.py`. All output is from `code/ch34/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
 
 ## Three nested types
 

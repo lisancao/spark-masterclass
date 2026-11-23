@@ -6,7 +6,7 @@ Each action on a DataFrame without a cache computes the full plan again. Spark C
 
 **Spark recovers from failures because it runs the same work again. Thus a job is correct under failure only if each re-execution gives the same data. Each external effect must also occur one time only. You can examine both conditions on one machine. `local[N,F]` gives task retries, and a deleted shuffle file gives a stage retry. A proxy that cuts a TCP connection shows how a Spark Connect operation ID prevents a second execution.**
 
-The code for this chapter is in [`code/ch72`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch72). Each output block below comes from `code/ch72/output/`, from runs on pyspark 4.3.0 with OpenJDK 17 on a 16-core Linux machine. Source paths are relative to the Spark 4.3.0 source tree. The scheduler classes are in `core/src/main/scala/org/apache/spark/scheduler/`.
+The code for this chapter is in [`code/ch72`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch72). Each output block below comes from `code/ch72/output/`, from runs on pyspark 4.3.0 with OpenJDK 17 on a 16-core Linux machine. Source paths are relative to the Spark 4.3.0 source tree. The scheduler classes are in `core/src/main/scala/org/apache/spark/scheduler/`.
 
 ## When Spark runs your code again
 

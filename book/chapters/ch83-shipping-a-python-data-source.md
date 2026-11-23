@@ -8,7 +8,7 @@ In Chapters 79 to 82, each source lived in the script that used it, and the scri
 
 **A packaged source runs in Python processes that are not yours: the workers of the driver, of each executor and of the Connect server. Most problems with a shipped source come from one question: which Python does each worker use, and what can it import? Answer that question before you test the code. Then test the code as plain Python, and read its logs from a table.**
 
-The scripts are in [`code/ch83`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch83). `packaging.sh` makes two virtual environments with `uv`, installs the package into one of them, and runs `registration.py` in different setups. All output is from `code/ch83/output/packaging.txt`, from a run on `pyspark==4.3.0`.
+The scripts are in [`code/ch83`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch83). `packaging.sh` makes two virtual environments with `uv`, installs the package into one of them, and runs `registration.py` in different setups. All output is from `code/ch83/output/packaging.txt`, from a run on `pyspark==4.3.0`.
 
 !!! note "New in 4.3"
     The lookup of packaged sources, the registration rules and the worker logs did not change in 4.3.0. The override of an automatically registered source came in 4.1 (SPARK-51919). The worker logs and `spark.tvf.python_worker_logs()` came in 4.1. Step 7 shows that `getCondition()` still gives `None` for some errors in 4.3.0, with different gaps in a classic session and on Connect.

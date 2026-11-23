@@ -4,7 +4,7 @@
 
 **Since Spark 4.0, ANSI mode stops a job at the first value that an expression cannot process. The `try_` functions change that error into a NULL. Thus each cleaning expression is a decision: stop the job, or keep a NULL and record a reason. ANSI mode does not catch all problems. Strings, money and dates have errors that give a valid but wrong value, and only a test finds them.**
 
-The scripts are in [`code/ch10`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch10), and each output block below comes from `code/ch10/output/`. The scripts use three data sets:
+The scripts are in [`code/ch10`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch10), and each output block below comes from `code/ch10/output/`. The scripts use three data sets:
 
 - `ansi.py` uses the June 2026 taxi trips.
 - `strings.py` uses 166 deliveries from SparkTutor (`code/data/geo_deliveries`). Couriers typed the city names in 29 different ways.

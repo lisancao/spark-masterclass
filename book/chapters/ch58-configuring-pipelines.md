@@ -6,7 +6,7 @@ The `taxi_etl` project of [Chapter 56](ch56-first-etl-pipeline.md) writes to `sp
 
 This chapter shows where each value goes, with real runs. It uses the session configuration rules of [Chapter 8](ch08-setting-configurations.md) and adds what is different for a pipeline.
 
-The code is in [`code/ch58`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch58). `config.sh` and `iceberg.sh` run the taxi project with different specs against a Connect server on port 15104. Each output block comes from `code/ch58/output/`.
+The code is in [`code/ch58`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch58). `config.sh` and `iceberg.sh` run the taxi project with different specs against a Connect server on port 15104. Each output block comes from `code/ch58/output/`.
 
 ## Step 1: A file that shows what the pipeline sees
 

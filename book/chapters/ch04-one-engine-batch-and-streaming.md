@@ -4,7 +4,7 @@ The first three chapters of this part follow the engine. They describe the RDD (
 
 **Since Spark 2.0, the libraries of Spark moved onto one base: the DataFrame and the SQL engine under it. A streaming query is a DataFrame query that Spark runs again on new data. A pipeline is a set of DataFrame queries that Spark orders. Machine learning code and pandas code become DataFrame plans. Thus, a skill that you learn for one module, such as how to read a plan, applies to all of them.**
 
-This chapter gives the timeline of Spark from 1.0 to 4.3, with each fact from the release notes. It runs the same code as a batch query and as a stream, and it shows the first streaming API that came before. Then it gives a map of the modules in Spark 4.3 and the chapters of this book that teach each one. The scripts are in [`code/ch04`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch04), and each output comes from `code/ch04/output/`.
+This chapter gives the timeline of Spark from 1.0 to 4.3, with each fact from the release notes. It runs the same code as a batch query and as a stream, and it shows the first streaming API that came before. Then it gives a map of the modules in Spark 4.3 and the chapters of this book that teach each one. The scripts are in [`code/ch04`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch04), and each output comes from `code/ch04/output/`.
 
 ## Step 1: The timeline, from the release notes
 

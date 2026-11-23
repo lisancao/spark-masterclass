@@ -4,7 +4,7 @@ The earlier chapters of this part read Spark's source to explain behavior that i
 
 **A wrong result becomes a fix when each step of the investigation leaves an artifact that another person can run again. The artifacts are a minimal reproduction, a table of boundaries and a hypothesis with predictions. Then come the lines of source that explain it, a fix that you can test on the release, and a report. A committer who reads the report can check each claim without your help.**
 
-All the code runs against `pyspark==4.3.0`. The scripts are in [`code/ch91`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch91), and each output block comes from `code/ch91/output/`. Each source excerpt names its file in the [apache/spark](https://github.com/apache/spark/tree/v4.3.0) repository at the `v4.3.0` tag, except the excerpts from the pull request, which say so. The JIRA and pull request states are a snapshot from 2026-11-22.
+All the code runs against `pyspark==4.3.0`. The scripts are in [`code/ch91`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch91), and each output block comes from `code/ch91/output/`. Each source excerpt names its file in the [apache/spark](https://github.com/apache/spark/tree/v4.3.0) repository at the `v4.3.0` tag, except the excerpts from the pull request, which say so. The JIRA and pull request states are a snapshot from 2026-11-22.
 
 ## Step 1: The investigation loop
 

@@ -6,7 +6,7 @@ Spark carries a Hive client, Hive's SerDes and Hive's UDF interfaces inside it. 
 
 This chapter continues [Chapter 16](ch16-tables-ddl-writes.md), which used the in-memory catalog. Here each script turns on Hive support, and each step looks at the metastore and at the files.
 
-The scripts are in [`code/ch17`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch17), and each output block below comes from `code/ch17/output/`.
+The scripts are in [`code/ch17`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch17), and each output block below comes from `code/ch17/output/`.
 
 | Script | What it shows |
 |---|---|

@@ -4,7 +4,7 @@ On a laptop, `import tabulate` in a UDF works because the package is in the same
 
 **A Python UDF runs in a worker process that Spark starts with its own interpreter and its own `sys.path`. Only the files that you ship arrive in that process: py-files, archives or Connect artifacts. Local mode hides this, because the worker inherits the folder, the environment and the disk of the driver. To ship dependencies correctly, you must know three things. These are the interpreter of the worker, the folders that Spark adds to its path, and the time when Spark reads the list of files.**
 
-The code for this chapter is in [`code/ch73`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch73). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3. Each output block comes from `code/ch73/output/`. `pkgs.py` builds the small test package `messytools` in a temporary folder (`<work>` in the output). It also builds zips, archives and site folders of that package. `<code>` is the `code/` folder of the repo.
+The code for this chapter is in [`code/ch73`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch73). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3. Each output block comes from `code/ch73/output/`. `pkgs.py` builds the small test package `messytools` in a temporary folder (`<work>` in the output). It also builds zips, archives and site folders of that package. `<code>` is the `code/` folder of the repo.
 
 ## Three places where Python runs
 
