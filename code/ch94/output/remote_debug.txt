@@ -1,0 +1,20 @@
+driver pid 738565: run the query; the worker stops at breakpoint()
+   [debugger] connected to the worker on port 4444
+   > ch94/remote_debug.py(33)tip_share()
+   -> return round(tip / fare, 3) if fare else None
+   (Pdb)
+   (Pdb) p tip, fare
+     (1.0, 0.0)
+   (Pdb) p __import__('os').getpid()
+     739761
+   (Pdb) w 3
+       pyspark/worker.py(4146)<genexpr>()
+     -> return (f(*[row[offset] for offset in arg_offsets]) for row in data)
+       pyspark/worker.py(682)<lambda>()
+     -> return args_kwargs_offsets, lambda *a: func(*a)
+       pyspark/util.py(158)wrapper()
+     -> return f(*args, **kwargs)
+     > ch94/remote_debug.py(33)tip_share()
+     -> return round(tip / fare, 3) if fare else None
+   (Pdb) c
+result after 'c': [0.24, None]

@@ -1,0 +1,33 @@
+sample: 183,183 trips
+
+== Imputer: passenger_count is NULL for some trips
+  strategy=mean   fills 44,972 NULL values with 1.256
+  strategy=median fills 44,972 NULL values with 1.000
+  strategy=mode   fills 44,972 NULL values with 1.000
+
+== three scalers on fare_amount (5 rows: the 4 quartile points and the maximum)
+  fare               0.010    10.000    15.600    26.100   490.200
+  StandardScaler    -1.209    -0.640    -0.321     0.277    26.711
+  MinMaxScaler       0.000     0.020     0.032     0.053     1.000
+  RobustScaler       0.001     0.621     0.969     1.621    30.447
+
+== Bucketizer (fixed splits) and QuantileDiscretizer (splits from the data)
+  QuantileDiscretizer splits: [-inf, 9.3, 13.5, 18.94, 29.6, inf]
+  rows per band: Bucketizer [41305, 74721, 31215, 26914, 9028] | QuantileDiscretizer [34513, 38610, 36669, 36353, 37038]
+
+== TargetEncoder (new in 4.0): a zone becomes the mean tip percent of its trips
+  OneHotEncoder: one vector of size 265 per row | TargetEncoder: one double per row
+  zone 237 (  7159 card trips): smoothing=0 ->  27.42   smoothing=100 ->  27.40
+  zone   3 (     1 card trips): smoothing=0 ->  28.79   smoothing=100 ->  25.62
+  mean tip percent of all card trips: 25.58
+
+== PCA on the 7 zone-profile columns (Step 1), after StandardScaler
+  explained variance of 3 components: [0.557, 0.205, 0.121]  (sum 0.883)
+  loadings of component 1: log_trips -0.44, avg_miles +0.37, avg_minutes +0.37, night_share +0.30, weekend_share +0.39, card_share -0.43, avg_tip_pct -0.33
+
+== RFormula and SQLTransformer: a model input from a formula and from SQL
+  features has 8 slots: ['trip_distance', 'minutes', 'rate_1', 'rate_2', 'rate_5', 'rate_3', 'rate_4', 'rate_99']
+  first row: label 39.4, features (8,[0,1,2],[9.52,22.366666666666667,1.0])
+
+== UnivariateFeatureSelector: keep the 2 slots with the highest F-value against the fare
+  selected slot indexes [0, 1] -> ['trip_distance', 'minutes']

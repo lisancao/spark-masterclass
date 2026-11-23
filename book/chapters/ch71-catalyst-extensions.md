@@ -572,6 +572,168 @@ The script ran with the book's shared benchmark lock, on one machine, with `loca
 
 **The benchmark trap.** Run the same DataFrame object a second time, and Spark uses its physical plan again, and also the shuffle files of the earlier run. Thus, only the last stage runs again, and a slow Python UDF can look fast. Build a **new** DataFrame for each timed run, and make sure that a time is physically possible before you believe it.
 
+## Step 12: The other JVM functions: Java UDFs, Hive UDFs and Aggregators
+
+A Catalyst `Expression` is the deepest way to put JVM code into a query. Spark has four other ways, and each one is less work. `code/ch71/jfun` has the same `is_png` check as a Java `UDF1` and as a Hive `GenericUDF`. It also has a mean of the fare as a typed `Aggregator` and as the older `UserDefinedAggregateFunction`. `jfun/build.sh` compiles them with `javac` against the jars of the pyspark install, which include `hive-exec` 2.3.10. `jvm_functions.py` registers each one, examines its results and its plan node, and `jvm_bench.py` times them.
+
+| Option | Write | Register | Plan node |
+|---|---|---|---|
+| Catalyst `Expression` (Steps 3 to 6) | a class with the tree methods | `injectFunction` in an extension | your expression |
+| Java or Scala UDF | `UDF1<byte[], Boolean>` or a Scala function | `spark.udf.registerJavaFunction` (Python), `spark.udf.register` (JVM) | `ScalaUDF` |
+| Hive UDF | `GenericUDF` (or the simple `UDF`), `GenericUDAFResolver2`, `GenericUDTF` | `CREATE [TEMPORARY] FUNCTION ... AS 'class'`, Hive support on | `HiveGenericUDF`, `HiveUDAFFunction`, `HiveGenericUDTF` |
+| typed `Aggregator` | `zero`, `reduce`, `merge`, `finish`, two encoders | `functions.udaf(agg, encoder)`, then `spark.udf.register` (JVM only) | `ScalaAggregator` |
+| `UserDefinedAggregateFunction` | schemas and a mutable buffer | `spark.udf.registerJavaUDAF` | `ScalaUDAF` |
+
+`functions.udaf` is in the API since 3.0.0. The same release deprecated `UserDefinedAggregateFunction` (added in 1.5.0), and its deprecation note says to register an `Aggregator` with `functions.udaf` instead.
+
+**A Hive UDF needs Hive support.** Without it, `CREATE TEMPORARY FUNCTION` accepts the class, and the call fails:
+
+```text
+== 1. CREATE TEMPORARY FUNCTION ... AS 'jfun.IsPngHive', without Hive support
+   spark.sql.catalogImplementation = in-memory
+   AnalysisException: [NO_HANDLER_FOR_UDAF] No handler for UDAF 'jfun.IsPngHive'. Use sparkSession.udf.register(...) instead. SQLSTATE: 42000; line 1 pos 7
+
+   with spark.sql.catalogImplementation = hive:
+   Row(sig=True, other=False)
+```
+
+`IsPngHive` is a scalar function, but the error says "UDAF". The reason is in `BaseSessionStateBuilder.scala` at the `v4.3.0` tag. Without Hive support, `SparkUDFExpressionBuilder` knows only one class type for `CREATE FUNCTION`, the `UserDefinedAggregateFunction`, and it throws `NO_HANDLER_FOR_UDAF` for each other class. With `spark.sql.catalogImplementation=hive` (or `enableHiveSupport()`), `HiveUDFExpressionBuilder` in `HiveSessionStateBuilder.scala` tries the Hive types: `UDF`, `GenericUDF`, `AbstractGenericUDAFResolver`, `UDAF` and `GenericUDTF`. Hive support also starts a metastore client. The scripts give it a Derby database in a scratch folder.
+
+**From Python, an Aggregator needs the JVM.** `spark.udf.registerJavaUDAF` accepts only a `UserDefinedAggregateFunction`:
+
+```text
+== 2. register the Java functions from Python
+   spark.udf.registerJavaFunction('is_png_udf', 'jfun.IsPngUdf', BooleanType()): ok
+   spark.udf.registerJavaUDAF('mean_fare_udaf', 'jfun.MeanFareUdaf'): ok (a UserDefinedAggregateFunction)
+   spark.udf.registerJavaUDAF('mean_fare', 'jfun.MeanFare') -> AnalysisException: Class jfun.MeanFare doesn't implement interface UserDefinedAggregateFunction.
+   spark._jvm.jfun.Register.all(spark._jsparkSession): mean_fare = functions.udaf(new MeanFare(), Encoders.DOUBLE())
+```
+
+PySpark has no API that takes an `Aggregator`. The jar has a small Java class that registers it, and the script calls that class through the Py4J gateway:
+
+```java
+public static void all(SparkSession spark) {
+  spark.udf().register("mean_fare", functions.udaf(new MeanFare(), Encoders.DOUBLE()));
+  spark.udf().register("is_png_udf", new IsPngUdf(), DataTypes.BooleanType);
+}
+```
+
+A Connect client has no Py4J gateway. To use an `Aggregator` from a Connect session, register it on the server. For example, a Connect plugin ([Chapter 72](ch72-connect-plugins.md)) can register it.
+
+The `Aggregator` itself has four methods and two encoders. The buffer is a Java bean, so `Encoders.bean` can describe it:
+
+```java
+public class MeanFare extends Aggregator<Double, MeanFare.Buf, Double> {
+  @Override public Buf zero() { return new Buf(); }
+  @Override public Buf reduce(Buf b, Double x) {
+    if (x != null) { b.sum += x; b.count += 1; }
+    return b;
+  }
+  @Override public Buf merge(Buf a, Buf b) { a.sum += b.sum; a.count += b.count; return a; }
+  @Override public Double finish(Buf b) { return b.count == 0 ? null : b.sum / b.count; }
+  @Override public Encoder<Buf> bufferEncoder() { return Encoders.bean(Buf.class); }
+  @Override public Encoder<Double> outputEncoder() { return Encoders.DOUBLE(); }
+}
+```
+
+**The same answer, NULL included.** Each version gives the same result as the native function and as `avg`:
+
+```text
+== 3. the same answer, NULL included
++------+-------------+--------+--------+
+|native|static_invoke|java_udf|hive_udf|
++------+-------------+--------+--------+
+|  true|         true|    true|    true|
+| false|        false|   false|   false|
+| false|        false|   false|   false|
+|  NULL|         NULL|    NULL|    NULL|
++------+-------------+--------+--------+
+
++----+----+----------+----+--------+
+|zone| avg|aggregator|udaf|hive_avg|
++----+----+----------+----+--------+
+|   1|15.0|      15.0|15.0|    15.0|
+|   2|NULL|      NULL|NULL|    NULL|
++----+----+----------+----+--------+
+```
+
+That is not automatic. `IsPngUdf.call` returns `null` for a `null` argument, `IsPngHive.evaluate` does the same, and `MeanFare.finish` returns `null` for an empty buffer. Without these lines, a JVM UDF returns `false` or `0.0` where a SQL function returns NULL, the same trap as in Step 8. `hive_avg` is Hive's own `GenericUDAFAverage` from `hive-exec`, registered with `CREATE TEMPORARY FUNCTION hive_avg AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDAFAverage'`. A team can use its Hive functions in Spark without a change.
+
+**The plan nodes.** The three scalar forms are all in whole-stage code generation. The aggregates use two different operators:
+
+```text
+== 4. the plan node of each one
+   native is_png_fast   *(1)  expression static_invoke                in whole-stage codegen
+   Java UDF1            *(1)  expression is_png_udf                   in whole-stage codegen
+   Hive GenericUDF      *(1)  expression HiveGenericUDF#jfun.IsPngHive in whole-stage codegen
+   built-in avg         HashAggregate -> HashAggregate
+   Aggregator (udaf)    ObjectHashAggregate -> ObjectHashAggregate
+   legacy UDAF          HashAggregate -> HashAggregate
+   Hive GenericUDAF     ObjectHashAggregate -> ObjectHashAggregate
+```
+
+`HiveGenericUDF` has its own `doGenCode` in `hiveUDFs.scala`, which calls the Hive object from generated code. The aggregate operator follows the class of the aggregate function:
+
+- `ScalaUDAF` (the deprecated UDAF) is an `ImperativeAggregate`. Its buffer is a row of fixed SQL types, so `HashAggregate` can keep it in its memory format.
+- `ScalaAggregator` and `HiveUDAFFunction` are each a `TypedImperativeAggregate`. The buffer is a JVM object. Spark keeps it in `ObjectHashAggregate`, and it serializes the object for each partial result (through the encoder for an `Aggregator`).
+
+**Hive UDFs check types in `initialize()`.** A wrong argument type fails during analysis, as `checkInputDataTypes` does for the native expression. But the error is a general message about the wrapper, not the message of `IsPngHive`:
+
+```text
+== 5. a Hive UDF checks its argument types in initialize()
+   AnalysisException: [CANNOT_INSTANTIATE_HIVE_FUNCTION] Cannot instantiate the Hive UDF/UDAF/UDTF wrapper class jfun.IsPngHive. Check that the function arguments and their types are supported. SQLSTATE: 38000; line 1 pos 7
+```
+
+```mermaid
+flowchart TB
+  classDef q fill:#3a5f96,fill-opacity:0.72,stroke:#3a5f96,color:#ffffff
+  classDef a fill:#c0661a,fill-opacity:0.72,stroke:#c0661a,color:#ffffff
+  q1{"scalar or aggregate?"}:::q -->|scalar| q2{"Hive functions<br/>that exist already?"}:::q
+  q2 -->|yes| h["Hive GenericUDF<br/>(Hive support on)"]:::a
+  q2 -->|no| q3{"must the optimizer<br/>see inside it?"}:::q
+  q3 -->|no| u["Java or Scala UDF1<br/>registerJavaFunction"]:::a
+  q3 -->|"yes (folding, pushdown, rules)"| e["Catalyst Expression or<br/>StaticInvoke (Steps 3 to 6)"]:::a
+  q1 -->|aggregate| q4{"a built-in function<br/>or a combination?"}:::q
+  q4 -->|yes| b["the built-in functions"]:::a
+  q4 -->|no| q5{"buffer of fixed SQL types?"}:::q
+  q5 -->|yes| l["UserDefinedAggregateFunction<br/>(deprecated, HashAggregate)"]:::a
+  q5 -->|"no, or typed code"| g["Aggregator with functions.udaf<br/>(ObjectHashAggregate)"]:::a
+```
+
+**The measured comparison.** `jvm_bench.py` uses the method of Step 11. Each time is the median of 5 runs after 1 warm-up run, with a new DataFrame for each run, under the book's benchmark lock. The script prints the fastest and the slowest of the 5 runs in brackets.
+
+Part A is the `is_png` filter over the same 20,000,000 cached values as Step 11. Part B is the mean fare for each pickup zone over the 3,837,248 cached trips of June 2026. It calls `collect()`, so that the optimizer cannot remove the aggregate:
+
+```text
+local[*] on 16 cores, x86_64, Spark 4.3.0, Python 3.12.3
+
+A. is_png over 20,000,000 cached values (filter, count)
+  native is_png_fast (StaticInvoke)             0.215 s   1.0x  [0.192 to 0.277]  (6,666,667 rows)
+  built-in substring(b, 1, 8) = X'89504E47...'  0.186 s   0.9x  [0.161 to 0.195]  (6,666,667 rows)
+  Java UDF1 (registerJavaFunction)              0.160 s   0.7x  [0.134 to 0.241]  (6,666,667 rows)
+  Hive GenericUDF                               0.173 s   0.8x  [0.157 to 0.234]  (6,666,667 rows)
+
+B. mean fare per pickup zone over 3,837,248 cached trips (group by, collect)
+  built-in avg                                  0.134 s   1.0x  [0.090 to 0.147]  (258 rows)
+  Aggregator with functions.udaf                0.327 s   2.4x  [0.311 to 0.421]  (258 rows)
+  UserDefinedAggregateFunction (deprecated)     0.156 s   1.2x  [0.137 to 0.165]  (258 rows)
+  Hive GenericUDAFAverage                       0.333 s   2.5x  [0.303 to 0.369]  (258 rows)
+  pandas UDF (grouped aggregate)                0.388 s   2.9x  [0.357 to 0.445]  (258 rows)
+```
+
+<figure markdown>
+  ![Median seconds of each JVM function option, with the range of the five runs](../media/figures/ch71-jvm-bench-light.svg#only-light)
+
+  ![Median seconds of each JVM function option, with the range of the five runs](../media/figures/ch71-jvm-bench-dark.svg#only-dark)
+
+  <figcaption>The output of <code>jvm_bench.py</code> as bars, with a line from the fastest to the slowest of the five runs. In part A, the ranges overlap. In part B, the two forms with an object buffer take more than twice as long as <code>avg</code>.</figcaption>
+</figure>
+
+- **Scalar: no difference that this run can show.** The four forms take between 0.160 s and 0.215 s, and their ranges overlap. The check reads eight bytes of each value, and each form calls it from generated code. A JVM UDF does not have the cost of a Python UDF (8.9 times as long in Step 11). For a cheap scalar function, choose the form for the optimizer and the effort, not for the speed.
+- **Aggregate: the buffer type decides.** The deprecated UDAF, with a buffer of two fixed SQL types, takes 0.156 s, near `avg` (0.134 s). The `Aggregator` and the Hive UDAF, with an object buffer in `ObjectHashAggregate`, take 0.327 s and 0.333 s. The pandas UDF takes 0.388 s, only a little more. A grouped aggregate pandas UDF sends each group to Python once, as one Arrow batch.
+
+An earlier run of the same script, also under the lock, gave the same order in part B. The times were 0.121 s (`avg`), 0.227 s (the deprecated UDAF), 0.433 s (the `Aggregator`) and 0.660 s (the Hive UDAF). The ratios changed between the runs, so read them as approximate. Do not move an `Aggregator` that works back to the deprecated API for speed alone. First examine if a built-in function, or a combination of built-in functions, gives the same result.
+
 ## The whole chapter, on one page
 
 - **`SparkSessionExtensions`** has injection points for the parser, the analyzer, check rules, the optimizer (4.3 adds `injectPreOperatorOptimizationRule`), the planner, columnar rules, AQE rules and functions. Load an extension with the static `spark.sql.extensions`, or with a `SparkSessionExtensionsProvider` service file. The API is experimental and unstable, so build for each Spark version.
@@ -583,6 +745,7 @@ The script ran with the book's shared benchmark lock, on one machine, with `loca
 - **The 4.3 transpiler** changes deterministic, non-Arrow UDFs with a single expression into Catalyst expressions. This occurs in the first batch of the optimizer, in Classic sessions with ANSI on. It refuses many UDFs and tells you why.
 - **Check rules run on each analyzed plan**, immediately in Classic sessions, and reject plans with an exception.
 - **Measure with a new DataFrame for each run.**
+- **The other JVM options:** a Java UDF (`registerJavaFunction`), a Hive UDF (with Hive support on) and a typed `Aggregator` (`functions.udaf`, registered from the JVM). Scalar JVM functions cost about the same as a native expression. An aggregate with an object buffer runs in `ObjectHashAggregate` and costs more than a built-in aggregate.
 
 To run all of it, do these steps from the `code/` folder:
 
@@ -593,6 +756,9 @@ uv run python ch71/traps.py
 uv run python ch71/transpile.py
 uv run python ch71/planchange.py 2>&1 | sed -n '/=== Applying Rule/,/^$/p'
 flock $HOME/spark-masterclass/data/.bench.lock uv run python ch71/bench.py
+ch71/jfun/build.sh
+uv run python ch71/jvm_functions.py
+flock $HOME/spark-masterclass/data/.bench.lock uv run python ch71/jvm_bench.py
 ```
 
 The next chapter takes the same JVM code to a client that has no Py4J gateway: Spark Connect. It writes relation, expression and command plugins, and it sends custom protobuf messages from Python.
@@ -602,4 +768,5 @@ The next chapter takes the same JVM code to a client that has no Py4J gateway: S
 - [`SparkSessionExtensions.scala` at v4.3.0](https://github.com/apache/spark/blob/v4.3.0/sql/core/src/main/scala/org/apache/spark/sql/SparkSessionExtensions.scala), with the doc of each injection point.
 - [`python/pyspark/sql/transpile.py` at v4.3.0](https://github.com/apache/spark/blob/v4.3.0/python/pyspark/sql/transpile.py), the doc string of the transpiler, with what it accepts.
 - [`Optimizer.scala` at v4.3.0](https://github.com/apache/spark/blob/v4.3.0/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/optimizer/Optimizer.scala), the batches of the optimizer, with `ConvertToCatalyst` first.
+- [Hive UDFs, UDAFs and UDTFs](https://spark.apache.org/docs/4.3.0/sql-ref-functions-udf-hive.html) and [user-defined aggregate functions](https://spark.apache.org/docs/4.3.0/sql-ref-functions-udf-aggregate.html) in the SQL reference.
 - [Python UDFs in Chapter 5](ch05-how-spark-runs.md#step-6-where-python-runs), where the `fare_band` UDF first runs.

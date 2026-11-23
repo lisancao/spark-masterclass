@@ -1,0 +1,20 @@
+== RDD.barrier().mapPartitions with allGather, 4 partitions on local[4]
+  task 0: started 0.00 s, at the barrier 0.00 s, left 1.01 s, 4 peers, allGather -> 4 messages
+  task 1: started 0.00 s, at the barrier 0.20 s, left 1.20 s, 4 peers, allGather -> 4 messages
+  task 2: started 0.00 s, at the barrier 0.40 s, left 1.41 s, 4 peers, allGather -> 4 messages
+  task 3: started 0.01 s, at the barrier 0.61 s, left 1.61 s, 4 peers, allGather -> 4 messages
+
+== the same DataFrame API: mapInPandas(..., barrier=True)
+  rows per task: [(0, 2), (1, 2), (2, 2), (3, 2)]
+  the plan: MapInPandas tag(id#0L)#1, [id#2L, task#3], true
+
+== more barrier tasks than task slots: 6 partitions on local[4]
+  failed after 3.0 s: Py4JJavaError
+  Barrier execution mode does not allow run a barrier stage that requires more slots than the total number of slots in the cluster currently. Please init a new cluster with more resources(e.g. CPU, GPU)
+
+== a failed barrier task (task 1 fails once)
+  barrier stage as the ResultStage:   job failed: Could not recover from a failed barrier ResultStage. Most rece
+  barrier stage as a ShuffleMapStage: (partition, attemptNumber, taskAttemptId) [(0, 0, 17), (1, 0, 18), (2, 0, 19), (3, 0, 20)]
+    stage 5 attempt 0: FAILED   0 complete, 1 failed, 3 killed
+    stage 5 attempt 1: COMPLETE 4 complete, 0 failed, 0 killed
+    stage 6 attempt 0: COMPLETE 1 complete, 0 failed, 0 killed

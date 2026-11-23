@@ -1,0 +1,29 @@
+pyspark 4.3.0                                  Classic    Connect
+KMeans                                         ok         ok
+BisectingKMeans                                ok         ok
+GaussianMixture                                ok         ok
+LDA                                            ok         ok
+PowerIterationClustering                       ok         ok
+ClusteringEvaluator                            ok         ok
+ALS explicit                                   ok         ok
+ALS implicit + recommendForAllUsers            ok         ok
+RankingEvaluator                               ok         ok
+FPGrowth                                       ok         ok
+PrefixSpan                                     ok         ok
+Correlation                                    ok         ok
+ChiSquareTest                                  ok         ok
+Summarizer                                     ok         ok
+Imputer                                        ok         ok
+StandardScaler / MinMaxScaler / RobustScaler   ok         ok
+Bucketizer / QuantileDiscretizer               ok         ok
+TargetEncoder                                  ok         ok
+PCA                                            ok         ok
+RFormula + SQLTransformer                      ok         ok
+UnivariateFeatureSelector                      ok         ok
+CrossValidator                                 ok         ok
+KMeansModel.summary.trainingCost               ok         ok
+GaussianMixtureModel.gaussiansDF               ok         ok
+ALSModel.userFactors                           ok         ok
+FPGrowthModel.freqItemsets                     ok         ok
+CrossValidator(collectSubModels=True)          ok         ok
+TrainValidationSplit                           ok         ok

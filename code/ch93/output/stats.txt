@@ -1,0 +1,35 @@
+== Correlation over 3,610,433 trips: ['trip_distance', 'minutes', 'fare_amount', 'tip_amount']
+  pearson
+    trip_distance  1.000  0.773  0.888  0.491
+    minutes        0.773  1.000  0.824  0.464
+    fare_amount    0.888  0.824  1.000  0.465
+    tip_amount     0.491  0.464  0.465  1.000
+  spearman
+    trip_distance  1.000  0.817  0.880  0.146
+    minutes        0.817  1.000  0.912  0.220
+    fare_amount    0.880  0.912  1.000  0.129
+    tip_amount     0.146  0.220  0.129  1.000
+  F.corr(trip_distance, minutes) = 0.773  (one pair, the same pearson number)
+
+== ChiSquareTest: is the payment type independent of the pickup borough?
+  pValues [0.0]  degreesOfFreedom [3]  statistics [18115.5]
++---------+-------+------+----------+
+|  borough|   card|  cash|cash_share|
++---------+-------+------+----------+
+|Manhattan|2142172|277811|     0.115|
+| Brooklyn|   9067|  2115|     0.189|
+|   Queens| 203813| 52075|     0.204|
+|    Bronx|    588|   437|     0.426|
++---------+-------+------+----------+
+
+  on a 0.05% sample (1316 trips): pValue 0.2821  statistic 2.5
+== Summarizer: many statistics of a vector column in one pass
+  mean              3.42      17.63      21.30       3.05
+  variance         17.02     171.01     309.14      16.11
+  min               0.10       1.00       0.01       0.00
+  max              99.26     179.72     500.00     333.33
+  numNonZeros 3610433.00 3610433.00 3610433.00 2312599.00
+  count       3610433
+  rows with passenger_count > 0: 2,698,609
+  mean weighted by passenger_count       3.40      17.59      20.40       4.00
+  F.avg on the same rows                 3.26      17.12      19.72       3.94

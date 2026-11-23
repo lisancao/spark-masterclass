@@ -1,0 +1,2 @@
+local_mode=True   8 runs, the returned value came from: rank 0 x5, rank 1 x3
+local_mode=False  8 runs, the returned value came from: rank 0 x8

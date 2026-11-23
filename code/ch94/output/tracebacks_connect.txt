@@ -1,0 +1,45 @@
+Connect: a UDF divides by zero in a task
+
+== defaults (simplifiedTraceback on, jvmStacktrace off)
+   class pyspark.errors.exceptions.connect.PythonException, condition None, sqlState None
+   8 lines in str(e), 0 JVM 'at ...' frames, 'File "' lines: 1
+   
+     An exception was thrown from the Python worker. Please see the stack trace below.
+   [PYTHON_EXCEPTION] An exception was thrown from the Python worker: Traceback (most recent ca
+     File "tracebacks.py", line 20, in tip_share
+       rate = tip / fare            # fare = 0.0 raises ZeroDivisionError
+              ~~~~^~~~~~
+   ZeroDivisionError: float division by zero
+    SQLSTATE: 38000
+
+== simplifiedTraceback.enabled=false
+   class pyspark.errors.exceptions.connect.PythonException, condition None, sqlState None
+   28 lines in str(e), 0 JVM 'at ...' frames, 'File "' lines: 9
+   Python frames: worker.py", line 4327, in invoke_udf, worker.py", line 4222, in process, serializers.py", line 212, in dump_strea, serializers.py", line 146, in dump_strea, serializers.py", line 208, in _batched, worker.py", line 4146, in <genexpr>, worker.py", line 682, in <lambda>, util.py", line 158, in wrapper, File "tracebacks.py", line 20, in tip_sh
+
+== jvmStacktrace.enabled=true
+   class pyspark.errors.exceptions.connect.PythonException, condition None, sqlState None
+   8 lines in str(e), 0 JVM 'at ...' frames, 'File "' lines: 1
+
+== a JVM error (SELECT 1 / 0), defaults
+   class pyspark.errors.exceptions.connect.ArithmeticException, condition DIVIDE_BY_ZERO, sqlState 22012
+   97 lines in str(e), 89 JVM 'at ...' frames, 'File "' lines: 0
+   [DIVIDE_BY_ZERO] Division by zero. Use `try_divide` to tolerate divisor being 0 and return N
+
+== a JVM error (SELECT 1 / 0), jvmStacktrace.enabled=true
+   class pyspark.errors.exceptions.connect.ArithmeticException, condition DIVIDE_BY_ZERO, sqlState 22012
+   97 lines in str(e), 89 JVM 'at ...' frames, 'File "' lines: 0
+   JVM stacktrace:
+   	at org.apache.spark.sql.errors.QueryExecutionErrors$.divideByZeroError(QueryExecutionErrors
+
+== a JVM error, Connect, spark.sql.connect.serverStacktrace.enabled=false
+   class pyspark.errors.exceptions.connect.ArithmeticException, condition DIVIDE_BY_ZERO, sqlState 22012
+   4 lines in str(e), 0 JVM 'at ...' frames, 'File "' lines: 0
+
+== tracebackWithLocals.enabled=true (new in 4.3)
+   class pyspark.errors.exceptions.connect.PythonException, condition None, sqlState None
+   10 lines in str(e), 0 JVM 'at ...' frames, 'File "' lines: 1
+     File "tracebacks.py", line 20, in tip_share
+       rate = tip / fare            # fare = 0.0 raises ZeroDivisionError
+       fare = 0.0
+       tip = 1.0

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
+    <script src="spark.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: var(--a-w); height: var(--a-h); overflow: hidden; background: var(--a-bg); }
+    </style>
+  </head>
+  <body>
+    <div id="main" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+      <div id="stage"></div>
+    </div>
+    <script>
+      // Storyboard: storyboard.md. Line and frame counts: data.json (tracebacks.txt, crash.txt). Motion: schematic.
+      const D = {"source": "code/ch94/output/tracebacks.txt and crash.txt (Classic session, pyspark 4.3.0). Motion and timing are schematic.", "default_lines": 6, "default_frames": 1, "full_lines": 26, "full_frames": 9, "locals": ["fare = 0.0", "tip = 1.0"], "crash_frames": 16, "condition": "PYTHON_EXCEPTION", "sqlstate": "38000"};
+      A.mount();
+      A.title("A UDF error goes from the worker to your code");
+      const Y = 0.36;
+      const B = [A.box({ x: 0.14, y: Y, w: 330, h: 120, kind: "accent", title: "Python worker", sub: "tip / fare", size: 30 }),
+                 A.box({ x: 0.39, y: Y, w: 330, h: 120, kind: "paper", title: "executor JVM", sub: "task fails", size: 30 }),
+                 A.box({ x: 0.64, y: Y, w: 330, h: 120, kind: "paper", title: "driver", sub: "JVM or Connect server", size: 30 }),
+                 A.box({ x: 0.88, y: Y, w: 300, h: 120, kind: "ink", title: "your code", sub: "except PythonException", size: 30 })];
+      A.in(B, 0.3, { stagger: 0.15 });
+      const chip = A.el("ZeroDivisionError", { x: 0.14, y: Y + 0.13, css: { padding: A.px(10) + "px " + A.px(18) + "px",
+        background: "var(--a-acc)", color: "#fff", borderRadius: A.px(10) + "px", fontFamily: "var(--a-mono)", fontSize: A.px(26) + "px" } });
+      gsap.set(chip, { opacity: 0 });
+      A.tl.set(chip, { opacity: 1 }, 1.4);
+      [0.39, 0.64, 0.88].forEach((x, i) => A.tl.to(chip, { x: A.X(x - 0.14), duration: 0.9, ease: "power2.inOut" }, 1.8 + i * 1.0));
+      const cap = (s, t0, t1) => { const c = A.text(s, { y: 0.6, size: 34, maxw: 1500 }); A.in(c, t0); if (t1) A.out(c, t1); };
+      cap("The worker sends the traceback text, and the driver raises a PythonException (" + D.condition + ", " + D.sqlstate + ")", 1.4, 5.2);
+      const row = (label, val, y, t) => { const a = A.text(label, { x: 0.12, y, size: 32, anchor: "left" });
+        const b = A.text(val, { x: 0.62, y, size: 32, anchor: "left", mono: true, color: "var(--a-acc)", weight: 700 }); A.in([a, b], t); };
+      A.in(A.text("what the message holds", { x: 0.12, y: 0.6, size: 28, anchor: "left", color: "var(--a-mute)" }), 5.2);
+      row("default (simplified traceback)", D.default_lines + " lines, " + D.default_frames + " frame: your UDF", 0.66, 5.6);
+      row("simplifiedTraceback.enabled=false", D.full_lines + " lines, " + D.full_frames + " frames", 0.72, 7.0);
+      row("tracebackWithLocals.enabled=true (4.3)", D.locals.join(", "), 0.78, 8.4);
+      row("a segfault, faulthandler.enabled=true", D.crash_frames + " Python frames of the crash", 0.84, 9.8);
+      A.in(A.note("counts: code/ch94/output/tracebacks.txt, crash.txt; motion schematic"), 0.3);
+      A.finish(15);
+    </script>
+  </body>
+</html>

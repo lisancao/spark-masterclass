@@ -1,0 +1,9 @@
+worker stderr during the slow UDF (paths shortened):
+Timeout (0:00:02)!
+Thread 0x00007772f4316080 (most recent call first):
+  File "crash.py", line 49 in slow
+  File "worker.py", line 2884 in _evaluate_batch_udf
+  File "util.py", line 158 in wrapper
+  File "worker.py", line 2914 in func
+  File "serializers.py", line 96 in _write_stream_start
+  File "serializers.py", line 70 in dump_stream

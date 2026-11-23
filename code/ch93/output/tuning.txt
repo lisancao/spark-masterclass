@@ -1,0 +1,22 @@
+[369.311s][warning][gc,alloc] broadcast-exchange-298: Retried waiting for GCLocker too often allocating 4194304 words
+[369.320s][warning][gc,alloc] broadcast-exchange-298: Retried waiting for GCLocker too often allocating 4194304 words
+== grid: 9 settings (rank x regParam), 3,851 training pairs
+CrossValidator, 3 folds: avgMetrics (rmse) and stdMetrics
+  rank  4  regParam 0.01   rmse 2.968 +- 0.191
+  rank  4  regParam 0.1    rmse 2.419 +- 0.056
+  rank  4  regParam 1.0    rmse 2.823 +- 0.009
+  rank  8  regParam 0.01   rmse 2.870 +- 0.189
+  rank  8  regParam 0.1    rmse 2.524 +- 0.158
+  rank  8  regParam 1.0    rmse 2.817 +- 0.012
+  rank 16  regParam 0.01   rmse 4.507 +- 0.037
+  rank 16  regParam 0.1    rmse 2.949 +- 0.138
+  rank 16  regParam 1.0    rmse 2.827 +- 0.011
+best: rank 4, regParam 0.1  test rmse 2.322
+TrainValidationSplit: best rank 4, regParam 0.1, validation rmse 2.243, test rmse 2.322
+foldCol by pickup zone: IllegalArgumentException: requirement failed: Nothing has been added to this summarizer.
+  every validation zone is new to the model, coldStartStrategy='drop' removes every row
+collectSubModels=False (default): subModels is None
+
+== parallelism: the same CrossValidator, 3 runs each after a warmup (local[*], 16 cores)
+  parallelism=1  median  37.5 s  [37.5, 50.5, 34.8]
+  parallelism=4  median  21.8 s  [20.3, 24.2, 21.8]

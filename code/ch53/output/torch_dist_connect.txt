@@ -1,0 +1,9 @@
+torch 2.15.0+cpu, pyspark 4.3.0, driver pid 860336, Connect session
+== local_mode=True: 5.3 s in all, the value came from rank 0
+   fare = 3.556 * miles + 8.588   (last batch mse 91.3, training loop 0.8 s)
+   rank 0: pid 860713, torch 2.15.0+cpu, 1,829,548 rows
+   rank 1: pid 860714, torch 2.15.0+cpu, 1,829,547 rows
+== local_mode=False: 14.1 s in all, the value came from rank 0
+   fare = 3.556 * miles + 8.588   (last batch mse 91.3, training loop 1.1 s)
+   rank 0: pid 862287, torch 2.11.0+cu130, 1,829,548 rows
+   rank 1: pid 862288, torch 2.11.0+cu130, 1,829,547 rows

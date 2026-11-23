@@ -1,0 +1,19 @@
+
+== A. module-level F.udf(band, 'string') (MODE=classic)
+   1 error in 0.59s
+   PySparkRuntimeError: [SESSION_OR_CONTEXT_NOT_EXISTS] SparkContext or SparkSession should be created first.
+
+== B. module-level UDF, fares.py not shipped to the workers (MODE=classic)
+   1 failed, 9 deselected in 12.56s
+   ModuleNotFoundError: No module named 'fares'
+
+== C. module-level UDF, Connect session (MODE=connect)
+   1 failed, 9 deselected in 0.56s
+   PySparkRuntimeError: [SESSION_OR_CONTEXT_NOT_EXISTS] SparkContext or SparkSession should be created first.
+
+== D. UDF built at call time, Connect, no addArtifacts (MODE=connect)
+   1 failed, 9 deselected in 1.62s
+   ModuleNotFoundError: No module named 'fares'
+
+== E. as in the book: built at call time, shipped (MODE=connect)
+   1 passed, 9 deselected in 2.43s

@@ -1,0 +1,41 @@
+== 1. CREATE TEMPORARY FUNCTION ... AS 'jfun.IsPngHive', without Hive support
+   spark.sql.catalogImplementation = in-memory
+   AnalysisException: [NO_HANDLER_FOR_UDAF] No handler for UDAF 'jfun.IsPngHive'. Use sparkSession.udf.register(...) instead. SQLSTATE: 42000; line 1 pos 7
+
+   with spark.sql.catalogImplementation = hive:
+   Row(sig=True, other=False)
+
+== 2. register the Java functions from Python
+   spark.udf.registerJavaFunction('is_png_udf', 'jfun.IsPngUdf', BooleanType()): ok
+   spark.udf.registerJavaUDAF('mean_fare_udaf', 'jfun.MeanFareUdaf'): ok (a UserDefinedAggregateFunction)
+   spark.udf.registerJavaUDAF('mean_fare', 'jfun.MeanFare') -> AnalysisException: Class jfun.MeanFare doesn't implement interface UserDefinedAggregateFunction.
+   spark._jvm.jfun.Register.all(spark._jsparkSession): mean_fare = functions.udaf(new MeanFare(), Encoders.DOUBLE())
+
+== 3. the same answer, NULL included
++------+-------------+--------+--------+
+|native|static_invoke|java_udf|hive_udf|
++------+-------------+--------+--------+
+|  true|         true|    true|    true|
+| false|        false|   false|   false|
+| false|        false|   false|   false|
+|  NULL|         NULL|    NULL|    NULL|
++------+-------------+--------+--------+
+
++----+----+----------+----+--------+
+|zone| avg|aggregator|udaf|hive_avg|
++----+----+----------+----+--------+
+|   1|15.0|      15.0|15.0|    15.0|
+|   2|NULL|      NULL|NULL|    NULL|
++----+----+----------+----+--------+
+
+== 4. the plan node of each one
+   native is_png_fast   *(1)  expression static_invoke                in whole-stage codegen
+   Java UDF1            *(1)  expression is_png_udf                   in whole-stage codegen
+   Hive GenericUDF      *(1)  expression HiveGenericUDF#jfun.IsPngHive in whole-stage codegen
+   built-in avg         HashAggregate -> HashAggregate
+   Aggregator (udaf)    ObjectHashAggregate -> ObjectHashAggregate
+   legacy UDAF          HashAggregate -> HashAggregate
+   Hive GenericUDAF     ObjectHashAggregate -> ObjectHashAggregate
+
+== 5. a Hive UDF checks its argument types in initialize()
+   AnalysisException: [CANNOT_INSTANTIATE_HIVE_FUNCTION] Cannot instantiate the Hive UDF/UDAF/UDTF wrapper class jfun.IsPngHive. Check that the function arguments and their types are supported. SQLSTATE: 38000; line 1 pos 7

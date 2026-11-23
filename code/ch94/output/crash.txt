@@ -1,0 +1,15 @@
+
+== faulthandler.enabled=false: Py4JJavaError, 127 lines
+   org.apache.spark.SparkException: Python worker exited unexpectedly (crashed). Consider
+   setting 'spark.sql.execution.pyspark.udf.faulthandler.enabled'
+   or'spark.python.worker.faulthandler.enabled' configuration to 'true' for the better Python
+
+== faulthandler.enabled=true: Py4JJavaError, 163 lines
+   org.apache.spark.SparkException: Python worker exited unexpectedly (crashed): Fatal Python
+   error: Segmentation fault
+   ... 16 Python frames after it, the first two:
+     File "/usr/lib/python3.12/ctypes/__init__.py", line 525 in string_at
+     File "crash.py", line 24 in parse_blob
+
+== a slow UDF, tracebackDumpIntervalSeconds=2 (the dump goes to the worker's stderr)
+   result [Row(slow(id)=0)]
