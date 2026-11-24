@@ -1,6 +1,6 @@
 # v2-config-sql notes: chapters 74 and 75 (provisional numbers)
 
-Branch `v2-config-sql`, worktree `~/spark-masterclass-parts/config-sql`. Ports: Spark UI 4142, Connect 15102 (the Thrift server in ch15 also uses 15102, never at the same time as Connect).
+Branch `v2-config-sql`, worktree `config-sql`. Ports: Spark UI 4142, Connect 15102 (the Thrift server in ch15 also uses 15102, never at the same time as Connect).
 
 ## Scope
 
@@ -55,7 +55,7 @@ Rules broken on purpose: none flagged. Output blocks, error messages, config key
 - Tarball `spark-4.3.0-bin-hadoop3` in `$BOOK_DATA/tarball/` (for `jars/connect-repl/spark-connect-client-jdbc_2.13-4.3.0.jar` and `spark-connect-client-jvm_2.13-4.3.0.jar`).
 - `com.h2database:h2:2.3.232` through `spark.jars.packages` (ch15 catalogs).
 - `pyhive[hive_pure_sasl]` through `uv run --with` (ch15 Thrift client).
-- Spark source: `~/repos/spark` at tag `v4.3.0` (also v3.5.0, v4.0.0, v4.1.0, v4.2.0 for the "new in" checks).
+- Spark source: `~/spark` at tag `v4.3.0` (also v3.5.0, v4.0.0, v4.1.0, v4.2.0 for the "new in" checks).
 - No timings are quoted in the text, so no run took the bench lock. The `Time taken` lines in `sql_cli.txt` are shown as output only.
 
 ## Claim-to-source table

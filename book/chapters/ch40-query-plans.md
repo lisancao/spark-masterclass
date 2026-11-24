@@ -4,7 +4,7 @@ A slow Spark query almost never has a slow line of code. It has a plan with a ba
 
 **A Spark plan is a record of decisions. The Catalyst optimizer makes the static decisions before the query starts, from estimates. Adaptive query execution (AQE) makes the dynamic decisions during the run, from real sizes. When you read a plan, you can see which decisions Spark made, which estimate caused each decision, and which decisions AQE changed.**
 
-The scripts for this chapter are in [`code/ch40`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch40). Each output block in the chapter comes from `code/ch40/output/`. The data is the June 2026 yellow-taxi file from [Chapter 5](ch05-how-spark-runs.md) (3,837,248 rows) and the zone lookup file (265 rows). All runs use Spark 4.3.0 in `local[*]` mode on 16 cores, with the session time zone set to UTC.
+The scripts for this chapter are in [`code/ch40`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch40). Each output block in the chapter comes from `code/ch40/output/`. The data is the June 2026 yellow-taxi file from [Chapter 5](ch05-how-spark-runs.md) (3,837,248 rows) and the zone lookup file (265 rows). All runs use Spark 4.3.0 in `local[*]` mode on 16 cores, with the session time zone set to UTC.
 
 Earlier chapters show only some plans. The first physical plan is in [Chapter 5](ch05-how-spark-runs.md), which reads it from the bottom to the top. A comparison of a DataFrame plan and a SQL plan is in [Chapter 7](ch07-quick-start.md). This chapter goes into each part of the plan. It also gives the one full explanation of AQE in this book. The chapters on joins, partitions and Python refer back to it.
 

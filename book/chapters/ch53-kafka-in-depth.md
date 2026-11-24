@@ -6,7 +6,7 @@
 
 **The Kafka connector does not use Kafka to remember where a query is. The checkpoint holds the offsets, Spark picks each offset range itself, and the consumer group that Kafka shows is empty. Thus, the starting options apply only to a new checkpoint. `failOnDataLoss` decides what occurs when the broker deletes records that the checkpoint still wants. The sink can write a record two times. A correct Kafka pipeline is a checkpoint, a retention time that is longer than the longest stop, and a reader that removes duplicates by key.**
 
-All the code runs against Spark 4.3.0 and one Kafka broker in Docker. The scripts are in [`code/ch53`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch53), and each number in the chapter comes from their saved output in `code/ch53/output/`.
+All the code runs against Spark 4.3.0 and one Kafka broker in Docker. The scripts are in [`code/ch53`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch53), and each number in the chapter comes from their saved output in `code/ch53/output/`.
 
 ## The setup: one broker with two doors
 

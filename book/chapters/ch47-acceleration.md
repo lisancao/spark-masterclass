@@ -8,7 +8,7 @@ Some projects replace the engine below the planner. Apache Gluten sends the work
 
 This chapter shows each part of that statement on the same taxi queries. First, it shows the hooks that Spark gives and what one config line adds to a session. Then it shows which Spark versions each engine supports, and the plans on Velox, DataFusion and a GPU. Last, it shows what falls back to the JVM, where each engine keeps its memory, and how long the queries take.
 
-All the code is in [`code/ch47`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch47), and each number comes from `code/ch47/output/`. [Chapter 40](ch40-query-plans.md) shows how to read a physical plan. This chapter uses that skill on plans that have operators from other engines.
+All the code is in [`code/ch47`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch47), and each number comes from `code/ch47/output/`. [Chapter 40](ch40-query-plans.md) shows how to read a physical plan. This chapter uses that skill on plans that have operators from other engines.
 
 !!! note "Spark versions in this chapter"
     The book uses Spark 4.3.0. On 22 November 2026, no release of Gluten, Comet, the RAPIDS Accelerator or Auron supports Spark 4.3.0. Step 3 shows the errors and their causes in the 4.3.0 source. Thus, each engine runs here on the newest Spark that its newest release supports, and each output block says which version ran:

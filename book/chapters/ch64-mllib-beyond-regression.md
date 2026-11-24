@@ -8,7 +8,7 @@ Which items occur together in one trip? Which zones are busy in the same order e
 
 This chapter uses the June 2026 taxi trips again. It clusters the pickup zones (KMeans, BisectingKMeans, GaussianMixture). It recommends destinations with ALS (explicit and implicit). It finds frequent patterns (FPGrowth on trips as baskets, PrefixSpan on days as sequences). It runs the statistics functions (`Correlation`, `ChiSquareTest`, `Summarizer`).
 
-Then it shows the feature transformers that [Chapter 63](ch63-mllib-mlflow.md) did not use, tunes ALS with `CrossValidator` and `TrainValidationSplit`, and runs each part over Spark Connect. The scripts are in [`code/ch64`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch64). They ran on `pyspark==4.3.0`, and each output block comes from `code/ch64/output/`.
+Then it shows the feature transformers that [Chapter 63](ch63-mllib-mlflow.md) did not use, tunes ALS with `CrossValidator` and `TrainValidationSplit`, and runs each part over Spark Connect. The scripts are in [`code/ch64`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch64). They ran on `pyspark==4.3.0`, and each output block comes from `code/ch64/output/`.
 
 The algorithms need different input shapes. This map shows the shape that each family expects:
 

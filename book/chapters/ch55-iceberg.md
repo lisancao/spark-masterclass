@@ -4,7 +4,7 @@
 
 **An Iceberg table is a tree of metadata files and data files, with one pointer at the top. The catalog keeps the pointer, and the runtime jar is the code that reads and writes the tree inside Spark. Each change to a table writes new files and then moves the pointer in one atomic step. If you know where the pointer is and what each file in the tree contains, you can explain each Iceberg feature in this chapter.**
 
-The code is in [`code/ch55/`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch55). The scripts run on `pyspark==4.3.0` in local mode. Two of them need the catalog servers in Docker, which `code/ch55/catalogs.sh up` starts. Each output block below comes from a file in `code/ch55/output/`.
+The code is in [`code/ch55/`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch55). The scripts run on `pyspark==4.3.0` in local mode. Two of them need the catalog servers in Docker, which `code/ch55/catalogs.sh up` starts. Each output block below comes from a file in `code/ch55/output/`.
 
 !!! warning "No released Iceberg supports Spark 4.3"
     On 2026-11-22, the newest Iceberg release is 1.12.0. It has runtime jars for Spark 3.5, 4.0 and 4.1 only. This chapter uses a runtime that we built from an open pull request, [apache/iceberg#18749](https://github.com/apache/iceberg/pull/18749) ("Spark: Initial support for 4.3.0", commit `b1eab64`). This build did not go through a release vote.

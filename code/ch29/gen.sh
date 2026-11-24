@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Take the Spark Connect .proto files from the v4.3.0 tag and compile them to Python modules.
-# Needs a Spark git checkout (SPARK_SRC, default ~/repos/spark). No pyspark: only grpcio-tools.
+# Needs a Spark git checkout (SPARK_SRC, default ~/spark). No pyspark: only grpcio-tools.
 set -euo pipefail
 cd "$(dirname "$0")"
-SPARK_SRC=${SPARK_SRC:-$HOME/repos/spark}
+SPARK_SRC=${SPARK_SRC:-$HOME/spark}
 SRC=sql/connect/common/src/main/protobuf/spark/connect
 rm -rf build && mkdir -p build/proto/spark/connect build/gen
 for f in $(git -C "$SPARK_SRC" ls-tree --name-only v4.3.0 "$SRC/"); do

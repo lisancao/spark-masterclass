@@ -6,7 +6,7 @@ This chapter opens `state/` file by file. It decodes a state file with the Pytho
 
 **The state store is a versioned key-value store for each partition of each stateful operator. Batch N reads version N and writes version N+1. On disk, each version is a small file of changes, and from time to time a full snapshot. The provider decides the format of these files. The checkpoint fixes the provider, the number of partitions and the state schema at the first batch. Each limit on a change to a stateful query comes from these three facts.**
 
-The scripts are in [`code/ch52`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch52), and each number in the chapter comes from their saved output in `code/ch52/output/`. They use the checkout drops of [Chapter 50](ch50-transform-with-state.md) and the file source on Spark 4.3.0.
+The scripts are in [`code/ch52`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch52), and each number in the chapter comes from their saved output in `code/ch52/output/`. They use the checkout drops of [Chapter 50](ch50-transform-with-state.md) and the file source on Spark 4.3.0.
 
 ## The query: a count of distinct events per user
 

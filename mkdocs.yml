@@ -3,11 +3,11 @@ site_description: >-
   An open, in-depth book on Apache Spark 4.3: how it runs your code, DataFrames
   and SQL, messy data, performance, streaming, pipelines, machine learning,
   production, extending Spark and its internals. Every example runs on a laptop.
-site_url: https://lisancao.github.io/spark-masterclass/
+site_url: https://open-lakehouse.github.io/spark-masterclass/
 site_author: Lisa Cao
 
-repo_url: https://github.com/lisancao/spark-masterclass
-repo_name: lisancao/spark-masterclass
+repo_url: https://github.com/open-lakehouse/spark-masterclass
+repo_name: open-lakehouse/spark-masterclass
 edit_uri: edit/main/book/
 
 docs_dir: book

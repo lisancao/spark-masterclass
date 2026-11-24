@@ -4,7 +4,7 @@
 
 **The Spark Connect protocol is small. A request carries a plan as protobuf: a tree of `Relation` and `Expression` messages, or a `Command`. The response is a stream of protobuf messages, and the rows in it are Arrow IPC batches. Because of these two formats, a client is easy to write in any language. They also let a Connect client collect a large result as fast as Classic with Arrow.**
 
-The code is in [`code/ch25`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch25). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. They use the server of [Chapter 24](ch24-spark-connect.md) (`code/ch24/server.sh`). The source of the protocol is `sql/connect/common/src/main/protobuf/spark/connect/*.proto` at tag `v4.3.0`. [Chapter 27](ch27-connect-clients.md) uses this protocol from other languages, and [Chapter 29](ch29-writing-a-connect-client.md) writes a client with it.
+The code is in [`code/ch25`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch25). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. They use the server of [Chapter 24](ch24-spark-connect.md) (`code/ch24/server.sh`). The source of the protocol is `sql/connect/common/src/main/protobuf/spark/connect/*.proto` at tag `v4.3.0`. [Chapter 27](ch27-connect-clients.md) uses this protocol from other languages, and [Chapter 29](ch29-writing-a-connect-client.md) writes a client with it.
 
 <figure markdown>
   <video autoplay loop muted playsinline controls width="1280" height="720" poster="../../media/clips/ch25-anim-round-trip.webp">

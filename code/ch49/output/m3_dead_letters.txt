@@ -18,7 +18,7 @@ restart ran batches [3] -> silver 38 (38 distinct), dead letters 4
 
 Housekeeping: cleanSource=archive
   after run 1   inbox: ['drop_02.jsonl']  archive: ['drop_01.jsonl']
-  archived as:   archive/~/spark-masterclass-parts/part05/data/work/ch49/m3-archive/inbox/drop_01.jsonl
+  archived as:   archive/~/spark-masterclass/data/work/ch49/m3-archive/inbox/drop_01.jsonl
   after run 2   inbox: ['drop_03.jsonl']  archive: ['drop_01.jsonl', 'drop_02.jsonl']
   ['cleanSource']:
   StreamingQueryException: [STREAM_FAILED] ... Archive mode must be used with

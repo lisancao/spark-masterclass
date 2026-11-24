@@ -3,7 +3,7 @@
 Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Chapter numbers here are the numbers in the writer's file names (the old numbering). The integrator renumbers to the final roadmap with `notes/renumber.md`. Cross-references to chapters in other parts: use the final numbers from `book/roadmap.md`.
 
 ## part02: Part II
-- Worktree `~/spark-masterclass-parts/part02`, branch `part-02`. `SPARK_UI_PORT=4022`, Connect port 10220 if needed (UI 4122). Kind cluster name, if needed: `part02`.
+- Worktree `part02`, branch `part-02`. `SPARK_UI_PORT=4022`, Connect port 10220 if needed (UI 4122). Kind cluster name, if needed: `part02`.
 - Chapters:
   - 5 DataFrames, columns and schemas: Analyzed plans for `withColumn` chains, nullability. **4.3:** `DataFrame.zip`
   - 6 Cleaning values: ANSI, try_ functions, strings, time: Collations, money, dates. **4.3:** nanosecond timestamps
@@ -14,7 +14,7 @@ Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Cha
 - SparkTutor lessons to cover in full: LS02 dataframes_schemas, LS05 spark_sql_deep_dive, LS07 join_strategies, MD03 schemas, MD04 cleaning_values, MD21 whats_new_4x (SQL parts), WN03 pipe_syntax_qualify, WN04 sql_scripting, WN05 geospatial, WN08 cdc_nearest_metrics (NEAREST BY)
 
 ## part03: Part III
-- Worktree `~/spark-masterclass-parts/part03`, branch `part-03`. `SPARK_UI_PORT=4023`, Connect port 10230 if needed (UI 4123). Kind cluster name, if needed: `part03`.
+- Worktree `part03`, branch `part-03`. `SPARK_UI_PORT=4023`, Connect port 10230 if needed (UI 4123). Kind cluster name, if needed: `part03`.
 - Chapters:
   - 11 Files as files, globs and metadata: **4.3:** reading zip and tar archives
   - 12 Text, logs and CSV: Corrupt-record modes, layout drift, encodings
@@ -26,7 +26,7 @@ Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Cha
 - SparkTutor lessons to cover in full: LS03 data_sources, LS04 external_sources_hof, MD05 files_as_files, MD06 text_and_logs, MD07 csv_and_delimited, MD08 json_drift, MD09 complex_types, MD10 variant_basics, MD11 xml, MD12 avro_and_protobuf, MD13 documents_to_rows, MD14 images_and_audio, MD31 variant_shredding, MD47 blob_table_design, WN02 variant
 
 ## part04: Part IV
-- Worktree `~/spark-masterclass-parts/part04`, branch `part-04`. `SPARK_UI_PORT=4024`, Connect port 10240 if needed (UI 4124). Kind cluster name, if needed: `part04`.
+- Worktree `part04`, branch `part-04`. `SPARK_UI_PORT=4024`, Connect port 10240 if needed (UI 4124). Kind cluster name, if needed: `part04`.
 - Chapters:
   - 18 Reading query plans: Catalyst and AQE: One AQE explanation instead of three; real `explain` output
   - 19 Partitions, caching, memory and spill: Recorded Spark UI walkthrough.
@@ -38,7 +38,7 @@ Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Cha
 - Extra: native and GPU engines are a separate chapter (final ch24, another writer); point to it, do not cover them. Project Feather (old 23) must be full depth: the 4.3 source, which queries qualify, the crossover across data sizes, effects on plans, AQE, UI and Connect.
 
 ## part05: Part V
-- Worktree `~/spark-masterclass-parts/part05`, branch `part-05`. `SPARK_UI_PORT=4025`, Connect port 10250 if needed (UI 4125). Kind cluster name, if needed: `part05`.
+- Worktree `part05`, branch `part-05`. `SPARK_UI_PORT=4025`, Connect port 10250 if needed (UI 4125). Kind cluster name, if needed: `part05`.
 - Chapters:
   - 24 Structured Streaming fundamentals: Sources and sinks, output modes, triggers, windows, watermarks and checkpoints
   - 25 Streaming messy data: drift, dead letters, late events: The future-dated event that wrecks a watermark
@@ -48,7 +48,7 @@ Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Cha
 - SparkTutor lessons to cover in full: LS08 structured_streaming, MD17 streaming_files, MD33 streaming_messy_data, MD51 streaming_internals, WN07 transform_with_state; Real-time Mode (4.3)
 
 ## part06: Part VI
-- Worktree `~/spark-masterclass-parts/part06`, branch `part-06`. `SPARK_UI_PORT=4026`, Connect port 10260 if needed (UI 4126). Kind cluster name, if needed: `part06`.
+- Worktree `part06`, branch `part-06`. `SPARK_UI_PORT=4026`, Connect port 10260 if needed (UI 4126). Kind cluster name, if needed: `part06`.
 - Chapters:
   - 29 Tables: Delta and Iceberg, MERGE and time travel: The transaction log on disk.
   - 30 Declarative Pipelines: the model and the CLI: The project layout and spec the tutor used to hide; dry-run output
@@ -57,10 +57,10 @@ Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Cha
   - 33 Metric views: A semantic layer in Spark SQL: dimensions, measures and `measure()`
   - 34 A pipeline end to end, and how SDP runs it: Under the hood rewritten from the real SDP source, not the regex toy
 - SparkTutor lessons to cover in full: LS09 data_lakes, MD18 landing_in_delta, MD34 production_ingestion, SDP01-SDP09 (all nine), WN08 cdc_nearest_metrics (Auto CDC, metric views)
-- Extra: the Iceberg catalog deep dive is a separate chapter (final ch31, another writer); your tables chapter stays the Delta vs Iceberg comparison. Metric views (your old ch33) must be full depth: Lisa's upstream branch `~/repos/spark-metricview` (read-only) and her OSA Con deck `~/Documents/spark_content/decks/osa-con-2026/` (short-12/13, demos/metric_view_agent) show how she presents it; check what shipped in v4.3.0.
+- Extra: the Iceberg catalog deep dive is a separate chapter (final ch31, another writer); your tables chapter stays the Delta vs Iceberg comparison. Metric views (your old ch33) must be full depth: the author's upstream branch (SPARK-60206) and her OSA Con deck (short-12/13, demos/metric_view_agent) show how she presents it; check what shipped in v4.3.0.
 
 ## part07: Part VII
-- Worktree `~/spark-masterclass-parts/part07`, branch `part-07`. `SPARK_UI_PORT=4027`, Connect port 10270 if needed (UI 4127). Kind cluster name, if needed: `part07`.
+- Worktree `part07`, branch `part-07`. `SPARK_UI_PORT=4027`, Connect port 10270 if needed (UI 4127). Kind cluster name, if needed: `part07`.
 - Chapters:
   - 35 ML pipelines with MLlib, tracked in MLflow: ML over Connect; open source MLflow for tracking
   - 36 Text analytics without an LLM: TF-IDF search and near-duplicates
@@ -71,7 +71,7 @@ Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Cha
 - SparkTutor lessons to cover in full: LS10 mllib, MD19 text_analytics, MD20 inference_with_pandas_udfs, MD35 similarity_search, MD36 entity_resolution, MD37 inference_in_production, MD38 capstone_intermediate, MD48 lsh_and_ivf, MD49 connected_components, MD50 sketches
 
 ## part08: Part VIII
-- Worktree `~/spark-masterclass-parts/part08`, branch `part-08`. `SPARK_UI_PORT=4028`, Connect port 10280 if needed (UI 4128). Kind cluster name, if needed: `part08`.
+- Worktree `part08`, branch `part-08`. `SPARK_UI_PORT=4028`, Connect port 10280 if needed (UI 4128). Kind cluster name, if needed: `part08`.
 - Chapters:
   - 41 Determinism, retries and fault injection: Connect operation IDs for reattach
   - 42 Shipping Python dependencies: Archives, environments and what actually reaches the workers
@@ -80,10 +80,10 @@ Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Cha
   - 45 Spark on Kubernetes with the Spark Kubernetes Operator: SparkApplication and SparkCluster resources, a Connect server on Kubernetes, run for real on a local cluster
   - 46 Writing Spark pipelines with agents: What agents get wrong in Spark (from the OSA Con 2026 study), and a harness of declare, scope and context: dry-run, a Connect sandbox, version-pinned skills, metric views
 - SparkTutor lessons to cover in full: MD52 determinism_retries, MD53 shipping_dependencies, MD54 observability, LS11 spark_connect (server side); new: Connect deployment patterns, the Spark Kubernetes Operator, writing pipelines with agents (OSA Con 2026)
-- Extra: orchestration (Airflow, YuniKorn, Celeborn, Volcano) is a separate chapter (final ch48, another writer); keep your Kubernetes chapter on the Apache Spark Kubernetes Operator. The agents chapter (old 46) lifts from Lisa's OSA Con 2026 deck `~/Documents/spark_content/decks/osa-con-2026/` (index.html, short-*.html, demos/); quote study numbers exactly as the deck states them, and read `~/.claude/projects/-home-lnc-repos/memory/safe-spark-agents-state.md` for which study claims are safe.
+- Extra: orchestration (Airflow, YuniKorn, Celeborn, Volcano) is a separate chapter (final ch48, another writer); keep your Kubernetes chapter on the Apache Spark Kubernetes Operator. The agents chapter (old 46) lifts from the author's OSA Con 2026 deck (index.html, short-*.html, demos/); quote study numbers exactly as the deck states them, and read `~/.claude/projects/-home-lnc-repos/memory/safe-spark-agents-state.md` for which study claims are safe.
 
 ## part09a: Part IX (first half)
-- Worktree `~/spark-masterclass-parts/part09a`, branch `part-09a`. `SPARK_UI_PORT=4029`, Connect port 10290 if needed (UI 4129). Kind cluster name, if needed: `part09a`.
+- Worktree `part09a`, branch `part-09a`. `SPARK_UI_PORT=4029`, Connect port 10290 if needed (UI 4129). Kind cluster name, if needed: `part09a`.
 - Chapters:
   - 47 Python data sources I: readers and partition planning: A parallel reader for a custom format
   - 48 Python data sources II: APIs, databases and Arrow batches: JDBC ranges vs a Python source
@@ -93,7 +93,7 @@ Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Cha
 - SparkTutor lessons to cover in full: MD15 first_python_data_source, MD22 custom_file_format, MD23 api_source, MD25 filter_pushdown, MD26 database_source, MD27 writers, MD28 streaming_sources, MD29 packaging_testing, WN06 python_data_sources
 
 ## part09b: Part IX (second half)
-- Worktree `~/spark-masterclass-parts/part09b`, branch `part-09b`. `SPARK_UI_PORT=4030`, Connect port 10300 if needed (UI 4130). Kind cluster name, if needed: `part09b`.
+- Worktree `part09b`, branch `part-09b`. `SPARK_UI_PORT=4030`, Connect port 10300 if needed (UI 4130). Kind cluster name, if needed: `part09b`.
 - Chapters:
   - 52 A DSv2 connector in Java: Capability table that bridges to the Python API
   - 53 Catalyst extensions: rules and native functions: **4.3:** the hand-written rule vs built-in UDF transpilation
@@ -102,7 +102,7 @@ Each writer reads `notes/chapter-brief.md` first; this file gives its scope. Cha
 - SparkTutor lessons to cover in full: MD42 java_dsv2_connector, MD43 session_extensions, MD44 connect_plugins, MD56 final_project
 
 ## part10: Part X
-- Worktree `~/spark-masterclass-parts/part10`, branch `part-10`. `SPARK_UI_PORT=4031`, Connect port 10310 if needed (UI 4131). Kind cluster name, if needed: `part10`.
+- Worktree `part10`, branch `part-10`. `SPARK_UI_PORT=4031`, Connect port 10310 if needed (UI 4131). Kind cluster name, if needed: `part10`.
 - Chapters:
   - 56 How Catalyst plans Python: **4.3:** transpilation as the closing section
   - 57 The Python worker protocol: Wire format, failure modes, memory limits

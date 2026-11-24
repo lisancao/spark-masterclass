@@ -1,6 +1,6 @@
 # v3-perf notes: performance slice (ch41 new, ch42 and ch45 extended)
 
-Branch `v3-perf`, worktree `~/spark-masterclass-parts/perf`. Ports: Spark UI 4154, Connect 15114 (the in-process Connect plugin of `ch42/ui_tabs.py`).
+Branch `v3-perf`, worktree `perf`. Ports: Spark UI 4154, Connect 15114 (the in-process Connect plugin of `ch42/ui_tabs.py`).
 
 ## Scope
 
@@ -92,7 +92,7 @@ Rules broken on purpose:
 | Bucketed joins, exchanges and times; coalesce buckets; maxBucketRatio 4 | `bucketing.txt` section 2; `SQLConf.scala` line 7201 |
 | autoBucketedScan disables the bucketed scan; pruning selects 1 of 16 but 17 tasks; files metric counts all files | `bucketing.txt` section 4; `DataSourceScanExec.scala` v4.3.0 lines 345, 621-627, 855-870 |
 | SPJ: two Exchanges by default; none with preserve-data-grouping; 16 x 8 with allowCompatibleTransforms | `spj.txt` |
-| Iceberg `preserve-data-grouping` default false; `BucketFunction` reducer to the gcd | `~/repos/iceberg-spark43` (PR 18749 build) `SparkSQLProperties.java` line 39-41, `functions/BucketFunction.java` lines 142-153 |
+| Iceberg `preserve-data-grouping` default false; `BucketFunction` reducer to the gcd | a local apache/iceberg build (PR 18749 build) `SparkSQLProperties.java` line 39-41, `functions/BucketFunction.java` lines 142-153 |
 | SPJ settings and defaults; `allowKeysSubsetOfPartitionKeys` with alternative `allowJoinKeysSubsetOfPartitionKeys` | `SQLConf.scala` v4.3.0 lines 2440-2530; `docs/sql-performance-tuning.md` v4.3.0 (Storage Partition Join) |
 | Join hint results, build sides, precedence, ignored hints and warnings | `hints.txt` sections 1-4 (warnings from stderr, appended to the file) |
 | Partitioning hint exchanges, file counts and sizes; parallelismFirst behaviour | `hints.txt` sections 5, 6 |

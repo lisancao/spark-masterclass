@@ -11,7 +11,7 @@ This chapter sets one key in each place and reads the value that Spark uses. The
 - What a Spark Connect client can set.
 - A reference table of the configurations that you will set most frequently. The table gives each default in 4.3.0 and the chapter that explains the configuration.
 
-The scripts are in [`code/ch08`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch08), and each output block below comes from `code/ch08/output/`.
+The scripts are in [`code/ch08`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch08), and each output block below comes from `code/ch08/output/`.
 
 | Script | What it shows |
 |---|---|
@@ -380,7 +380,7 @@ The 4.3 rows include `spark.sql.optimizer.singleTaskExecution.enabled` ([Chapter
 |spark.app.name              |ch08-find                                                             |
 |spark.myteam.db.password    |*********(redacted)                                                   |
 |spark.sql.shuffle.partitions|16                                                                    |
-|spark.sql.warehouse.dir     |file:~/spark-masterclass-parts/config-sql/code/spark-warehouse|
+|spark.sql.warehouse.dir     |file:~/spark-masterclass/code/spark-warehouse|
 +----------------------------+----------------------------------------------------------------------+
 ```
 

@@ -72,7 +72,7 @@
 |spark.app.name              |ch08-find                                                             |
 |spark.myteam.db.password    |*********(redacted)                                                   |
 |spark.sql.shuffle.partitions|16                                                                    |
-|spark.sql.warehouse.dir     |file:~/spark-masterclass-parts/config-sql/code/spark-warehouse|
+|spark.sql.warehouse.dir     |file:~/spark-masterclass/code/spark-warehouse|
 +----------------------------+----------------------------------------------------------------------+
 
 == 4. SET for one key, also for a key that nothing set

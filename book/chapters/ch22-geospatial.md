@@ -15,7 +15,7 @@ Spark 4.1 added the `GEOMETRY` and `GEOGRAPHY` types behind a flag. Spark 4.2 en
 
     The umbrella issue is SPARK-51658, "SPIP: Add geospatial types in Spark". Its tasks have fix versions 4.1.0 and 4.2.0.
 
-The scripts are in [`code/ch22`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch22), and each output block below comes from `code/ch22/output/`.
+The scripts are in [`code/ch22`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch22), and each output block below comes from `code/ch22/output/`.
 
 - `inventory.py` and `geotypes.py` list the functions and types and show the rules of the types.
 - `zones.py` reads the TLC taxi zone shapefile into `GEOMETRY(2263)`.

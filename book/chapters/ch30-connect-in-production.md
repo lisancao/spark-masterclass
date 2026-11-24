@@ -4,7 +4,7 @@
 
 **A Spark Connect server is one Spark application, so all of its sessions share one driver, one set of executors, one catalog and one scheduler. A session isolates only its own state: temporary views, SQL configs, UDFs, artifacts and tags. The sessions share everything else, unless you deploy more servers. Thus the main design decision is the boundary: which clients can share a server, and which need a server of their own.**
 
-The code for this chapter is in [`code/ch30`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch30). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. Each output block comes from `code/ch30/output/`. All scripts start the Part XII Connect server from the pip install with `code/ch72/server.sh`, each with its own settings.
+The code for this chapter is in [`code/ch30`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch30). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. Each output block comes from `code/ch30/output/`. All scripts start the Part XII Connect server from the pip install with `code/ch72/server.sh`, each with its own settings.
 
 ## The deployment patterns
 

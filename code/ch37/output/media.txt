@@ -28,8 +28,8 @@ red_16x8.png, first pixel bytes: 00 00 ff  (blue, green, red)
 logo_rgba_12x12.png, first pixel: ff 00 00 ff  (B, G, R, A)
 
 == origin and path are not the same string ==
-image.origin:    file://~/spark-masterclass-parts/part03/code/data/messy/images/products/red_16x8.png
-binaryFile.path: file:~/spark-masterclass-parts/part03/code/data/messy/images/products/red_16x8.png
+image.origin:    file://~/spark-masterclass/code/data/messy/images/products/red_16x8.png
+binaryFile.path: file:~/spark-masterclass/code/data/messy/images/products/red_16x8.png
 join on origin = path: 0 rows
 join on _metadata.file_path: 6 rows
 

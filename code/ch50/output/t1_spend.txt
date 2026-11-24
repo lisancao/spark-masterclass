@@ -10,7 +10,7 @@ The physical plan of the query (expression ids and long lists removed):
   :  +- Exchange hashpartitioning(user, 2), REQUIRED_BY_STATEFUL_OPERATOR, [...]
   :     +- *(1) Project [...]
   :        +- *(1) Filter (isnotnull(action) AND (action = pay))
-  :           +- StreamingRelation FileSource[~/spark-masterclass-parts/part05/data/work/ch50/
+  :           +- StreamingRelation FileSource[~/spark-masterclass/data/work/ch50/
   +- *(4) Sort [...], false, 0
      +- Exchange hashpartitioning(user, 2), REQUIRED_BY_STATEFUL_OPERATOR, [...]
         +- *(3) Project [...]

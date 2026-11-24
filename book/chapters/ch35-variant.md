@@ -6,7 +6,7 @@
 
 **A `VARIANT` value is not JSON text. Spark parses the JSON one time, at the read, into a binary form with a dictionary of field names and typed values. Each later extraction reads that binary form, and it does not parse text again. In Parquet, Spark also shreds the common fields of each file into typed columns. Then a typed extraction reads only one column, and a filter on it goes into the scan.** Spark 4.3 adds functions that edit a `VARIANT` value in place.
 
-The data is the `events/` folder from [Chapter 33](ch33-json.md), in [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy): three days of order events with five kinds of drift and one cut-off line. Step 13 also uses one million NYC taxi trips. The scripts are [`code/ch35/land.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch35), `edit.py`, `shred.py` and `speed.py`. All output is from `code/ch35/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
+The data is the `events/` folder from [Chapter 33](ch33-json.md), in [`code/data/messy`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/data/messy): three days of order events with five kinds of drift and one cut-off line. Step 13 also uses one million NYC taxi trips. The scripts are [`code/ch35/land.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch35), `edit.py`, `shred.py` and `speed.py`. All output is from `code/ch35/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`.
 
 ## Three ways to keep a JSON record
 

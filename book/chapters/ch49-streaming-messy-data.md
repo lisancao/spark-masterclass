@@ -17,7 +17,7 @@ The problems are of four kinds. A schema that drifts gives NULL columns. A broke
 
 This chapter builds that defense one step at a time, and it measures what each problem does without it.
 
-The scripts are in [`code/ch49`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch49), and each number in the chapter comes from their saved output in `code/ch49/output/`. All of them use the file source, so no other service is necessary.
+The scripts are in [`code/ch49`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch49), and each number in the chapter comes from their saved output in `code/ch49/output/`. All of them use the file source, so no other service is necessary.
 
 ## The data: four drops from a click tracker
 
@@ -297,7 +297,7 @@ A file source remembers each file that it read, in the `sources/0/` log of the c
 ```text
 Housekeeping: cleanSource=archive
   after run 1   inbox: ['drop_02.jsonl']  archive: ['drop_01.jsonl']
-  archived as:   archive/~/spark-masterclass-parts/part05/data/work/ch49/m3-archive/inbox/drop_01.jsonl
+  archived as:   archive/~/spark-masterclass/data/work/ch49/m3-archive/inbox/drop_01.jsonl
   after run 2   inbox: ['drop_03.jsonl']  archive: ['drop_01.jsonl', 'drop_02.jsonl']
   ['cleanSource']:
   StreamingQueryException: [STREAM_FAILED] ... Archive mode must be used with

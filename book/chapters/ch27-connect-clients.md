@@ -4,7 +4,7 @@
 
 **A Spark Connect client is three parts: a gRPC stub, a set of protobuf messages and an Arrow reader. The DataFrame API is a layer on top of these parts. Thus the Scala, Go, Rust and Swift clients send the same plan as PySpark and get the same rows back. The clients are different in other areas: the release, the installation, the API that they implement and the parts of the protocol that they use. Examples of these parts are reattach and direct access to the Arrow batches.**
 
-The code is in [`code/ch27`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch27). The server is pyspark 4.3.0 on OpenJDK 17, on a 16-core Linux machine. This chapter installs nothing on the host. Each client program compiles and runs in a Docker image:
+The code is in [`code/ch27`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch27). The server is pyspark 4.3.0 on OpenJDK 17, on a 16-core Linux machine. This chapter installs nothing on the host. Each client program compiles and runs in a Docker image:
 
 - Rust: `rust:bookworm`, with Rust 1.99.1
 - Go: `golang:latest`, with Go 1.27.4

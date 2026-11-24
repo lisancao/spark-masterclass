@@ -52,7 +52,7 @@ Run 2's progress report, trimmed:
  ],
  "sources": [
   {
-   "description": "FileStreamSource[file:~/spark-masterclass-parts/part05/data/work/ch48/s2/inbox]",
+   "description": "FileStreamSource[file:~/spark-masterclass/data/work/ch48/s2/inbox]",
    "startOffset": {
     "logOffset": 0
    },

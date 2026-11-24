@@ -23,7 +23,7 @@ Time taken: 0.433 seconds, Fetched 1 row(s)
 Catalog             	spark_catalog       	                    
 Database            	taxi                	                    
 Table               	zones               	                    
-Owner               	lnc                 	                    
+Owner               	user                	                    
 Type                	EXTERNAL            	                    
 Provider            	csv                 	                    
 Location            	file:~/spark-masterclass/data/nyc-taxi/taxi_zone_lookup.csv	                    

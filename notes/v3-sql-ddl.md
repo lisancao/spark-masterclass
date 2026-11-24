@@ -1,6 +1,6 @@
 # v3-sql-ddl notes: chapters 84 and 85 (provisional numbers)
 
-Branch `v3-sql-ddl`, worktree `~/spark-masterclass-parts/sql-ddl`. Ports: Spark UI 4153, Connect 15113 (not used), Hive Metastore container 19113.
+Branch `v3-sql-ddl`, worktree `sql-ddl`. Ports: Spark UI 4153, Connect 15113 (not used), Hive Metastore container 19113.
 
 ## Scope
 
@@ -45,7 +45,7 @@ Rules bent on purpose: none flagged. Output blocks, error messages, config keys 
 ## Environment
 
 - pyspark 4.3.0 (pip, `code/.venv` from `uv sync`), OpenJDK 17.0.21.1, Python 3.12.
-- Spark source: `~/repos/spark` at `v4.3.0` (also `v3.3.0`, `v3.4.0`, `v3.5.0`, `v4.0.0`, `v4.1.0`, `v4.2.0` for the "since" checks), read with `git show` and `git grep` only.
+- Spark source: `~/spark` at `v4.3.0` (also `v3.3.0`, `v3.4.0`, `v3.5.0`, `v4.0.0`, `v4.1.0`, `v4.2.0` for the "since" checks), read with `git show` and `git grep` only.
 - Iceberg: unreleased runtime `$BOOK_DATA/jars/iceberg-spark-runtime-4.3_2.13-b1eab64.jar`, built from apache/iceberg PR #18749 at commit `b1eab64` (the same jar as ch55 and ch37; sha256 `f915c7b075e58012f6a9ee2e34dffcccac9a5715816e01738ff5560efe6dc4d5` per ch55 notes). Hadoop catalog `lake`. Labelled in ch16 as not a release.
 - Hive client: built-in Hive 2.3.10 jars of the pyspark wheel. For ch17 Step 12, Hive 4.0.1 client jars from Maven (`spark.sql.hive.metastore.jars=maven`), cached in `~/.ivy2.5.2`.
 - Hive Metastore: Docker image `apache/hive:4.0.1`, `SERVICE_NAME=metastore`, embedded Derby inside the container, container `sm-ch17-hms` on port 19113. Removed at the end (`ch17/standalone_metastore.sh down`).

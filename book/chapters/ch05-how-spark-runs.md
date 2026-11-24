@@ -6,7 +6,7 @@ All of these problems have the same cause: Spark never runs the code that you wr
 
 **Spark changes every query into a plan, and then it changes the plan into jobs, stages and tasks. The shape of that plan sets the cost of a query, not the lines of code that describe it. The shape is how the input splits into tasks, where a shuffle cuts one stage from the next, and which processes do the work.** Most of what it means to understand Spark is to read that shape. The rest of this book uses this skill frequently. Thus, this chapter takes one question about New York taxi trips and follows it through all the levels.
 
-All the code in this chapter runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch05`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch05). Each number in the chapter comes from their saved output in `code/ch05/output/`. If you did not install Spark yet, [Chapter 6](ch06-installing.md) shows how. You can read this chapter first and install Spark later. For the history of Spark and the reasons for its design, read the Background part, which starts with [Chapter 1](ch01-mapreduce-to-spark.md).
+All the code in this chapter runs on a laptop against Spark 4.3.0. The scripts are in [`code/ch05`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch05). Each number in the chapter comes from their saved output in `code/ch05/output/`. If you did not install Spark yet, [Chapter 6](ch06-installing.md) shows how. You can read this chapter first and install Spark later. For the history of Spark and the reasons for its design, read the Background part, which starts with [Chapter 1](ch01-mapreduce-to-spark.md).
 
 ## The pieces of a Spark application
 

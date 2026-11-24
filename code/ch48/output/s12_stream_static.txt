@@ -15,8 +15,8 @@
    static RIGHT OUTER stream   ok
 
 2. The physical plan of one micro-batch (stream LEFT OUTER static):
-      +- StateStoreSave [Borough#26], state info [ checkpoint = file:~/spark-masterclass-parts/streaming/data/work/ch48/s
-            +- StateStoreRestore [Borough#26], state info [ checkpoint = file:~/spark-masterclass-parts/streaming/data/wo
+      +- StateStoreSave [Borough#26], state info [ checkpoint = file:~/spark-masterclass/data/work/ch48/s
+            +- StateStoreRestore [Borough#26], state info [ checkpoint = file:~/spark-masterclass/data/wo
                   +- Exchange hashpartitioning(Borough#26, 4), REQUIRED_BY_STATEFUL_OPERATOR, [plan_id=107]
                            +- *(2) BroadcastHashJoin [PULocationID#128], [PULocationID#29], LeftOuter, BuildRight, false,
                               :- FileScan json [PULocationID#128] Batched: false, DataFilters: [], Format: JSON, Location
@@ -28,8 +28,8 @@
    batch 0: labels found {'-': 489, 'airport': 19}   (v1 has two airport zones)
    batch 1: labels found {'-': 432, 'airport': 18}   (a new file v2 added)
    StreamingQueryException: [STREAM_FAILED] ... [FAILED_READ_FILE.FILE_NOT_EXIST]
-  Encountered error while reading file file://~/spark-masterclass-parts/streamin
-  g/data/work/ch48/s12/labels/v1/part-00000-2f90ac13-3fab-4003-8e22-1245fa1886ec- ...
+  Encountered error while reading file file://~/spark-masterclass/
+  data/work/ch48/s12/labels/v1/part-00000-2f90ac13-3fab-4003-8e22-1245fa1886ec- ...
    b) read the static side again in each batch, inside foreachBatch:
    batch 0: labels found {'-': 489, 'airport': 19}   (v1 has two airport zones)
    batch 1: labels found {'-': 399, 'airport': 18, 'midtown': 7, 'uptown': 26}   (a new file v2 added)

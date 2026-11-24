@@ -14,7 +14,7 @@ This chapter builds the protocol from the smallest source to a parallel reader f
 
 - Packages, tests and logs ([Chapter 83](ch83-shipping-a-python-data-source.md)).
 
- The scripts are in [`code/ch79`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch79). All output in this chapter comes from `code/ch79/output/`, from runs on `pyspark==4.3.0` in local mode on a 16-core machine.
+ The scripts are in [`code/ch79`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch79). All output in this chapter comes from `code/ch79/output/`, from runs on `pyspark==4.3.0` in local mode on a 16-core machine.
 
 !!! note "New in 4.3"
     The Python Data Source API in Spark 4.3.0 is the same as in Spark 4.2.0. Between the `v4.2.0` and `v4.3.0` tags, the Python data source code has only one functional change. The other change corrects docstrings. SPARK-58019 is a follow-up that converts Arrow list columns to Python rows in bulk for data source writes. Filter pushdown is from 4.1 (SPARK-51271). Admission control and `Trigger.AvailableNow` for stream readers are from 4.2 (SPARK-55304).

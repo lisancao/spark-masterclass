@@ -85,7 +85,7 @@ Technical names and verbs used (STE): spark-submit, master URL, deploy mode, dri
 - OpenJDK 17.0.21.1 on the host. Build container: `maven:3.9-eclipse-temurin-17` plus `zip` (`ops80/spark-build:jdk17`, local image built from `code/ch92/Dockerfile`).
 - kind cluster `ops80` with `kindest/node:v1.37.0` (1 control-plane, 2 workers), image `spark-masterclass/spark:4.3.0-book` (Chapter 76's image: Python 3.10.12, PyArrow 18.1.0).
 - Ports: SPARK_UI_PORT 4151 (HTTPS 4551 in Step 3 of ch71); standalone master 7151, web 8151, workers 8152+, REST 6151; shuffle service 7351; proxy 7161; client-mode driver ports 7178/7179. Connect port 15111 not used (no Connect server in this slice).
-- Outputs replace `$HOME` with `~` and the machine's host name with `laptop` (`sed s#systemsnull#laptop#g` in ch70 outputs; the ch70 film has a hidden `scrub` function that does the same).
+- Outputs replace `$HOME` with `~` and the machine's host name with `laptop` (a `sed` over the ch70 outputs; the ch70 film has a hidden `scrub` function that does the same).
 
 ## Open findings
 

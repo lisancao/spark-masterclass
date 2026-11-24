@@ -6,9 +6,9 @@ This chapter starts where such data often arrives: in an archive. Then it change
 
 **For unstructured files, Spark is the engine that moves bytes and runs your parser in parallel. The parser is plain Python in a UDF or a UDTF. The important decision is the grain of the row: one file, one page or one paragraph. Each row must keep its provenance (the file and its hash). Large bytes do not belong inline in a Parquet table: keep them in a content-addressed store, and keep their hash and address in the table. A delete from a table format does not remove the bytes from the disk until you rewrite the files and expire the old snapshots.**
 
-The data is SparkTutor's sample set in [`code/data/messy`](https://github.com/lisancao/spark-masterclass/tree/main/code/data/messy). It has four support e-mails, two generated PDF invoices and four Markdown policy pages. It also has six images (one is not valid) and three WAV recordings.
+The data is SparkTutor's sample set in [`code/data/messy`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/data/messy). It has four support e-mails, two generated PDF invoices and four Markdown policy pages. It also has six images (one is not valid) and three WAV recordings.
 
-The scripts are [`code/ch37/documents.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch37), `media.py` and `blobs.py`. All output is from `code/ch37/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`. The last part uses Apache Iceberg. Iceberg has no release for Spark 4.3 yet, so `blobs.py` uses a runtime built from an open Iceberg pull request (see Step 13).
+The scripts are [`code/ch37/documents.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch37), `media.py` and `blobs.py`. All output is from `code/ch37/output/`, on Spark 4.3.0 with `spark.sql.session.timeZone=UTC`. The last part uses Apache Iceberg. Iceberg has no release for Spark 4.3 yet, so `blobs.py` uses a runtime built from an open Iceberg pull request (see Step 13).
 
 ```mermaid
 flowchart LR
@@ -304,8 +304,8 @@ To join the image rows to the file sizes from `binaryFile`, the obvious key is t
 
 ```text
 == origin and path are not the same string ==
-image.origin:    file://~/spark-masterclass-parts/part03/code/data/messy/images/products/red_16x8.png
-binaryFile.path: file:~/spark-masterclass-parts/part03/code/data/messy/images/products/red_16x8.png
+image.origin:    file://~/spark-masterclass/code/data/messy/images/products/red_16x8.png
+binaryFile.path: file:~/spark-masterclass/code/data/messy/images/products/red_16x8.png
 join on origin = path: 0 rows
 join on _metadata.file_path: 6 rows
 ```

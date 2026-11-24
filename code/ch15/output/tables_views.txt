@@ -16,7 +16,7 @@
 +----------+------+----------+
 
 == 2. an external table: the files stay where you put them
-> CREATE TABLE daily_ext USING parquet LOCATION '~/spark-masterclass-parts/config-sql/data/work/ch15-tables/external/daily_copy'
+> CREATE TABLE daily_ext USING parquet LOCATION '~/spark-masterclass/data/work/ch15-tables/external/daily_copy'
 > SELECT count(*) AS days FROM daily_ext
 +----+
 |days|
@@ -31,14 +31,14 @@
     Table     daily
     Type      MANAGED
     Provider  parquet
-    Location  file:~/spark-masterclass-parts/config-sql/data/work/ch15-tables/warehouse/taxi.db/daily
+    Location  file:~/spark-masterclass/data/work/ch15-tables/warehouse/taxi.db/daily
   daily_ext
     Catalog   spark_catalog
     Database  taxi
     Table     daily_ext
     Type      EXTERNAL
     Provider  parquet
-    Location  file:~/spark-masterclass-parts/config-sql/data/work/ch15-tables/external/daily_copy
+    Location  file:~/spark-masterclass/data/work/ch15-tables/external/daily_copy
 
 == 4. DESCRIBE TABLE ... AS JSON (a document a program can read)
   keys: ['catalog_name', 'collation', 'columns', 'created_by', 'created_time', 'last_access', 'location', 'namespace', 'provider', 'schema_name', 'table_name', 'type']

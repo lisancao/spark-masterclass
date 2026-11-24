@@ -30,8 +30,8 @@
 |Catalog Name  |spark_catalog                                                                              |
 |Namespace Name|taxi                                                                                       |
 |Comment       |NYC taxi data                                                                              |
-|Location      |file:~/spark-masterclass-parts/config-sql/data/work/ch15-catalogs/warehouse/taxi.db|
-|Owner         |lnc                                                                                        |
+|Location      |file:~/spark-masterclass/data/work/ch15-catalogs/warehouse/taxi.db|
+|Owner         |user                                                                                       |
 |Properties    |                                                                                           |
 +--------------+-------------------------------------------------------------------------------------------+
 

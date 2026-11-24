@@ -4,7 +4,7 @@
 
 **Each form of aggregation in Spark SQL becomes a small set of physical operators. These are a partial aggregate before the shuffle, a final aggregate after it, and sometimes an `Expand` that copies each row. Know which operator Spark selects and how many rows it makes. Then you can see the cost of a query in its plan before you run it.** Spark 4.3 changes some of these plans. It combines two aggregates that are next to each other, it can skip the partial step, and it generates code for more sort aggregates.
 
-The scripts are in [`code/ch19`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch19), and each output block below comes from `code/ch19/output/`. They use the June 2026 taxi trips and the zone lookup from Part II, on Spark 4.3.0 in local mode with 16 cores. Each script makes the view `june` of [Chapter 18](ch18-spark-sql-in-depth.md). It has the June trips with a valid fare and distance, joined to their pickup zone (3,663,191 rows).
+The scripts are in [`code/ch19`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch19), and each output block below comes from `code/ch19/output/`. They use the June 2026 taxi trips and the zone lookup from Part II, on Spark 4.3.0 in local mode with 16 cores. Each script makes the view `june` of [Chapter 18](ch18-spark-sql-in-depth.md). It has the June trips with a valid fare and distance, joined to their pickup zone (3,663,191 rows).
 
 - `groupby.py`: the two phases, the three aggregate operators, the new 4.3 plan rules, `FILTER` and `DISTINCT`.
 - `sets.py`: `GROUPING SETS`, `ROLLUP`, `CUBE`, `grouping()` and `grouping_id()`.

@@ -1,6 +1,6 @@
 == Two virtual environments: 'with' has the package, 'bare' has only pyspark
 pyspark                  4.3.0
-pyspark-mailbox          0.1.0    ~/spark-masterclass-parts/part09a/code/ch83/pyspark-mailbox
+pyspark-mailbox          0.1.0    ~/spark-masterclass/code/ch83/pyspark-mailbox
 
 == Plain-Python tests: no SparkSession, no JVM
 .....                                                                    [100%]

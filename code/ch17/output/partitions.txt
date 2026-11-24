@@ -116,7 +116,7 @@
 +-----------------+
 
 == 5. partition DDL: a partition outside the warehouse, and DROP on a managed table
-> ALTER TABLE zones ADD PARTITION (borough = 'Staten Island') LOCATION '~/spark-masterclass-parts/sql-ddl/data/work/ch17-partitions/landing/si'
+> ALTER TABLE zones ADD PARTITION (borough = 'Staten Island') LOCATION '~/spark-masterclass/data/work/ch17-partitions/landing/si'
 > SELECT borough, count(*) AS zones FROM zones GROUP BY borough ORDER BY borough
 +-------------+-----+
 |borough      |zones|

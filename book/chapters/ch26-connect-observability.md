@@ -6,7 +6,7 @@ A Connect server runs the queries of many clients in one Spark application. When
 
 This chapter is about the Connect parts of observability. The general tools are in [Chapter 74](ch74-observability.md): the REST API, the metrics system, the event log, the History Server, listeners and profilers. Its Step 7 introduces the Connect endpoints of the REST API. This chapter does not repeat that table. [Chapter 30](ch30-connect-in-production.md) shows the life of a session and the interrupt by tag.
 
-The code is in [`code/ch26`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch26). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. `observe.py` uses the server of [Chapter 24](ch24-spark-connect.md), with the event log on:
+The code is in [`code/ch26`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch26). The scripts ran on pyspark 4.3.0, OpenJDK 17 and Python 3.12.3 on a 16-core Linux machine. `observe.py` uses the server of [Chapter 24](ch24-spark-connect.md), with the event log on:
 
 ```bash
 ch24/server.sh start --conf spark.eventLog.enabled=true \

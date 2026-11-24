@@ -1,6 +1,6 @@
 # v3-streaming notes: Structured Streaming completeness (ch53 new, ch48 and ch50 extended)
 
-Branch `v3-streaming`, worktree `~/spark-masterclass-parts/streaming`. Ports: `SPARK_UI_PORT=4156` (ch53, films), 4157 (ch48 runs that overlapped), 4158 (ch50). Connect port 15116 was not needed (all scripts run Classic). Kafka: own container `sm-v3stream-kafka` (PLAINTEXT `localhost:29116`, SASL_PLAINTEXT `localhost:29117`), removed at the end.
+Branch `v3-streaming`, worktree `streaming`. Ports: `SPARK_UI_PORT=4156` (ch53, films), 4157 (ch48 runs that overlapped), 4158 (ch50). Connect port 15116 was not needed (all scripts run Classic). Kafka: own container `sm-v3stream-kafka` (PLAINTEXT `localhost:29116`, SASL_PLAINTEXT `localhost:29117`), removed at the end.
 
 ## Scope and changes
 

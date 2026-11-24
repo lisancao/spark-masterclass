@@ -6,7 +6,7 @@ A support team wants a label on each ticket: shipping, returns, warranty or priv
 
 **Thus, a production job counts its requests and batches them. It limits its rate across all tasks, retries only the failures that can heal, and writes each result one time.**
 
-The data is the SparkTutor support tickets: 160 labelled tickets in `train.csv` and 240 messy tickets in an inbox, with an answer key. The service is a small HTTP server in [`code/ch69/service.py`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch69). It runs in the driver process on 127.0.0.1, and it fails on purpose. The scripts are `inference.py` and `calling.py`. They ran on `pyspark==4.3.0` in local mode. The model run counts come from marker files that the Python workers write, and the request counts come from counters in the service.
+The data is the SparkTutor support tickets: 160 labelled tickets in `train.csv` and 240 messy tickets in an inbox, with an answer key. The service is a small HTTP server in [`code/ch69/service.py`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch69). It runs in the driver process on 127.0.0.1, and it fails on purpose. The scripts are `inference.py` and `calling.py`. They ran on `pyspark==4.3.0` in local mode. The model run counts come from marker files that the Python workers write, and the request counts come from counters in the service.
 
 ## Step 1: A model in Python, and a plain UDF
 

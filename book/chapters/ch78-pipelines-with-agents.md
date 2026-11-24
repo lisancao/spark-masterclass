@@ -6,7 +6,7 @@ A pipeline that raises an error costs a retry. A pipeline that runs and writes a
 
 **An agent writes better Spark pipelines inside a harness of three parts. In the *Declare* part, the agent writes Spark Declarative Pipelines, and a dry-run checks them before Spark reads data. In the *Scope* part, the agent works through a Spark Connect server that limits what it can reach. The *Context* part is a skill pinned to your Spark version, and metric views that hold the definitions of your metrics. Each part stops a different class of error, and no part stops all of them.**
 
-This chapter comes from the author's OSA Con 2026 talk, "Getting your agents to write (good) pipelines on Apache Spark", and the study behind it. This chapter quotes the study numbers as the talk's slides state them. The study ran on open source Spark 4.1. All the code in this chapter is new, and it ran on Spark 4.3.0 in [`code/ch78`](https://github.com/lisancao/spark-masterclass/tree/main/code/ch78). Each output block comes from `code/ch78/output/`.
+This chapter comes from the author's OSA Con 2026 talk, "Getting your agents to write (good) pipelines on Apache Spark", and the study behind it. This chapter quotes the study numbers as the talk's slides state them. The study ran on open source Spark 4.1. All the code in this chapter is new, and it ran on Spark 4.3.0 in [`code/ch78`](https://github.com/open-lakehouse/spark-masterclass/tree/main/code/ch78). Each output block comes from `code/ch78/output/`.
 
 ## The study
 
