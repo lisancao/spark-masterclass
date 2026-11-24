@@ -20,6 +20,17 @@ pairs = [(o, n) for o, n in m.items() if o != n]
 moves('ch{:02d}', 'zz{:02d}', [(o, o) for o, _ in pairs])
 moves('zz{:02d}', 'ch{:02d}', pairs)
 pat_ch = re.compile(r'\bch(\d{2})\b|\bch(\d{2})(?=[-_./])')
+# Files with a chapter number inside the name (k8s/kind-ch48.yaml, clips-ch24.tsv): the moves above
+# only see names that start with chNN, but the text pass below rewrites references to them.
+# Two phases again (through a temporary name), so a permutation cannot overwrite a file.
+renames = []
+for path in subprocess.run(['git', '-C', wt, 'ls-files'], capture_output=True, text=True, check=True).stdout.split('\n'):
+    head, base = os.path.split(path)
+    if not base or re.match(r'ch\d{2}', base): continue
+    new = re.sub(r'(?<=[-_.])ch\d{2}(?=[-_.])', lambda mo: pat_ch.sub(lambda m2: f'ch{m.get(int(m2.group(1) or m2.group(2)), int(m2.group(1) or m2.group(2))):02d}', mo.group(0) + '.')[:-1], base)
+    if new != base: renames.append((path, os.path.join(head, new)))
+for old, new in renames: git('mv', old, old + '.renumber-tmp')
+for old, new in renames: git('mv', old + '.renumber-tmp', new)
 pat_word = re.compile(r'\b(Chapters?|chapter|Ch\.?) (\d+)((?:(?:, | and | or | to |-)\d+)*)')
 sub_ch = lambda mo: f'ch{m.get(int(mo.group(1) or mo.group(2)), int(mo.group(1) or mo.group(2))):02d}'
 def sub_word(mo):
